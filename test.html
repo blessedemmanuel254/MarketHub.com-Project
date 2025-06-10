@@ -1,0 +1,169 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Select Account Type - MarketHub</title>
+  <style>
+
+    .account-types {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5em;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .account-card {
+      background: white;
+      border-radius: 10px;
+      padding: 1.5em;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transition: 0.3s ease;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Select Your Account Type</h2>
+
+  <form action="/register" method="post">
+    <div class="account-types">
+      <label class="account-card">
+        <input type="radio" name="accountType" value="buyer" required>
+        <div class="account-icon">🛒</div>
+        <div class="account-label">Buyer</div>
+        <div class="account-desc">Browse and purchase products locally or nationally.</div>
+      </label>
+
+      <label class="account-card">
+        <input type="radio" name="accountType" value="seller">
+        <div class="account-icon">📦</div>
+        <div class="account-label">Seller</div>
+        <div class="account-desc">List and sell items with ease to nearby or national buyers.</div>
+      </label>
+
+      <label class="account-card">
+        <input type="radio" name="accountType" value="property_owner">
+        <div class="account-icon">🏠</div>
+        <div class="account-label">Property Owner</div>
+        <div class="account-desc">List properties for rent or sale.</div>
+      </label>
+      <label class="account-card">
+        <input type="radio" name="accountType" value="service_provider">
+        <div class="account-icon">🛠️</div>
+        <div class="account-label">Service Provider</div>
+        <div class="account-desc">Offer professional services to customers around you.</div>
+      </label>
+
+      <label class="account-card">
+        <input type="radio" name="accountType" value="business_owner">
+        <div class="account-icon">🏪</div>
+        <div class="account-label">Business Owner</div>
+        <div class="account-desc">Manage a storefront and multiple listings with business tools.</div>
+      </label>
+
+      <label class="account-card">
+        <input type="radio" name="accountType" value="delivery_partner">
+        <div class="account-icon">🚚</div>
+        <div class="account-label">Delivery Partner</div>
+        <div class="account-desc">Join the logistics team to help deliver items efficiently.</div>
+      </label>
+    </div>
+
+    <div style="text-align: center; margin-top: 2em;">
+      <button type="submit" style="padding: 0.8em 2em; background: #007bff; color: white; border: none; border-radius: 5px; font-size: 1em;">Continue</button>
+    </div>
+  </form>
+
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WhatsApp Chat Clone</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: url('https://i.imgur.com/w1hgglQ.png'); /* WhatsApp chat bg */
+      font-family: 'Roboto', sans-serif;
+      padding: 40px;
+    }
+
+    .chat-container {
+      position: relative;
+      max-width: 300px;
+      margin-bottom: 20px;
+    }
+
+    .chat-bubble {
+      background-color: white;
+      border-radius: 10px 10px 10px 0;
+      padding: 10px 14px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .chat-bubble .sender {
+      font-weight: bold;
+      color: #37474f;
+      margin-bottom: 5px;
+    }
+
+    .chat-bubble .message {
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+
+    .chat-bubble .time {
+      font-size: 12px;
+      color: gray;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 5px;
+    }
+
+    .chat-bubble .time i {
+      font-size: 12px;
+      color: #34B7F1;
+    }
+
+    /* Bubble tail - top left */
+    .bubble-tail {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -6px;
+      width: 0;
+      height: 0;
+      border-top: 10px solid white;
+      border-left: 10px solid transparent;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="chat-container">
+    <div class="bubble-tail"></div>
+    <div class="chat-bubble">
+      <div class="sender">Carxpress</div>
+      <div class="message">
+        Hello there! 🤝<br>
+        How can we help?
+      </div>
+      <div class="time">
+        11:31 PM
+        <i class="fas fa-check-double"></i>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
+
+
+<!-- https://migasrenenewablesenergycom.odoo.com/ -->
+<!-- carxpress.ke -->

@@ -1,0 +1,12 @@
+1. Customers can buy products and services from their local markets.
+  LANDING PAGE
+  ~ index.php
+  ~ MARKET/SHOPS
+  BUYER'S PANNEL
+  ~ buyerpage.php
+2. Sellers can add their products on the website.
+  SELLER'S PANNEL
+  ~ sellerpage.php
+3. I can be able to monitor orders.
+  ADMIN PANNEL
+  ~ adminpage.php
