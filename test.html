@@ -1,169 +1,222 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Select Account Type - MarketHub</title>
-  <style>
+I want after a successful registration, the success message should be; "Account registered successfully! <span>Redirecting...</span/>". The 'Redirecting...' should type in and the dot's type in and out but the word remains after the first typing-in animation. Give sometime before redirecting to 'login.php'.
 
-    .account-types {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1.5em;
-      max-width: 1000px;
-      margin: auto;
+<?php
+session_start();
+include 'connection.php';
+
+$error = "";
+$username = "";
+$success = "";
+$county = "";
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+  $accountType = isset($_SESSION['accountType']) ? ucfirst(trim($_SESSION['accountType'])) : '';
+  $country = "Kenya";
+  $county = trim($_POST['county'] ?? '');
+  $username = trim($_POST['username'] ?? '');
+  $email = trim($_POST['email'] ?? '');
+  $phone = trim($_POST['phone'] ?? '');
+  $password = $_POST['password'] ?? '';
+  $confirm_password = $_POST['confirm_password'] ?? '';
+
+  if (empty($accountType) || empty($country) || empty($county) || empty($username) || empty($email) || empty($phone) || empty($password) || empty($confirm_password)) {
+    $error = "All fields are required.";
+  } else if (!$accountType) {
+    $error = 'Visit the account-type selection page to proceed.';
+  } elseif (strpos($username, ' ') !== false) {
+    $error = 'Username should not have space(s)!';
+  } elseif (strlen($username) > 20) {
+      $error = 'Username should contain a maximum of 20 characters.';
+  } elseif (strlen($username) < 5) {
+    $error = 'Username is too short!';
+  } elseif (strlen($username) > 20) {
+    $error = 'Username is too long!';
+  } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $error = 'Invalid email address.';
+  } elseif ($password !== $confirm_password) {
+    $error = 'Passwords do not match.';
+  } else {
+    $encrypted_email = base64_encode($email);
+
+    $checkUserQuery = "SELECT * FROM users WHERE email = ? OR username = ?";
+    $stmt = $conn->prepare($checkUserQuery);
+    $stmt->bind_param("ss", $encrypted_email, $username);
+    $stmt->execute();
+    $stmt->store_result();
+
+    if ($stmt->num_rows > 0) {
+      $error = "Username or email already exists.";
+    } else {
+      $stmt = $conn->prepare("SELECT user_id FROM users WHERE phone = ?");
+      $stmt->bind_param("s", $phone);
+      $stmt->execute();
+      $stmt->store_result();
+
+      if (!preg_match('/^(\+{1}\d{1,14}|0\d{9,12})$/', $phone)) {
+        $error = "Please enter a valid phone number!";
+      } if ($stmt->num_rows > 0) {
+        $error = "Phone number already exists!";
+      } else {
+        if (!$error) {
+          $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+          $stmt = $conn->prepare("INSERT INTO users (account_type, country, county, username, email, phone, password) VALUES (?, ?, ?, ?, ?, ?, ?)");
+          $stmt->bind_param("sssssss", $accountType, $country, $county, $username, $encrypted_email, $phone, $hashedPassword);
+
+          if ($stmt->execute()) {
+            $success = "Account registered successfully! <span>Redirecting...</span/>";
+          } else {
+            $error = "Error: " . $stmt->error;
+          }
+
+          $stmt->close();
+        }
+      }
     }
+  }
+}
+$accountType = isset($_SESSION['accountType']) ? ucfirst($_SESSION['accountType']) : '';
+?>
 
-    .account-card {
-      background: white;
-      border-radius: 10px;
-      padding: 1.5em;
-      text-align: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      transition: 0.3s ease;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body>
-
-  <h2>Select Your Account Type</h2>
-
-  <form action="/register" method="post">
-    <div class="account-types">
-      <label class="account-card">
-        <input type="radio" name="accountType" value="buyer" required>
-        <div class="account-icon">🛒</div>
-        <div class="account-label">Buyer</div>
-        <div class="account-desc">Browse and purchase products locally or nationally.</div>
-      </label>
-
-      <label class="account-card">
-        <input type="radio" name="accountType" value="seller">
-        <div class="account-icon">📦</div>
-        <div class="account-label">Seller</div>
-        <div class="account-desc">List and sell items with ease to nearby or national buyers.</div>
-      </label>
-
-      <label class="account-card">
-        <input type="radio" name="accountType" value="property_owner">
-        <div class="account-icon">🏠</div>
-        <div class="account-label">Property Owner</div>
-        <div class="account-desc">List properties for rent or sale.</div>
-      </label>
-      <label class="account-card">
-        <input type="radio" name="accountType" value="service_provider">
-        <div class="account-icon">🛠️</div>
-        <div class="account-label">Service Provider</div>
-        <div class="account-desc">Offer professional services to customers around you.</div>
-      </label>
-
-      <label class="account-card">
-        <input type="radio" name="accountType" value="business_owner">
-        <div class="account-icon">🏪</div>
-        <div class="account-label">Business Owner</div>
-        <div class="account-desc">Manage a storefront and multiple listings with business tools.</div>
-      </label>
-
-      <label class="account-card">
-        <input type="radio" name="accountType" value="delivery_partner">
-        <div class="account-icon">🚚</div>
-        <div class="account-label">Delivery Partner</div>
-        <div class="account-desc">Join the logistics team to help deliver items efficiently.</div>
-      </label>
-    </div>
-
-    <div style="text-align: center; margin-top: 2em;">
-      <button type="submit" style="padding: 0.8em 2em; background: #007bff; color: white; border: none; border-radius: 5px; font-size: 1em;">Continue</button>
-    </div>
-  </form>
-
-</body>
-</html> -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>WhatsApp Chat Clone</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
-  <style>
-    body {
-      background: url('https://i.imgur.com/w1hgglQ.png'); /* WhatsApp chat bg */
-      font-family: 'Roboto', sans-serif;
-      padding: 40px;
-    }
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    .chat-container {
-      position: relative;
-      max-width: 300px;
-      margin-bottom: 20px;
-    }
+  <link rel="apple-touch-icon" sizes="180x180" href="Images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="Images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="Images/favicon-16x16.png">
+  <link rel="manifest" href="Images/site.webmanifest">
 
-    .chat-bubble {
-      background-color: white;
-      border-radius: 10px 10px 10px 0;
-      padding: 10px 14px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
+  <link rel="stylesheet" href="styles/general.css">
 
-    .chat-bubble .sender {
-      font-weight: bold;
-      color: #37474f;
-      margin-bottom: 5px;
-    }
+  <!-- Font Awesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-    .chat-bubble .message {
-      margin-bottom: 6px;
-      line-height: 1.4;
-    }
+  <link href="https://fonts.googleapis.com/css2?family=Chewy&display=swap" rel="stylesheet">
 
-    .chat-bubble .time {
-      font-size: 12px;
-      color: gray;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 5px;
-    }
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 
-    .chat-bubble .time i {
-      font-size: 12px;
-      color: #34B7F1;
-    }
-
-    /* Bubble tail - top left */
-    .bubble-tail {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: -6px;
-      width: 0;
-      height: 0;
-      border-top: 10px solid white;
-      border-left: 10px solid transparent;
-    }
-  </style>
+  <title>Register Account ~ MarketHub</title>
 </head>
 <body>
+  <div class="container">
+    <main>
+      <div class="formContainer">
+        <form action="" method="POST">
+          <h2>Register account on MarketHub</h2>
+          <div class="account-type">
+            <div class="account-icon">🛒</div>
+            <div class="regInfo">
+              <h4>Account type</h4>
+              <p><?= htmlspecialchars($accountType) ?></p>
+            </div>
+          </div>
 
-  <div class="chat-container">
-    <div class="bubble-tail"></div>
-    <div class="chat-bubble">
-      <div class="sender">Carxpress</div>
-      <div class="message">
-        Hello there! 🤝<br>
-        How can we help?
+          <?php if ($error): ?>
+            <p class="errorMessage"><i class="fa-solid fa-circle-exclamation"></i> <?= $error ?></p>
+          <?php elseif ($success): ?>
+            <p class="successMessage"><i class="fa-solid fa-check-circle"></i> <?= $success ?></p>
+          <?php endif; ?>
+          <div class="selectorBox">
+            <span>County</span>
+            <select id="county" name="county" required>
+              <option value=""><p>-- Select County --</p></option>
+              <!--<option value="Baringo">Baringo</option>
+              <option value="Bomet">Bomet</option>
+              <option value="Bungoma">Bungoma</option>
+              <option value="Busia">Busia</option>
+              <option value="Elgeyo-Marakwet">Elgeyo-Marakwet</option>
+              <option value="Embu">Embu</option>
+              <option value="Garissa">Garissa</option>
+              <option value="Homa Bay">Homa Bay</option>
+              <option value="Isiolo">Isiolo</option>
+              <option value="Kajiado">Kajiado</option>
+              <option value="Kakamega">Kakamega</option>
+              <option value="Kericho">Kericho</option>
+              <option value="Kiambu">Kiambu</option>-->
+              <option value="Kilifi" <?php echo ($county === 'Kilifi') ? 'selected' : ''; ?>>Kilifi</option>
+              <!--<option value="Kirinyaga">Kirinyaga</option>
+              <option value="Kisii">Kisii</option>
+              <option value="Kisumu">Kisumu</option>
+              <option value="Kitui">Kitui</option>
+              <option value="Kwale">Kwale</option> 
+              <option value="Laikipia">Laikipia</option>
+              <option value="Lamu">Lamu</option>
+              <option value="Machakos">Machakos</option>
+              <option value="Makueni">Makueni</option>
+              <option value="Mandera">Mandera</option>
+              <option value="Marsabit">Marsabit</option>
+              <option value="Meru">Meru</option>
+              <option value="Migori">Migori</option>
+              <option value="Mombasa">Mombasa</option>
+              <option value="Murang'a">Murang'a</option>
+              <option value="Nairobi">Nairobi</option>
+              <option value="Nakuru">Nakuru</option>
+              <option value="Nandi">Nandi</option>
+              <option value="Narok">Narok</option>
+              <option value="Nyamira">Nyamira</option>
+              <option value="Nyandarua">Nyandarua</option>
+              <option value="Nyeri">Nyeri</option>
+              <option value="Samburu">Samburu</option>
+              <option value="Siaya">Siaya</option>
+              <option value="Taita Taveta">Taita Taveta</option>
+              <option value="Tana River">Tana River</option>
+              <option value="Tharaka-Nithi">Tharaka-Nithi</option>
+              <option value="Trans Nzoia">Trans Nzoia</option>
+              <option value="Turkana">Turkana</option>
+              <option value="Uasin Gishu">Uasin Gishu</option>
+              <option value="Vihiga">Vihiga</option>
+              <option value="Wajir">Wajir</option>
+              <option value="West Pokot">West Pokot</option>-->
+            </select>
+          </div>
+          <div class="inpBox">
+            <input type="text" name="username" value="<?php echo htmlspecialchars($username ?? ''); ?>" placeholder="" required>
+            <label>Username</label>
+          </div>
+          <div class="inpBox">
+            <input type="email" name="email" value="<?php echo htmlspecialchars($email ?? ''); ?>" placeholder="" required>
+            <label>Email</label>
+          </div>
+          <div class="inpBox">
+            <input type="text" name="phone" value="<?php echo htmlspecialchars($phone ?? ''); ?>" placeholder="" required>
+            <label>Phone</label>
+          </div>
+          <div class="inpBox">
+            <input type="password" name="password" placeholder="" required>
+            <label>Password</label>
+            <i class="fa-regular fa-eye"></i>
+          </div>
+          <div class="inpBox">
+            <input type="password" name="confirm_password" placeholder="" required>
+            <label>Confirm password</label>
+            <i class="fa-regular fa-eye"></i>
+          </div>
+          <button type="submit">Register</button>
+          <p class="reDctor">Already have an account? <a href="login.php">Login</a></p>
+          <div class="or-divider">or</div>
+          <div class="socialRegister">
+            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google" width="20">
+            <p>Register with google</p>
+          </div>
+          <div class="socialRegister">
+            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg" alt="Apple" width="20">
+            <p>Register with apple</p>
+          </div>
+          <div class="socialRegister">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft" width="20">
+            <p>Register with microsoft account</p>
+          </div>
+        </form>
       </div>
-      <div class="time">
-        11:31 PM
-        <i class="fas fa-check-double"></i>
-      </div>
-    </div>
+    </main>
+    <footer>
+      <p>&copy; 2025, MarketHub.com, All Rights reserved.</p>
+    </footer>
   </div>
-
 </body>
 </html>
-
-
-<!-- https://migasrenenewablesenergycom.odoo.com/ -->
-<!-- carxpress.ke -->

@@ -831,12 +831,16 @@ html body {
   font-size: 20px;
 }
 
-.container main .formContainer form p.errorMessage, .container main form.actpContainer p.errorMessage {
+.container main .formContainer form p.errorMessage, .container main .formContainer form p.successMessage, .container main form.actpContainer p.errorMessage {
   display: flex;
   align-items: center;
   gap: 5px;
   font-size: 14px;
   color: #f02849;
+}
+
+.container main .formContainer form p.successMessage {
+  color: green;
 }
 
 .container main .formContainer form input::placeholder {

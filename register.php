@@ -1,3 +1,81 @@
+<?php
+session_start();
+include 'connection.php';
+
+$error = "";
+$username = "";
+$success = "";
+$county = "";
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+  $accountType = isset($_SESSION['accountType']) ? ucfirst(trim($_SESSION['accountType'])) : '';
+  $country = "Kenya";
+  $county = trim($_POST['county'] ?? '');
+  $username = trim($_POST['username'] ?? '');
+  $email = trim($_POST['email'] ?? '');
+  $phone = trim($_POST['phone'] ?? '');
+  $password = $_POST['password'] ?? '';
+  $confirm_password = $_POST['confirm_password'] ?? '';
+
+  if (empty($accountType) || empty($country) || empty($county) || empty($username) || empty($email) || empty($phone) || empty($password) || empty($confirm_password)) {
+    $error = "All fields are required.";
+  } else if (!$accountType) {
+    $error = 'Visit the account-type selection page to proceed.';
+  } elseif (strpos($username, ' ') !== false) {
+    $error = 'Username should not have space(s)!';
+  } elseif (strlen($username) > 20) {
+      $error = 'Username should contain a maximum of 20 characters!';
+  } elseif (strlen($username) < 5) {
+    $error = 'Username is too short!';
+  } elseif (strlen($username) > 20) {
+    $error = 'Username is too long!';
+  } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $error = 'Invalid email address!';
+  } else {
+    $encrypted_email = base64_encode($email);
+
+    $checkUserQuery = "SELECT * FROM users WHERE email = ? OR username = ?";
+    $stmt = $conn->prepare($checkUserQuery);
+    $stmt->bind_param("ss", $encrypted_email, $username);
+    $stmt->execute();
+    $stmt->store_result();
+
+    if ($stmt->num_rows > 0) {
+      $error = "Username or email already exists.";
+    } else {
+      $stmt = $conn->prepare("SELECT user_id FROM users WHERE phone = ?");
+      $stmt->bind_param("s", $phone);
+      $stmt->execute();
+      $stmt->store_result();
+
+      if (!preg_match('/^(\+254\d{9}|0\d{9})$/', $phone)) {
+        $error = "Please enter a valid phone number!";
+      } elseif ($stmt->num_rows > 0) {
+        $error = "Phone number already exists!";
+      } elseif ($password !== $confirm_password) {
+        $error = 'Passwords do not match!';
+      } else {
+        if (!$error) {
+          $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+          $stmt = $conn->prepare("INSERT INTO users (account_type, country, county, username, email, phone, password) VALUES (?, ?, ?, ?, ?, ?, ?)");
+          $stmt->bind_param("sssssss", $accountType, $country, $county, $username, $encrypted_email, $phone, $hashedPassword);
+
+          if ($stmt->execute()) {
+            $success = "Account registered successfully! <span id='redirect-msg'></span>";
+          } else {
+            $error = "Error: " . $stmt->error;
+          }
+
+          $stmt->close();
+        }
+      }
+    }
+  }
+}
+$accountType = isset($_SESSION['accountType']) ? ucfirst($_SESSION['accountType']) : '';
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,17 +106,22 @@
       <div class="formContainer">
         <form action="" method="POST">
           <h2>Register account on MarketHub</h2>
-          <!-- <p class="errorMessage"><i class="fa-solid fa-circle-exclamation"></i> All fields are required.</p> -->
           <div class="account-type">
             <div class="account-icon">🛒</div>
             <div class="regInfo">
               <h4>Account type</h4>
-              <p>Buyer</p>
+              <p><?= htmlspecialchars($accountType) ?></p>
             </div>
           </div>
+
+          <?php if ($error): ?>
+            <p class="errorMessage"><i class="fa-solid fa-circle-exclamation"></i> <?= $error ?></p>
+          <?php elseif ($success): ?>
+            <p class="successMessage"><i class="fa-solid fa-check-circle"></i> <?= $success ?></p>
+          <?php endif; ?>
           <div class="selectorBox">
             <span>County</span>
-            <select name="county" id="county" required>
+            <select id="county" name="county" required>
               <option value=""><p>-- Select County --</p></option>
               <!--<option value="Baringo">Baringo</option>
               <option value="Bomet">Bomet</option>
@@ -53,12 +136,12 @@
               <option value="Kakamega">Kakamega</option>
               <option value="Kericho">Kericho</option>
               <option value="Kiambu">Kiambu</option>-->
-              <option value="Kilifi">Kilifi</option>
+              <option value="Kilifi" <?php echo ($county === 'Kilifi') ? 'selected' : ''; ?>>Kilifi</option>
               <!--<option value="Kirinyaga">Kirinyaga</option>
               <option value="Kisii">Kisii</option>
               <option value="Kisumu">Kisumu</option>
               <option value="Kitui">Kitui</option>
-              <option value="Kwale">Kwale</option>
+              <option value="Kwale">Kwale</option> 
               <option value="Laikipia">Laikipia</option>
               <option value="Lamu">Lamu</option>
               <option value="Machakos">Machakos</option>
@@ -90,24 +173,24 @@
             </select>
           </div>
           <div class="inpBox">
-            <input type="text" placeholder="" required>
+            <input type="text" name="username" value="<?php echo htmlspecialchars($username ?? ''); ?>" placeholder="" required>
             <label>Username</label>
           </div>
           <div class="inpBox">
-            <input type="email" placeholder="" required>
+            <input type="email" name="email" value="<?php echo htmlspecialchars($email ?? ''); ?>" placeholder="" required>
             <label>Email</label>
           </div>
           <div class="inpBox">
-            <input type="text" placeholder="" required>
+            <input type="text" name="phone" value="<?php echo htmlspecialchars($phone ?? ''); ?>" placeholder="" required>
             <label>Phone</label>
           </div>
           <div class="inpBox">
-            <input type="password" placeholder="" required>
+            <input type="password" name="password" placeholder="" required>
             <label>Password</label>
             <i class="fa-regular fa-eye"></i>
           </div>
           <div class="inpBox">
-            <input type="password" placeholder="" required>
+            <input type="password" name="confirm_password" placeholder="" required>
             <label>Confirm password</label>
             <i class="fa-regular fa-eye"></i>
           </div>
@@ -133,5 +216,7 @@
       <p>&copy; 2025, MarketHub.com, All Rights reserved.</p>
     </footer>
   </div>
+  
+  <script src="Scripts/general.js" type="text/javascript"></script>
 </body>
 </html>
