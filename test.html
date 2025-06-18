@@ -1,4 +1,4 @@
-I want after a successful registration, the success message should be; "Account registered successfully! <span>Redirecting...</span/>". The 'Redirecting...' should type in and the dot's type in and out but the word remains after the first typing-in animation. Give sometime before redirecting to 'login.php'.
+I want the phone to be encoded just like the email, to be checked whether it already exists in the database (I want if a number for example; 0759578630 was used to register an account, the same number starting with a country code should also be detected as already existing in the database). If the number is unique, it should be stored in encoded format. 
 
 <?php
 session_start();
@@ -26,15 +26,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   } elseif (strpos($username, ' ') !== false) {
     $error = 'Username should not have space(s)!';
   } elseif (strlen($username) > 20) {
-      $error = 'Username should contain a maximum of 20 characters.';
+      $error = 'Username should contain a maximum of 20 characters!';
   } elseif (strlen($username) < 5) {
     $error = 'Username is too short!';
   } elseif (strlen($username) > 20) {
     $error = 'Username is too long!';
   } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    $error = 'Invalid email address.';
-  } elseif ($password !== $confirm_password) {
-    $error = 'Passwords do not match.';
+    $error = 'Invalid email address!';
   } else {
     $encrypted_email = base64_encode($email);
 
@@ -52,10 +50,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       $stmt->execute();
       $stmt->store_result();
 
-      if (!preg_match('/^(\+{1}\d{1,14}|0\d{9,12})$/', $phone)) {
+      if (!preg_match('/^(\+254\d{9}|0\d{9})$/', $phone)) {
         $error = "Please enter a valid phone number!";
-      } if ($stmt->num_rows > 0) {
+      } elseif ($stmt->num_rows > 0) {
         $error = "Phone number already exists!";
+      } elseif ($password !== $confirm_password) {
+        $error = 'Passwords do not match!';
       } else {
         if (!$error) {
           $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
@@ -64,7 +64,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           $stmt->bind_param("sssssss", $accountType, $country, $county, $username, $encrypted_email, $phone, $hashedPassword);
 
           if ($stmt->execute()) {
-            $success = "Account registered successfully! <span>Redirecting...</span/>";
+            $success = "Account registered successfully! <span id='redirect-msg'></span>";
           } else {
             $error = "Error: " . $stmt->error;
           }
@@ -218,5 +218,7 @@ $accountType = isset($_SESSION['accountType']) ? ucfirst($_SESSION['accountType'
       <p>&copy; 2025, MarketHub.com, All Rights reserved.</p>
     </footer>
   </div>
+  
+  <script src="Scripts/general.js" type="text/javascript"></script>
 </body>
 </html>

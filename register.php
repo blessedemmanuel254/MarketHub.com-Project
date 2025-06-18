@@ -7,6 +7,26 @@ $username = "";
 $success = "";
 $county = "";
 
+function normalizePhoneNumber($rawPhone) {
+  // Remove all characters except numbers and plus sign
+  $cleaned = preg_replace('/[^\d+]/', '', $rawPhone);
+
+  // Handle various formats
+  if (strpos($cleaned, '+') === 0) {
+      // Already starts with country code
+      return $cleaned;
+  } elseif (strpos($cleaned, '0') === 0 && strlen($cleaned) >= 10) {
+      // Starts with 0 — assume it's local Kenyan-style and convert to +254
+      return '+254' . substr($cleaned, 1);
+  } elseif (strlen($cleaned) >= 9 && !str_starts_with($cleaned, '+')) {
+      // Assume starts directly with country code
+      return '+' . $cleaned;
+  }
+
+  // Invalid fallback
+  return '';
+}
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $accountType = isset($_SESSION['accountType']) ? ucfirst(trim($_SESSION['accountType'])) : '';
   $country = "Kenya";
@@ -33,6 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $error = 'Invalid email address!';
   } else {
     $encrypted_email = base64_encode($email);
+    $normalized_phone = normalizePhoneNumber($phone);
 
     $checkUserQuery = "SELECT * FROM users WHERE email = ? OR username = ?";
     $stmt = $conn->prepare($checkUserQuery);
@@ -43,12 +64,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if ($stmt->num_rows > 0) {
       $error = "Username or email already exists.";
     } else {
+      $encrypted_phone = base64_encode($normalized_phone);
       $stmt = $conn->prepare("SELECT user_id FROM users WHERE phone = ?");
-      $stmt->bind_param("s", $phone);
+      $stmt->bind_param("s", $encrypted_phone);
       $stmt->execute();
       $stmt->store_result();
 
-      if (!preg_match('/^(\+254\d{9}|0\d{9})$/', $phone)) {
+      if (!$normalized_phone || !preg_match('/^(\+254\d{9}|0\d{9})$/', $normalized_phone)) {
         $error = "Please enter a valid phone number!";
       } elseif ($stmt->num_rows > 0) {
         $error = "Phone number already exists!";
@@ -59,7 +81,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
           $stmt = $conn->prepare("INSERT INTO users (account_type, country, county, username, email, phone, password) VALUES (?, ?, ?, ?, ?, ?, ?)");
-          $stmt->bind_param("sssssss", $accountType, $country, $county, $username, $encrypted_email, $phone, $hashedPassword);
+          $stmt->bind_param("sssssss", $accountType, $country, $county, $username, $encrypted_email, $encrypted_phone, $hashedPassword);
 
           if ($stmt->execute()) {
             $success = "Account registered successfully! <span id='redirect-msg'></span>";
