@@ -74,3 +74,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 500);
   }
 });
+
+/* Toggle password visibility */
+document.addEventListener("DOMContentLoaded", function () {
+  const toggles = document.querySelectorAll(".toggle-password");
+
+  toggles.forEach(icon => {
+    icon.addEventListener("click", function () {
+      const input = this.closest(".inpBox").querySelector(".password-field");
+
+      if (input.type === "password") {
+        input.type = "text";
+        this.classList.replace("fa-eye", "fa-eye-slash");
+        this.setAttribute("title", "Hide Password");
+
+        // Auto-hide after 3 seconds
+        setTimeout(() => {
+          input.type = "password";
+          this.classList.replace("fa-eye-slash", "fa-eye");
+          this.setAttribute("title", "Show Password");
+        }, 3000);
+      } else {
+        input.type = "password";
+        this.classList.replace("fa-eye-slash", "fa-eye");
+        this.setAttribute("title", "Show Password");
+      }
+    });
+  });
+});

@@ -207,14 +207,15 @@ $accountType = isset($_SESSION['accountType']) ? ucfirst($_SESSION['accountType'
             <label>Phone</label>
           </div>
           <div class="inpBox">
-            <input type="password" name="password" placeholder="" required>
+            <input type="password" name="password" class="password-field" placeholder="" required>
             <label>Password</label>
-            <i class="fa-regular fa-eye"></i>
+            <i class="fa-regular fa-eye toggle-password" title="Show Password"></i>
           </div>
+
           <div class="inpBox">
-            <input type="password" name="confirm_password" placeholder="" required>
-            <label>Confirm password</label>
-            <i class="fa-regular fa-eye"></i>
+            <input type="password" name="confirm_password" class="password-field" placeholder="" required>
+            <label>Confirm Password</label>
+            <i class="fa-regular fa-eye toggle-password" title="Show Password"></i>
           </div>
           <button type="submit">Register</button>
           <p class="reDctor">Already have an account? <a href="login.php">Login</a></p>

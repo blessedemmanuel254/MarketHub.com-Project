@@ -680,6 +680,10 @@ html body {
   background-color: white;
 }
 
+.container main .formContainer form .inpBox {
+  position: relative;
+}
+
 .container main .formContainer form .inpBox input:focus + label,
 .container main .formContainer form .inpBox input:not(:placeholder-shown) + label {
   top: 0;
@@ -698,6 +702,19 @@ html body {
   transform: translateY(-50%);
   padding: 8px;
   color: #0f0f0f;
+}
+
+.container main .formContainer form .inpBox i.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.container main .formContainer form .inpBox i.fa-eye-slash {
+  color: #898888;
 }
 
 .container main .formContainer form input {
