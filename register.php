@@ -37,10 +37,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $password = $_POST['password'] ?? '';
   $confirm_password = $_POST['confirm_password'] ?? '';
 
-  if (empty($accountType) || empty($country) || empty($county) || empty($username) || empty($email) || empty($phone) || empty($password) || empty($confirm_password)) {
+  if (empty($country) || empty($county) || empty($username) || empty($email) || empty($phone) || empty($password) || empty($confirm_password)) {
     $error = "All fields are required.";
   } else if (!$accountType) {
-    $error = 'Visit the account-type selection page to proceed.';
+    $error = 'Visit the <a href="accountTypeSelection.php">account-type selection</a> page to proceed.';
   } elseif (strpos($username, ' ') !== false) {
     $error = 'Username should not have space(s)!';
   } elseif (strlen($username) > 20) {
@@ -211,7 +211,6 @@ $accountType = isset($_SESSION['accountType']) ? ucfirst($_SESSION['accountType'
             <label>Password</label>
             <i class="fa-regular fa-eye toggle-password" title="Show Password"></i>
           </div>
-
           <div class="inpBox">
             <input type="password" name="confirm_password" class="password-field" placeholder="" required>
             <label>Confirm Password</label>
