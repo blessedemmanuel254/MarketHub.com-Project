@@ -1,65 +1,3 @@
-<?php
-session_start();
-require_once 'connection.php';
-
-/* ---------- SESSION SECURITY ---------- */
-if (!isset($_SESSION['user_id'])) {
-    header("Location: index.php");
-    exit();
-}
-
-/* Optional: regenerate session ID periodically */
-if (!isset($_SESSION['created'])) {
-    session_regenerate_id(true);
-    $_SESSION['created'] = time();
-}
-
-/* ---------- FETCH USER DATA ---------- */
-$user_id = $_SESSION['user_id'];
-
-$query = "SELECT username FROM users WHERE user_id = ? LIMIT 1";
-$stmt = $conn->prepare($query);
-
-if (!$stmt) {
-    die("System error.");
-}
-
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$result = $stmt->get_result();
-
-$username = "User";
-
-if ($result && $result->num_rows === 1) {
-    $user = $result->fetch_assoc();
-    $username = $user['username'];
-}
-
-$stmt->close();
-
-/* ---------- PROFILE LETTER ---------- */
-$profileLetter = strtoupper(substr($username, 0, 1));
-
-/* ---------- FORMAT USERNAME ---------- */
-$username = trim($username);
-
-if ($username !== '') {
-    $formattedUsername =
-        strtoupper(substr($username, 0, 1)) .
-        strtolower(substr($username, 1));
-} else {
-    $formattedUsername = "User";
-}
-
-/* ---------- PROFILE LETTER ---------- */
-$profileLetter = strtoupper(substr($formattedUsername, 0, 1));
-
-/* ---------- SAFE OUTPUT ---------- */
-$safeUsername = htmlspecialchars($formattedUsername, ENT_QUOTES, 'UTF-8');
-$safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
-
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -82,49 +20,31 @@ $safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,70090000000;1,800;1,900&display=swap" rel="stylesheet">
 
-  <title>Buyer Page | MarketHub</title>
+  <title>Landing page | MarketHub</title>
 </head>
 <body>
   <div class="container">
-    <header class="pgHeader">
-      <section>
-        <div class="sContainer">
-          <p><?php echo $safeLetter; ?></p>
-          <p class="wcmTxt">
-            Welcome,<br>
-            <span>Logged in as <?php echo $safeUsername; ?></span>
-          </p>
-        </div>
-        <a class="lkOdr">
-          <div class="odrIconDiv">
-            <i class="fa-brands fa-first-order-alt"></i>
-            <p>8</p>
-          </div>
-          <p>Order(s)</p>
+    <header>
+      <div class="lhs">
+        <a href="index.html">
+          <img src="Images/MarketHub Logo.avif" alt="MarketHub Logo">
+          <h1>MarketHub</h1>
         </a>
-      </section>
-      <section>
-        <div class="lhs">
-          <a href="index.php">
-            <img src="Images/MarketHub Logo.avif" alt="MarketHub Logo">
-            <h1>MarketHub</h1>
-          </a>
+      </div>
+      <div class="rhs">
+        <div class="help-icon">
+          <i class="fa-regular fa-circle-question"></i>
+          <p class="help-text">Help</p>
         </div>
-        <div class="rhs">
-          <div class="help-icon">
-            <i class="fa-regular fa-circle-question"></i>
-            <p class="help-text">Help</p>
-          </div>
-          <select name="" id="country">
-            <option value="">Kenya</option>
-            <!--<option value="">Tanzania</option>
-            <option value="">Uganda</option>-->
-          </select>
-          <a href="accountTypeSelection.php"></i><i class="fa-regular fa-user"></i>Profile</a>
-          <a href="logout.php">SIGN&nbsp;OUT</a>
-          <i class="fa-solid fa-bars" onclick="togglePopupBar()"></i>
-        </div>
-      </section>
+        <select name="" id="country">
+          <option value="">Kenya</option>
+          <!--<option value="">Tanzania</option>
+          <option value="">Uganda</option>-->
+        </select>
+        <a href="accountTypeSelection.php"></i><i class="fa-regular fa-user"></i>Register</a>
+        <a href="index.php">Login</a>
+        <i class="fa-solid fa-bars" onclick="togglePopupBar()"></i>
+      </div>
     </header>
 
     <div id="whatsapp-button" onclick="toggleWhatsAppChat()">
@@ -166,7 +86,6 @@ $safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
         <img src="Images/MarketHub Logo.avif" alt="">
         <i class="fa-solid fa-xmark" onclick="togglePopupBar()"></i>
       </div>
-
       <a href="" class="help-icon">
         <i class="fa-regular fa-circle-question"></i>
         <p class="help-text">Help</p>
@@ -179,8 +98,8 @@ $safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
       <div class="mainContainer1">
         <div class="mContainer">
           <div class="welcomeContainer">
-            <h1>Welcome&nbsp;to the MarketHub&nbsp;!</h1>
-            <p>Your all-in-one platform for discovering and ordering from local markets and service providers. Bringing Local Markets to Your Screen.</p>
+            <h1>Buy Local. Order Global!</h1>
+            <p>Your all-in-one platform for discovering and ordering from local markets and service providers. Bringing Local Markets to Your screen—making it easy to shop nearby while thinking globally.</p>
           </div>
           <div class="welcomeContainer">
             <h2>Are you a seller, service provider or a property owner scaling your market or a buyer seeking a product or service? It's just a tap away !</h2>

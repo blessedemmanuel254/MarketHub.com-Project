@@ -42,7 +42,7 @@
           <option value="">Uganda</option>-->
         </select>
         <a href="accountTypeSelection.php"></i><i class="fa-regular fa-user"></i> Register</a>
-        <a href="login.php">Login</a>
+        <a href="index.php">Login</a>
         <i class="fa-solid fa-bars"></i>
       </div>
     </header>

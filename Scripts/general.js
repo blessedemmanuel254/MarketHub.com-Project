@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
       typingDone = true;
       animateDots();
       setTimeout(() => {
-        window.location.href = "login.php";
+        window.location.href = "index.php";
       }, 3500);
     }
   }, 100);
