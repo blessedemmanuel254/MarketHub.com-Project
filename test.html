@@ -1,73 +1,116 @@
-I want it such that, if the user is a Seller, they should be redirected to sellerpage.php, if the user is a buyer, they should be redirected to buyerpage.php. The rest of the things should be like the register page. <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>Animated Tabs</title>
 
-  <link rel="apple-touch-icon" sizes="180x180" href="Images/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="Images/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="Images/favicon-16x16.png">
-  <link rel="manifest" href="Images/site.webmanifest">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #fff;
+            margin: 0;
+            padding: 0;
+            color: #000;
+        }
 
-  <link rel="stylesheet" href="styles/general.css">
+        .tabs-container {
+            width: 80%;
+            margin: 60px auto;
+            border: 1px solid #000;
+        }
 
-  <!-- Font Awesome CDN -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #000;
+        }
 
-  <link href="https://fonts.googleapis.com/css2?family=Chewy&display=swap" rel="stylesheet">
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            background: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            color: #000;
+            position: relative;
+        }
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+        .tab-btn:not(:last-child) {
+            border-right: 1px solid #000;
+        }
 
-  <title>Login ~ MarketHub account</title>
+        .tab-btn.active {
+            background: #000;
+            color: #fff;
+        }
+
+        .tab-content {
+            position: relative;
+            overflow: hidden;
+            min-height: 150px;
+        }
+
+        .tab-panel {
+            position: absolute;
+            width: 100%;
+            padding: 25px;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: opacity 0.35s ease, transform 0.35s ease;
+            pointer-events: none;
+        }
+
+        .tab-panel.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <main>
-      <div class="formContainer">
-        <h1 class="login">MarketHub</h1>
-        <form action="" method="POST">
-          <h2>Login to MarketHub</h2>
-          <p class="errorMessage"><i class="fa-solid fa-circle-exclamation"></i>All fields are required.</p>
-          <p class="successMessage"><i class="fa-solid fa-check-circle">Successfully Logged in! Redirecting...</i></p>
-          <div class="inpBox">
-            <input type="text" placeholder="" required>
-            <label>Username, email or phone</label>
-          </div>
-          <div class="inpBox">
-            <input type="password" name="password" class="password-field" placeholder="" required>
-            <label>Password</label>
-            <i class="fa-regular fa-eye toggle-password" title="Show Password"></i>
-          </div>
-          <div class="remember-me">
-            <input type="checkbox" id="remember" name="remember">
-            <label for="remember">Remember me</label>
-          </div>
-          <button type="submit">Login</button>
-          <p class="reDctor"><a href="#" class="anchFgt">Forgot password</a></p>
-          <p class="reDctor">Don't have an account? <a href="accountTypeSelection.php">Register</a></p>
-          <div class="or-divider">or</div>
-          <div class="socialLogin">
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google" width="20">
-            <p>Login with google</p>
-          </div>
-          <div class="socialLogin">
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg" alt="Apple" width="20">
-            <p>Login with apple</p>
-          </div>
-          <div class="socialLogin">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft" width="20">
-            <p>Login with microsoft account</p>
-          </div>
-        </form>
-      </div>
-    </main>
-    <footer>
-      <p>&copy; 2025, MarketHub.com, All Rights reserved.</p>
-    </footer>
-  </div>
 
-  <script src="Scripts/general.js" type="text/javascript"></script>
+<div class="tabs-container">
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="products">Products</button>
+        <button class="tab-btn" data-tab="services">Services</button>
+        <button class="tab-btn" data-tab="rentals">Rentals</button>
+    </div>
+
+    <div class="tab-content">
+        <div id="products" class="tab-panel active">
+            <h2>Products</h2>
+            <p>Quality goods from trusted local vendors.</p>
+        </div>
+
+        <div id="services" class="tab-panel">
+            <h2>Services</h2>
+            <p>Professional services delivered with reliability.</p>
+        </div>
+
+        <div id="rentals" class="tab-panel">
+            <h2>Rentals</h2>
+            <p>Affordable rentals for homes, vehicles and equipment.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const tabs = document.querySelectorAll('.tab-btn');
+    const panels = document.querySelectorAll('.tab-panel');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const target = tab.dataset.tab;
+
+            tabs.forEach(t => t.classList.remove('active'));
+            panels.forEach(p => p.classList.remove('active'));
+
+            tab.classList.add('active');
+            document.getElementById(target).classList.add('active');
+        });
+    });
+</script>
+
 </body>
 </html>

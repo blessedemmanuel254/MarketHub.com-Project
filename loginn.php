@@ -202,7 +202,7 @@
       </div>
     </main>
     <footer>
-      <p>&copy; 2025, MarketHub.com, All Rights reserved.</p>
+      <p>&copy; 2025/2026, MarketHub.com, All Rights reserved.</p>
     </footer>
   </div>
   

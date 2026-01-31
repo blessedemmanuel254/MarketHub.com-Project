@@ -95,34 +95,28 @@ $safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
             <span>Logged in as <?php echo $safeUsername; ?></span>
           </p>
         </div>
-        <a class="lkOdr">
-          <div class="odrIconDiv">
-            <i class="fa-brands fa-first-order-alt"></i>
-            <p>8</p>
-          </div>
-          <p>Order(s)</p>
-        </a>
-      </section>
-      <section>
-        <div class="lhs">
-          <a href="index.php">
-            <img src="Images/MarketHub Logo.avif" alt="MarketHub Logo">
-            <h1>MarketHub</h1>
-          </a>
-        </div>
         <div class="rhs">
-          <div class="help-icon">
-            <i class="fa-regular fa-circle-question"></i>
-            <p class="help-text">Help</p>
-          </div>
-          <select name="" id="country">
-            <option value="">Kenya</option>
+          <a class="lkOdr">
+            <div class="odrIconDiv">
+              <i class="fa-brands fa-first-order-alt"></i>
+              <p>8</p>
+            </div>
+            <p>Order(s)</p>
+          </a>
+          <select name="" id="ward">
+            <option value="">Kilifi</option>
             <!--<option value="">Tanzania</option>
             <option value="">Uganda</option>-->
           </select>
-          <a href="accountTypeSelection.php"></i><i class="fa-regular fa-user"></i>Profile</a>
-          <a href="logout.php">SIGN&nbsp;OUT</a>
-          <i class="fa-solid fa-bars" onclick="togglePopupBar()"></i>
+          <div class="help-icon">
+            <i class="fa-regular fa-circle-question"></i>
+            <p class="help-text">Help&nbsp;Centre</p>
+          </div>
+          <div class="profile-icon">
+            <i class="fa-regular fa-user"></i>
+            <p class="help-text">Profile</p>
+          </div>
+          <img src="Images/Kenya Flag.png" alt="Kenya Flag" width="40">
         </div>
       </section>
     </header>
@@ -283,7 +277,7 @@ $safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
       </div>
     </main>
     <footer>
-      <p>&copy; 2025, MarketHub.com, All Rights reserved.</p>
+      <p>&copy; 2025/2026, MarketHub.com, All Rights reserved.</p>
     </footer>
   </div>
   
