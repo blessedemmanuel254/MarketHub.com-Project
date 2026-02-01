@@ -70,7 +70,7 @@ html body {
 .container header.pgHeader section .sContainer p {
   font-size: 14px;
 }
-
+/* 
 .container header.pgHeader section .sContainer:first-of-type p:first-of-type {
   background-color: #898888;
   color: white;
@@ -84,7 +84,7 @@ html body {
   display: flex;
   justify-content: center;
   align-items: center;
-}
+} */
 
 .container header.pgHeader section .rhs a.lkOdr {
   padding: 8px 16px;
@@ -456,83 +456,72 @@ html body {
   }
 }
 
-.container .mainContainer1 {
-  display: grid;
-  grid-template-columns: 0.625fr 0.375fr;
-  gap: 20px;
-  height: clamp(50vh, 50vh, 100%);
-  font-size: 22px;
-  padding: 50px 20px 20px 20px;
-}
-
-.container .mainContainer1 .mContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  justify-content: center;
+.container main.buyerMain {
   padding: 20px;
+  min-height: calc(100vh - 150px);
 }
 
-.container .mainContainer1 .mContainer:first-of-type {
-  justify-content: start;
+.container main.buyerMain .tabs-container {
+  width: 90%;
+  margin: 10px auto;
 }
 
-.container .mainContainer1 .mContainer .welcomeContainer, .container .mainContainer1 .mContainer .welcomeContainer1 {
+.container main.buyerMain .tabs-container .tabs {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
 }
 
-.container .mainContainer1 .mContainer .welcomeContainer1 {
-  display: none;
-}
-
-.container .mainContainer1 .mContainer .welcomeContainer h1 {
-  font-size: 40px;
-}
-
-.container .mainContainer1 .mContainer .welcomeContainer h2, .container .mainContainer1 .mContainer .welcomeContainer1 h2 {
-  font-size: 30px;
-  color: #898888;
-  font-weight: normal;
-  text-align: center;
-}
-
-.container .mainContainer1 .mContainer .welcomeContainer1 img {
-  width: clamp(100px, 100%, 400px);
-}
-
-.container .mainContainer1 .mContainer .welcomeContainer a,.container .mainContainer1 .mContainer .welcomeContainer1 a {
-  background-color: #0f0f0f;
-  color: white;
-  font-size: 20px;
-  cursor: pointer;
+.container main.buyerMain .tabs-container .tabs .tab-btn {
+  flex: 1;
+  padding: 8px;
   border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  text-decoration: none;
+  cursor: pointer;
+  font-size: 16px;
+  position: relative;
+  background: #ffffff;
+  border: 1px solid #ffffff;
+  border-bottom: 1px solid #dedede;
+  border-radius: 10px 10px 0 0;
 }
 
-.container .mainContainer1 .mContainer .welcomeContainer a:hover,.container .mainContainer1 .mContainer .welcomeContainer1 a:hover {
-  opacity: .875;
+.container main.buyerMain .tabs-container .tabs .tab-btn:hover {
+  background-color: #dedede42;
 }
 
-.container .mainContainer1 .mContainer .welcomeContainer:last-of-type, .container .mainContainer1 .mContainer .welcomeContainer1 {
-  align-items: center;
-  gap: 20px;
+.container main.buyerMain .tabs-container .tabs .tab-btn.active {
+  font-weight: bold;
+  border-radius: 10px 10px 0 0;
+  border: 1px solid #dedede;
+  background-color: #dedede;
+  color: #0F0F0F;
 }
 
-.container .mainContainer1 .mContainerForForm {
-  display: flex;
-  justify-content: end;
-  height: fit-content;
+.container main.buyerMain .tabs-container .tab-content {
+  position: relative;
+  overflow: hidden;
+  min-height: 150px;
+}
+
+.container main.buyerMain .tabs-container .tab-content .tab-panel {
+  position: absolute;
+  width: 100%;
+  padding: 25px;
+  opacity: 0;
+  transform: translateX(20px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  pointer-events: none;
+}
+
+.container main.buyerMain .tabs-container .tab-content .tab-panel.active {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
 }
 
 .container main .formContainer h1 {
   animation: wiggle 2s ease-in-out infinite;
 }
 
-.container .mainContainer1 .mContainerForForm form, .container main .formContainer form {
+.container main .formContainer form {
   border: 1px solid #dedede;
   border-radius: 4px;
   padding: 20px 12px;
@@ -550,33 +539,17 @@ html body {
   width: clamp(200px, 100%, 400px);
 }
 
-.container .mainContainer1 .mContainerForForm form p.catFormTitle {
-  text-align: center;
-  font-weight: bold;
-  font-size: 18px;
-}
-
-.container .mainContainer1 .mContainerForForm form p.catFormTitle span {
-  color: #898888;
-  font-weight: normal;
-  font-size: 16px;
-}
-
-.container .mainContainer1 .mContainerForForm form .selectorBox, .container .formContainer form .selectorBox {
+.container .formContainer form .selectorBox {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.container .mainContainer1 .mContainerForForm form .selectorBox span.cntry {
-  display: none;
-}
-
-.container .mainContainer1 .mContainerForForm form .selectorBox span, .container .formContainer form .selectorBox span {
+ .container .formContainer form .selectorBox span {
   font-size: 14px;
 }
 
-.container .mainContainer1 .mContainerForForm form .selectorBox select, .container .formContainer form .selectorBox select, .container main .formContainer form input, .container main .formContainer form .socialLogin, .container main .formContainer form .socialRegister, .container main .formContainer form .remember-me, .container main .formContainer form .inpBox {
+.container .formContainer form .selectorBox select, .container main .formContainer form input, .container main .formContainer form .socialLogin, .container main .formContainer form .socialRegister, .container main .formContainer form .remember-me, .container main .formContainer form .inpBox {
   outline: none;
   border: 1px solid #dedede;
   border-radius: 4px;
@@ -587,7 +560,7 @@ html body {
   color: #898888;
 }
 
-.container .mainContainer1 .mContainerForForm form .selectorBox select, .container .formContainer form .selectorBox select {
+.container .formContainer form .selectorBox select {
   color: #0f0f0f;
 }
 
@@ -679,17 +652,7 @@ html body {
   color: black;
 }
 
-.container .mainContainer1 .mContainerForForm form .selectorBox select option {
-  color: black;
-}
-
-.container .mainContainer1 .mContainerForForm form .selectorBox select.cntry {
-  background-color: #dedede;
-  border-radius: 0;
-  display: none;
-}
-
-.container .mainContainer1 .mContainerForForm form button, .container main .formContainer form button, .container main form.actpContainer button {
+.container main .formContainer form button, .container main form.actpContainer button {
   color: white;
   background-color: #0f0f0f;
   border: none;
@@ -699,42 +662,13 @@ html body {
   font-size: 14px;
 }
 
-.container .mainContainer1 .mContainerForForm form button:hover, .container main .formContainer form button:hover, .container main form.actpContainer button:hover {
+.container main .formContainer form button:hover, .container main form.actpContainer button:hover {
   opacity: 0.875;
-}
-
-@media (max-width: 340px) {
-  .container header .rhs .help-icon {
-    display: none;
-  }
-
-  .container .popUpBar a.help-icon {
-    display: flex;
-  }
 }
 
 @media (max-width: 385px) {
   .container header {
     padding: 20px 10px;
-  }
-
-  .container .mainContainer1 {
-    padding-right: 10px;
-    padding-left: 10px;
-  }
-
-  .container .mainContainer1 .mContainer {
-    padding: 20px 0;
-  }
-}
-
-@media (max-width: 485px) {
-  .container .mainContainer1 .mContainerForForm form .selectorBox span.cntry {
-    display: block;
-  }
-
-  .container .mainContainer1 .mContainerForForm form .selectorBox select.cntry {
-    display: block;
   }
 }
 
@@ -759,24 +693,6 @@ html body {
   }
 }
 
-@media (max-width: 790px) {
-  .container .mainContainer1 {
-    grid-template-columns: 1fr;
-  }
-
-  .container .mainContainer1 .mContainer .welcomeContainer:last-of-type {
-    display: none;
-  }
-
-  .container .mainContainer1 .mContainerForForm {
-    justify-content: center;
-  }
-    
-  .container .mainContainer1 .mContainer .welcomeContainer1 {
-    display: flex;
-  }
-}
-
 @media (max-width: 770px) {
   .container header.pgHeader section {
     flex-direction: column;
@@ -794,6 +710,10 @@ html body {
   .container header.pgHeader section .rhs a.lkOdr {
     padding-left: 5px;
     padding-right: 5px;
+  }
+
+  .container main.buyerMain .tabs-container {
+    width: 100%;
   }
 }
 
