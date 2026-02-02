@@ -121,7 +121,7 @@ $safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
         </div>
       </section>
     </header>
-
+    <div class="whatsAppChartOverlay" onclick="toggleWhatsAppChat()" id="whatsAppChartOverlay"></div>
     <div id="whatsapp-button" onclick="toggleWhatsAppChat()">
       <img src="Images/MarketHub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
     </div>
@@ -155,21 +155,6 @@ $safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
       </div>
     </div>
 
-    <div class="overlay" id="overlay" onclick="togglePopupBar()"></div>
-    <div class="popUpBar" id="popupbar">
-      <div class="top">
-        <img src="Images/MarketHub Logo.avif" alt="">
-        <i class="fa-solid fa-xmark" onclick="togglePopupBar()"></i>
-      </div>
-
-      <a href="" class="help-icon">
-        <i class="fa-regular fa-circle-question"></i>
-        <p class="help-text">Help</p>
-      </a>
-      <a href="accountTypeSelection.php"></i><i class="fa-regular fa-user"></i> Register</a>
-      <a href="index.php">Login</a>
-    </div>
-
     <main class="buyerMain">
       <div class="tabs-container">
         <div class="tabs">
@@ -180,15 +165,120 @@ $safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
 
         <div class="tab-content">
           <div id="products" class="tab-panel active">
-            <p>Quality goods from trusted local vendors.</p>
+            <p>Quality goods from trusted vendors. <br><strong>Select Market type <i class="fa-regular fa-circle-check"></i></strong></p>
+
+            <div class="cards">
+              <!-- LOCAL -->
+              <div class="card">
+                <i class="fa-solid fa-location-dot"></i>
+                <h2>Local Market</h2>
+                <p>
+                  Discover products near you.
+                  Ideal for quick purchases, nearby sellers,
+                  and same-day or next-day delivery.
+                </p>
+                <div class="label">Local</div>
+              </div>
+
+              <!-- NATIONAL (MOST VISITED) -->
+              <div class="card">
+                <div class="tag">MOST VISITED</div>
+                <i class="fa-solid fa-flag-usa"></i>
+                <h2>National Market</h2>
+                <p>
+                  Browse products from across the country.
+                  Compare prices, access trusted vendors,
+                  and enjoy reliable nationwide delivery.
+                </p>
+                <div class="label">National</div>
+              </div>
+
+              <!-- GLOBAL -->
+              <div class="card">
+                <i class="fa-solid fa-earth-americas"></i>
+                <h2>Global Market</h2>
+                <p>
+                  Explore international products.
+                  Perfect for unique items, global brands,
+                  and cross-border shopping experiences.
+                </p>
+                <div class="label">Global</div>
+              </div>
+            </div>
           </div>
 
           <div id="services" class="tab-panel">
-            <p>Professional services delivered with reliability.</p>
+            <p>Professional services delivered with reliability.<br><strong>Select Market type <i class="fa-regular fa-circle-check"></i></strong></p>
+
+            <div class="cards">
+              <!-- LOCAL -->
+              <div class="card">
+                <div class="tag">MOST VISITED</div>
+                <i class="fa-solid fa-screwdriver-wrench"></i>
+                <h2>Local Services</h2>
+                <p>
+                  Get reliable services from professionals near you. Perfect for urgent needs, face-to-face support, and faster turnaround from trusted local experts.
+                </p>
+                <div class="label">Local</div>
+              </div>
+
+              <!-- NATIONAL (MOST VISITED) -->
+              <div class="card">
+                <i class="fa-solid fa-laptop-code"></i>
+                <h2>National Services</h2>
+                <p>
+                  Access verified service providers from across the country. Ideal for specialized skills, competitive pricing, and professionals with proven nationwide experience.
+                </p>
+                <div class="label">National</div>
+              </div>
+
+              <!-- GLOBAL -->
+              <div class="card">
+                <i class="fa-solid fa-globe"></i>
+                <h2>Global Services</h2>
+                <p>
+                  Connect with international experts and remote professionals. Best for digital services, consulting, design, development, and global business support.
+                </p>
+                <div class="label">Global</div>
+              </div>
+            </div>
           </div>
 
           <div id="rentals" class="tab-panel">
-            <p>Affordable rentals for homes, vehicles and equipment.</p>
+            <p>Affordable rentals for homes, vehicles and equipment.<br><strong>Select Market type <i class="fa-regular fa-circle-check"></i></strong></p>
+
+            <div class="cards">
+              <!-- LOCAL -->
+              <div class="card">
+                <div class="tag">MOST VISITED</div>
+                <i class="fa-solid fa-house"></i>
+                <h2>Local Rentals</h2>
+                <p>
+                  Find rentals close to you including homes, vehicles, tools, and equipment. Ideal for short-term use, quick access, and hassle-free local pickup.
+                </p>
+                <div class="label">Local</div>
+              </div>
+
+              <!-- NATIONAL (MOST VISITED) -->
+              <div class="card">
+                <i class="fa-solid fa-building"></i>
+                <h2>National Rentals</h2>
+                <p>
+                  Browse rental options available across the country. Perfect for long-term stays, business needs, events, and rentals with nationwide coverage.
+                </p>
+                <div class="label">National</div>
+              </div>
+
+              <!-- GLOBAL -->
+              <div class="card">
+                <i class="fa-solid fa-jet-fighter-up"></i>
+                <h2>Global Rentals</h2>
+                <p>
+                  Access international rental opportunities for travel, relocation, and cross-border projects. Best for global mobility and international experiences.
+                </p>
+                <div class="label">Global</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

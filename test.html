@@ -1,116 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Animated Tabs</title>
+<meta charset="UTF-8">
+<title>Choose Market</title>
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #fff;
-            margin: 0;
-            padding: 0;
-            color: #000;
-        }
+<style>
+    body {
+        font-family: "Inter", Arial, sans-serif;
+        background: #fff;
+        color: #000;
+        margin: 0;
+        padding: 0;
+    }
 
-        .tabs-container {
-            width: 80%;
-            margin: 60px auto;
-            border: 1px solid #000;
-        }
+    .container {
+        max-width: 1100px;
+        margin: 80px auto;
+        padding: 0 20px;
+    }
 
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid #000;
-        }
+    .header {
+        text-align: center;
+        margin-bottom: 50px;
+    }
 
-        .tab-btn {
-            flex: 1;
-            padding: 15px;
-            background: #fff;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            color: #000;
-            position: relative;
-        }
+    .header h1 {
+        font-size: 32px;
+        margin-bottom: 10px;
+    }
 
-        .tab-btn:not(:last-child) {
-            border-right: 1px solid #000;
-        }
+    .header p {
+        font-size: 16px;
+        color: #444;
+    }
 
-        .tab-btn.active {
-            background: #000;
-            color: #fff;
-        }
+    .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 30px;
+    }
 
-        .tab-content {
-            position: relative;
-            overflow: hidden;
-            min-height: 150px;
-        }
+    .card {
+        position: relative;
+        border: 1px solid #000;
+        padding: 35px 30px;
+        cursor: pointer;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+    }
 
-        .tab-panel {
-            position: absolute;
-            width: 100%;
-            padding: 25px;
-            opacity: 0;
-            transform: translateX(20px);
-            transition: opacity 0.35s ease, transform 0.35s ease;
-            pointer-events: none;
-        }
+    .card:hover {
+        transform: translateY(-6px);
+        background: #000;
+        color: #fff;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    }
 
-        .tab-panel.active {
-            opacity: 1;
-            transform: translateX(0);
-            pointer-events: auto;
-        }
-    </style>
+    .icon {
+        font-size: 42px;
+        margin-bottom: 20px;
+        display: inline-block;
+    }
+
+    .card h2 {
+        font-size: 22px;
+        margin-bottom: 15px;
+    }
+
+    .card p {
+        font-size: 15px;
+        line-height: 1.6;
+        color: inherit;
+    }
+
+    .label {
+        display: inline-block;
+        margin-top: 20px;
+        font-weight: bold;
+        font-size: 14px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        border-bottom: 1px solid currentColor;
+        padding-bottom: 4px;
+    }
+
+    /* MOST VISITED TAG */
+    .tag {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 12px;
+        font-weight: bold;
+        letter-spacing: 1px;
+        padding: 6px 10px;
+        border: 1px solid #000;
+        background: #000;
+        color: #fff;
+    }
+
+    .card:hover .tag {
+        background: #fff;
+        color: #000;
+        border-color: #fff;
+    }
+</style>
 </head>
 <body>
 
-<div class="tabs-container">
-    <div class="tabs">
-        <button class="tab-btn active" data-tab="products">Products</button>
-        <button class="tab-btn" data-tab="services">Services</button>
-        <button class="tab-btn" data-tab="rentals">Rentals</button>
+<div class="container">
+    <div class="header">
+        <h1>Choose Your Market</h1>
+        <p>Shop based on how far you want to explore.</p>
     </div>
 
-    <div class="tab-content">
-        <div id="products" class="tab-panel active">
-            <h2>Products</h2>
-            <p>Quality goods from trusted local vendors.</p>
+    <div class="cards">
+        <!-- LOCAL -->
+        <div class="card">
+            <div class="icon">🏪</div>
+            <h2>Local Market</h2>
+            <p>
+                Discover products and services near you.
+                Ideal for quick purchases, nearby sellers,
+                and same-day or next-day delivery.
+            </p>
+            <div class="label">Local</div>
         </div>
 
-        <div id="services" class="tab-panel">
-            <h2>Services</h2>
-            <p>Professional services delivered with reliability.</p>
+        <!-- NATIONAL (MOST VISITED) -->
+        <div class="card">
+            <div class="tag">MOST VISITED</div>
+            <div class="icon">🏢</div>
+            <h2>National Market</h2>
+            <p>
+                Browse items and services from across the country.
+                Compare prices, access trusted vendors,
+                and enjoy reliable nationwide delivery.
+            </p>
+            <div class="label">National</div>
         </div>
 
-        <div id="rentals" class="tab-panel">
-            <h2>Rentals</h2>
-            <p>Affordable rentals for homes, vehicles and equipment.</p>
+        <!-- GLOBAL -->
+        <div class="card">
+            <div class="icon">🌍</div>
+            <h2>Global Market</h2>
+            <p>
+                Explore international products and services.
+                Perfect for unique items, global brands,
+                and cross-border shopping experiences.
+            </p>
+            <div class="label">Global</div>
         </div>
     </div>
 </div>
-
-<script>
-    const tabs = document.querySelectorAll('.tab-btn');
-    const panels = document.querySelectorAll('.tab-panel');
-
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const target = tab.dataset.tab;
-
-            tabs.forEach(t => t.classList.remove('active'));
-            panels.forEach(p => p.classList.remove('active'));
-
-            tab.classList.add('active');
-            document.getElementById(target).classList.add('active');
-        });
-    });
-</script>
 
 </body>
 </html>

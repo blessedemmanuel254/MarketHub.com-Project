@@ -1,13 +1,8 @@
-function togglePopupBar() {
-  const popupbar = document.getElementById('popupbar');
-  const overlay = document.getElementById('overlay');
-  popupbar.classList.toggle('active');
-  overlay.classList.toggle('active');
-}
-
 function toggleWhatsAppChat() {
   var box = document.getElementById("whatsapp-chat-box");
+  var overlay = document.getElementById("whatsAppChartOverlay");
   box.style.display = box.style.display === "block" ? "none" : "block";
+  overlay.classList.toggle("active");
 }
 
 function sendWhatsAppMessage() {

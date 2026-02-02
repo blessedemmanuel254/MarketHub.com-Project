@@ -22,7 +22,6 @@ html body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   max-width: 1299px;
   padding-bottom: 20px;
 }
@@ -149,7 +148,7 @@ html body {
   position: relative;
 }
 
-.container header .rhs .help-icon i.fa-circle-question, .container .popUpBar .top i.fa-circle-question, .container header .rhs .profile-icon i.fa-user, .container .popUpBar .top i.fa-user {
+.container header .rhs .help-icon i.fa-circle-question, .container header .rhs .profile-icon i.fa-user {
   font-size: 20px;
   color: #898888;
   cursor: pointer;
@@ -157,10 +156,6 @@ html body {
   padding: 10px;
   border-radius: 50%;
   border: none;
-}
-
-.container .popUpBar .top i.fa-circle-question, .container .popUpBar .top i.fa-user {
-  padding: 0;
 }
 
 .container header .rhs .help-icon p, .container header .rhs .profile-icon p {
@@ -206,56 +201,7 @@ html body {
   border-radius: 4px;
 }
 
-.container header .rhs i.fa-bars {
-  font-size: 25px;
-  color: #8988889d;
-  cursor: pointer;
-  display: none;
-}
-
-.container .overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.05);
-  display: none;
-  z-index: 1001;
-}
-
-.container .popUpBar {
-  padding: 12px;
-  background-color: white;
-  border-radius: 4px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  position: fixed;
-  top: 0;
-  right: -100%;
-  transition: right .5s ease;
-  z-index: 1001;
-  width: 200px;
-  display: none;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.container .popUpBar.active {
-  right: 0;
-}
-
-.container .popUpBar .top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.container .popUpBar .top img {
-  height: 30px;
-  width: 30px;
-}
-
-.container .popUpBar .top i.fa-xmark, .container #whatsapp-chat-box .chat-header i {
+.container #whatsapp-chat-box .chat-header i {
   font-size: 25px;
   color: #8988889d;
   cursor: pointer;
@@ -263,43 +209,6 @@ html body {
 
 .container #whatsapp-chat-box .chat-header i {
   color: white;
-}
-
-.container .popUpBar a {
-  background-color: #0f0f0f;
-  color: white;
-  border: 1px solid #0f0f0f;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-}
-
-.container .popUpBar a.help-icon {
-  font-size: 20px;
-  border: 1px solid #89888870;
-  background-color: #89888870;
-  color: #0f0f0f;
-  display: none;
-}
-
-.container .popUpBar a.help-icon p {
-  font-size: 14px;
-}
-
-.container .popUpBar a:nth-of-type(2) {
-  border: 1px solid #dedede;
-  background-color: white;
-  color: #0f0f0f;
-  display: none;
-}
-
-.container .popUpBar a:nth-of-type(2):hover {
-  background-color: #dedede;
-}
-
-.container .popUpBar a:last-of-type:hover {
-  opacity: 0.75;
 }
 
 .container #whatsapp-button {
@@ -329,6 +238,21 @@ html body {
   100% {
     box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
   }
+}
+
+.container .whatsAppChartOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.02);
+  display: none;
+  z-index: 1001;
+}
+
+.container .whatsAppChartOverlay.active {
+  display: block;
 }
 
 .container #whatsapp-chat-box {
@@ -458,7 +382,7 @@ html body {
 
 .container main.buyerMain {
   padding: 20px;
-  min-height: calc(100vh - 150px);
+  flex: 1 0 auto;
 }
 
 .container main.buyerMain .tabs-container {
@@ -497,24 +421,108 @@ html body {
 
 .container main.buyerMain .tabs-container .tab-content {
   position: relative;
-  overflow: hidden;
-  min-height: 150px;
+  height: fit-content;
 }
 
 .container main.buyerMain .tabs-container .tab-content .tab-panel {
-  position: absolute;
+  position: relative;
   width: 100%;
-  padding: 25px;
-  opacity: 0;
+  padding: 10px;
   transform: translateX(20px);
   transition: opacity 0.35s ease, transform 0.35s ease;
-  pointer-events: none;
+  display: none;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.container main.buyerMain .tabs-container .tab-content .tab-panel p {
+  font-size: 14px;
+  color: #898888;
+}
+
+.container main.buyerMain .tabs-container .tab-content .tab-panel p strong{
+  font-size: 16px;
+  color: #0f0f0f;
 }
 
 .container main.buyerMain .tabs-container .tab-content .tab-panel.active {
-  opacity: 1;
+  display: flex;
   transform: translateX(0);
   pointer-events: auto;
+}
+
+.container main.buyerMain .tabs-container .tab-content .tab-panel .cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+}
+
+.container main.buyerMain .tabs-container .tab-content .tab-panel .cards .card {
+  border-radius: 4px;
+  padding: 8px 16px;
+  border: 1px solid #dedede;
+  position: relative;
+  padding: 15px;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.container main.buyerMain .tabs-container .tab-content .tab-panel .cards .card:hover {
+  background-color: #dedede42;
+}
+
+.container main.buyerMain .tabs-container .tab-content .tab-panel .cards .card:hover {
+  transform: translateY(-6px);
+}
+
+.container main.buyerMain .tabs-container .tab-content .tab-panel .cards .card i.fa-solid {
+  font-size: 35px;
+  margin-bottom: 10px;
+  display: inline-block;
+  color: #dedede;
+}
+
+.container main.buyerMain .tabs-container .tab-content .tab-panel .cards .card h2 {
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+
+.container main.buyerMain .tabs-container .tab-content .tab-panel .cards .card p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: inherit;
+}
+
+.container main.buyerMain .tabs-container .tab-content .tab-panel .cards .card .label {
+  display: inline-block;
+  margin-top: 10px;
+  font-weight: bold;
+  font-size: 14px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 4px;
+}
+
+
+.container main.buyerMain .tabs-container .tab-content .tab-panel .cards .card .tag {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  padding: 6px 10px;
+  border: 1px solid #0f0f0f;
+  background: #0f0f0f;
+  color: #ffffff;
+}
+
+.container main.buyerMain .tabs-container .tab-content .tab-panel .cards .card .card:hover .tag {
+  background: #ffffff;
+  color: #000;
+  border-color: #ffffff;
 }
 
 .container main .formContainer h1 {
@@ -672,24 +680,9 @@ html body {
   }
 }
 
-@media (max-width: 580px) {
-  .container .popUpBar a:nth-of-type(2) {
-    display: flex;
-  }
-}
-
 @media (max-width: 635px) {
-
   .container header .rhs i.fa-bars {
     display: block;
-  }
-
-  .container .overlay.active {
-    display: block;
-  }
-
-  .container .popUpBar {
-    display: flex;
   }
 }
 
