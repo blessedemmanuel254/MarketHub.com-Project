@@ -158,13 +158,12 @@ html body {
   border: none;
 }
 
-.container header .rhs .help-icon p, .container header .rhs .profile-icon p {
+.container header .rhs .help-icon p, .container header .rhs .profile-icon p.profile-text {
   color: black;
   position: absolute;
   background-color: #898888;
   color: white;
   padding: 5px 10px;
-  border-radius: 4px;
   white-space: nowrap;
   border-radius: 4px;
   font-size: 14px;
@@ -184,9 +183,68 @@ html body {
   border: none;
 }
 
-.container header .rhs .help-icon:hover p, .container header .rhs .profile-icon:hover p {
+.container header .rhs .help-icon:hover p, .container header .rhs .profile-icon:hover p.profile-text {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+}
+
+.container header .rhs .profile-icon .profileOption {
+  display: none;
+  padding: 8px 16px;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+
+  position: absolute;
+  white-space: nowrap;
+  border-radius: 4px;
+  font-size: 14px;
+  top: 120%;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  border: 1px solid #dedede;  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  transition: all 0.3s ease;
+
+}
+
+.container header .rhs .profile-icon .profileOption.show {
+  display: flex;
+  transform: translateX(-50%) translateY(0);
+}
+
+.container header .rhs .profile-icon .profileOption p {
+  background-color: #0f0f0f;
+  padding: 8px 16px;
+  border-radius: 50%;
+  color: #ffffff;
+  height: 50px;
+  width: 50px;
+  font-size: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.container header .rhs .profile-icon .profileOption a {
+  color: #0f0f0f;
+  text-decoration: none;
+  width: 100%;
+  text-align: center;
+  border: 1px solid #dedede;
+  border-radius: 4px;
+  padding: 8px 16px;
+  color: #898888;
+}
+
+
+.container header .rhs .profile-icon .profileOption a:last-of-type {
+  background-color: #0f0f0f;
+  color: #ffffff;
+}
+
+.container header .rhs .profile-icon .profileOption a:hover {
+  opacity: 0.875;
 }
 
 .container header .rhs select {
@@ -240,7 +298,7 @@ html body {
   }
 }
 
-.container .whatsAppChartOverlay {
+.container .overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -251,7 +309,7 @@ html body {
   z-index: 1001;
 }
 
-.container .whatsAppChartOverlay.active {
+.container .overlay.active {
   display: block;
 }
 

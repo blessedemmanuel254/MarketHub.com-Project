@@ -89,7 +89,6 @@ $safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
     <header class="pgHeader">
       <section>
         <div class="sContainer">
-          <!-- <p><?php echo $safeLetter; ?></p> -->
           <img src="Images/MarketHub Logo.avif" alt="Market Hub Logo" width="40">
           <p class="wcmTxt">
             Welcome,<br>
@@ -106,22 +105,27 @@ $safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
           </a>
           <select name="" id="ward">
             <option value="">Kilifi</option>
-            <!--<option value="">Tanzania</option>
-            <option value="">Uganda</option>-->
+            <!--<option value="">Bungoma</option>
+            <option value="">Nairobi</option>-->
           </select>
           <div class="help-icon">
             <i class="fa-regular fa-circle-question"></i>
-            <p class="help-text">Help&nbsp;Centre</p>
+            <p>Help&nbsp;Centre</p>
           </div>
-          <div class="profile-icon">
+          <div class="profile-icon" onclick="toggleProfileOption()">
             <i class="fa-regular fa-user"></i>
-            <p class="help-text">Profile</p>
+            <p class="profile-text">Profile</p>
+            <div class="profileOption" id="profileOption">
+              <p><?php echo $safeLetter; ?></p>
+              <a href="buyerprofile.php">View Profile</a>
+              <a href="logout.php">Logout</a>
+            </div>
           </div>
           <img src="Images/Kenya Flag.png" alt="Kenya Flag" width="40">
         </div>
       </section>
     </header>
-    <div class="whatsAppChartOverlay" onclick="toggleWhatsAppChat()" id="whatsAppChartOverlay"></div>
+    <div class="overlay" onclick="toggleWhatsAppChat()" id="overlay"></div>
     <div id="whatsapp-button" onclick="toggleWhatsAppChat()">
       <img src="Images/MarketHub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
     </div>

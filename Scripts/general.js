@@ -1,6 +1,6 @@
 function toggleWhatsAppChat() {
   var box = document.getElementById("whatsapp-chat-box");
-  var overlay = document.getElementById("whatsAppChartOverlay");
+  var overlay = document.getElementById("overlay");
   box.style.display = box.style.display === "block" ? "none" : "block";
   overlay.classList.toggle("active");
 }
@@ -114,3 +114,11 @@ tab.addEventListener('click', () => {
   document.getElementById(target).classList.add('active');
 });
 });
+
+/* Profile Option Js */
+function toggleProfileOption() {
+  const profileOption = document.getElementById("profileOption");
+  const overlay = document.getElementById("overlay");
+  profileOption.style.display = profileOption.style.display === "flex" ? "none" : "flex";
+  overlay.classList.toggle("active");
+}
