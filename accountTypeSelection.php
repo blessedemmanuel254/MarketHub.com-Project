@@ -37,19 +37,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 
-  <title>Select Account Type ~ MarketHub</title>
+  <title>Select Account Type ~ Market Hub</title>
 </head>
 <body>
   <div class="container">
     <div id="whatsapp-button" onclick="toggleWhatsAppChat()">
-      <img src="Images/MarketHub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
+      <img src="Images/Market Hub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
     </div>
 
     <div id="whatsapp-chat-box">
       <div class="chat-header">
         <div class="top">
-          <img src="Images/MarketHub Logo.avif" alt="MarketHub Logo" width="35">
-          <p><strong>MarketHub.com</strong><br>
+          <img src="Images/Market Hub Logo.avif" alt="Market Hub Logo" width="35">
+          <p><strong>Market Hub.com</strong><br>
           <small>Online</small></p>
         </div>
         <i class="fa-solid fa-xmark" onclick="toggleWhatsAppChat()"></i>
@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="chat-body">
         <div class="chat-container">
           <div class="chat-bubble">
-            <div class="sender">MarketHub.com</div>
+            <div class="sender">Market Hub.com</div>
             <div class="message">
               Hello there! 😊<br>
               How can we help?
@@ -121,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </form>
     </main>
     <footer>
-      <p>&copy; 2025/2026, MarketHub.com, All Rights reserved.</p>
+      <p>&copy; 2025/2026, Market Hub.com, All Rights reserved.</p>
     </footer>
   </div>
   

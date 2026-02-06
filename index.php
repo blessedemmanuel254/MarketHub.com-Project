@@ -83,7 +83,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 
-  <title>Login | MarketHub</title>
+  <title>Login | Market Hub</title>
 </head>
 <body>
   <div class="container">
@@ -91,13 +91,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       <div class="formContainer">
         <section>
           <div class="top">
-            <img src="Images/MarketHub Logo.avif" alt="Market Hub Logo" width="40">
+            <img src="Images/Market Hub Logo.avif" alt="Market Hub Logo" width="40">
             <h1 class="login">Market&nbsp;Hub</h1>
           </div>
           <h3>Buy Local. Order Global!</h3>
         </section>
         <form action="" method="POST">
-          <h2>Login to MarketHub</h2>
+          <h2>Login to Market Hub</h2>
           <?php if ($error): ?>
             <p class="errorMessage"><i class="fa-solid fa-circle-exclamation"></i> <?= $error ?></p>
           <?php elseif ($success): ?>
@@ -108,9 +108,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <label>Username, email or phone</label>
           </div>
           <div class="inpBox">
-            <input type="password" name="password" class="password-field" placeholder="" required>
+            <input type="password" name="password" id="password" class="password-field" placeholder="" required>
             <label>Password</label>
             <i class="fa-regular fa-eye toggle-password" title="Show Password"></i>
+
+            <!-- Password strength -->
+            <div class="password-strength">
+              <div class="strength-bar">
+                <div class="strength-fill" id="strengthFill"></div>
+              </div>
+              <ul class="strength-rules">
+                <li id="len">• At least 8 characters</li>
+                <li id="upper">• Uppercase letter</li>
+                <li id="lower">• Lowercase letter</li>
+                <li id="number">• Number</li>
+                <li id="special">• Special character</li>
+              </ul>
+            </div>
           </div>
           <div class="remember-me">
             <input type="checkbox" id="remember" name="remember">
@@ -136,10 +150,54 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       </div>
     </main>
     <footer>
-      <p>&copy; 2025/2026, MarketHub.com, All Rights reserved.</p>
+      <p>&copy; 2025/2026, Market Hub.com, All Rights reserved.</p>
     </footer>
   </div>
 
   <script src="Scripts/general.js" type="text/javascript"></script>
+  <script>
+    const passwordInput = document.getElementById("password");
+    const strengthFill = document.getElementById("strengthFill");
+    const strengthBox = document.querySelector(".password-strength");
+
+    const rules = {
+      len: v => v.length >= 8,
+      upper: v => /[A-Z]/.test(v),
+      lower: v => /[a-z]/.test(v),
+      number: v => /\d/.test(v),
+      special: v => /[^A-Za-z0-9]/.test(v)
+    };
+
+    // Show when focused
+    passwordInput.addEventListener("focus", () => {
+      strengthBox.classList.add("active");
+    });
+
+    // Hide when focus leaves (optional but clean)
+    passwordInput.addEventListener("blur", () => {
+      if (!passwordInput.value) {
+        strengthBox.classList.remove("active");
+      }
+    });
+
+    // Strength logic
+    passwordInput.addEventListener("input", () => {
+      const value = passwordInput.value;
+      let score = 0;
+
+      Object.keys(rules).forEach(id => {
+        const valid = rules[id](value);
+        document.getElementById(id).classList.toggle("valid", valid);
+        if (valid) score++;
+      });
+
+      const percent = (score / 5) * 100;
+      strengthFill.style.width = percent + "%";
+
+      if (percent < 40) strengthFill.style.background = "#dc2626";
+      else if (percent < 80) strengthFill.style.background = "#f59e0b";
+      else strengthFill.style.background = "#16a34a";
+    });
+  </script>
 </body>
 </html>

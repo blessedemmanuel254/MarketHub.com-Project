@@ -17,7 +17,7 @@ if (!isset($_SESSION['created'])) {
 /* ---------- FETCH USER DATA ---------- */
 $user_id = $_SESSION['user_id'];
 
-$query = "SELECT username FROM users WHERE user_id = ? LIMIT 1";
+$query = "SELECT username, profile_image FROM users WHERE user_id = ? LIMIT 1";
 $stmt = $conn->prepare($query);
 
 if (!$stmt) {
@@ -29,11 +29,18 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 $username = "User";
+$profileImage = null;
 
 if ($result && $result->num_rows === 1) {
     $user = $result->fetch_assoc();
-    $username = $user['username'];
+
+    if (!empty($user['username'])) {
+        $username = $user['username'];
+    }
+
+    $profileImage = $user['profile_image'] ?? null;
 }
+
 
 $stmt->close();
 
@@ -43,13 +50,9 @@ $profileLetter = strtoupper(substr($username, 0, 1));
 /* ---------- FORMAT USERNAME ---------- */
 $username = trim($username);
 
-if ($username !== '') {
-    $formattedUsername =
-        strtoupper(substr($username, 0, 1)) .
-        strtolower(substr($username, 1));
-} else {
-    $formattedUsername = "User";
-}
+$formattedUsername =
+    strtoupper(substr($username, 0, 1)) .
+    strtolower(substr($username, 1));
 
 /* ---------- PROFILE LETTER ---------- */
 $profileLetter = strtoupper(substr($formattedUsername, 0, 1));
@@ -57,6 +60,14 @@ $profileLetter = strtoupper(substr($formattedUsername, 0, 1));
 /* ---------- SAFE OUTPUT ---------- */
 $safeUsername = htmlspecialchars($formattedUsername, ENT_QUOTES, 'UTF-8');
 $safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
+
+$defaultAvatar = "Images/Market Hub Logo.avif";
+
+if (!empty($profileImage) && file_exists($profileImage)) {
+    $safeProfileImage = htmlspecialchars($profileImage, ENT_QUOTES, 'UTF-8');
+} else {
+    $safeProfileImage = $defaultAvatar;
+}
 
 ?>
 
@@ -82,21 +93,21 @@ $safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,70090000000;1,800;1,900&display=swap" rel="stylesheet">
 
-  <title>Buyer Page | MarketHub</title>
+  <title>Buyer Page | Market Hub</title>
 </head>
 <body>
   <div class="container">
     <header class="pgHeader">
       <section>
         <div class="sContainer">
-          <img src="Images/MarketHub Logo.avif" alt="Market Hub Logo" width="40">
+          <img src="<?php echo $safeProfileImage; ?>" alt="Profile" class="avatar-img">
           <p class="wcmTxt">
             Welcome,<br>
             <span>Logged in as <?php echo $safeUsername; ?></span>
           </p>
         </div>
         <div class="rhs">
-          <a class="lkOdr">
+          <a class="lkOdr" onclick="toggleOrderMain()">
             <div class="odrIconDiv">
               <i class="fa-brands fa-first-order-alt"></i>
               <p>8</p>
@@ -116,25 +127,31 @@ $safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
             <i class="fa-regular fa-user"></i>
             <p class="profile-text">Profile</p>
             <div class="profileOption" id="profileOption">
-              <p><?php echo $safeLetter; ?></p>
-              <a href="buyerprofile.php">View Profile</a>
-              <a href="logout.php">Logout</a>
+              <?php if ($safeProfileImage !== $defaultAvatar): ?>
+                <img src="<?php echo $safeProfileImage; ?>" class="avatar-img large">
+              <?php else: ?>
+                <p class="avatar-letter large"><?php echo $safeLetter; ?></p>
+              <?php endif; ?>
+
+              <a href="buyerprofile.php"><i class="fa-solid fa-eye"></i>View Profile</a>
+              <a href="logout.php"><i class="fa-solid fa-arrow-right-from-bracket"></i>Logout</a>
             </div>
           </div>
           <img src="Images/Kenya Flag.png" alt="Kenya Flag" width="40">
         </div>
       </section>
+      <div class="overlay" onclick="toggleProfileOption()" id="overlay1"></div>
     </header>
     <div class="overlay" onclick="toggleWhatsAppChat()" id="overlay"></div>
     <div id="whatsapp-button" onclick="toggleWhatsAppChat()">
-      <img src="Images/MarketHub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
+      <img src="Images/Market Hub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
     </div>
 
     <div id="whatsapp-chat-box">
       <div class="chat-header">
         <div class="top">
-          <img src="Images/MarketHub Logo.avif" alt="MarketHub Logo" width="35">
-          <p><strong>MarketHub.com</strong><br>
+          <img src="Images/Market Hub Logo.avif" alt="Market Hub Logo" width="35">
+          <p><strong>Market Hub</strong><br>
           <small>online</small></p>
         </div>
         <i class="fa-solid fa-xmark" onclick="toggleWhatsAppChat()"></i>
@@ -142,7 +159,7 @@ $safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
       <div class="chat-body">
         <div class="chat-container">
           <div class="chat-bubble">
-            <div class="sender">MarketHub.com</div>
+            <div class="sender">Market Hub</div>
             <div class="message">
               Hello there! 😊<br>
               How can we help?
@@ -159,7 +176,7 @@ $safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
       </div>
     </div>
 
-    <main class="buyerMain">
+    <main class="buyerMain" id="marketMain">
       <div class="tabs-container">
         <div class="tabs">
           <button class="tab-btn active" data-tab="products">Products</button>
@@ -169,129 +186,584 @@ $safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
 
         <div class="tab-content">
           <div id="products" class="tab-panel active">
-            <p>Quality goods from trusted vendors. <br><strong>Select Market type <i class="fa-regular fa-circle-check"></i></strong></p>
+            <p>Quality goods from trusted vendors. <br><strong>Please select Market type <i class="fa-regular fa-circle-check"></i></strong></p>
 
             <div class="cards">
               <!-- LOCAL -->
-              <div class="card">
+              <a class="card">
                 <i class="fa-solid fa-location-dot"></i>
                 <h2>Local Market</h2>
                 <p>
                   Discover products near you.
-                  Ideal for quick purchases, nearby sellers,
-                  and same-day or next-day delivery.
                 </p>
-                <div class="label">Local</div>
-              </div>
+                <div class="label">
+                  <p>Local</p>
+                  <button>View Market</button>
+
+                </div>
+              </a>
 
               <!-- NATIONAL (MOST VISITED) -->
-              <div class="card">
+              <a class="card">
                 <div class="tag">MOST VISITED</div>
                 <i class="fa-solid fa-flag-usa"></i>
                 <h2>National Market</h2>
                 <p>
                   Browse products from across the country.
-                  Compare prices, access trusted vendors,
-                  and enjoy reliable nationwide delivery.
                 </p>
-                <div class="label">National</div>
-              </div>
+                <div class="label">
+                  <p>National</p>
+                  <button>View Market</button>
+
+                </div>
+              </a>
 
               <!-- GLOBAL -->
-              <div class="card">
+              <a class="card">
                 <i class="fa-solid fa-earth-americas"></i>
                 <h2>Global Market</h2>
                 <p>
                   Explore international products.
-                  Perfect for unique items, global brands,
-                  and cross-border shopping experiences.
                 </p>
-                <div class="label">Global</div>
-              </div>
+                <div class="label">
+                  <p>Global</p>
+                  <button>View Market</button>
+
+                </div>
+              </a>
             </div>
           </div>
 
           <div id="services" class="tab-panel">
-            <p>Professional services delivered with reliability.<br><strong>Select Market type <i class="fa-regular fa-circle-check"></i></strong></p>
+            <p>Professional services delivered with reliability.<br><strong>Please select Market type <i class="fa-regular fa-circle-check"></i></strong></p>
 
             <div class="cards">
               <!-- LOCAL -->
-              <div class="card">
+              <a class="card">
                 <div class="tag">MOST VISITED</div>
                 <i class="fa-solid fa-screwdriver-wrench"></i>
                 <h2>Local Services</h2>
                 <p>
-                  Get reliable services from professionals near you. Perfect for urgent needs, face-to-face support, and faster turnaround from trusted local experts.
+                  Get reliable services from professionals near you.
                 </p>
-                <div class="label">Local</div>
-              </div>
+                <div class="label">
+                  <p>Local</p>
+                  <button>View Services</button>
+
+                </div>
+              </a>
 
               <!-- NATIONAL (MOST VISITED) -->
-              <div class="card">
+              <a class="card">
                 <i class="fa-solid fa-laptop-code"></i>
                 <h2>National Services</h2>
                 <p>
-                  Access verified service providers from across the country. Ideal for specialized skills, competitive pricing, and professionals with proven nationwide experience.
+                  Access verified service providers from across the country.
                 </p>
-                <div class="label">National</div>
-              </div>
+                <div class="label">
+                  <p>National</p>
+                  <button>View Services</button>
+
+                </div>
+              </a>
 
               <!-- GLOBAL -->
-              <div class="card">
+              <a class="card">
                 <i class="fa-solid fa-globe"></i>
                 <h2>Global Services</h2>
                 <p>
-                  Connect with international experts and remote professionals. Best for digital services, consulting, design, development, and global business support.
+                  Connect with international experts and remote professionals.
                 </p>
-                <div class="label">Global</div>
-              </div>
+                <div class="label">
+                  <p>Global</p>
+                  <button>View Services</button>
+
+                </div>
+              </a>
             </div>
           </div>
 
           <div id="rentals" class="tab-panel">
-            <p>Affordable rentals for homes, vehicles and equipment.<br><strong>Select Market type <i class="fa-regular fa-circle-check"></i></strong></p>
+            <p>Affordable rentals for homes, vehicles and equipment.<br><strong>Please select Market type <i class="fa-regular fa-circle-check"></i></strong></p>
 
             <div class="cards">
               <!-- LOCAL -->
-              <div class="card">
+              <a class="card">
                 <div class="tag">MOST VISITED</div>
                 <i class="fa-solid fa-house"></i>
                 <h2>Local Rentals</h2>
                 <p>
-                  Find rentals close to you including homes, vehicles, tools, and equipment. Ideal for short-term use, quick access, and hassle-free local pickup.
+                  Find rentals close to you including homes, vehicles, tools, and equipment.
                 </p>
-                <div class="label">Local</div>
-              </div>
+                <div class="label">
+                  <p>Local</p>
+                  <button>View Rentals</button>
+
+                </div>
+              </a>
 
               <!-- NATIONAL (MOST VISITED) -->
-              <div class="card">
+              <a class="card">
                 <i class="fa-solid fa-building"></i>
                 <h2>National Rentals</h2>
                 <p>
-                  Browse rental options available across the country. Perfect for long-term stays, business needs, events, and rentals with nationwide coverage.
+                  Browse rental options available across the country.
                 </p>
-                <div class="label">National</div>
-              </div>
+                <div class="label">
+                  <p>National</p>
+                  <button>View Rentals</button>
+
+                </div>
+              </a>
 
               <!-- GLOBAL -->
-              <div class="card">
+              <a class="card">
                 <i class="fa-solid fa-jet-fighter-up"></i>
                 <h2>Global Rentals</h2>
                 <p>
-                  Access international rental opportunities for travel, relocation, and cross-border projects. Best for global mobility and international experiences.
+                  Access international rental opportunities for travel, relocation, and cross-border projects.
                 </p>
-                <div class="label">Global</div>
-              </div>
+                <div class="label">
+                  <p>Global</p>
+                  <button>View Rentals</button>
+
+                </div>
+              </a>
             </div>
           </div>
         </div>
       </div>
+
+      <h1>Recent Orders</h1>
+
+      <div class="filter-bar">
+        <select id="statusFilter">
+          <option value="all">All Orders</option>
+          <option value="Delivered">Delivered</option>
+          <option value="Shipped">Shipped</option>
+          <option value="Processing">Processing</option>
+        </select>
+      </div>
+
+      <!-- DESKTOP TABLE -->
+      <div class="table-wrapper">
+      <table id="ordersTable">
+      <thead>
+      <tr>
+        <th>Image</th><th>Order</th><th>Product</th><th>Seller</th>
+        <th>Market</th><th>Qty</th><th>Total</th>
+        <th>Payment</th><th>Status</th><th>Actions</th>
+      </tr>
+      </thead>
+      <tbody>
+
+      <tr data-status="Delivered">
+        <td><img src="Images/Market Hub Logo.avif" class="product-img"></td>
+        <td>MH-10231</td>
+        <td>Wireless Headphones</td>
+        <td>SoundTech</td>
+        <td>National</td>
+        <td>1</td>
+        <td>KES&nbsp;3,500</td>
+        <td><span class="badge paid">Paid</span></td>
+        <td><span class="badge delivered">Delivered</span></td>
+        <td class="actions">
+          <div>
+            <button class="btn-view">View</button>
+            <button class="btn-track">Track</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr data-status="Processing">
+        <td><img src="Images/Market Hub Logo.avif" class="product-img"></td>
+        <td>MH-10702</td>
+        <td>Smart Watch</td>
+        <td>Global Gadgets</td>
+        <td>Global</td>
+        <td>1</td>
+        <td>KES&nbsp;6,800</td>
+        <td><span class="badge pending">Pending</span></td>
+        <td><span class="badge processing">Processing</span></td>
+        <td class="actions">
+          <div>
+            <button class="btn-view">View</button>
+            <button class="btn-cancel">Cancel</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr data-status="Processing">
+        <td><img src="Images/Market Hub Logo.avif" class="product-img"></td>
+        <td>MH-10702</td>
+        <td>Smart Watch</td>
+        <td>Global Gadgets</td>
+        <td>Global</td>
+        <td>1</td>
+        <td>KES&nbsp;6,800</td>
+        <td><span class="badge pending">Pending</span></td>
+        <td><span class="badge processing">Processing</span></td>
+        <td class="actions">
+          <div>
+            <button class="btn-view">View</button>
+            <button class="btn-cancel">Cancel</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr data-status="Processing">
+        <td><img src="Images/Market Hub Logo.avif" class="product-img"></td>
+        <td>MH-10702</td>
+        <td>Smart Watch</td>
+        <td>Global Gadgets</td>
+        <td>Global</td>
+        <td>1</td>
+        <td>KES&nbsp;6,800</td>
+        <td><span class="badge pending">Pending</span></td>
+        <td><span class="badge processing">Processing</span></td>
+        <td class="actions">
+          <div>
+            <button class="btn-view">View</button>
+            <button class="btn-cancel">Cancel</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr data-status="Processing">
+        <td><img src="Images/Market Hub Logo.avif" class="product-img"></td>
+        <td>MH-10702</td>
+        <td>Smart Watch</td>
+        <td>Global Gadgets</td>
+        <td>Global</td>
+        <td>1</td>
+        <td>KES&nbsp;6,800</td>
+        <td><span class="badge pending">Pending</span></td>
+        <td><span class="badge processing">Processing</span></td>
+        <td class="actions">
+          <div>
+            <button class="btn-view">View</button>
+            <button class="btn-cancel">Cancel</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr data-status="Processing">
+        <td><img src="Images/Market Hub Logo.avif" class="product-img"></td>
+        <td>MH-10702</td>
+        <td>Smart Watch</td>
+        <td>Global Gadgets</td>
+        <td>Global</td>
+        <td>1</td>
+        <td>KES&nbsp;6,800</td>
+        <td><span class="badge pending">Pending</span></td>
+        <td><span class="badge processing">Processing</span></td>
+        <td class="actions">
+          <div>
+            <button class="btn-view">View</button>
+            <button class="btn-cancel">Cancel</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr data-status="Processing">
+        <td><img src="Images/Market Hub Logo.avif" class="product-img"></td>
+        <td>MH-10702</td>
+        <td>Smart Watch</td>
+        <td>Global Gadgets</td>
+        <td>Global</td>
+        <td>1</td>
+        <td>KES&nbsp;6,800</td>
+        <td><span class="badge pending">Pending</span></td>
+        <td><span class="badge processing">Processing</span></td>
+        <td class="actions">
+          <div>
+            <button class="btn-view">View</button>
+            <button class="btn-cancel">Cancel</button>
+          </div>
+        </td>
+      </tr>
+
+      </tbody>
+      </table>
+      </div>
+
+      <!-- MOBILE CARDS -->
+      <div class="cards" id="orderCards">
+
+      <div class="order-card" data-status="Delivered">
+        <div class="card-header">
+          <img src="Images/Market Hub Logo.avif" class="product-img">
+          <div>
+            <div class="card-title">Wireless Headphones</div>
+            <div class="card-meta">Order: MH-10231 • National</div>
+          </div>
+        </div>
+
+        <div class="card-row">
+          <span>Total</span>
+          <strong>KES 3,500</strong>
+        </div>
+
+        <div class="card-row">
+          <span>Status</span>
+          <span class="badge delivered">Delivered</span>
+        </div>
+
+        <div class="card-actions">
+          <div></div>
+          <button class="btn-view">View</button>
+          <button class="btn-track">Track</button>
+        </div>
+      </div>
+
+      <div class="order-card" data-status="Processing">
+        <div class="card-header">
+          <img src="Images/Market Hub Logo.avif" class="product-img">
+          <div>
+            <div class="card-title">Smart Watch</div>
+            <div class="card-meta">Order: MH-10702 • Global</div>
+          </div>
+        </div>
+
+        <div class="card-row">
+          <span>Total</span>
+          <strong>KES 6,800</strong>
+        </div>
+
+        <div class="card-row">
+          <span>Status</span>
+          <span class="badge processing">Processing</span>
+        </div>
+
+        <div class="card-actions">
+          <button class="btn-view">View</button>
+          <button class="btn-cancel">Cancel</button>
+        </div>
+      </div>
+
+      <div class="order-card" data-status="Processing">
+        <div class="card-header">
+          <img src="Images/Market Hub Logo.avif" class="product-img">
+          <div>
+            <div class="card-title">Smart Watch</div>
+            <div class="card-meta">Order: MH-10702 • Global</div>
+          </div>
+        </div>
+
+        <div class="card-row">
+          <span>Total</span>
+          <strong>KES 6,800</strong>
+        </div>
+
+        <div class="card-row">
+          <span>Status</span>
+          <span class="badge processing">Processing</span>
+        </div>
+
+        <div class="card-actions">
+          <button class="btn-view">View</button>
+          <button class="btn-cancel">Cancel</button>
+        </div>
+      </div>
+
+      <div class="order-card" data-status="Delivered">
+        <div class="card-header">
+          <img src="Images/Market Hub Logo.avif" class="product-img">
+          <div>
+            <div class="card-title">Wireless Headphones</div>
+            <div class="card-meta">Order: MH-10231 • National</div>
+          </div>
+        </div>
+
+        <div class="card-row">
+          <span>Total</span>
+          <strong>KES 3,500</strong>
+        </div>
+
+        <div class="card-row">
+          <span>Status</span>
+          <span class="badge delivered">Delivered</span>
+        </div>
+
+        <div class="card-actions">
+          <div></div>
+          <button class="btn-view">View</button>
+          <button class="btn-track">Track</button>
+        </div>
+      </div>
+
+
+      <div class="order-card" data-status="Delivered">
+        <div class="card-header">
+          <img src="Images/Market Hub Logo.avif" class="product-img">
+          <div>
+            <div class="card-title">Wireless Headphones</div>
+            <div class="card-meta">Order: MH-10231 • National</div>
+          </div>
+        </div>
+
+        <div class="card-row">
+          <span>Total</span>
+          <strong>KES 3,500</strong>
+        </div>
+
+        <div class="card-row">
+          <span>Status</span>
+          <span class="badge delivered">Delivered</span>
+        </div>
+
+        <div class="card-actions">
+          <div></div>
+          <button class="btn-view">View</button>
+          <button class="btn-track">Track</button>
+        </div>
+      </div>
+
+
+      <div class="order-card" data-status="Processing">
+        <div class="card-header">
+          <img src="Images/Market Hub Logo.avif" class="product-img">
+          <div>
+            <div class="card-title">Smart Watch</div>
+            <div class="card-meta">Order: MH-10702 • Global</div>
+          </div>
+        </div>
+
+        <div class="card-row">
+          <span>Total</span>
+          <strong>KES 6,800</strong>
+        </div>
+
+        <div class="card-row">
+          <span>Status</span>
+          <span class="badge processing">Processing</span>
+        </div>
+
+        <div class="card-actions">
+          <button class="btn-view">View</button>
+          <button class="btn-cancel">Cancel</button>
+        </div>
+      </div>
+
+      <div class="order-card" data-status="Processing">
+        <div class="card-header">
+          <img src="Images/Market Hub Logo.avif" class="product-img">
+          <div>
+            <div class="card-title">Smart Watch</div>
+            <div class="card-meta">Order: MH-10702 • Global</div>
+          </div>
+        </div>
+
+        <div class="card-row">
+          <span>Total</span>
+          <strong>KES 6,800</strong>
+        </div>
+
+        <div class="card-row">
+          <span>Status</span>
+          <span class="badge processing">Processing</span>
+        </div>
+
+        <div class="card-actions">
+          <button class="btn-view">View</button>
+          <button class="btn-cancel">Cancel</button>
+        </div>
+      </div>
+
+      </div>
+      
+      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleOrderMain()">View&nbsp;All&nbsp;Orders</button> to access all your orders.</p>
+
+    </main>
+
+    <main class="buyerMain" id="orderMain">
+
+      <div class="order-group">
+        <div class="order-header">
+          <div>
+            <strong>Order #ORD-90321</strong><br>
+            <span>Placed on 12 Feb 2026</span>
+          </div>
+          <div>3 Items</div>
+        </div>
+
+        <div class="order-items-grid">
+
+          <!-- ITEM 1 -->
+          <div class="order-item">
+            <div class="item-top">
+              <div class="item-info">
+                <h4>Wireless Headphones</h4>
+                <p>Seller: TechZone</p>
+                <p>Qty: 1 • Total: KES 3,200</p>
+                <p>Status: <span class="status shipped">Shipped</span></p>
+                <span class="market-badge">National</span>
+              </div>
+              <img src="Images/Market Hub Logo.avif" alt="Product">
+            </div>
+
+            <div class="item-actions">
+              <button class="toggle" data-target="d1">View details</button>
+            </div>
+
+            <div class="item-extra" id="d1">
+              <div class="extra-box">
+                <strong>Tracking</strong><br>
+                Packed → Shipped
+              </div>
+              <div class="extra-box">
+                <strong>Payment</strong><br>
+                M-Pesa • KES 3,200
+              </div>
+            </div>
+          </div>
+
+          <!-- ITEM 2 -->
+          <div class="order-item">
+            <div class="item-top">
+              <div class="item-info">
+                <h4>Office Chair</h4>
+                <p>Seller: Comfort Furnish</p>
+                <p>Qty: 2 • Total: KES 18,000</p>
+                <p>Status: <span class="status processing">Processing</span></p>
+                <span class="market-badge">Local</span>
+              </div>
+              <img src="Images/Market Hub Logo.avif" alt="Product">
+            </div>
+
+            <div class="item-actions">
+              <button class="toggle" data-target="d2">View details</button>
+            </div>
+
+            <div class="item-extra" id="d2">
+              <div class="extra-box">
+                Awaiting dispatch
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <p class="toggleOrdersOrMarket"><button href="" onclick="toggleMarketMain()">Go&nbsp;back</button> to continue shopping.</p>
     </main>
     <footer>
-      <p>&copy; 2025/2026, MarketHub.com, All Rights reserved.</p>
+      <p>&copy; 2025/2026, Market Hub.com, All Rights reserved.</p>
     </footer>
   </div>
   
   <script src="Scripts/general.js" type="text/javascript"></script>
+
+  <script>
+  document.querySelectorAll(".toggle").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const target = document.getElementById(btn.dataset.target);
+      target.classList.toggle("active");
+      btn.textContent = target.classList.contains("active")
+        ? "Hide details"
+        : "View details";
+    });
+  });
+  </script>
 </body>
 </html>

@@ -69,6 +69,39 @@ html body {
 .container header.pgHeader section .sContainer p {
   font-size: 14px;
 }
+
+.avatar-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-img.large {
+  width: 60px;
+  height: 60px;
+  border-radius: 50% !important;
+  object-fit: cover;
+}
+
+.avatar-letter {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #222;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.avatar-letter.large {
+  width: 60px;
+  height: 60px;
+  font-size: 22px;
+}
+
 /* 
 .container header.pgHeader section .sContainer:first-of-type p:first-of-type {
   background-color: #898888;
@@ -199,18 +232,21 @@ html body {
   white-space: nowrap;
   border-radius: 4px;
   font-size: 14px;
-  top: 120%;
+  top: 90%;
   left: 50%;
   transform: translateX(-50%) translateY(10px);
   border: 1px solid #dedede;  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   background-color: #ffffff;
   transition: all 0.3s ease;
+  
+  z-index: 1002;
 
 }
 
 .container header .rhs .profile-icon .profileOption.show {
-  display: flex;
-  transform: translateX(-50%) translateY(0);
+  max-height: 500px;
+  opacity: 1;
+  padding: 8px 16px;
 }
 
 .container header .rhs .profile-icon .profileOption p {
@@ -230,13 +266,15 @@ html body {
   color: #0f0f0f;
   text-decoration: none;
   width: 100%;
-  text-align: center;
   border: 1px solid #dedede;
   border-radius: 4px;
   padding: 8px 16px;
   color: #898888;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
 }
-
 
 .container header .rhs .profile-icon .profileOption a:last-of-type {
   background-color: #0f0f0f;
@@ -245,6 +283,10 @@ html body {
 
 .container header .rhs .profile-icon .profileOption a:hover {
   opacity: 0.875;
+}
+
+.container header .rhs .profile-icon .profileOption a i {
+  font-size: 14px;
 }
 
 .container header .rhs select {
@@ -441,11 +483,40 @@ html body {
 .container main.buyerMain {
   padding: 20px;
   flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  animation: fadeIn 0.25s ease;
 }
 
-.container main.buyerMain .tabs-container {
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.container main.buyerMain .tabs-container, .container main.buyerMain h1, .container main.buyerMain .filter-bar, .container main.buyerMain .table-wrapper {
   width: 90%;
   margin: 10px auto;
+}
+
+.container main.buyerMain h1 {
+  color: #0f0f0f;
+  font-size: 19.5px;
+}
+
+.container main.buyerMain h1, .container main.buyerMain .filter-bar, .container main.buyerMain .table-wrapper {
+  margin: 0 auto;
+}
+
+
+.container main.buyerMain .filter-bar #statusFilter {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  border: 1px solid #dedede;
+  outline: none;
+  color: #0f0f0f;
 }
 
 .container main.buyerMain .tabs-container .tabs {
@@ -496,11 +567,12 @@ html body {
 .container main.buyerMain .tabs-container .tab-content .tab-panel p {
   font-size: 14px;
   color: #898888;
+  line-height: 30px;
 }
 
 .container main.buyerMain .tabs-container .tab-content .tab-panel p strong{
   font-size: 16px;
-  color: #0f0f0f;
+  color: #b02a37;
 }
 
 .container main.buyerMain .tabs-container .tab-content .tab-panel.active {
@@ -515,7 +587,8 @@ html body {
   gap: 30px;
 }
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel .cards .card {
+.container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card {
+  text-emphasis: none;
   border-radius: 4px;
   padding: 8px 16px;
   border: 1px solid #dedede;
@@ -526,33 +599,42 @@ html body {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel .cards .card:hover {
+.container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card:hover {
   background-color: #dedede42;
 }
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel .cards .card:hover {
+.container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card:hover {
   transform: translateY(-6px);
 }
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel .cards .card i.fa-solid {
+.container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card i.fa-solid {
   font-size: 35px;
   margin-bottom: 10px;
   display: inline-block;
   color: #dedede;
 }
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel .cards .card h2 {
+.container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card h2 {
   font-size: 18px;
   margin-bottom: 6px;
 }
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel .cards .card p {
+.container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card p {
   font-size: 14px;
   line-height: 1.6;
   color: inherit;
 }
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel .cards .card .label {
+.container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card .label {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card .label p {
   display: inline-block;
   margin-top: 10px;
   font-weight: bold;
@@ -563,8 +645,16 @@ html body {
   padding-bottom: 4px;
 }
 
+.container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card .label button {
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: 1px solid #dedede;
+  color: #898888;
+  cursor: pointer;
+}
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel .cards .card .tag {
+.container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card .tag {
   position: absolute;
   top: 15px;
   right: 15px;
@@ -577,10 +667,267 @@ html body {
   color: #ffffff;
 }
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel .cards .card .card:hover .tag {
+.container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card .card:hover .tag {
   background: #ffffff;
   color: #000;
   border-color: #ffffff;
+}
+
+.container main.buyerMain .table-wrapper {
+  border-radius: 4px;
+  overflow-x: auto;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.container main.buyerMain .table-wrapper table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1000px;
+}
+
+.container main.buyerMain .table-wrapper table thead {
+  background: #000;
+  color: #fff;
+}
+
+.container main.buyerMain .table-wrapper table thead tr th, .container main.buyerMain .table-wrapper table tbody tr td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+
+.container main.buyerMain .table-wrapper table tbody tr td img.product-img {
+  width: 55px;
+  height: 55px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.container main.buyerMain .table-wrapper table tbody tr td .badge, .container main.buyerMain .cards .order-card .card-row .badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.container main.buyerMain .table-wrapper table tbody tr td .paid, .container main.buyerMain .cards .order-card .card-row .paid { background:#e7f6ec; color:#0a7a3b; }
+.container main.buyerMain .table-wrapper table tbody tr td .pending, .container main.buyerMain .cards .order-card .card-row .pending { background:#fff3cd; color:#856404; }
+.container main.buyerMain .table-wrapper table tbody tr td .delivered, .container main.buyerMain .cards .order-card .card-row .delivered { background:#e7f6ec; color:#0a7a3b; }
+.container main.buyerMain .table-wrapper table tbody tr td .shipped, .container main.buyerMain .cards .order-card .card-row .shipped { background:#e8f0fe; color:#1a4fd8; }
+.container main.buyerMain .table-wrapper table tbody tr td .processing, .container main.buyerMain .cards .order-card .card-row .processing { background:#eee; }
+
+.container main.buyerMain .table-wrapper table tbody tr td.actions div {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  width: 100%;
+}
+
+.container main.buyerMain .table-wrapper table tbody tr td.actions button, .container main.buyerMain .cards .order-card .card-actions button {
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  margin-right: 4px;
+  cursor: pointer;
+}
+
+.container main.buyerMain .table-wrapper table tbody tr td.actions button:hover, .container main.buyerMain .cards .order-card .card-actions button:hover {
+  opacity: 0.875;
+}
+
+.container main.buyerMain .table-wrapper table tbody tr td.actions button.btn-view, .container main.buyerMain .cards .order-card .card-actions button.btn-view { background:#000; color:#fff; }
+.container main.buyerMain .table-wrapper table tbody tr td.actions button.btn-track, .container main.buyerMain .cards .order-card .card-actions button.btn-track { background:#ddd; }
+.container main.buyerMain .table-wrapper table tbody tr td.actions button.btn-cancel, .container main.buyerMain .cards .order-card .card-actions button.btn-cancel { background:#fdecea; color:#b02a37; }
+
+.container main.buyerMain .cards {
+  display: none;
+  gap: 14px;
+  width: 100%;
+}
+
+.container main.buyerMain .cards .order-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 14px;
+  box-shadow: 0 4px 10px rgba(0,0,0,.08);
+}
+
+.container main.buyerMain .cards .order-card .card-header {
+  display: flex;
+  gap: 12px;
+}
+
+.container main.buyerMain .cards .order-card .card-header img {
+  width: 70px;
+  height: 70px;
+  border-radius: 6px;
+}
+
+.container main.buyerMain .cards .order-card .card-header .card-title {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.container main.buyerMain .cards .order-card .card-header .card-meta {
+  font-size: 13px;
+  color: #666;
+}
+
+.container main.buyerMain .cards .order-card .card-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.container main.buyerMain .cards .order-card .card-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+}
+
+.container main.buyerMain .toggleOrdersOrMarket {
+  text-align: center;
+  color: #898888;
+  width: 90%;
+  font-size: 14px;
+  margin: 35px auto;
+}
+
+.container main.buyerMain .toggleOrdersOrMarket button {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  background-color: #0f0f0f;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.container main.buyerMain .toggleOrdersOrMarket button:hover {
+  opacity: 0.875;
+}
+
+/* Oder Management Section CSS */
+.container main.buyerMain#orderMain {
+  background-color: #8988882b;
+  display: none;
+}
+
+.container main.buyerMain .order-group {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  overflow: hidden;
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+.container main.buyerMain .order-group .order-header {
+  background: #898989;
+  color: #ffffff;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.container main.buyerMain .order-group .order-header span {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.container main.buyerMain .order-group .order-items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 10px;
+  padding: 10px;
+}
+
+.container main.buyerMain .order-group .order-items-grid .order-item {
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  padding: 14px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+.container main.buyerMain .order-group .order-items-grid .order-item .item-top {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.container main.buyerMain .order-group .order-items-grid .order-item .item-top img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.container main.buyerMain .order-group .order-items-grid .order-item .item-top .item-info h4 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.container main.buyerMain .order-group .order-items-grid .order-item .item-top .item-info p {
+  margin: 3px 0;
+  font-size: 12.5px;
+  color: #555;
+}
+
+.container main.buyerMain .order-group .order-items-grid .order-item .item-top .item-info span.market-badge {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: #000;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.container main.buyerMain .order-group .order-items-grid .order-item .item-top .item-info .status {
+  font-weight: 600;
+}
+
+.container main.buyerMain .order-group .order-items-grid .order-item .item-top .item-info .status.shipped { color: #0a7a2f; }
+.container main.buyerMain .order-group .order-items-grid .order-item .item-top .item-info .status.processing { color: #b36b00; }
+
+.container main.buyerMain .order-group .order-items-grid .order-item .item-actions {
+  margin-top: 10px;
+}
+
+.container main.buyerMain .order-group .order-items-grid .order-item .item-actions button {
+  background: none;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-right: 10px;
+  padding: 0;
+}
+
+.container main.buyerMain .order-group .order-items-grid .order-item .item-extra {
+  margin-top: 10px;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.25s ease;
+}
+
+.container main.buyerMain .order-group .order-items-grid .order-item .item-extra.active {
+  max-height: 300px;
+  opacity: 1;
+}
+
+.container main.buyerMain .order-group .order-items-grid .order-item .item-extra .extra-box {
+  border: 1px dashed #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 12.5px;
+  background: #fafafa;
+  margin-bottom: 8px;
 }
 
 .container main .formContainer h1 {
@@ -714,6 +1061,45 @@ html body {
   color: #898888;
 }
 
+.container main .formContainer form .inpBox .password-strength {
+  margin-top: 8px;
+  font-size: 13px;
+  display: none;
+}
+
+.container main .formContainer form .inpBox .password-strength.active {
+  display: block;
+}
+
+.container main .formContainer form .inpBox .password-strength .strength-bar {
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.container main .formContainer form .inpBox .password-strength .strength-bar .strength-fill {
+  height: 100%;
+  width: 0%;
+  background: red;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.container main .formContainer form .inpBox .password-strength .strength-rules {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.container main .formContainer form .inpBox .password-strength .strength-rules li {
+  color: #9ca3af;
+}
+
+.container main .formContainer form .inpBox .password-strength .strength-rules li.valid {
+  color: #16a34a;
+}
+
 .container main .formContainer form input {
   color: black;
 }
@@ -763,7 +1149,19 @@ html body {
     padding-right: 5px;
   }
 
-  .container main.buyerMain .tabs-container {
+  .container main.buyerMain .tabs-container, .container main.buyerMain h1, .container main.buyerMain .filter-bar, .container main.buyerMain .table-wrapper {
+    width: 100%;
+  }
+
+  .container main.buyerMain .table-wrapper {
+    display: none;
+  }
+  
+  .container main.buyerMain .cards {
+    display: grid;
+  }
+
+  .container main.buyerMain .toggleOrdersOrMarket {
     width: 100%;
   }
 }
@@ -836,6 +1234,7 @@ html body {
   accent-color: #0f0f0f;
   text-align: center;
   margin-bottom: 0;
+  cursor: pointer;
 }
 
 .container main .formContainer form .remember-me label {
@@ -1002,5 +1401,3 @@ html body {
   font-size: 14px;
   text-align: center;
 }
-
-/* Buyerspage */

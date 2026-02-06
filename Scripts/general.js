@@ -118,7 +118,70 @@ tab.addEventListener('click', () => {
 /* Profile Option Js */
 function toggleProfileOption() {
   const profileOption = document.getElementById("profileOption");
-  const overlay = document.getElementById("overlay");
+  const overlay = document.getElementById("overlay1");
   profileOption.style.display = profileOption.style.display === "flex" ? "none" : "flex";
   overlay.classList.toggle("active");
+}
+
+/* Recent Order Js */
+
+// Show only the 5 most recent orders
+const tableBody = document.querySelector("#ordersTable tbody");
+const allRows = Array.from(tableBody.querySelectorAll("tr"));
+allRows.forEach((row, index) => {
+  if(index >= 5) row.style.display = "none";
+});
+
+// Filter by status
+const filter = document.getElementById("statusFilter");
+filter.addEventListener("change", () => {
+  const value = filter.value;
+  let visibleCount = 0;
+
+  document.querySelectorAll("#ordersTable tbody tr").forEach(el => {
+    if (value === "all" || el.dataset.status === value) {
+      el.style.display = visibleCount < 5 ? "" : "none"; // only 5
+      visibleCount++;
+    } else {
+      el.style.display = "none";
+    }
+  });
+});
+
+/* Limit Mobile Order Cards Js */
+document.addEventListener("DOMContentLoaded", () => {
+  limitMobileOrderCards();
+});
+
+function limitMobileOrderCards(max = 5) {
+  const cards = document.querySelectorAll("#orderCards .order-card");
+
+  cards.forEach((card, index) => {
+    card.style.display = index < max ? "block" : "none";
+  });
+}
+
+/* Order Details Toggle Js */
+document.querySelectorAll(".toggleOrd").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const target = document.getElementById(btn.dataset.target);
+    target.classList.toggle("active");
+    btn.textContent = target.classList.contains("active")
+      ? "Hide details"
+      : "View details";
+  });
+});
+
+function toggleOrderMain() {
+  const orderMain = document.getElementById("orderMain");
+  const marketMain = document.getElementById("marketMain");
+  orderMain.style.display = "block";
+  marketMain.style.display = "none";
+}
+
+function toggleMarketMain() {
+  const orderMain = document.getElementById("orderMain");
+  const marketMain = document.getElementById("marketMain");
+  orderMain.style.display = "none";
+  marketMain.style.display = "block";
 }

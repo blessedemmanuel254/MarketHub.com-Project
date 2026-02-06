@@ -5,6 +5,7 @@ include 'connection.php';
 $error = "";
 $username = "";
 $success = "";
+$country = "";
 $county = "";
 $ward = "";
 
@@ -29,8 +30,21 @@ function normalizePhoneNumber($rawPhone) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+  function validatePassword($password) {
+    // Check all rules, but return only a simple generic message if any fail
+    if (strlen($password) < 8 || 
+      !preg_match('/[A-Z]/', $password) || 
+      !preg_match('/[a-z]/', $password) || 
+      !preg_match('/\d/', $password) || 
+      !preg_match('/[^A-Za-z0-9]/', $password)) {
+      return "Password does not meet requirements.";
+    }
+    return ""; // valid
+  }
+
   $accountType = isset($_SESSION['accountType']) ? ucfirst(trim($_SESSION['accountType'])) : '';
-  $country = "Kenya";
+  $full_name = trim($_POST['full_name'] ?? '');
+  $country = trim($_POST['country'] ?? '');
   $county = trim($_POST['county'] ?? '');
   $ward = trim($_POST['ward'] ?? '');
   $username = trim($_POST['username'] ?? '');
@@ -38,17 +52,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $phone = trim($_POST['phone'] ?? '');
   $password = $_POST['password'] ?? '';
   $confirm_password = $_POST['confirm_password'] ?? '';
+  $address = trim($_POST['address'] ?? '');
 
-  if (empty($country) || empty($county) || empty($ward) || empty($username) || empty($email) || empty($phone) || empty($password) || empty($confirm_password)) {
+  if (empty($country) || empty($county) || empty($ward) || empty($username) || empty($email) || empty($phone) || empty($password) || empty($confirm_password) || empty($address)) {
     $error = "All fields are required.";
   } else if (!$accountType) {
     $error = 'Visit the <a href="accountTypeSelection.php">account-type selection</a> page to proceed.';
+  } elseif (str_word_count($full_name) < 2) {
+    $error = "Full name must include at least first and last name!";
   } elseif (strpos($username, ' ') !== false) {
     $error = 'Username should not have space(s)!';
   } elseif (strlen($username) > 20) {
       $error = 'Username should contain a maximum of 20 characters!';
   } elseif (strlen($username) < 5) {
     $error = 'Username is too short!';
+  } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $error = "Invalid email address!";
   } elseif (strlen($username) > 20) {
     $error = 'Username is too long!';
   } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -79,11 +98,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       } elseif ($password !== $confirm_password) {
         $error = 'Passwords do not match!';
       } else {
+        // Validate password strength
+        $passwordError = validatePassword($password);
+      if ($passwordError) {
+        $error = $passwordError; // simple single-line error
+      } else {
+
         if (!$error) {
           $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-          $stmt = $conn->prepare("INSERT INTO users (account_type, country, county, ward, username, email, phone, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-          $stmt->bind_param("ssssssss", $accountType, $country, $county, $ward, $username, $encrypted_email, $encrypted_phone, $hashedPassword);
+          $stmt = $conn->prepare("INSERT INTO users (account_type, full_name, country, county, ward, username, address, email, phone, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+          $stmt->bind_param("ssssssssss", $accountType, $full_name, $country, $county, $ward, $username, $address, $encrypted_email, $encrypted_phone, $hashedPassword);
 
           if ($stmt->execute()) {
             $success = "Account registered successfully! <span id='redirect-msg'></span>";
@@ -94,6 +119,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           $stmt->close();
         }
       }
+     }
     }
   }
 }
@@ -122,14 +148,14 @@ $accountType = isset($_SESSION['accountType']) ? ucfirst($_SESSION['accountType'
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 
-  <title>Register Account ~ MarketHub</title>
+  <title>Register Account ~ Market Hub</title>
 </head>
 <body>
   <div class="container">
     <main>
       <div class="formContainer">
         <form action="" method="POST">
-          <h2>Register account on MarketHub</h2>
+          <h2>Register account on Market Hub</h2>
           <div class="account-type">
             <div class="account-icon">🛒</div>
             <div class="regInfo">
@@ -143,6 +169,49 @@ $accountType = isset($_SESSION['accountType']) ? ucfirst($_SESSION['accountType'
           <?php elseif ($success): ?>
             <p class="successMessage"><i class="fa-solid fa-check-circle"></i> <?= $success ?></p>
           <?php endif; ?>
+          <div class="inpBox">
+            <input type="text" name="full_name" value="<?= htmlspecialchars($full_name ?? '') ?>" placeholder="" required>
+            <label>Full Name</label>
+          </div>
+          <div class="inpBox">
+            <input type="text" name="username" value="<?php echo htmlspecialchars($username ?? ''); ?>" placeholder="" required>
+            <label>Username</label>
+          </div>
+          <div class="inpBox">
+            <input type="email" name="email" value="<?php echo htmlspecialchars($email ?? ''); ?>" placeholder="" required>
+            <label>Email</label>
+          </div>
+          <div class="inpBox">
+            <input type="text" name="phone" value="<?php echo htmlspecialchars($phone ?? ''); ?>" placeholder="" required>
+            <label>Phone</label>
+          </div>
+
+          <div class="inpBox">
+              <input type="text" name="address" value="<?= htmlspecialchars($address ?? '') ?>" placeholder="" required>
+              <label>Address</label>
+          </div>
+          <div class="selectorBox">
+            <span>Country</span>
+            <select id="country" name="country" required>
+              <option value=""><p>-- Select Country --</p></option>
+              <!--<option value="Baringo">Baringo</option>
+              <option value="Bomet">Bomet</option>
+              <option value="Bungoma">Bungoma</option>
+              <option value="Busia">Busia</option>
+              <option value="Elgeyo-Marakwet">Elgeyo-Marakwet</option>
+              <option value="Embu">Embu</option>
+              <option value="Garissa">Garissa</option>
+              <option value="Homa Bay">Homa Bay</option>
+              <option value="Isiolo">Isiolo</option>
+              <option value="Kajiado">Kajiado</option>
+              <option value="Kakamega">Kakamega</option>
+              <option value="Kericho">Kericho</option>
+              <option value="Kiambu">Kiambu</option>-->
+              <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
+              <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+              <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+            </select>
+          </div>
           <div class="selectorBox">
             <span>County</span>
             <select id="county" name="county" required>
@@ -250,21 +319,23 @@ $accountType = isset($_SESSION['accountType']) ? ucfirst($_SESSION['accountType'
             </select>
           </div>
           <div class="inpBox">
-            <input type="text" name="username" value="<?php echo htmlspecialchars($username ?? ''); ?>" placeholder="" required>
-            <label>Username</label>
-          </div>
-          <div class="inpBox">
-            <input type="email" name="email" value="<?php echo htmlspecialchars($email ?? ''); ?>" placeholder="" required>
-            <label>Email</label>
-          </div>
-          <div class="inpBox">
-            <input type="text" name="phone" value="<?php echo htmlspecialchars($phone ?? ''); ?>" placeholder="" required>
-            <label>Phone</label>
-          </div>
-          <div class="inpBox">
-            <input type="password" name="password" class="password-field" placeholder="" required>
+            <input type="password" name="password" id="password" class="password-field" placeholder="" required>
             <label>Password</label>
             <i class="fa-regular fa-eye toggle-password" title="Show Password"></i>
+
+            <!-- Password strength -->
+            <div class="password-strength">
+              <div class="strength-bar">
+                <div class="strength-fill" id="strengthFill"></div>
+              </div>
+              <ul class="strength-rules">
+                <li id="len">• At least 8 characters</li>
+                <li id="upper">• Uppercase letter</li>
+                <li id="lower">• Lowercase letter</li>
+                <li id="number">• Number</li>
+                <li id="special">• Special character</li>
+              </ul>
+            </div>
           </div>
           <div class="inpBox">
             <input type="password" name="confirm_password" class="password-field" placeholder="" required>
@@ -290,10 +361,54 @@ $accountType = isset($_SESSION['accountType']) ? ucfirst($_SESSION['accountType'
       </div>
     </main>
     <footer>
-      <p>&copy; 2025/2026, MarketHub.com, All Rights reserved.</p>
+      <p>&copy; 2025/2026, Market Hub.com, All Rights reserved.</p>
     </footer>
   </div>
   
   <script src="Scripts/general.js" type="text/javascript"></script>
+  <script>
+    const passwordInput = document.getElementById("password");
+    const strengthFill = document.getElementById("strengthFill");
+    const strengthBox = document.querySelector(".password-strength");
+
+    const rules = {
+      len: v => v.length >= 8,
+      upper: v => /[A-Z]/.test(v),
+      lower: v => /[a-z]/.test(v),
+      number: v => /\d/.test(v),
+      special: v => /[^A-Za-z0-9]/.test(v)
+    };
+
+    // Show when focused
+    passwordInput.addEventListener("focus", () => {
+      strengthBox.classList.add("active");
+    });
+
+    // Hide when focus leaves (optional but clean)
+    passwordInput.addEventListener("blur", () => {
+      if (!passwordInput.value) {
+        strengthBox.classList.remove("active");
+      }
+    });
+
+    // Strength logic
+    passwordInput.addEventListener("input", () => {
+      const value = passwordInput.value;
+      let score = 0;
+
+      Object.keys(rules).forEach(id => {
+        const valid = rules[id](value);
+        document.getElementById(id).classList.toggle("valid", valid);
+        if (valid) score++;
+      });
+
+      const percent = (score / 5) * 100;
+      strengthFill.style.width = percent + "%";
+
+      if (percent < 40) strengthFill.style.background = "#dc2626";
+      else if (percent < 80) strengthFill.style.background = "#f59e0b";
+      else strengthFill.style.background = "#16a34a";
+    });
+  </script>
 </body>
 </html>
