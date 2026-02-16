@@ -119,10 +119,10 @@ if (!empty($profileImage) && file_exists($profileImage)) {
             <!--<option value="">Bungoma</option>
             <option value="">Nairobi</option>-->
           </select>
-          <div class="help-icon">
+          <a href="helpCentre.php" class="help-icon">
             <i class="fa-regular fa-circle-question"></i>
             <p>Help&nbsp;Centre</p>
-          </div>
+          </a>
           <div class="profile-icon" onclick="toggleProfileOption()">
             <i class="fa-regular fa-user"></i>
             <p class="profile-text">Profile</p>

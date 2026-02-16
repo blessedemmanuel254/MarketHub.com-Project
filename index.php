@@ -51,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 setTimeout(() => window.location.href = '$redirectPage', 3500);
               </script>";
       } else {
-        $error = "Invalid password.";
+        $error = "One of the credentials is invalid.";
       }
     } else {
       $error = "No account found with those credentials.";

@@ -120,209 +120,125 @@ if (!empty($user['profile_image'])) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>My Profile | Market Hub</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="apple-touch-icon" sizes="180x180" href="Images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="Images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="Images/favicon-16x16.png">
+  <link rel="manifest" href="Images/site.webmanifest">
 
-<link rel="stylesheet" href="styles/general.css">
+  <link rel="stylesheet" href="styles/general.css">
 
-<style>
-* { box-sizing: border-box; font-family: "Segoe UI", sans-serif; }
-body { margin:0; padding:20px; }
+  <!-- Font Awesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-.profile-container {
-  max-width: 900px;
-  margin: auto;
-  background: #fff;
-  border-radius: 8px;
-  padding: 24px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
+  <link href="https://fonts.googleapis.com/css2?family=Chewy&display=swap" rel="stylesheet">
 
-.profile-header {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 30px;
-}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,70090000000;1,800;1,900&display=swap" rel="stylesheet">
 
-.profile-pic {
-  position: relative;
-  width: 120px;
-  height: 120px;
-}
-
-.profile-pic img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #ddd;
-}
-
-.profile-pic input { display:none; }
-
-.profile-pic label {
-  position:absolute;
-  bottom:0;
-  right:0;
-  background:#0f0f0f;
-  color:#fff;
-  padding:8px;
-  border-radius:50%;
-  cursor:pointer;
-}
-
-.profile-form {
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:20px;
-}
-
-.form-group { display:flex; flex-direction:column; }
-.form-group label { font-size:14px; margin-bottom:6px; color:#555; }
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-  padding:10px;
-  border:1px solid #ccc;
-  border-radius:4px;
-}
-
-.form-group textarea {
-  resize: vertical;
-  min-height: 100px;
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-  outline:none;
-  border-color:#0f0f0f;
-}
-
-.save-btn {
-  margin-top:30px;
-  text-align:right;
-}
-
-.save-btn button {
-  background:#0f0f0f;
-  color:#fff;
-  border:none;
-  padding:12px 24px;
-  border-radius:4px;
-  cursor:pointer;
-}
-
-.success {
-  background:#e6fffa;
-  color:#065f46;
-  padding:10px;
-  border-radius:4px;
-  margin-bottom:15px;
-}
-</style>
+  <title>My Profile | Market Hub</title>
 </head>
 <body>
   <div class="container">
+    <main class="profile-main">
+      <div class="container profile-container">
 
-    <div class="container profile-container">
+        <?php if (isset($_GET['updated'])): ?>
+          <div class="success"><i class="fa-solid fa-check-circle"></i>Profile updated successfully!</div>
+        <?php endif; ?>
 
-    <?php if (isset($_GET['updated'])): ?>
-      <div class="success">Profile updated successfully ✅</div>
-    <?php endif; ?>
+        <div class="profile-header">
+          <div class="profile-pic">
+            <img id="profilePreview"
+              src="<?= safe($user['profile_image']) ?: 'Images/Market Hub Logo.avif'; ?>">
+              <input type="file" id="profileImage" name="profile_image" accept="image/png,image/jpeg,image/webp" form="profileForm">
+            <label for="profileImage"><i class="fa fa-camera"></i></label>
+          </div>
+          <div>
+            <h2><?= safe($user['full_name']); ?></h2>
+            <p>Edit your Market Hub details</p>
+          </div>
+        </div>
 
-    <div class="profile-header">
-      <div class="profile-pic">
-        <img id="profilePreview"
-          src="<?= safe($user['profile_image']) ?: 'Images/Market Hub Logo.avif'; ?>">
-          <input type="file" id="profileImage" name="profile_image" accept="image/png,image/jpeg,image/webp" form="profileForm">
-        <label for="profileImage"><i class="fa fa-camera"></i></label>
+        <form id="profileForm" class="profile-form" method="POST" enctype="multipart/form-data">
+
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" name="full_name" value="<?= safe($user['full_name']); ?>">
+          </div>
+
+          <div class="form-group">
+            <label>Email (read-only)</label>
+            <input type="email" value="<?= safe($user['email']); ?>" disabled>
+          </div>
+
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="text" name="phone" value="<?= safe($user['phone']); ?>">
+          </div>
+
+          <div class="form-group">
+            <label>Bio (max <?= $bioMaxLength ?> characters)</label>
+            <textarea id="bioTextarea" name="bio" maxlength="<?= $bioMaxLength ?>" 
+                      placeholder="Tell something about yourself..."><?= $safeBio ?></textarea>
+            <small id="bioCount"><?= strlen($bio) ?>/<?= $bioMaxLength ?> characters</small>
+          </div>
+
+          <!-- <div class="form-group">
+            <label>Bio</label>
+            <textarea name="bio" placeholder="Tell people about yourself..."><?= safe($user['bio']); ?></textarea>
+          </div> -->
+
+          <div class="form-group">
+            <label>username</label>
+            <input type="text" name="username" value="<?= safe($user['username']); ?>">
+          </div>
+
+
+          <div class="form-group">
+            <label>Country</label>
+            <select name="country">
+              <option <?= $user['country']=='Kenya'?'selected':'' ?>>Kenya</option>
+              <option <?= $user['country']=='Uganda'?'selected':'' ?>>Uganda</option>
+              <option <?= $user['country']=='Tanzania'?'selected':'' ?>>Tanzania</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>County</label>
+            <input type="text" name="county" value="<?= safe($user['county']); ?>">
+          </div>
+
+          <div class="form-group">
+            <label>Ward</label>
+            <input type="text" name="ward" value="<?= safe($user['ward']); ?>">
+          </div>
+
+          <div class="form-group">
+            <label>Physical Address</label>
+            <input type="text" name="address" value="<?= safe($user['address']); ?>">
+          </div>
+
+          <div class="form-group">
+            <label>Market Hub Role</label>
+            <select name="account_type">
+              <option value="buyer" <?= $user['account_type']=='buyer'?'selected':'' ?>>Buyer</option>
+              <option value="seller" <?= $user['account_type']=='seller'?'selected':'' ?>>Seller</option>
+              <option value="service_provider" <?= $user['account_type']=='service_provider'?'selected':'' ?>>Service Provider</option>
+            </select>
+          </div>
+          <div></div>
+
+          <div class="save-btn">
+            <button type="submit">Save Profile</button>
+          </div>
+
+        </form>
       </div>
-      <div>
-        <h2><?= safe($user['full_name']); ?></h2>
-        <p>Edit your Market Hub details</p>
-      </div>
-    </div>
-
-    <form id="profileForm" class="profile-form" method="POST" enctype="multipart/form-data">
-
-      <div class="form-group">
-        <label>Full Name</label>
-        <input type="text" name="full_name" value="<?= safe($user['full_name']); ?>">
-      </div>
-
-      <div class="form-group">
-        <label>Email (read-only)</label>
-        <input type="email" value="<?= safe($user['email']); ?>" disabled>
-      </div>
-
-      <div class="form-group">
-        <label>Phone</label>
-        <input type="text" name="phone" value="<?= safe($user['phone']); ?>">
-      </div>
-
-      <div class="form-group">
-        <label>Bio (max <?= $bioMaxLength ?> characters)</label>
-        <textarea id="bioTextarea" name="bio" maxlength="<?= $bioMaxLength ?>" 
-                  placeholder="Tell something about yourself..."><?= $safeBio ?></textarea>
-        <small id="bioCount"><?= strlen($bio) ?>/<?= $bioMaxLength ?> characters</small>
-      </div>
-
-      <!-- <div class="form-group">
-        <label>Bio</label>
-        <textarea name="bio" placeholder="Tell people about yourself..."><?= safe($user['bio']); ?></textarea>
-      </div> -->
-
-      <div class="form-group">
-        <label>username</label>
-        <input type="text" name="username" value="<?= safe($user['username']); ?>">
-      </div>
-
-
-      <div class="form-group">
-        <label>Country</label>
-        <select name="country">
-          <option <?= $user['country']=='Kenya'?'selected':'' ?>>Kenya</option>
-          <option <?= $user['country']=='Uganda'?'selected':'' ?>>Uganda</option>
-          <option <?= $user['country']=='Tanzania'?'selected':'' ?>>Tanzania</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>County</label>
-        <input type="text" name="county" value="<?= safe($user['county']); ?>">
-      </div>
-
-      <div class="form-group">
-        <label>Ward</label>
-        <input type="text" name="ward" value="<?= safe($user['ward']); ?>">
-      </div>
-
-      <div class="form-group">
-        <label>Physical Address</label>
-        <input type="text" name="address" value="<?= safe($user['address']); ?>">
-      </div>
-
-      <div class="form-group">
-        <label>Market Hub Role</label>
-        <select name="account_type">
-          <option value="buyer" <?= $user['account_type']=='buyer'?'selected':'' ?>>Buyer</option>
-          <option value="seller" <?= $user['account_type']=='seller'?'selected':'' ?>>Seller</option>
-          <option value="service_provider" <?= $user['account_type']=='service_provider'?'selected':'' ?>>Service Provider</option>
-        </select>
-      </div>
-
-      <div class="save-btn">
-        <button type="submit">Save Profile</button>
-      </div>
-
-    </form>
-    </div>
+    </main>
     <footer>
       <p>&copy; 2025/2026, Market Hub.com, All Rights reserved.</p>
     </footer>

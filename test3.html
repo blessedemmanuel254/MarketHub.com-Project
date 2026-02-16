@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Market Hub – Sellers</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+/* =====================
+   GLOBAL THEME
+===================== */
+:root {
+  --bg: #000;
+  --fg: #fff;
+  --muted: #aaa;
+  --border: #1f1f1f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Poppins", sans-serif;
+}
+
+.container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 12px;
+}
+
+/* =====================
+   TOP BAR
+===================== */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.balance {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* =====================
+   BUY / SELL TABS
+===================== */
+.market-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
+.market-tab {
+  flex: 1;
+  text-align: center;
+  padding: 12px 0;
+  font-size: 14px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.market-tab.active {
+  color: var(--fg);
+  border-bottom: 3px solid var(--fg);
+}
+
+/* =====================
+   SELLERS GRID
+   (Auto-adjusts layout)
+===================== */
+.sellers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+/* =====================
+   SELLER ITEM (NOT A CARD)
+===================== */
+.seller {
+  padding: 16px 10px;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+}
+
+.seller-left {
+  display: flex;
+  gap: 12px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.name {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.rating {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* =====================
+   PRICE SIDE
+===================== */
+.seller-right {
+  text-align: right;
+}
+
+.price {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.limits {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.action {
+  margin-top: 8px;
+}
+
+.action button {
+  background: #fff;
+  color: #000;
+  border: none;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* =====================
+   PAYMENT TAG
+===================== */
+.payment {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+/* =====================
+   RESPONSIVE TWEAKS
+===================== */
+@media (max-width: 480px) {
+  .seller {
+    grid-template-columns: 1fr;
+  }
+  .seller-right {
+    text-align: left;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="balance">0.00 USD</div>
+    <div>🔍 ☰</div>
+  </div>
+
+  <!-- BUY / SELL -->
+  <div class="market-tabs">
+    <div class="market-tab active">Buy</div>
+    <div class="market-tab">Sell</div>
+  </div>
+
+  <!-- SELLERS LIST -->
+  <div class="sellers">
+
+    <div class="seller">
+      <div class="seller-left">
+        <div class="avatar">MK</div>
+        <div>
+          <div class="name">MKAPA11</div>
+          <div class="rating">★★★★★ (41)</div>
+          <div class="meta">1 USD = 122.74 KES</div>
+          <div class="payment">Safaricom M-PESA</div>
+        </div>
+      </div>
+      <div class="seller-right">
+        <div class="price">Buy</div>
+        <div class="limits">Limits: 2 – 37 USD</div>
+        <div class="action">
+          <button>Buy USD</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="seller">
+      <div class="seller-left">
+        <div class="avatar">BE</div>
+        <div>
+          <div class="name">BerryFerry</div>
+          <div class="rating">★★★★★ (165)</div>
+          <div class="meta">1 USD = 122.99 KES</div>
+          <div class="payment">Safaricom M-PESA</div>
+        </div>
+      </div>
+      <div class="seller-right">
+        <div class="price">Buy</div>
+        <div class="limits">Limits: 2 – 12 USD</div>
+        <div class="action">
+          <button>Buy USD</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="seller">
+      <div class="seller-left">
+        <div class="avatar">WW</div>
+        <div>
+          <div class="name">Wwrightbright</div>
+          <div class="rating">★★★★★ (11)</div>
+          <div class="meta">1 USD = 125.50 KES</div>
+          <div class="payment">Safaricom M-PESA</div>
+        </div>
+      </div>
+      <div class="seller-right">
+        <div class="price">Buy</div>
+        <div class="limits">Limits: 2 – 71 USD</div>
+        <div class="action">
+          <button>Buy USD</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+</body>
+</html>

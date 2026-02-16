@@ -164,7 +164,7 @@ html body {
   font-family: 'Chewy', cursive;
   font-size: 33px;
   color: #0f0f0f;
-  text-shadow: 2px 2px 0 #088000, 4px 4px 0 red;
+  text-shadow: 2px 2px 0 #088000, 4px 4px 0 #ff3b3b;
   letter-spacing: 1px;
   margin: 20px 0;
   text-align: center;
@@ -480,7 +480,7 @@ html body {
   }
 }
 
-.container main.buyerMain {
+.container main.buyerMain, .container main.profile-main, .container main.help-centre-main {
   padding: 20px;
   flex: 1 0 auto;
   display: flex;
@@ -488,6 +488,12 @@ html body {
   gap: 10px;
   align-items: center;
   animation: fadeIn 0.25s ease;
+}
+
+.container main.help-centre-main {
+  align-items: normal;
+  margin: 50px auto;
+  position: relative;
 }
 
 @keyframes fadeIn {
@@ -572,7 +578,7 @@ html body {
 
 .container main.buyerMain .tabs-container .tab-content .tab-panel p strong{
   font-size: 16px;
-  color: #b02a37;
+  color: #ff3b3b;
 }
 
 .container main.buyerMain .tabs-container .tab-content .tab-panel.active {
@@ -596,11 +602,11 @@ html body {
   padding: 15px;
   cursor: pointer;
   transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card:hover {
-  background-color: #dedede42;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
 }
 
 .container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card:hover {
@@ -634,6 +640,8 @@ html body {
   font-size: 14px;
 }
 
+THIS AFTERNOON IM BORN AGAIN
+
 .container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card .label p {
   display: inline-block;
   margin-top: 10px;
@@ -662,9 +670,9 @@ html body {
   font-weight: bold;
   letter-spacing: 1px;
   padding: 6px 10px;
-  border: 1px solid #0f0f0f;
-  background: #0f0f0f;
+  background: #008000;
   color: #ffffff;
+  border-radius: 4px;
 }
 
 .container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card .card:hover .tag {
@@ -736,7 +744,7 @@ html body {
 
 .container main.buyerMain .table-wrapper table tbody tr td.actions button.btn-view, .container main.buyerMain .cards .order-card .card-actions button.btn-view { background:#000; color:#fff; }
 .container main.buyerMain .table-wrapper table tbody tr td.actions button.btn-track, .container main.buyerMain .cards .order-card .card-actions button.btn-track { background:#ddd; }
-.container main.buyerMain .table-wrapper table tbody tr td.actions button.btn-cancel, .container main.buyerMain .cards .order-card .card-actions button.btn-cancel { background:#fdecea; color:#b02a37; }
+.container main.buyerMain .table-wrapper table tbody tr td.actions button.btn-cancel, .container main.buyerMain .cards .order-card .card-actions button.btn-cancel { background:#fdecea; color:#ff3b3b; }
 
 .container main.buyerMain .cards {
   display: none;
@@ -1207,11 +1215,11 @@ html body {
   align-items: center;
   gap: 5px;
   font-size: 14px;
-  color: #0f0f0f;
+  color: #ff3b3b;
 }
 
 .container main .formContainer form p.successMessage {
-  color: #0f0f0f;
+  color: #088000;
 }
 
 .container main .formContainer form input::placeholder {
@@ -1400,4 +1408,419 @@ html body {
   color: #898888;
   font-size: 14px;
   text-align: center;
+}
+
+/* Buyer profile page */
+.container main.profile-main .profile-container {
+  max-width: 900px;
+  margin: auto;
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.container main.profile-main .profile-container .success {
+  color:#065f46;
+  padding:10px;
+  border-radius:4px;
+  margin-bottom:10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.container main.profile-main .profile-container .profile-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.container main.profile-main .profile-container .profile-header .profile-pic {
+  position: relative;
+}
+
+.container main.profile-main .profile-container .profile-header .profile-pic img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ddd;
+}
+
+.container main.profile-main .profile-container .profile-header .profile-pic input { display:none; }
+
+.container main.profile-main .profile-container .profile-header .profile-pic label {
+  position:absolute;
+  bottom:0;
+  right:0;
+  background:#898888;
+  color:#fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding:8px;
+  height: 35px;
+  width: 35px;
+  border-radius:50%;
+  cursor:pointer;
+}
+
+.container main.profile-main .profile-container .profile-header .profile-pic label:hover {
+  opacity: .875;
+}
+
+.container main.profile-main .profile-container .profile-form {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:20px;
+}
+
+.container main.profile-main .profile-container .profile-form .form-group { display:flex; flex-direction:column; }
+.container main.profile-main .profile-container .profile-form .form-group label { font-size:14px; margin-bottom:6px; color:#555; }
+
+.container main.profile-main .profile-container .profile-form .form-group input,
+.container main.profile-main .profile-container .profile-form .form-group select,
+.container main.profile-main .profile-container .profile-form .form-group textarea {
+  padding:10px;
+  border:1px solid #ccc;
+  border-radius:4px;
+}
+
+.container main.profile-main .profile-container .profile-form .form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.container main.profile-main .profile-container .profile-form .form-group input:focus,
+.container main.profile-main .profile-container .profile-form .form-group select:focus,
+.container main.profile-main .profile-container .profile-form .form-group textarea:focus {
+  outline:none;
+  border-color:#0f0f0f;
+}
+
+.container main.profile-main .profile-container .profile-form .save-btn {
+  margin-top:30px;
+  text-align:right;
+}
+
+.container main.profile-main .profile-container .profile-form .save-btn button {
+  background:#0f0f0f;
+  color:#fff;
+  border:none;
+  padding:12px 24px;
+  border-radius:4px;
+  cursor:pointer;
+}
+
+.container main.profile-main .profile-container .profile-form .save-btn button:hover {
+  opacity:.875;
+}
+/* HELP CENTER */
+.container.faq-wrapper {
+  width: 100%;
+}
+
+.container main.help-centre-main .support-btn {
+  position: absolute;
+  right: 24px;
+  top: 0;
+  padding: 8px 16px;
+  background: #0f0f0f;
+  color: #ffffff;
+  border: 1px solid #0f0f0f;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.container main.help-centre-main .support-btn:hover {
+  opacity: 0.785;
+}
+
+
+.container main.help-centre-main .faq-header {
+  margin-bottom: 36px;
+}
+
+.container main.help-centre-main .faq-header h1 {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  margin-bottom: 6px;
+}
+
+.container main.help-centre-main .faq-header p {
+  font-size: 14px;
+  color: #008000;
+  max-width: 760px;
+}
+
+/* FAQ LIST */
+.container main.help-centre-main .faq-list {
+  border-top: 1px solid #dedede;
+}
+
+.container main.help-centre-main .faq-list .faq-item {
+  border-bottom: 1px solid #dedede;
+  padding: 22px 0;
+}
+
+.container main.help-centre-main .faq-list .faq-item .faq-question {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  cursor: pointer;
+  outline: none;
+}
+
+.container main.help-centre-main .faq-list .faq-item .faq-question h3 {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.container main.help-centre-main .faq-list .faq-item .faq-question:focus-visible {
+  outline: 2px solid #0f0f0f;
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
+.container main.help-centre-main .faq-list .faq-item .faq-question .chevron {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.35s ease;
+  flex-shrink: 0;
+}
+
+.container main.help-centre-main .faq-list .faq-item.active .faq-question .chevron {
+  transform: rotate(180deg);
+}
+
+.container main.help-centre-main .faq-list .faq-item .faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition:
+    max-height 0.45s ease,
+    opacity 0.35s ease,
+    transform 0.35s ease;
+}
+
+.container main.help-centre-main .faq-list .faq-item .faq-answer p {
+  font-size: 14px;
+  color: #898888;
+  padding-top: 14px;
+  max-width: 800px;
+}
+
+.container main.help-centre-main .faq-list .faq-item.active .faq-answer {
+  max-height: 260px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .container main.help-centre-main .support-btn {
+    position: static;
+    margin-bottom: 24px;
+  }
+}
+
+/* =====================
+  SELLERS GRID
+  (Auto-adjusts layout)
+===================== */
+.sellers {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+/* =====================
+   SELLER ITEM (NOT A CARD)
+===================== */
+.seller {
+  padding: 16px 10px;
+  border-bottom: 1px solid #dedede;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  background-color: #dedede41;
+ /*  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */
+}
+
+.seller-left {
+  display: flex;
+  gap: 10px;
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #898888;
+  color: #000;
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.name {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.rating {
+  font-size: 12px;
+  color: rgb(255, 174, 0);
+}
+
+.meta {
+  color: #0f0f0f;
+  margin-top: 4px;
+  font-weight: bold;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.meta h2 {
+  color: #0f0f0f;
+  font-size: 14px;
+}
+
+.meta h2 span {
+  color: #898888;
+  font-weight: normal;
+}
+
+.meta h2.followBtn {
+  font-weight: normal;
+  background-color: #0f0f0f;
+  padding: 4px 16px;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  text-align: center;
+  width: fit-content;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.meta h2.followBtn:hover {
+  opacity: .875;
+}
+
+/* =====================
+   PRICE SIDE
+===================== */
+a.seller-right {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: flex-end;
+  justify-content: center;
+  cursor: default;
+  text-decoration: none;
+}
+
+.promoBadgeDefault {
+  background: #dedede;
+  color: #898989;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-weight: 600;
+  border: 1px solid #dedede;
+  font-size: 14px;
+  min-width: 50px;
+  text-align: center;
+}
+
+.promoBadge100Orders {
+  background: linear-gradient(
+    145deg,
+    #FFF3B0,
+    #FFD700,
+    #C9A227,
+    #8B7500
+  );
+  color: #0f0f0f;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-weight: 600;
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,0.6),
+    0 4px 10px rgba(0, 0, 0, 0.35);
+  font-size: 14px;
+  min-width: 50px;
+  text-align: center;
+}
+
+.promoBadge20Orders {
+  background: linear-gradient(
+    135deg,
+    #e8fff9 0%,
+    #1fa169 20%,
+    #0092af 55%,
+    #004469 100%
+  );
+  color: #ffffff;
+  border: none;
+  padding: 4px 8px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 20px;
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,0.6),
+    0 4px 10px rgba(0, 119, 182, 0.35);
+  transition: all 0.25s ease;
+  min-width: 50px;
+  text-align: center;
+}
+
+.bsType {
+  font-size: 12px;
+  color: #898888;
+  text-align: right;
+}
+
+.action {
+  margin-top: 10px;
+}
+
+.action button {
+  background: #ff3b3b;
+  color: #ffffff;
+  border: none;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.action button:hover {
+  opacity: .875;
+}
+
+/* =====================
+   PAYMENT TAG
+===================== */
+.bsInfo {
+  font-size: 12px;
+  color: #898888;
+  margin-top: 6px;
 }
