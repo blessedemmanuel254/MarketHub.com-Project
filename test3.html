@@ -2,205 +2,296 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Market Hub – Food & Snacks</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cart | Market Hub</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-/* =====================
-   GLOBAL
-===================== */
 * {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
 }
 
 body {
-  margin: 0;
-  font-family: "Poppins", sans-serif;
-  background: #000;
-  color: #fff;
+  background: #fff;
+  color: #000;
 }
 
-.container {
-  max-width: 1300px;
-  margin: auto;
+header {
   padding: 20px;
-}
-
-h1 {
-  font-size: clamp(22px, 4vw, 32px);
-  margin-bottom: 20px;
-}
-
-/* =====================
-   GRID LAYOUT
-===================== */
-.food-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 18px;
-}
-
-/* =====================
-   FOOD CARD
-===================== */
-.food-card {
-  display: flex;
-  flex-direction: column;
-  background: #0f0f0f;
-  border: 1px solid #1f1f1f;
-  border-radius: 14px;
-  overflow: hidden;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-
-.food-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.6);
-}
-
-/* =====================
-   IMAGE
-===================== */
-.food-img {
-  width: 100%;
-  height: clamp(160px, 30vw, 220px);
-  background-size: cover;
-  background-position: center;
-}
-
-/* =====================
-   CONTENT
-===================== */
-.food-content {
-  padding: 16px;
-}
-
-.food-title {
-  font-size: 16px;
+  border-bottom: 1px solid #eee;
+  text-align: center;
+  font-size: 1.4rem;
   font-weight: 600;
-  margin-bottom: 6px;
 }
 
-.food-desc {
-  font-size: 13px;
-  color: #aaa;
-  margin-bottom: 12px;
-}
-
-.price-row {
+.cart-container {
+  max-width: 1000px;
+  margin: 30px auto;
   display: flex;
-  justify-content: space-between;
+  gap: 30px;
+  padding: 0 20px;
+  flex-wrap: wrap;
+}
+
+.cart-items {
+  flex: 2;
+}
+
+.cart-item {
+  display: flex;
   align-items: center;
+  justify-content: space-between;
+  padding: 15px;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  margin-bottom: 15px;
 }
 
-.price {
-  font-size: 16px;
-  font-weight: 600;
+.cart-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
-/* =====================
-   BUTTON
-===================== */
-.buy-btn {
-  background: linear-gradient(
-    135deg,
-    #e8fff9,
-    #3ddc97,
-    #00b4d8,
-    #0077b6
-  );
-  color: #fff;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-weight: 600;
+.cart-left img {
+  width: 70px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.cart-info h4 {
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.cart-info p {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.quantity-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.qty-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid #000;
+  background: #fff;
   cursor: pointer;
 }
 
-/* =====================
-   MEDIA QUERIES
-===================== */
-@media (min-width: 600px) {
-  .food-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.qty-number {
+  min-width: 20px;
+  text-align: center;
 }
 
-@media (min-width: 900px) {
-  .food-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+.remove-btn {
+  color: #999;
+  font-size: 0.8rem;
+  cursor: pointer;
+  margin-top: 5px;
 }
 
-@media (min-width: 1200px) {
-  .food-grid {
-    grid-template-columns: repeat(4, 1fr);
+.cart-summary {
+  flex: 1;
+  border: 1px solid #eee;
+  border-radius: 15px;
+  padding: 20px;
+  height: fit-content;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.summary-total {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-top: 15px;
+}
+
+.checkout-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #000;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: 0.3s;
+}
+
+.checkout-btn:hover {
+  background: #333;
+}
+
+.empty-cart {
+  text-align: center;
+  padding: 50px;
+  color: #777;
+}
+
+@media(max-width: 768px) {
+  .cart-container {
+    flex-direction: column;
   }
 }
 </style>
 </head>
-
 <body>
 
-<div class="container">
-  <h1>Food & Snacks</h1>
+<header>Market Hub Cart</header>
 
-  <div class="food-grid">
+<div class="cart-container">
 
-    <!-- CARD 1 -->
-    <div class="food-card">
-      <div class="food-img" style="background-image:url('https://images.unsplash.com/photo-1540189549336-e6e99c3679fe');"></div>
-      <div class="food-content">
-        <div class="food-title">Fried Chicken</div>
-        <div class="food-desc">Crispy, golden and freshly prepared.</div>
-        <div class="price-row">
-          <div class="price">KES 450</div>
-          <button class="buy-btn">Order</button>
+  <div class="cart-items" id="cartItems">
+
+    <div class="cart-item" data-price="40">
+      <div class="cart-left">
+        <img src="https://via.placeholder.com/70" alt="">
+        <div class="cart-info">
+          <h4>Passion Juice</h4>
+          <p>KES 40</p>
+          <div class="remove-btn">Remove</div>
         </div>
+      </div>
+
+      <div class="quantity-control">
+        <button class="qty-btn minus">-</button>
+        <div class="qty-number">1</div>
+        <button class="qty-btn plus">+</button>
       </div>
     </div>
 
-    <!-- CARD 2 -->
-    <div class="food-card">
-      <div class="food-img" style="background-image:url('https://images.unsplash.com/photo-1565299624946-b28f40a0ae38');"></div>
-      <div class="food-content">
-        <div class="food-title">Burger & Fries</div>
-        <div class="food-desc">Juicy burger served with crispy fries.</div>
-        <div class="price-row">
-          <div class="price">KES 650</div>
-          <button class="buy-btn">Order</button>
+    <div class="cart-item" data-price="650">
+      <div class="cart-left">
+        <img src="https://via.placeholder.com/70" alt="">
+        <div class="cart-info">
+          <h4>Burger & Fries</h4>
+          <p>KES 650</p>
+          <div class="remove-btn">Remove</div>
         </div>
       </div>
-    </div>
 
-    <!-- CARD 3 -->
-    <div class="food-card">
-      <div class="food-img" style="background-image:url('https://images.unsplash.com/photo-1586190848861-99aa4a171e90');"></div>
-      <div class="food-content">
-        <div class="food-title">Pizza Slice</div>
-        <div class="food-desc">Cheesy slice with fresh toppings.</div>
-        <div class="price-row">
-          <div class="price">KES 300</div>
-          <button class="buy-btn">Order</button>
-        </div>
+      <div class="quantity-control">
+        <button class="qty-btn minus">-</button>
+        <div class="qty-number">1</div>
+        <button class="qty-btn plus">+</button>
       </div>
     </div>
-
-    <!-- CARD 4 -->
-    <div class="food-card">
-      <div class="food-img" style="background-image:url('https://images.unsplash.com/photo-1604908177522-432b8a7b26dd');"></div>
-      <div class="food-content">
-        <div class="food-title">Samosas</div>
-        <div class="food-desc">Crispy snacks filled with spiced meat.</div>
-        <div class="price-row">
-          <div class="price">KES 150</div>
-          <button class="buy-btn">Order</button>
+    <div class="cart-item" data-price="650">
+      <div class="cart-left">
+        <img src="https://via.placeholder.com/70" alt="">
+        <div class="cart-info">
+          <h4>Burger & Fries</h4>
+          <p>KES 650</p>
+          <div class="remove-btn">Remove</div>
         </div>
+      </div>
+
+      <div class="quantity-control">
+        <button class="qty-btn minus">-</button>
+        <div class="qty-number">1</div>
+        <button class="qty-btn plus">+</button>
+      </div>
+    </div>
+    <div class="cart-item" data-price="650">
+      <div class="cart-left">
+        <img src="https://via.placeholder.com/70" alt="">
+        <div class="cart-info">
+          <h4>Burger & Fries</h4>
+          <p>KES 650</p>
+          <div class="remove-btn">Remove</div>
+        </div>
+      </div>
+
+      <div class="quantity-control">
+        <button class="qty-btn minus">-</button>
+        <div class="qty-number">1</div>
+        <button class="qty-btn plus">+</button>
       </div>
     </div>
 
   </div>
+
+  <div class="cart-summary">
+    <div class="summary-row">
+      <span>Subtotal</span>
+      <span id="subtotal">KES 0</span>
+    </div>
+
+    <div class="summary-row">
+      <span>Delivery</span>
+      <span>KES 100</span>
+    </div>
+
+    <div class="summary-row summary-total">
+      <span>Total</span>
+      <span id="total">KES 0</span>
+    </div>
+
+    <button class="checkout-btn">Proceed to Payment</button>
+  </div>
+
 </div>
+
+<script>
+const cartItems = document.querySelectorAll('.cart-item');
+const subtotalEl = document.getElementById('subtotal');
+const totalEl = document.getElementById('total');
+const deliveryFee = 100;
+
+function updateTotals() {
+  let subtotal = 0;
+
+  document.querySelectorAll('.cart-item').forEach(item => {
+    const price = parseInt(item.dataset.price);
+    const qty = parseInt(item.querySelector('.qty-number').textContent);
+    subtotal += price * qty;
+  });
+
+  subtotalEl.textContent = "KES " + subtotal;
+  totalEl.textContent = "KES " + (subtotal + deliveryFee);
+}
+
+document.addEventListener('click', function(e) {
+
+  if (e.target.classList.contains('plus')) {
+    let qtyEl = e.target.parentElement.querySelector('.qty-number');
+    qtyEl.textContent = parseInt(qtyEl.textContent) + 1;
+    updateTotals();
+  }
+
+  if (e.target.classList.contains('minus')) {
+    let qtyEl = e.target.parentElement.querySelector('.qty-number');
+    let current = parseInt(qtyEl.textContent);
+    if (current > 1) {
+      qtyEl.textContent = current - 1;
+      updateTotals();
+    }
+  }
+
+  if (e.target.classList.contains('remove-btn')) {
+    e.target.closest('.cart-item').remove();
+    updateTotals();
+  }
+});
+
+updateTotals();
+</script>
 
 </body>
 </html>

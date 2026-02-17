@@ -5,6 +5,13 @@ function toggleWhatsAppChat() {
   overlay.classList.toggle("active");
 }
 
+function togglePaymentOption() {
+  var box = document.getElementById("paymentContainer");
+  var payOverlay = document.getElementById("payOverlay");
+  box.style.display = box.style.display === "flex" ? "none" : "flex";
+  payOverlay.classList.toggle("active");
+}
+
 function sendWhatsAppMessage() {
   var message = document.getElementById("userMessage").value.trim();
   if (message !== "") {
@@ -105,7 +112,7 @@ let lastActiveMarketSourceTab = null; // Tracks last source tab
 document.addEventListener("DOMContentLoaded", () => {
   lastActiveMarketTypeTab = document.querySelector('.tab-btn.active');
   lastActiveMarketSourceTab = document.querySelector('.tab-btn-msource.active');
-  
+
   const tabs = document.querySelectorAll('.tab-btn');
   const tabsmsource = document.querySelectorAll('.tab-btn-msource');
   const panels = document.querySelectorAll('.tab-panel');

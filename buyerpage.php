@@ -364,7 +364,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                     <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
                   </div>
                 </div>
-                <a href="sellerPage.php" class="seller-right">
+                <a href="marketDisplay.php" class="seller-right">
                   <div class="promoBadgeGoGold">200+</div>
                   <div class="bsType">Business Type : <i>Kiosk</i></div>
                   <div class="action">
@@ -385,7 +385,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                     <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
                   </div>
                 </div>
-                <a href="sellerPage.php" class="seller-right">
+                <a href="marketDisplay.php" class="seller-right">
                   <div class="promoBadgeDefault">13</div>
                   <div class="bsType">Business Type : <i>Canteen</i></div>
                   <div class="action">
@@ -406,7 +406,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                     <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
                   </div>
                 </div>
-                <a href="sellerPage.php" class="seller-right">
+                <a href="marketDisplay.php" class="seller-right">
                   <div class="promoBadgeGoPro">100+</div>
                   <div class="bsType">Business Type : <i>Kibanda</i></div>
                   <div class="action">
@@ -441,7 +441,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                     <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
                   </div>
                 </div>
-                <a href="sellerPage.php" class="seller-right">
+                <a href="marketDisplay.php" class="seller-right">
                   <div class="promoBadgeGoGold">1000+</div>
                   <div class="bsType">Business Type : <i>Kiosk</i></div>
                   <div class="action">
@@ -462,7 +462,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                     <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
                   </div>
                 </div>
-                <a href="sellerPage.php" class="seller-right">
+                <a href="marketDisplay.php" class="seller-right">
                   <div class="promoBadgeDefault">287</div>
                   <div class="bsType">Business Type : <i>Canteen</i></div>
                   <div class="action">
@@ -483,7 +483,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                     <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
                   </div>
                 </div>
-                <a href="sellerPage.php" class="seller-right">
+                <a href="marketDisplay.php" class="seller-right">
                   <div class="promoBadgeGoPro">500+</div>
                   <div class="bsType">Business Type : <i>Kibanda</i></div>
                   <div class="action">

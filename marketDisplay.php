@@ -1,3 +1,20 @@
+<?php
+session_start();
+require_once 'connection.php';
+
+/* ---------- SESSION SECURITY ---------- */
+if (!isset($_SESSION['user_id'])) {
+    header("Location: index.php");
+    exit();
+}
+
+/* Optional: regenerate session ID periodically */
+if (!isset($_SESSION['created'])) {
+    session_regenerate_id(true);
+    $_SESSION['created'] = time();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,6 +41,112 @@
 </head>
 <body>
   <div class="container">
+    <section class="topSection">
+      <div class="cart-wrapper">
+        <span class="cart-icon">📦</span>
+        <span class="cart-count">3</span>
+      </div>
+      <button onclick="window.history.back()">
+        <i class="fa-solid fa-circle-arrow-left"></i><span>Go&nbsp;Back</span>
+      </button>
+
+
+    </section>
+    <div class="cartOverlay" onclick="toggleCartBar()" id="cartOverlay"></div>
+
+    <div class="cart-container">
+      <h1>My Cart</h1>
+      <div class="inner-cart-container">
+        <div class="cart-items" id="cartItems">
+
+          <div class="cart-item" data-price="40">
+            <div class="cart-left">
+              <img src="Images/Passion Juice.jpg" alt="">
+              <div class="cart-info">
+                <h4>Passion Juice</h4>
+                <p>KES 40</p>
+                <div class="remove-btn">Remove</div>
+              </div>
+            </div>
+
+            <div class="quantity-control">
+              <button class="qty-btn minus">-</button>
+              <div class="qty-number">1</div>
+              <button class="qty-btn plus">+</button>
+            </div>
+          </div>
+
+          <div class="cart-item" data-price="650">
+            <div class="cart-left">
+              <img src="Images/Market Hub Logo.avif" alt="">
+              <div class="cart-info">
+                <h4>Burger & Fries</h4>
+                <p>KES 650</p>
+                <div class="remove-btn">Remove</div>
+              </div>
+            </div>
+
+            <div class="quantity-control">
+              <button class="qty-btn minus">-</button>
+              <div class="qty-number">1</div>
+              <button class="qty-btn plus">+</button>
+            </div>
+          </div>
+          <div class="cart-item" data-price="650">
+            <div class="cart-left">
+              <img src="Images/Market Hub Logo.avif" alt="">
+              <div class="cart-info">
+                <h4>Burger & Fries</h4>
+                <p>KES 650</p>
+                <div class="remove-btn">Remove</div>
+              </div>
+            </div>
+
+            <div class="quantity-control">
+              <button class="qty-btn minus">-</button>
+              <div class="qty-number">1</div>
+              <button class="qty-btn plus">+</button>
+            </div>
+          </div>
+          <div class="cart-item" data-price="650">
+            <div class="cart-left">
+              <img src="Images/Market Hub Logo.avif" alt="">
+              <div class="cart-info">
+                <h4>Burger & Fries</h4>
+                <p>KES 650</p>
+                <div class="remove-btn">Remove</div>
+              </div>
+            </div>
+
+            <div class="quantity-control">
+              <button class="qty-btn minus">-</button>
+              <div class="qty-number">1</div>
+              <button class="qty-btn plus">+</button>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="cart-summary">
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <span id="subtotal">KES 0</span>
+          </div>
+
+          <div class="summary-row">
+            <span>Delivery</span>
+            <span>KES 100</span>
+          </div>
+
+          <div class="summary-row summary-total">
+            <span>Total</span>
+            <span id="total">KES 0</span>
+          </div>
+
+          <button class="checkout-btn">Proceed to Payment</button>
+        </div>
+      </div>
+    </div>
     <div class="payOverlay" onclick="togglePaymentOption()" id="payOverlay"></div>
     <form class="paymentContainer" action="" id="paymentContainer">
       <h1>Choose&nbsp;Account <br><span>You can set your default account in settings</span></h1>
@@ -113,9 +236,6 @@
           <div id="products" class="tab-panel active">
             <div class="tab-top">
               <p>You order we deliver.</p>
-              <button onclick="window.history.back()">
-                <i class="fa-solid fa-circle-arrow-left"></i><span>Go&nbsp;Back</span>
-              </button>
             </div>
 
             <div class="food-grid">
