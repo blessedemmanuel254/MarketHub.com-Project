@@ -99,20 +99,42 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 /* Main Page Tabs */
+let lastActiveMarketTypeTab = null;  // Tracks last market type tab
+let lastActiveMarketSourceTab = null; // Tracks last source tab
 
-const tabs = document.querySelectorAll('.tab-btn');
-const panels = document.querySelectorAll('.tab-panel');
+document.addEventListener("DOMContentLoaded", () => {
+  lastActiveMarketTypeTab = document.querySelector('.tab-btn.active');
+  lastActiveMarketSourceTab = document.querySelector('.tab-btn-msource.active');
+  
+  const tabs = document.querySelectorAll('.tab-btn');
+  const tabsmsource = document.querySelectorAll('.tab-btn-msource');
+  const panels = document.querySelectorAll('.tab-panel');
+  const panelsmsource = document.querySelectorAll('.tab-panel-msource');
 
-tabs.forEach(tab => {
-tab.addEventListener('click', () => {
-  const target = tab.dataset.tab;
+  function activateTab(tab) {
+    const target = tab.dataset.tab;
 
-  tabs.forEach(t => t.classList.remove('active'));
-  panels.forEach(p => p.classList.remove('active'));
+    // Deactivate all tabs & panels
+    tabs.forEach(t => t.classList.remove('active'));
+    tabsmsource.forEach(t => t.classList.remove('active'));
+    panels.forEach(p => p.classList.remove('active'));
+    panelsmsource.forEach(p => p.classList.remove('active'));
 
-  tab.classList.add('active');
-  document.getElementById(target).classList.add('active');
-});
+    // Activate clicked tab & its panel
+    tab.classList.add('active');
+    document.getElementById(target)?.classList.add('active');
+
+    // Track last active tab depending on type
+    if (tab.classList.contains('tab-btn')) {
+      lastActiveMarketTypeTab = tab;
+    } else if (tab.classList.contains('tab-btn-msource')) {
+      lastActiveMarketSourceTab = tab;
+    }
+  }
+
+  tabs.forEach(tab => tab.addEventListener('click', () => activateTab(tab)));
+  tabsmsource.forEach(tab => tab.addEventListener('click', () => activateTab(tab)));
+
 });
 
 /* Profile Option Js */
@@ -184,4 +206,76 @@ function toggleMarketMain() {
   const marketMain = document.getElementById("marketMain");
   orderMain.style.display = "none";
   marketMain.style.display = "block";
+}
+
+/* ================= MARKET NAVIGATION (FIXED) ================= */
+function showMarketContainer(target) {
+  const typeTab = document.getElementById("toggleMarketTypeTab");
+  const sourceTab = document.getElementById("toggleMarketSourceTab");
+
+  if (!typeTab || !sourceTab) return;
+
+  if (target === "type") {
+    typeTab.style.display = "block";
+    sourceTab.style.display = "none";
+  }
+
+  if (target === "source") {
+    typeTab.style.display = "none";
+    sourceTab.style.display = "block";
+  }
+}
+
+/* ================= OPEN MARKET SOURCE (CORRECT) ================= */
+
+function openMarketSource(sourceTabId = "shops") {
+  showMarketContainer("source");
+
+  // Deactivate all source tabs & panels
+  document.querySelectorAll(".tab-btn-msource").forEach(btn =>
+    btn.classList.remove("active")
+  );
+  document.querySelectorAll(".tab-panel-msource").forEach(panel =>
+    panel.classList.remove("active")
+  );
+
+  // Activate the correct source tab
+  const btn = document.querySelector(`.tab-btn-msource[data-tab="${sourceTabId}"]`);
+  const panel = document.getElementById(sourceTabId);
+
+  if (btn && panel) {
+    btn.classList.add("active");
+    panel.classList.add("active");
+
+    // Track as last active source tab
+    lastActiveMarketSourceTab = btn;
+  }
+}
+
+/* ================= GO BACK ================= */
+
+function goBackToMarketTypes() {
+  const marketMain = document.getElementById("marketMain");
+  const orderMain = document.getElementById("orderMain");
+
+  if (marketMain) marketMain.style.display = "block";
+  if (orderMain) orderMain.style.display = "none";
+
+  showMarketContainer("type");
+
+  // Restore last active market type tab
+  if (lastActiveMarketTypeTab) {
+    lastActiveMarketTypeTab.classList.add('active');
+    const panel = document.getElementById(lastActiveMarketTypeTab.dataset.tab);
+    if (panel) panel.classList.add('active');
+  }
+
+  // Optionally, if you want to **return to the last source tab** after re-opening source
+  // Example: after user goes to Shops → Supermarkets → Back → then clicks a source tab again,
+  // the previous last source tab is remembered
+  if (lastActiveMarketSourceTab) {
+    lastActiveMarketSourceTab.classList.add('active');
+    const sourcePanel = document.getElementById(lastActiveMarketSourceTab.dataset.tab);
+    if (sourcePanel) sourcePanel.classList.add('active');
+  }
 }

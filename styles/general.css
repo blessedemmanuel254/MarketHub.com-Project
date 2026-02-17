@@ -506,6 +506,10 @@ html body {
   margin: 10px auto;
 }
 
+.container main.buyerMain #toggleMarketSourceTab {
+  display: none;
+}
+
 .container main.buyerMain h1 {
   color: #0f0f0f;
   font-size: 19.5px;
@@ -514,7 +518,6 @@ html body {
 .container main.buyerMain h1, .container main.buyerMain .filter-bar, .container main.buyerMain .table-wrapper {
   margin: 0 auto;
 }
-
 
 .container main.buyerMain .filter-bar #statusFilter {
   padding: 8px 16px;
@@ -525,11 +528,11 @@ html body {
   color: #0f0f0f;
 }
 
-.container main.buyerMain .tabs-container .tabs {
+.tabs-container .tabs {
   display: flex;
 }
 
-.container main.buyerMain .tabs-container .tabs .tab-btn {
+.tabs-container .tabs .tab-btn, .tabs-container .tabs .tab-btn-msource {
   flex: 1;
   padding: 8px;
   border: none;
@@ -542,11 +545,11 @@ html body {
   border-radius: 10px 10px 0 0;
 }
 
-.container main.buyerMain .tabs-container .tabs .tab-btn:hover {
+.tabs-container .tabs .tab-btn:hover, .tabs-container .tabs .tab-btn-msource:hover {
   background-color: #dedede42;
 }
 
-.container main.buyerMain .tabs-container .tabs .tab-btn.active {
+.tabs-container .tabs .tab-btn.active, .tabs-container .tabs .tab-btn-msource.active {
   font-weight: bold;
   border-radius: 10px 10px 0 0;
   border: 1px solid #dedede;
@@ -554,12 +557,12 @@ html body {
   color: #0F0F0F;
 }
 
-.container main.buyerMain .tabs-container .tab-content {
+.tabs-container .tab-content {
   position: relative;
   height: fit-content;
 }
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel {
+.tabs-container .tab-content .tab-panel, .tabs-container .tab-content .tab-panel-msource {
   position: relative;
   width: 100%;
   padding: 10px;
@@ -570,30 +573,66 @@ html body {
   gap: 20px;
 }
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel p {
+.tabs-container .tab-content .tab-panel p,  .tabs-container .tab-content .tab-panel-msource p {
   font-size: 14px;
   color: #898888;
   line-height: 30px;
 }
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel p strong{
-  font-size: 16px;
-  color: #ff3b3b;
+.tabs-container .tab-content .tab-panel p i,  .tabs-container .tab-content .tab-panel-msource p i {
+  font-size: 14px;
+  line-height: 30px;
 }
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel.active {
+.tabs-container .tab-content .tab-panel p em,  .tabs-container .tab-content .tab-panel-msource p em {
+  color: #0f0f0f;
+}
+
+.tabs-container .tab-content .tab-panel p strong, .tabs-container .tab-content .tab-panel-msource p strong {
+  font-size: 16px;
+  color: #ff3b3b;
+  font-weight: normal;
+}
+
+#toggleMarketSourceTab .tab-content .tab-panel p strong, #toggleMarketSourceTab .tab-content .tab-panel-msource p strong {
+  color: #088000;
+}
+
+.tabs-container .tab-content .tab-panel.active,  .tabs-container .tab-content .tab-panel-msource.active {
   display: flex;
   transform: translateX(0);
   pointer-events: auto;
 }
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel .cards {
+.tabs-container .tab-content .tab-top, .tabs-container .tab-content .tab-top button {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tabs-container .tab-content .tab-top button {
+  background-color: #0f0f0f;
+  padding: 8px 16px;
+  color: #ffffff;
+  border: none;
+  font-size: 14px;
+  border-radius: 4px;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.tabs-container .tab-content .tab-top button:hover {
+  opacity: .875;
+}
+
+.tabs-container .tab-content .tab-panel .cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 30px;
 }
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card {
+.tabs-container .tab-content .tab-panel .cards a.card {
   text-emphasis: none;
   border-radius: 4px;
   padding: 8px 16px;
@@ -604,34 +643,34 @@ html body {
   transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
 }
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card:hover {
+.tabs-container .tab-content .tab-panel .cards a.card:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 
 }
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card:hover {
+.tabs-container .tab-content .tab-panel .cards a.card:hover {
   transform: translateY(-6px);
 }
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card i.fa-solid {
+.tabs-container .tab-content .tab-panel .cards a.card i.fa-solid {
   font-size: 35px;
   margin-bottom: 10px;
   display: inline-block;
   color: #dedede;
 }
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card h2 {
+.tabs-container .tab-content .tab-panel .cards a.card h2 {
   font-size: 18px;
   margin-bottom: 6px;
 }
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card p {
+.tabs-container .tab-content .tab-panel .cards a.card p {
   font-size: 14px;
   line-height: 1.6;
   color: inherit;
 }
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card .label {
+.tabs-container .tab-content .tab-panel .cards a.card .label {
   display: flex;
   justify-content: space-between;
   width: 100%;
@@ -642,7 +681,7 @@ html body {
 
 THIS AFTERNOON IM BORN AGAIN
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card .label p {
+.tabs-container .tab-content .tab-panel .cards a.card .label p {
   display: inline-block;
   margin-top: 10px;
   font-weight: bold;
@@ -653,7 +692,7 @@ THIS AFTERNOON IM BORN AGAIN
   padding-bottom: 4px;
 }
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card .label button {
+.tabs-container .tab-content .tab-panel .cards a.card .label button {
   border: none;
   padding: 8px 16px;
   border-radius: 4px;
@@ -662,7 +701,7 @@ THIS AFTERNOON IM BORN AGAIN
   cursor: pointer;
 }
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card .tag {
+.tabs-container .tab-content .tab-panel .cards a.card .tag {
   position: absolute;
   top: 15px;
   right: 15px;
@@ -675,7 +714,7 @@ THIS AFTERNOON IM BORN AGAIN
   border-radius: 4px;
 }
 
-.container main.buyerMain .tabs-container .tab-content .tab-panel .cards a.card .card:hover .tag {
+.tabs-container .tab-content .tab-panel .cards a.card .card:hover .tag {
   background: #ffffff;
   color: #000;
   border-color: #ffffff;
@@ -1748,7 +1787,7 @@ a.seller-right {
   text-align: center;
 }
 
-.promoBadge100Orders {
+.promoBadgeGoPro {
   background: linear-gradient(
     145deg,
     #FFF3B0,
@@ -1769,7 +1808,7 @@ a.seller-right {
   text-align: center;
 }
 
-.promoBadge20Orders {
+.promoBadgeGoGold {
   background: linear-gradient(
     135deg,
     #e8fff9 0%,
@@ -1823,4 +1862,124 @@ a.seller-right {
   font-size: 12px;
   color: #898888;
   margin-top: 6px;
+}
+
+/* SELLER'S SHELF
+=============== */
+.container .sellerMain {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 8px 16px;
+}
+
+.container .sellerMain .sellerProfileContainer {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  padding: 20px 10px;
+}
+
+.container .sellerMain .sellerProfileContainer .seller {
+  background-color: #ffffff;
+  border: none;
+}
+
+.container .sellerMain .sellerProfileContainer .seller .seller-left {
+  gap: 20px;
+  align-items: center;
+}
+
+.container .sellerMain .sellerProfileContainer .seller .seller-left .avatar {
+  height: clamp(100px, 20vw, 150px);
+  width: clamp(100px, 20vw, 150px);
+  min-height: 100px;
+  min-width: 100px;
+  font-size: 50px;
+  font-weight: normal;
+}
+
+.container .sellerMain .sellerProfileContainer .seller .seller-right h2 {
+  color: #0f0f0f;
+  font-size: 14px;
+  font-weight: normal;
+  text-align: right;
+}
+
+/* =====================
+   GRID LAYOUT
+===================== */
+.food-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+/* =====================
+   FOOD CARD
+===================== */
+.food-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 4px;
+  max-width: 250px;
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  border: 1px solid #dedede;
+  margin: 0 auto;
+}
+
+/* =====================
+   IMAGE
+===================== */
+.foodAndSnacksImage {
+  width: 100%;
+  height: clamp(160px, 30vw, 220px);
+  background-size: cover;
+  background-position: center;
+}
+
+/* =====================
+   CONTENT
+===================== */
+.food-content {
+  padding: 10px;
+}
+
+.food-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.food-desc {
+  font-size: 13px;
+  color: #aaa;
+  margin-bottom: 12px;
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.price {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* =====================
+   BUTTON
+===================== */
+.buy-btn {
+  background: #0f0f0f;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
 }

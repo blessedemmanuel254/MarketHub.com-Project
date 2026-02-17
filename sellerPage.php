@@ -58,7 +58,101 @@
       </div>
     </div>
     <main class="sellerMain" id="marketMain">
+      <div class="sellerProfileContainer">
+        <div class="seller">
+          <div class="seller-left">
+            <div class="avatar">MC</div><!-- 
+            <img src="" alt="Seller Logo"> -->
+            <div>
+              <div class="name">Main Canteen</div>
+              <div class="rating">★★★★★ (41)</div>
+              <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
+              <div class="meta"><h2>23k&nbsp;<span>followers</span></h2></div>
+              <div class="bsInfo">Delivery: Pickup · Courier</div>
+              <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
+            </div>
+          </div>
+          <a href="" class="seller-right">
+            <div class="promoBadgeGoGold">200+</div>
+            <div class="bsType">Business Type : <i>Kiosk</i></div>
+            <div class="action">
+              <h2>LOCAL MARKET</h2>
+            </div>
+          </a>
+        </div>
+      </div>
+      <div class="tabs-container">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="products">Food&nbsp;&&nbsp;Snacks</button>
+        </div>
 
+        <div class="tab-content">
+          <div id="products" class="tab-panel active">
+            <div class="tab-top">
+              <p>You order we deliver.</p>
+              <button onclick="window.history.back()">
+                <i class="fa-solid fa-circle-arrow-left"></i><span>Go Back</span>
+              </button>
+            </div>
+
+            <div class="food-grid">
+
+              <!-- CARD 1 -->
+              <div class="food-card">
+                <img class="foodAndSnacksImage" src="Images/Passion Juice.jpg" alt="Product Image">
+                <div class="food-content">
+                  <div class="food-title">Passion Juice</div>
+                  <div class="food-desc">Crispy, golden and freshly prepared.</div>
+                  <div class="price-row">
+                    <div class="price">KES 40</div>
+                    <button class="buy-btn">Order</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- CARD 2 -->
+              <div class="food-card">
+                <img class="foodAndSnacksImage" src="Images/Market Hub Logo.avif" alt="Product Image">
+                <div class="food-content">
+                  <div class="food-title">Burger & Fries</div>
+                  <div class="food-desc">Juicy burger served with crispy fries.</div>
+                  <div class="price-row">
+                    <div class="price">KES 650</div>
+                    <button class="buy-btn">Order</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- CARD 3 -->
+              <div class="food-card">
+                <img class="foodAndSnacksImage" src="Images/Market Hub Logo.avif" alt="Product Image">
+                <div class="food-content">
+                  <div class="food-title">Pizza Slice</div>
+                  <div class="food-desc">Cheesy slice with fresh toppings.</div>
+                  <div class="price-row">
+                    <div class="price">KES 300</div>
+                    <button class="buy-btn">Order</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- CARD 4 -->
+              <div class="food-card">
+                <img class="foodAndSnacksImage" src="Images/Market Hub Logo.avif" alt="Product Image">
+                <div class="food-content">
+                  <div class="food-title">Samosas</div>
+                  <div class="food-desc">Crispy snacks filled with spiced meat.</div>
+                  <div class="price-row">
+                    <div class="price">KES 150</div>
+                    <button class="buy-btn">Order</button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
   
     <footer>

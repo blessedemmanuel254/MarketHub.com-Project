@@ -2,6 +2,23 @@
 session_start();
 include 'connection.php';
 
+/* ---------- SESSION SECURITY ---------- */
+if (isset($_SESSION['user_id'], $_SESSION['account_type'])) {
+
+  $accountType = strtolower($_SESSION['account_type']);
+
+  if ($accountType === 'seller') {
+    header("Location: sellerPage.php");
+  } elseif ($accountType === 'buyer') {
+    header("Location: buyerPage.php");
+  } elseif ($accountType === 'admin') {
+    header("Location: adminPage.php");
+  } else {
+    header("Location: index.php");
+  }
+  exit();
+}
+
 $error = "";
 $success = "";
 
@@ -108,7 +125,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <label>Username, email or phone</label>
           </div>
           <div class="inpBox">
-            <input type="password" name="password" id="password" class="password-field" placeholder="" required>
+            <input type="password" name="password" value="<?php echo htmlspecialchars($password ?? ''); ?>" id="password" class="password-field" placeholder="" required>
             <label>Password</label>
             <i class="fa-regular fa-eye toggle-password" title="Show Password"></i>
 

@@ -2,179 +2,139 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Market Hub – Sellers</title>
+<title>Market Hub – Food & Snacks</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 /* =====================
-   GLOBAL THEME
+   GLOBAL
 ===================== */
-:root {
-  --bg: #000;
-  --fg: #fff;
-  --muted: #aaa;
-  --border: #1f1f1f;
-}
-
 * {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--fg);
   font-family: "Poppins", sans-serif;
+  background: #000;
+  color: #fff;
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1300px;
   margin: auto;
-  padding: 12px;
+  padding: 20px;
+}
+
+h1 {
+  font-size: clamp(22px, 4vw, 32px);
+  margin-bottom: 20px;
 }
 
 /* =====================
-   TOP BAR
+   GRID LAYOUT
 ===================== */
-.top-bar {
+.food-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+
+/* =====================
+   FOOD CARD
+===================== */
+.food-card {
+  display: flex;
+  flex-direction: column;
+  background: #0f0f0f;
+  border: 1px solid #1f1f1f;
+  border-radius: 14px;
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.food-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+}
+
+/* =====================
+   IMAGE
+===================== */
+.food-img {
+  width: 100%;
+  height: clamp(160px, 30vw, 220px);
+  background-size: cover;
+  background-position: center;
+}
+
+/* =====================
+   CONTENT
+===================== */
+.food-content {
+  padding: 16px;
+}
+
+.food-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.food-desc {
+  font-size: 13px;
+  color: #aaa;
+  margin-bottom: 12px;
+}
+
+.price-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
-}
-
-.balance {
-  font-size: 14px;
-  font-weight: 500;
-}
-
-/* =====================
-   BUY / SELL TABS
-===================== */
-.market-tabs {
-  display: flex;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 8px;
-}
-
-.market-tab {
-  flex: 1;
-  text-align: center;
-  padding: 12px 0;
-  font-size: 14px;
-  color: var(--muted);
-  cursor: pointer;
-}
-
-.market-tab.active {
-  color: var(--fg);
-  border-bottom: 3px solid var(--fg);
-}
-
-/* =====================
-   SELLERS GRID
-   (Auto-adjusts layout)
-===================== */
-.sellers {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-}
-
-/* =====================
-   SELLER ITEM (NOT A CARD)
-===================== */
-.seller {
-  padding: 16px 10px;
-  border-bottom: 1px solid var(--border);
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 12px;
-}
-
-.seller-left {
-  display: flex;
-  gap: 12px;
-}
-
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #fff;
-  color: #000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.name {
-  font-size: 15px;
-  font-weight: 500;
-}
-
-.rating {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.meta {
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 4px;
-}
-
-/* =====================
-   PRICE SIDE
-===================== */
-.seller-right {
-  text-align: right;
 }
 
 .price {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
 }
 
-.limits {
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 4px;
-}
-
-.action {
-  margin-top: 8px;
-}
-
-.action button {
-  background: #fff;
-  color: #000;
+/* =====================
+   BUTTON
+===================== */
+.buy-btn {
+  background: linear-gradient(
+    135deg,
+    #e8fff9,
+    #3ddc97,
+    #00b4d8,
+    #0077b6
+  );
+  color: #fff;
   border: none;
-  padding: 7px 14px;
-  font-size: 13px;
-  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
 }
 
 /* =====================
-   PAYMENT TAG
+   MEDIA QUERIES
 ===================== */
-.payment {
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 6px;
+@media (min-width: 600px) {
+  .food-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
-/* =====================
-   RESPONSIVE TWEAKS
-===================== */
-@media (max-width: 480px) {
-  .seller {
-    grid-template-columns: 1fr;
+@media (min-width: 900px) {
+  .food-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
-  .seller-right {
-    text-align: left;
+}
+
+@media (min-width: 1200px) {
+  .food-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 </style>
@@ -183,81 +143,63 @@ body {
 <body>
 
 <div class="container">
+  <h1>Food & Snacks</h1>
 
-  <!-- TOP BAR -->
-  <div class="top-bar">
-    <div class="balance">0.00 USD</div>
-    <div>🔍 ☰</div>
-  </div>
+  <div class="food-grid">
 
-  <!-- BUY / SELL -->
-  <div class="market-tabs">
-    <div class="market-tab active">Buy</div>
-    <div class="market-tab">Sell</div>
-  </div>
-
-  <!-- SELLERS LIST -->
-  <div class="sellers">
-
-    <div class="seller">
-      <div class="seller-left">
-        <div class="avatar">MK</div>
-        <div>
-          <div class="name">MKAPA11</div>
-          <div class="rating">★★★★★ (41)</div>
-          <div class="meta">1 USD = 122.74 KES</div>
-          <div class="payment">Safaricom M-PESA</div>
-        </div>
-      </div>
-      <div class="seller-right">
-        <div class="price">Buy</div>
-        <div class="limits">Limits: 2 – 37 USD</div>
-        <div class="action">
-          <button>Buy USD</button>
+    <!-- CARD 1 -->
+    <div class="food-card">
+      <div class="food-img" style="background-image:url('https://images.unsplash.com/photo-1540189549336-e6e99c3679fe');"></div>
+      <div class="food-content">
+        <div class="food-title">Fried Chicken</div>
+        <div class="food-desc">Crispy, golden and freshly prepared.</div>
+        <div class="price-row">
+          <div class="price">KES 450</div>
+          <button class="buy-btn">Order</button>
         </div>
       </div>
     </div>
 
-    <div class="seller">
-      <div class="seller-left">
-        <div class="avatar">BE</div>
-        <div>
-          <div class="name">BerryFerry</div>
-          <div class="rating">★★★★★ (165)</div>
-          <div class="meta">1 USD = 122.99 KES</div>
-          <div class="payment">Safaricom M-PESA</div>
-        </div>
-      </div>
-      <div class="seller-right">
-        <div class="price">Buy</div>
-        <div class="limits">Limits: 2 – 12 USD</div>
-        <div class="action">
-          <button>Buy USD</button>
+    <!-- CARD 2 -->
+    <div class="food-card">
+      <div class="food-img" style="background-image:url('https://images.unsplash.com/photo-1565299624946-b28f40a0ae38');"></div>
+      <div class="food-content">
+        <div class="food-title">Burger & Fries</div>
+        <div class="food-desc">Juicy burger served with crispy fries.</div>
+        <div class="price-row">
+          <div class="price">KES 650</div>
+          <button class="buy-btn">Order</button>
         </div>
       </div>
     </div>
 
-    <div class="seller">
-      <div class="seller-left">
-        <div class="avatar">WW</div>
-        <div>
-          <div class="name">Wwrightbright</div>
-          <div class="rating">★★★★★ (11)</div>
-          <div class="meta">1 USD = 125.50 KES</div>
-          <div class="payment">Safaricom M-PESA</div>
+    <!-- CARD 3 -->
+    <div class="food-card">
+      <div class="food-img" style="background-image:url('https://images.unsplash.com/photo-1586190848861-99aa4a171e90');"></div>
+      <div class="food-content">
+        <div class="food-title">Pizza Slice</div>
+        <div class="food-desc">Cheesy slice with fresh toppings.</div>
+        <div class="price-row">
+          <div class="price">KES 300</div>
+          <button class="buy-btn">Order</button>
         </div>
       </div>
-      <div class="seller-right">
-        <div class="price">Buy</div>
-        <div class="limits">Limits: 2 – 71 USD</div>
-        <div class="action">
-          <button>Buy USD</button>
+    </div>
+
+    <!-- CARD 4 -->
+    <div class="food-card">
+      <div class="food-img" style="background-image:url('https://images.unsplash.com/photo-1604908177522-432b8a7b26dd');"></div>
+      <div class="food-content">
+        <div class="food-title">Samosas</div>
+        <div class="food-desc">Crispy snacks filled with spiced meat.</div>
+        <div class="price-row">
+          <div class="price">KES 150</div>
+          <button class="buy-btn">Order</button>
         </div>
       </div>
     </div>
 
   </div>
-
 </div>
 
 </body>

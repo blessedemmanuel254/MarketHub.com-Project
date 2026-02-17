@@ -177,7 +177,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
     </div>
 
     <main class="buyerMain" id="marketMain">
-      <div class="tabs-container">
+      <div class="tabs-container" id="toggleMarketTypeTab">
         <div class="tabs">
           <button class="tab-btn active" data-tab="products">Products</button>
           <button class="tab-btn" data-tab="services">Services</button>
@@ -190,7 +190,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
             <div class="cards">
               <!-- LOCAL -->
-              <a class="card">
+              <a class="card" onclick="openMarketSource('shops')">
                 <i class="fa-solid fa-location-dot"></i>
                 <h2>Local Market</h2>
                 <p>
@@ -333,6 +333,169 @@ if (!empty($profileImage) && file_exists($profileImage)) {
           </div>
         </div>
       </div>
+      <div class="tabs-container" id="toggleMarketSourceTab">
+        <div class="tabs">
+          <button class="tab-btn-msource active" data-tab="shops">Shops</button>
+          <button class="tab-btn-msource" data-tab="supermarkets">Supermarkets</button><!-- 
+          <button class="tab-btn-msource" data-tab="rentals">Rentals</button> -->
+        </div>
+
+        <div class="tab-content">
+          <div id="shops" class="tab-panel-msource active">
+            <div class="tab-top">
+              <p>Showing markets in <em>Sokoni Ward</em> <br><strong>Please select the market source <i class="fa-regular fa-circle-check"></i></strong></p>
+              <button onclick="goBackToMarketTypes()">
+                <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
+              </button>
+            </div>
+
+            <!-- SELLERS LIST -->
+            <div class="sellers">
+
+              <div class="seller">
+                <div class="seller-left">
+                  <div class="avatar">MC</div>
+                  <div>
+                    <div class="name">Main Canteen</div>
+                    <div class="rating">★★★★★ (41)</div>
+                    <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
+                    <div class="meta"><h2>23k&nbsp;<span>followers</span></h2></div>
+                    <div class="bsInfo">Delivery: Pickup · Courier</div>
+                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
+                  </div>
+                </div>
+                <a href="sellerPage.php" class="seller-right">
+                  <div class="promoBadgeGoGold">200+</div>
+                  <div class="bsType">Business Type : <i>Kiosk</i></div>
+                  <div class="action">
+                    <button>View&nbsp;seller</button>
+                  </div>
+                </a>
+              </div>
+
+              <div class="seller">
+                <div class="seller-left">
+                  <div class="avatar">BE</div>
+                  <div>
+                    <div class="name">BerryFerry</div>
+                    <div class="rating">★★★★★ (165)</div>
+                    <div class="meta"><h2>3&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
+                    <div class="meta"><h2>4&nbsp;<span>followers</span></h2></div>
+                    <div class="bsInfo">Delivery: Pickup · Courier</div>
+                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
+                  </div>
+                </div>
+                <a href="sellerPage.php" class="seller-right">
+                  <div class="promoBadgeDefault">13</div>
+                  <div class="bsType">Business Type : <i>Canteen</i></div>
+                  <div class="action">
+                    <button>View&nbsp;seller</button>
+                  </div>
+                </a>
+              </div>
+
+              <div class="seller">
+                <div class="seller-left">
+                  <div class="avatar">WW</div>
+                  <div>
+                    <div class="name">Wwrightbright</div>
+                    <div class="rating">★★★★★ (11)</div>
+                    <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
+                    <div class="meta"><h2>2&nbsp;<span>followers</span></h2></div>
+                    <div class="bsInfo">Delivery: Pickup · Courier</div>
+                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
+                  </div>
+                </div>
+                <a href="sellerPage.php" class="seller-right">
+                  <div class="promoBadgeGoPro">100+</div>
+                  <div class="bsType">Business Type : <i>Kibanda</i></div>
+                  <div class="action">
+                    <button>View&nbsp;seller</button>
+                  </div>
+                </a>
+              </div>
+
+            </div>
+          </div>
+
+          <div id="supermarkets" class="tab-panel-msource">
+            <div class="tab-top">
+              <p>Showing markets in <em>Sokoni Ward</em> <br><strong>Please select the market source <i class="fa-regular fa-circle-check"></i></strong></p>
+              <button onclick="goBackToMarketTypes()">
+                <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
+              </button>
+            </div>
+
+            <!-- SELLERS LIST -->
+            <div class="sellers">
+
+              <div class="seller">
+                <div class="seller-left">
+                  <div class="avatar">NS</div>
+                  <div>
+                    <div class="name">Naivas Supermaket</div>
+                    <div class="rating">★★★★★ (41)</div>
+                    <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
+                    <div class="meta"><h2>23k&nbsp;<span>followers</span></h2></div>
+                    <div class="bsInfo">Delivery: Pickup · Courier</div>
+                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
+                  </div>
+                </div>
+                <a href="sellerPage.php" class="seller-right">
+                  <div class="promoBadgeGoGold">1000+</div>
+                  <div class="bsType">Business Type : <i>Kiosk</i></div>
+                  <div class="action">
+                    <button>View&nbsp;seller</button>
+                  </div>
+                </a>
+              </div>
+
+              <div class="seller">
+                <div class="seller-left">
+                  <div class="avatar">CM</div>
+                  <div>
+                    <div class="name">Cherowamaye Minimarket</div>
+                    <div class="rating">★★★★★ (165)</div>
+                    <div class="meta"><h2>3&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
+                    <div class="meta"><h2>4&nbsp;<span>followers</span></h2></div>
+                    <div class="bsInfo">Delivery: Pickup · Courier</div>
+                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
+                  </div>
+                </div>
+                <a href="sellerPage.php" class="seller-right">
+                  <div class="promoBadgeDefault">287</div>
+                  <div class="bsType">Business Type : <i>Canteen</i></div>
+                  <div class="action">
+                    <button>View&nbsp;seller</button>
+                  </div>
+                </a>
+              </div>
+
+              <div class="seller">
+                <div class="seller-left">
+                  <div class="avatar">AW</div>
+                  <div>
+                    <div class="name">Abul Wholesale</div>
+                    <div class="rating">★★★★★ (11)</div>
+                    <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
+                    <div class="meta"><h2>2&nbsp;<span>followers</span></h2></div>
+                    <div class="bsInfo">Delivery: Pickup · Courier</div>
+                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
+                  </div>
+                </div>
+                <a href="sellerPage.php" class="seller-right">
+                  <div class="promoBadgeGoPro">500+</div>
+                  <div class="bsType">Business Type : <i>Kibanda</i></div>
+                  <div class="action">
+                    <button>View&nbsp;seller</button>
+                  </div>
+                </a>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
 
       <h1>Recent Orders</h1>
 
@@ -351,7 +514,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       <thead>
       <tr>
         <th>Image</th><th>Order</th><th>Product</th><th>Seller</th>
-        <th>Market</th><th>Qty</th><th>Total</th>
+        <th>Market</th><th>Qty</th><th>Price</th>
         <th>Payment</th><th>Status</th><th>Actions</th>
       </tr>
       </thead>
@@ -500,7 +663,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         </div>
 
         <div class="card-row">
-          <span>Total</span>
+          <span>Price</span>
           <strong>KES 3,500</strong>
         </div>
 
@@ -526,7 +689,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         </div>
 
         <div class="card-row">
-          <span>Total</span>
+          <span>Price</span>
           <strong>KES 6,800</strong>
         </div>
 
@@ -551,7 +714,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         </div>
 
         <div class="card-row">
-          <span>Total</span>
+          <span>Price</span>
           <strong>KES 6,800</strong>
         </div>
 
@@ -576,7 +739,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         </div>
 
         <div class="card-row">
-          <span>Total</span>
+          <span>Price</span>
           <strong>KES 3,500</strong>
         </div>
 
@@ -603,7 +766,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         </div>
 
         <div class="card-row">
-          <span>Total</span>
+          <span>Price</span>
           <strong>KES 3,500</strong>
         </div>
 
@@ -630,7 +793,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         </div>
 
         <div class="card-row">
-          <span>Total</span>
+          <span>Price</span>
           <strong>KES 6,800</strong>
         </div>
 
@@ -655,7 +818,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         </div>
 
         <div class="card-row">
-          <span>Total</span>
+          <span>Price</span>
           <strong>KES 6,800</strong>
         </div>
 
