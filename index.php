@@ -63,7 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $_SESSION['account_type'] = $user['account_type'];
 
         // Redirect based on account type
-        $redirectPage = strtolower($user['account_type']) === 'seller' ? 'sellerpage.php' : 'buyerpage.php';
+        $redirectPage = strtolower($user['account_type']) === 'seller' ? 'sellerPage.php' : 'buyerPage.php';
         echo "<script>
                 setTimeout(() => window.location.href = '$redirectPage', 3500);
               </script>";
