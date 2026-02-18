@@ -93,7 +93,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,70090000000;1,800;1,900&display=swap" rel="stylesheet">
 
-  <title>Seller Page | Market Hub</title>
+  <title>Buyer Page | Market Hub</title>
 </head>
 <body>
   <div class="container">
@@ -176,176 +176,108 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       </div>
     </div>
 
-    <main class="buyerMain" id="buyerMain">
+    <main class="buyerMain" id="marketMain">
       <div class="tabs-container" id="toggleMarketTypeTab">
         <div class="tabs">
-          <button class="tab-btn active" data-tab="products">Dashboard</button>
-          <button class="tab-btn" data-tab="services">Products</button>
-          <button class="tab-btn" data-tab="rentals">Funds</button>
+          <button class="tab-btn active" data-tab="products">Products</button>
+          <button class="tab-btn" data-tab="services">Services</button>
+          <button class="tab-btn" data-tab="rentals">Rentals</button>
         </div>
 
         <div class="tab-content">
           <div id="products" class="tab-panel active">
-            <p>Dashboard Area <br><strong>Your business performance and finances <i class="fa-regular fa-circle-check"></i></strong></p>
-            <div class="containerInner">
-
-              <div class="grid">
-                <!-- WALLET HEALTH -->
-                <div class="card">
-                  <i class="fa fa-wallet icon"></i>
-                  <h3>Wallet Health</h3>
-                  <div class="stat">KES 12,450</div>
-                  <p class="meta">Available for withdrawal</p>
-                  <div class="progress"><span style="width:75%"></span></div>
-                  <p class="small">KES 3,200 pending clearance</p>
+            <div class="tab-top">
+              <p>Add Products to your shelf</em> <br><strong>Let custormers see what you have to offer <i class="fa-regular fa-circle-check"></i></strong></p>
+              <button>
+                <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
+              </button>
+            </div>
+            <div class="form-wrapper">
+              <form method="POST" enctype="multipart/form-data">
+                <div class="inp-box">
+                  <label>Product Name</label>
+                  <input type="text" name="name" placeholder="Passion Juice">
                 </div>
+                <div class="inp-box">
 
-                <!-- WITHDRAWAL READINESS -->
-                <div class="card">
-                  <i class="fa fa-money-bill-wave icon"></i>
-                  <h3>Withdrawal Status</h3>
-                  <span class="badge green">Eligible</span>
-                  <p class="meta">Minimum threshold met</p>
-                  <div class="actions">
-                    <button>Withdraw</button>
+                  <label>Category</label>
+                  <select name="category">
+                    <option value="">Select category</option>
+                    <option>Food & Snacks</option>
+                    <option>Drinks</option>
+                    <option>Electronics</option>
+                  </select>
+                </div>
+                <div class="inp-box">
+                  <label>Price (KES)</label>
+                  <input type="number" name="price" step="0.01" placeholder="40">
+                </div>
+                <div class="inp-box">
+                  <label>Stock Quantity</label>
+                  <input type="number" name="stock" placeholder="24">
+                </div>
+                <div class="inp-box">
+                  <label>Product Image</label>
+                  <input type="file" accept="image/png,image/jpeg,image/webp" name="photo" accept="image/*">
+                  <div class="note">
+                    400×400 – 1200×1200 px • Max 1MB
                   </div>
-                  <p class="small">Last withdrawal: KES 5,000 • 10 Feb</p>
                 </div>
 
-                <!-- ORDERS SUMMARY -->
-                <div class="card">
-                  <i class="fa fa-box icon"></i>
-                  <h3>Orders Summary</h3>
-                  <div class="stat">18 Orders</div>
-                  <p class="meta">
-                    <span class="badge yellow">5&nbsp;Processing</span>
-                    <span class="badge blue">3&nbsp;Shipped</span>
-                    <span class="badge green">10&nbsp;Delivered</span>
-                  </p>
-                </div>
+                <button type="submit">
+                  <i class="fa fa-plus"></i> Add Product
+                </button>
 
-                <!-- CUSTOMER TRUST -->
-                <div class="card">
-                  <i class="fa fa-star icon"></i>
-                  <h3>Customer Trust</h3>
-                  <div class="stat">4.7 ★</div>
-                  <p class="meta">From 213 reviews</p>
-                  <span class="badge green">Excellent</span>
-                </div>
-
-                <!-- GROWTH INSIGHTS -->
-                <div class="card">
-                  <i class="fa fa-seedling icon"></i>
-                  <h3>Growth Tips</h3>
-                  <p class="meta">Improve visibility</p>
-                  <p class="small">
-                    ✔ Encourage ratings<br>
-                    ✔ Enable fast delivery<br>
-                    ✔ Respond to reviews
-                  </p>
-                </div>
-
-              </div>
+              </form>
             </div>
           </div>
 
           <div id="services" class="tab-panel">
-            <div class="tab-top">
-              <p>Your Products Shelf<br><strong>Manage your listed products <i class="fa-regular fa-circle-check"></i></strong></p>
-              <button>
-                <i class="fa fa-plus"></i>&nbsp;<span>Add&nbsp;Product</span>
-              </button>
-            </div>
+            <p>Professional services delivered with reliability.<br><strong>Please select Market type <i class="fa-regular fa-circle-check"></i></strong></p>
 
-            <!-- PRODUCTS GRID -->
-            <div class="products-grid">
+            <div class="cards">
+              <!-- LOCAL -->
+              <a class="card">
+                <div class="tag">MOST VISITED</div>
+                <i class="fa-solid fa-screwdriver-wrench"></i>
+                <h2>Local Services</h2>
+                <p>
+                  Get reliable services from professionals near you.
+                </p>
+                <div class="label">
+                  <p>Local</p>
+                  <button>View Services</button>
 
-              <!-- PRODUCT CARD -->
-              <div class="card">
-                <img src="Images/Passion Juice.jpg" alt="Product">
-                <div class="card-body">
-                  <div class="product-name">Passion Juice</div>
-                  <div class="product-meta">Food & Snacks</div>
-                  <div class="price">KES 40</div>
-                  <div class="stock in-stock">In stock (24)</div>
                 </div>
-                <div class="card-actions">
-                  <button class="edit"><i class="fa fa-pen"></i> Edit</button>
-                  <button class="delete"><i class="fa fa-trash"></i> Delete</button>
-                </div>
-              </div>
+              </a>
 
-              <!-- PRODUCT CARD -->
-              <div class="card">
-                <img src="Images/Market Hub Logo.avif" alt="Product">
-                <div class="card-body">
-                  <div class="product-name">Smart Watch</div>
-                  <div class="product-meta">Gadgets</div>
-                  <div class="price">KES 6,800</div>
-                  <div class="stock low-stock">Low stock (3)</div>
-                </div>
-                <div class="card-actions">
-                  <button class="edit"><i class="fa fa-pen"></i> Edit</button>
-                  <button class="delete"><i class="fa fa-trash"></i> Delete</button>
-                </div>
-              </div>
-              <!-- PRODUCT CARD -->
-              <div class="card">
-                <img src="Images/Market Hub Logo.avif" alt="Product">
-                <div class="card-body">
-                  <div class="product-name">Smart Watch</div>
-                  <div class="product-meta">Gadgets</div>
-                  <div class="price">KES 6,800</div>
-                  <div class="stock low-stock">Low stock (3)</div>
-                </div>
-                <div class="card-actions">
-                  <button class="edit"><i class="fa fa-pen"></i> Edit</button>
-                  <button class="delete"><i class="fa fa-trash"></i> Delete</button>
-                </div>
-              </div>
-              <!-- PRODUCT CARD -->
-              <div class="card">
-                <img src="Images/Market Hub Logo.avif" alt="Product">
-                <div class="card-body">
-                  <div class="product-name">Smart Watch</div>
-                  <div class="product-meta">Gadgets</div>
-                  <div class="price">KES 6,800</div>
-                  <div class="stock low-stock">Low stock (3)</div>
-                </div>
-                <div class="card-actions">
-                  <button class="edit"><i class="fa fa-pen"></i> Edit</button>
-                  <button class="delete"><i class="fa fa-trash"></i> Delete</button>
-                </div>
-              </div>
-              <!-- PRODUCT CARD -->
-              <div class="card">
-                <img src="Images/Market Hub Logo.avif" alt="Product">
-                <div class="card-body">
-                  <div class="product-name">Smart Watch</div>
-                  <div class="product-meta">Gadgets</div>
-                  <div class="price">KES 6,800</div>
-                  <div class="stock low-stock">Low stock (3)</div>
-                </div>
-                <div class="card-actions">
-                  <button class="edit"><i class="fa fa-pen"></i> Edit</button>
-                  <button class="delete"><i class="fa fa-trash"></i> Delete</button>
-                </div>
-              </div>
+              <!-- NATIONAL (MOST VISITED) -->
+              <a class="card">
+                <i class="fa-solid fa-laptop-code"></i>
+                <h2>National Services</h2>
+                <p>
+                  Access verified service providers from across the country.
+                </p>
+                <div class="label">
+                  <p>National</p>
+                  <button>View Services</button>
 
-              <!-- PRODUCT CARD -->
-              <div class="card">
-                <img src="Images/Market Hub Logo.avif" alt="Product">
-                <div class="card-body">
-                  <div class="product-name">Office Chair</div>
-                  <div class="product-meta">Furniture</div>
-                  <div class="price">KES 9,000</div>
-                  <div class="stock out-stock">Out of stock</div>
                 </div>
-                <div class="card-actions">
-                  <button class="edit"><i class="fa fa-pen"></i> Edit</button>
-                  <button class="delete"><i class="fa fa-trash"></i> Delete</button>
+              </a>
+
+              <!-- GLOBAL -->
+              <a class="card">
+                <i class="fa-solid fa-globe"></i>
+                <h2>Global Services</h2>
+                <p>
+                  Connect with international experts and remote professionals.
+                </p>
+                <div class="label">
+                  <p>Global</p>
+                  <button>View Services</button>
+
                 </div>
-              </div>
+              </a>
             </div>
           </div>
 
@@ -563,11 +495,11 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         </div>
       </div>
 
-      <h1>Transaction History</h1>
+      <h1>Recent Orders</h1>
 
       <div class="filter-bar">
         <select id="statusFilter">
-          <option value="all">All Transactions</option>
+          <option value="all">All Orders</option>
           <option value="Delivered">Delivered</option>
           <option value="Shipped">Shipped</option>
           <option value="Processing">Processing</option>
@@ -576,132 +508,144 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
       <!-- DESKTOP TABLE -->
       <div class="table-wrapper">
-        <table id="sellerTransactions">
-          <thead>
-            <tr>
-              <th>Order ID</th>
-              <th>Buyer</th>
-              <th>Qty</th>
-              <th>Total</th>
-              <th>Payment</th>
-              <th>Status</th>
-              <th>Date</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr data-status="Delivered">
-              <td>ORD-10021</td>
-              <td>John Doe</td>
-              <td>2</td>
-              <td>KES 7,000</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td><span class="badge delivered">Delivered</span></td>
-              <td>12 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-view">View</button>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
-            </tr>
+      <table id="ordersTable">
+      <thead>
+      <tr>
+        <th>Image</th><th>Order</th><th>Product</th><th>Seller</th>
+        <th>Market</th><th>Qty</th><th>Price</th>
+        <th>Payment</th><th>Status</th><th>Actions</th>
+      </tr>
+      </thead>
+      <tbody>
 
-            <tr data-status="Processing">
-              <td>ORD-10022</td>
-              <td>Jane Smith</td>
-              <td>1</td>
-              <td>KES 6,800</td>
-              <td><span class="badge pending">Pending</span></td>
-              <td><span class="badge processing">Processing</span></td>
-              <td>13 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-view">View</button>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
-            </tr>
+      <tr data-status="Delivered">
+        <td><img src="Images/Market Hub Logo.avif" class="product-img"></td>
+        <td>MH-10231</td>
+        <td>Wireless Headphones</td>
+        <td>SoundTech</td>
+        <td>National</td>
+        <td>1</td>
+        <td>KES&nbsp;3,500</td>
+        <td><span class="badge paid">Paid</span></td>
+        <td><span class="badge delivered">Delivered</span></td>
+        <td class="actions">
+          <div>
+            <button class="btn-view">View</button>
+            <button class="btn-track">Track</button>
+          </div>
+        </td>
+      </tr>
 
-            <tr data-status="Shipped">
-              <td>ORD-10023</td>
-              <td>Mary Johnson</td>
-              <td>3</td>
-              <td>KES 12,000</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td><span class="badge shipped">Shipped</span></td>
-              <td>14 Feb 2026</td>
-              <td class="actions">
-                <div>
-                  <button class="btn-view">View</button>
-                </div>
-              </td>
-            </tr>
+      <tr data-status="Processing">
+        <td><img src="Images/Market Hub Logo.avif" class="product-img"></td>
+        <td>MH-10702</td>
+        <td>Smart Watch</td>
+        <td>Global Gadgets</td>
+        <td>Global</td>
+        <td>1</td>
+        <td>KES&nbsp;6,800</td>
+        <td><span class="badge pending">Pending</span></td>
+        <td><span class="badge processing">Processing</span></td>
+        <td class="actions">
+          <div>
+            <button class="btn-view">View</button>
+            <button class="btn-cancel">Cancel</button>
+          </div>
+        </td>
+      </tr>
 
-            <tr data-status="Processing">
-              <td>ORD-10022</td>
-              <td>Jane Smith</td>
-              <td>1</td>
-              <td>KES 6,800</td>
-              <td><span class="badge pending">Pending</span></td>
-              <td><span class="badge processing">Processing</span></td>
-              <td>13 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-view">View</button>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
-            </tr>
+      <tr data-status="Processing">
+        <td><img src="Images/Market Hub Logo.avif" class="product-img"></td>
+        <td>MH-10702</td>
+        <td>Smart Watch</td>
+        <td>Global Gadgets</td>
+        <td>Global</td>
+        <td>1</td>
+        <td>KES&nbsp;6,800</td>
+        <td><span class="badge pending">Pending</span></td>
+        <td><span class="badge processing">Processing</span></td>
+        <td class="actions">
+          <div>
+            <button class="btn-view">View</button>
+            <button class="btn-cancel">Cancel</button>
+          </div>
+        </td>
+      </tr>
 
-            <tr data-status="Shipped">
-              <td>ORD-10023</td>
-              <td>Mary Johnson</td>
-              <td>3</td>
-              <td>KES 12,000</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td><span class="badge shipped">Shipped</span></td>
-              <td>14 Feb 2026</td>
-              <td class="actions">
-                <div>
-                  <button class="btn-view">View</button>
-                </div>
-              </td>
-            </tr>
+      <tr data-status="Processing">
+        <td><img src="Images/Market Hub Logo.avif" class="product-img"></td>
+        <td>MH-10702</td>
+        <td>Smart Watch</td>
+        <td>Global Gadgets</td>
+        <td>Global</td>
+        <td>1</td>
+        <td>KES&nbsp;6,800</td>
+        <td><span class="badge pending">Pending</span></td>
+        <td><span class="badge processing">Processing</span></td>
+        <td class="actions">
+          <div>
+            <button class="btn-view">View</button>
+            <button class="btn-cancel">Cancel</button>
+          </div>
+        </td>
+      </tr>
 
-            <tr data-status="Processing">
-              <td>ORD-10022</td>
-              <td>Jane Smith</td>
-              <td>1</td>
-              <td>KES 6,800</td>
-              <td><span class="badge pending">Pending</span></td>
-              <td><span class="badge processing">Processing</span></td>
-              <td>13 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-view">View</button>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
-            </tr>
+      <tr data-status="Processing">
+        <td><img src="Images/Market Hub Logo.avif" class="product-img"></td>
+        <td>MH-10702</td>
+        <td>Smart Watch</td>
+        <td>Global Gadgets</td>
+        <td>Global</td>
+        <td>1</td>
+        <td>KES&nbsp;6,800</td>
+        <td><span class="badge pending">Pending</span></td>
+        <td><span class="badge processing">Processing</span></td>
+        <td class="actions">
+          <div>
+            <button class="btn-view">View</button>
+            <button class="btn-cancel">Cancel</button>
+          </div>
+        </td>
+      </tr>
 
-            <tr data-status="Shipped">
-              <td>ORD-10023</td>
-              <td>Mary Johnson</td>
-              <td>3</td>
-              <td>KES 12,000</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td><span class="badge shipped">Shipped</span></td>
-              <td>14 Feb 2026</td>
-              <td class="actions">
-                <div>
-                  <button class="btn-view">View</button>
-                </div>
-              </td>
-            </tr>
+      <tr data-status="Processing">
+        <td><img src="Images/Market Hub Logo.avif" class="product-img"></td>
+        <td>MH-10702</td>
+        <td>Smart Watch</td>
+        <td>Global Gadgets</td>
+        <td>Global</td>
+        <td>1</td>
+        <td>KES&nbsp;6,800</td>
+        <td><span class="badge pending">Pending</span></td>
+        <td><span class="badge processing">Processing</span></td>
+        <td class="actions">
+          <div>
+            <button class="btn-view">View</button>
+            <button class="btn-cancel">Cancel</button>
+          </div>
+        </td>
+      </tr>
 
-            <!-- Add more rows here as needed -->
-          </tbody>
-        </table>
+      <tr data-status="Processing">
+        <td><img src="Images/Market Hub Logo.avif" class="product-img"></td>
+        <td>MH-10702</td>
+        <td>Smart Watch</td>
+        <td>Global Gadgets</td>
+        <td>Global</td>
+        <td>1</td>
+        <td>KES&nbsp;6,800</td>
+        <td><span class="badge pending">Pending</span></td>
+        <td><span class="badge processing">Processing</span></td>
+        <td class="actions">
+          <div>
+            <button class="btn-view">View</button>
+            <button class="btn-cancel">Cancel</button>
+          </div>
+        </td>
+      </tr>
+
+      </tbody>
+      </table>
       </div>
 
       <!-- MOBILE CARDS -->
@@ -889,7 +833,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
       </div>
       
-      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleOrderMain()">View&nbsp;All&nbsp;Transactions</button> to access all your orders.</p>
+      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleOrderMain()">View&nbsp;All&nbsp;Orders</button> to access all your orders.</p>
 
     </main>
 

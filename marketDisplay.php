@@ -193,7 +193,6 @@ if (!isset($_SESSION['created'])) {
                 <img class="variableAndSnacksImage" src="Images/Passion Juice.jpg" alt="Product Image">
                 <div class="variable-content">
                   <div class="variable-title">Passion Juice</div>
-                  <div class="variable-desc">Crispy, golden and freshly prepared.</div>
                   <div class="price-row">
                     <div class="price">KES 40</div>
                     <button class="buy-btn" onclick="togglePaymentOption()">Order</button>
@@ -207,7 +206,6 @@ if (!isset($_SESSION['created'])) {
                 <img class="variableAndSnacksImage" src="Images/Market Hub Logo.avif" alt="Product Image">
                 <div class="variable-content">
                   <div class="variable-title">Burger & Fries</div>
-                  <div class="variable-desc">Juicy burger served with crispy fries.</div>
                   <div class="price-row">
                     <div class="price">KES 650</div>
                     <button class="buy-btn" onclick="togglePaymentOption()">Order</button>
@@ -221,7 +219,6 @@ if (!isset($_SESSION['created'])) {
                 <img class="variableAndSnacksImage" src="Images/Market Hub Logo.avif" alt="Product Image">
                 <div class="variable-content">
                   <div class="variable-title">Pizza Slice</div>
-                  <div class="variable-desc">Cheesy slice with fresh toppings.</div>
                   <div class="price-row">
                     <div class="price">KES 300</div>
                     <button class="buy-btn" onclick="togglePaymentOption()">Order</button>
@@ -235,7 +232,6 @@ if (!isset($_SESSION['created'])) {
                 <img class="variableAndSnacksImage" src="Images/Market Hub Logo.avif" alt="Product Image">
                 <div class="variable-content">
                   <div class="variable-title">Samosas</div>
-                  <div class="variable-desc">Crispy snacks filled with spiced meat.</div>
                   <div class="price-row">
                     <div class="price">KES 150</div>
                     <button class="buy-btn" onclick="togglePaymentOption()">Order</button>
