@@ -511,7 +511,7 @@ html body {
   margin: 10px auto;
 }
 
-.container main.buyerMain #toggleMarketSourceTab {
+#toggleMarketSourceTab {
   display: none;
 }
 
@@ -650,11 +650,8 @@ html body {
 
 .tabs-container .tab-content .tab-panel .cards a.card:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-
-}
-
-.tabs-container .tab-content .tab-panel .cards a.card:hover {
   transform: translateY(-6px);
+
 }
 
 .tabs-container .tab-content .tab-panel .cards a.card i.fa-solid {
@@ -683,8 +680,6 @@ html body {
   margin-top: 10px;
   font-size: 14px;
 }
-
-THIS AFTERNOON IM BORN AGAIN
 
 .tabs-container .tab-content .tab-panel .cards a.card .label p {
   display: inline-block;
@@ -786,9 +781,14 @@ THIS AFTERNOON IM BORN AGAIN
   opacity: 0.875;
 }
 
-.container main.buyerMain .table-wrapper table tbody tr td.actions button.btn-view, .container main.buyerMain .cards .order-card .card-actions button.btn-view { background:#000; color:#fff; }
+.container main.buyerMain .table-wrapper table tbody tr td.actions button.btn-view, .container main.buyerMain .cards .order-card .card-actions button.btn-view { background:#000; color:#ffffff; }
 .container main.buyerMain .table-wrapper table tbody tr td.actions button.btn-track, .container main.buyerMain .cards .order-card .card-actions button.btn-track { background:#ddd; }
-.container main.buyerMain .table-wrapper table tbody tr td.actions button.btn-cancel, .container main.buyerMain .cards .order-card .card-actions button.btn-cancel { background:#fdecea; color:#ff3b3b; }
+.container main.buyerMain .table-wrapper table tbody tr td.actions button.btn-cancel, .container main.buyerMain .cards .order-card .card-actions button.btn-cancel { background:#fdecea; color:#ff3b3b;
+}
+.container main.buyerMain .table-wrapper table tbody tr td.actions button.btn-ship {
+  background-color: #088000;
+  color: #ffffff;
+}
 
 .container main.buyerMain .cards {
   display: none;
@@ -1465,7 +1465,7 @@ THIS AFTERNOON IM BORN AGAIN
 }
 
 .container main.profile-main .profile-container .success {
-  color:#065f46;
+  color:#088000;
   padding:10px;
   border-radius:4px;
   margin-bottom:10px;
@@ -2002,6 +2002,7 @@ a.seller-right {
   flex-direction: column;
   gap: 20px;
   padding: 8px 16px;
+  padding-top: 60px;
 }
 
 .container .sellerMain .sellerProfileContainer {
@@ -2144,14 +2145,42 @@ a.seller-right {
 /* =====================
    CART
 ===================== */
-.container section.topSection {
+.topSection {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100%);
+
+  width: 100%;
+  max-width: 1299px;
+
+  z-index: 1000;
   padding: 20px 10px;
+
+  background: #ffffff;
+
+  opacity: 0;
+  transition: transform 0.4s ease, opacity 0.4s ease;
   padding-bottom: 0;
   cursor: pointer;
+  z-index: 1000;
+}
+
+/* Visible state */
+.topSection.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+
+@supports (padding: env(safe-area-inset-top)) {
+  .topSection {
+    padding-top: calc(12px + env(safe-area-inset-top));
+  }
 }
 
 .container section.topSection .cart-wrapper {
@@ -2212,6 +2241,7 @@ a.seller-right {
   flex-direction: column;
   gap: 10px;
   padding: 10px;
+  padding-top: 70px;
   align-items: center;
   width: 80%;
   margin: 0 auto;
@@ -2357,4 +2387,101 @@ a.seller-right {
   .container .cart-container .inner-cart-container {
     flex-direction: column;
   }
+}
+
+/* SELLER PAGE */
+.containerInner .grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:18px;
+}
+
+.containerInner .card {
+  background:#fff;
+  border-radius:4px;
+  padding:20px;
+  position:relative;
+  border: 1px solid #dedede;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+}
+
+.containerInner .card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-6px);
+}
+
+.containerInner .card h3 {
+  margin:0 0 10px;
+  font-size:16px;
+}
+
+.containerInner .card .icon {
+  position:absolute;
+  top:18px;
+  right:18px;
+  font-size:22px;
+  color:#898888;
+}
+
+.containerInner .card .stat {
+  font-size:24px;
+  font-weight:bold;
+  margin-bottom:10px;
+}
+
+.containerInner .card .meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+}
+
+.containerInner .card .badge {
+  padding:4px 8px;
+  border-radius:4px;
+  font-size:12px;
+  font-weight: normal;
+  color: #0f0f0f;
+}
+
+.containerInner .card .badge.green{background:#dcfce7; color: #0a7a3b;}
+.containerInner .card .badge.yellow{background:#fef3c7; color: #856404;}
+.containerInner .card .badge.red{background:#fee2e2;}
+.containerInner .card .badge.blue{background:#e0f2fe; color: #1a4fd8;}
+
+.containerInner .card .progress {
+  height:8px;
+  background:#eee;
+  border-radius:10px;
+  margin:10px 0;
+}
+.containerInner .card .progress span {
+  display:block;
+  height:100%;
+  background:#000;
+  border-radius:10px;
+}
+
+.containerInner .card .actions {
+  display:flex;
+  gap:10px;
+  margin-top:15px;
+}
+
+.containerInner .card .actions button {
+  flex:1;
+  padding:8px 16px;
+  border:none;
+  border-radius:4px;
+  background:#0f0f0f;
+  color:#ffffff;
+  cursor:pointer;
+}
+
+.containerInner .card .actions button:hover {
+  opacity: .875;
+}
+
+.containerInner .card p.small {
+  font-size:12px;
 }

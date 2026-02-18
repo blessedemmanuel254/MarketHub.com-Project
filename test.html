@@ -2,308 +2,77 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<title>Seller Dashboard | Market Hub</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Market Hub - Gamified Profiles</title>
 
-<style>
-/* ================= GENERAL STYLES ================= */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Poppins", sans-serif;
-}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-body {
-    background: #000;
-    color: #fff;
-}
-
-.container {
-    width: 95%;
-    max-width: 1200px;
-    margin: 40px auto;
-}
-
-h2 {
-    margin-bottom: 15px;
-    font-weight: 600;
-    letter-spacing: 1px;
-}
-
-.section {
-    margin-bottom: 60px;
-}
-
-/* ================= CARD ================= */
-.card {
-    background: #111;
-    padding: 25px;
-    border-radius: 15px;
-    margin-bottom: 20px;
-    border: 1px solid #222;
-    transition: 0.3s ease;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-    border-color: #fff;
-}
-
-/* ================= PROFILE HEADER ================= */
-.profile-header {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.profile-img {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: #fff;
-}
-
-.profile-info h3 {
-    margin-bottom: 5px;
-}
-
-/* ================= BADGES ================= */
-.badges {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 10px;
-}
-
-.badge {
-    background: #fff;
-    color: #000;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: bold;
-}
-
-/* ================= PROGRESS BAR ================= */
-.progress-container {
-    margin-top: 15px;
-}
-
-.progress-bar {
-    height: 10px;
-    background: #222;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.progress {
-    height: 100%;
-    background: #fff;
-    width: 70%;
-}
-
-/* ================= STATS GRID ================= */
-.stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 15px;
-    margin-top: 20px;
-}
-
-.stat-box {
-    background: #111;
-    padding: 20px;
-    border-radius: 10px;
-    text-align: center;
-    border: 1px solid #222;
-    transition: 0.3s;
-}
-
-.stat-box:hover {
-    background: #fff;
-    color: #000;
-}
-
-.stat-box h4 {
-    font-size: 20px;
-    margin-bottom: 5px;
-}
-
-/* ================= ACHIEVEMENTS ================= */
-.achievements {
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-    margin-top: 20px;
-}
-
-.achievement {
-    flex: 1 1 150px;
-    background: #111;
-    padding: 15px;
-    border-radius: 10px;
-    border: 1px solid #222;
-    text-align: center;
-    transition: 0.3s;
-}
-
-.achievement:hover {
-    border-color: #fff;
-    transform: scale(1.05);
-}
-
-/* ================= RANK TAG ================= */
-.rank {
-    font-size: 14px;
-    background: #fff;
-    color: #000;
-    padding: 5px 10px;
-    border-radius: 15px;
-    display: inline-block;
-    margin-top: 8px;
-}
-
-/* ================= RESPONSIVE ================= */
-@media(max-width: 768px){
-    .profile-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-}
-</style>
 </head>
-<body>
 
+<body>
 <div class="container">
 
-    <!-- ================= BUYER PROFILE ================= -->
-    <div class="section">
-        <h2>🛍 Buyer Profile</h2>
+<h1>Seller Dashboard</h1>
+<p class="subtitle">Overview of your business performance and finances</p>
 
-        <div class="card">
-            <div class="profile-header">
-                <div class="profile-img"></div>
-                <div class="profile-info">
-                    <h3>Blessed Emmanuel</h3>
-                    <p>Market Points: 2,450 XP</p>
-                    <span class="rank">Gold Buyer</span>
+<div class="grid">
 
-                    <div class="badges">
-                        <div class="badge">🔥 12-Day Streak</div>
-                        <div class="badge">⭐ Top Reviewer</div>
-                        <div class="badge">🎁 Referral Star</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="progress-container">
-                <p>Progress to Diamond Level</p>
-                <div class="progress-bar">
-                    <div class="progress" style="width:70%;"></div>
-                </div>
-            </div>
-
-            <div class="stats">
-                <div class="stat-box">
-                    <h4>34</h4>
-                    <p>Purchases</p>
-                </div>
-                <div class="stat-box">
-                    <h4>18</h4>
-                    <p>Reviews</p>
-                </div>
-                <div class="stat-box">
-                    <h4>5</h4>
-                    <p>Referrals</p>
-                </div>
-                <div class="stat-box">
-                    <h4>4.9★</h4>
-                    <p>Rating Given</p>
-                </div>
-            </div>
-
-            <div class="achievements">
-                <div class="achievement">
-                    🏆 First Purchase
-                </div>
-                <div class="achievement">
-                    💬 10 Reviews Completed
-                </div>
-                <div class="achievement">
-                    🔥 7 Day Streak
-                </div>
-                <div class="achievement">
-                    🎯 20 Purchases Milestone
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ================= SELLER PROFILE ================= -->
-    <div class="section">
-        <h2>🏪 Seller Profile</h2>
-
-        <div class="card">
-            <div class="profile-header">
-                <div class="profile-img"></div>
-                <div class="profile-info">
-                    <h3>Market Hub Electronics</h3>
-                    <p>Total Sales: 1,250 Orders</p>
-                    <span class="rank">Elite Seller</span>
-
-                    <div class="badges">
-                        <div class="badge">✔ Verified Store</div>
-                        <div class="badge">🔥 Fast Responder</div>
-                        <div class="badge">⭐ 4.8 Store Rating</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="progress-container">
-                <p>Monthly Sales Target (70%)</p>
-                <div class="progress-bar">
-                    <div class="progress" style="width:70%;"></div>
-                </div>
-            </div>
-
-            <div class="stats">
-                <div class="stat-box">
-                    <h4>1,250</h4>
-                    <p>Total Orders</p>
-                </div>
-                <div class="stat-box">
-                    <h4>KES 2.4M</h4>
-                    <p>Total Revenue</p>
-                </div>
-                <div class="stat-box">
-                    <h4>4.8★</h4>
-                    <p>Store Rating</p>
-                </div>
-                <div class="stat-box">
-                    <h4>98%</h4>
-                    <p>Fulfillment Rate</p>
-                </div>
-            </div>
-
-            <div class="achievements">
-                <div class="achievement">
-                    🏆 1000 Orders Milestone
-                </div>
-                <div class="achievement">
-                    🚀 Top Seller This Month
-                </div>
-                <div class="achievement">
-                    💎 Trusted Seller Badge
-                </div>
-                <div class="achievement">
-                    ⚡ 1hr Avg Response
-                </div>
-            </div>
-        </div>
-    </div>
-
+<!-- WALLET HEALTH -->
+<div class="card">
+  <i class="fa fa-wallet icon"></i>
+  <h3>Wallet Health</h3>
+  <div class="stat">KES 12,450</div>
+  <p class="meta">Available for withdrawal</p>
+  <div class="progress"><span style="width:75%"></span></div>
+  <p class="small">KES 3,200 pending clearance</p>
 </div>
 
+<!-- WITHDRAWAL READINESS -->
+<div class="card">
+  <i class="fa fa-money-bill-wave icon"></i>
+  <h3>Withdrawal Status</h3>
+  <span class="badge green">Eligible</span>
+  <p class="meta">Minimum threshold met</p>
+  <div class="actions">
+    <button>Withdraw</button>
+  </div>
+  <p class="small">Last withdrawal: KES 5,000 • 10 Feb</p>
+</div>
+
+<!-- ORDERS SUMMARY -->
+<div class="card">
+  <i class="fa fa-box icon"></i>
+  <h3>Orders Summary</h3>
+  <div class="stat">18 Orders</div>
+  <p class="meta">
+    <span class="badge blue">5 Processing</span>
+    <span class="badge yellow">3 Shipped</span>
+    <span class="badge green">10 Delivered</span>
+  </p>
+</div>
+
+<!-- CUSTOMER TRUST -->
+<div class="card">
+  <i class="fa fa-star icon"></i>
+  <h3>Customer Trust</h3>
+  <div class="stat">4.7 ★</div>
+  <p class="meta">From 213 reviews</p>
+  <span class="badge green">Excellent</span>
+</div>
+
+<!-- GROWTH INSIGHTS -->
+<div class="card">
+  <i class="fa fa-seedling icon"></i>
+  <h3>Growth Tips</h3>
+  <p class="meta">Improve visibility</p>
+  <p class="small">
+    ✔ Add 2 more products<br>
+    ✔ Enable fast delivery<br>
+    ✔ Respond to reviews
+  </p>
+</div>
+
+</div>
+</div>
 </body>
 </html>

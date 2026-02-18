@@ -2,6 +2,13 @@
 session_start();
 include 'connection.php';
 
+// AUTO-LOGIN VIA COOKIE
+if (!isset($_SESSION['user_id']) && isset($_COOKIE['user_id'])) {
+    $_SESSION['user_id'] = $_COOKIE['user_id'];
+    $_SESSION['username'] = $_COOKIE['username'];
+    $_SESSION['account_type'] = $_COOKIE['account_type'];
+}
+
 /* ---------- SESSION SECURITY ---------- */
 if (isset($_SESSION['user_id'], $_SESSION['account_type'])) {
 
@@ -61,6 +68,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $_SESSION['user_id'] = $user['user_id'];
         $_SESSION['username'] = $user['username'];
         $_SESSION['account_type'] = $user['account_type'];
+
+        // -----------------------
+        // REMEMBER ME LOGIC
+        // -----------------------
+        if (!empty($_POST['remember'])) {
+            // Cookie valid for 30 days
+            $cookieTime = time() + (30 * 24 * 60 * 60); 
+            setcookie("user_id", $user['user_id'], $cookieTime, "/");
+            setcookie("username", $user['username'], $cookieTime, "/");
+            setcookie("account_type", $user['account_type'], $cookieTime, "/");
+        }
 
         // Redirect based on account type
         $redirectPage = strtolower($user['account_type']) === 'seller' ? 'sellerPage.php' : 'buyerPage.php';

@@ -1,3 +1,76 @@
+<?php
+session_start();
+require_once 'connection.php';
+
+/* ---------- SESSION SECURITY ---------- */
+if (!isset($_SESSION['user_id'])) {
+    header("Location: index.php");
+    exit();
+}
+
+/* Optional: regenerate session ID periodically */
+if (!isset($_SESSION['created'])) {
+    session_regenerate_id(true);
+    $_SESSION['created'] = time();
+}
+
+/* ---------- FETCH USER DATA ---------- */
+$user_id = $_SESSION['user_id'];
+
+$query = "SELECT username, profile_image FROM users WHERE user_id = ? LIMIT 1";
+$stmt = $conn->prepare($query);
+
+if (!$stmt) {
+    die("System error.");
+}
+
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+$username = "User";
+$profileImage = null;
+
+if ($result && $result->num_rows === 1) {
+    $user = $result->fetch_assoc();
+
+    if (!empty($user['username'])) {
+        $username = $user['username'];
+    }
+
+    $profileImage = $user['profile_image'] ?? null;
+}
+
+
+$stmt->close();
+
+/* ---------- PROFILE LETTER ---------- */
+$profileLetter = strtoupper(substr($username, 0, 1));
+
+/* ---------- FORMAT USERNAME ---------- */
+$username = trim($username);
+
+$formattedUsername =
+    strtoupper(substr($username, 0, 1)) .
+    strtolower(substr($username, 1));
+
+/* ---------- PROFILE LETTER ---------- */
+$profileLetter = strtoupper(substr($formattedUsername, 0, 1));
+
+/* ---------- SAFE OUTPUT ---------- */
+$safeUsername = htmlspecialchars($formattedUsername, ENT_QUOTES, 'UTF-8');
+$safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
+
+$defaultAvatar = "Images/Market Hub Logo.avif";
+
+if (!empty($profileImage) && file_exists($profileImage)) {
+    $safeProfileImage = htmlspecialchars($profileImage, ENT_QUOTES, 'UTF-8');
+} else {
+    $safeProfileImage = $defaultAvatar;
+}
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,33 +93,55 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,70090000000;1,800;1,900&display=swap" rel="stylesheet">
 
-  <title>Seller's shelf | Market Hub</title>
+  <title>Seller Page | Market Hub</title>
 </head>
 <body>
   <div class="container">
-    <div class="payOverlay" onclick="togglePaymentOption()" id="payOverlay"></div>
-    <form class="paymentContainer" action="" id="paymentContainer">
-      <h1>Choose&nbsp;Account <br><span>You can set your default account in settings</span></h1>
-      <label class="radio-container">
-        <div class="rightDiv">
-          <img src="Images/M-PESA_LOGO-01.svg.png" alt="Mpesa Logo" width="60">
-          <p>MPESA<br><span>254759578630</span></p>
+    <header class="pgHeader">
+      <section>
+        <div class="sContainer">
+          <img src="<?php echo $safeProfileImage; ?>" alt="Profile" class="avatar-img">
+          <p class="wcmTxt">
+            Welcome,<br>
+            <span>Logged in as <?php echo $safeUsername; ?></span>
+          </p>
         </div>
-        <input type="radio" name="payment" value="mpesa">
-        <span class="checkmark"></span>
-      </label><!-- 
-      <label class="radio-container">
-        <div class="rightDiv">
-          <img src="Images/credit-card-01.jpg" alt="Mpesa Logo" width="60">
-          <p>Card&nbsp;Payment</p>
-        </div>
-        <input type="radio" name="payment" value="card">
-        <span class="checkmark"></span>
-      </label> -->
-      <button>Continue</button>
-      <a href="" onclick="togglePaymentOption()">Cancel&nbsp;Payment</a>
+        <div class="rhs">
+          <a class="lkOdr" onclick="toggleOrderMain()">
+            <div class="odrIconDiv">
+              <i class="fa-brands fa-first-order-alt"></i>
+              <p>8</p>
+            </div>
+            <p>Order(s)</p>
+          </a>
+          <select name="" id="ward">
+            <option value="">Kilifi</option>
+            <!--<option value="">Bungoma</option>
+            <option value="">Nairobi</option>-->
+          </select>
+          <a href="helpCentre.php" class="help-icon">
+            <i class="fa-regular fa-circle-question"></i>
+            <p>Help&nbsp;Centre</p>
+          </a>
+          <div class="profile-icon" onclick="toggleProfileOption()">
+            <i class="fa-regular fa-user"></i>
+            <p class="profile-text">Profile</p>
+            <div class="profileOption" id="profileOption">
+              <?php if ($safeProfileImage !== $defaultAvatar): ?>
+                <img src="<?php echo $safeProfileImage; ?>" class="avatar-img large">
+              <?php else: ?>
+                <p class="avatar-letter large"><?php echo $safeLetter; ?></p>
+              <?php endif; ?>
 
-    </form>
+              <a href="buyerprofile.php"><i class="fa-solid fa-eye"></i>View Profile</a>
+              <a href="logout.php"><i class="fa-solid fa-arrow-right-from-bracket"></i>Logout</a>
+            </div>
+          </div>
+          <img src="Images/Kenya Flag.png" alt="Kenya Flag" width="40">
+        </div>
+      </section>
+      <div class="overlay" onclick="toggleProfileOption()" id="overlay1"></div>
+    </header>
     <div class="overlay" onclick="toggleWhatsAppChat()" id="overlay"></div>
     <div id="whatsapp-button" onclick="toggleWhatsAppChat()">
       <img src="Images/Market Hub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
@@ -80,104 +175,744 @@
         </div>
       </div>
     </div>
-    <main class="sellerMain" id="marketMain">
-      <div class="sellerProfileContainer">
-        <div class="seller">
-          <div class="seller-left">
-            <div class="avatar">MC</div><!-- 
-            <img src="" alt="Seller Logo"> -->
-            <div>
-              <div class="name">Main Canteen</div>
-              <div class="rating">★★★★★ (41)</div>
-              <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
-              <div class="meta"><h2>23k&nbsp;<span>followers</span></h2></div>
-              <div class="bsInfo">Delivery: Pickup · Courier</div>
-              <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
-            </div>
-          </div>
-          <a href="" class="seller-right">
-            <div class="promoBadgeGoGold">200+</div>
-            <div class="bsType">Business Type : <i>Kiosk</i></div>
-            <div class="action">
-              <h2>LOCAL MARKET</h2>
-            </div>
-          </a>
-        </div>
-      </div>
-      <div class="tabs-container">
+
+    <main class="buyerMain" id="buyerMain">
+      <div class="tabs-container" id="toggleMarketTypeTab">
         <div class="tabs">
-          <button class="tab-btn active" data-tab="products">Food&nbsp;&&nbsp;Snacks</button>
+          <button class="tab-btn active" data-tab="products">Dashboard</button>
+          <button class="tab-btn" data-tab="services">Products</button>
+          <button class="tab-btn" data-tab="rentals">Funds</button>
         </div>
 
         <div class="tab-content">
           <div id="products" class="tab-panel active">
+            <p>Dashboard Area <br><strong>Your business performance and finances <i class="fa-regular fa-circle-check"></i></strong></p>
+            <div class="containerInner">
+
+              <div class="grid">
+                <!-- WALLET HEALTH -->
+                <div class="card">
+                  <i class="fa fa-wallet icon"></i>
+                  <h3>Wallet Health</h3>
+                  <div class="stat">KES 12,450</div>
+                  <p class="meta">Available for withdrawal</p>
+                  <div class="progress"><span style="width:75%"></span></div>
+                  <p class="small">KES 3,200 pending clearance</p>
+                </div>
+
+                <!-- WITHDRAWAL READINESS -->
+                <div class="card">
+                  <i class="fa fa-money-bill-wave icon"></i>
+                  <h3>Withdrawal Status</h3>
+                  <span class="badge green">Eligible</span>
+                  <p class="meta">Minimum threshold met</p>
+                  <div class="actions">
+                    <button>Withdraw</button>
+                  </div>
+                  <p class="small">Last withdrawal: KES 5,000 • 10 Feb</p>
+                </div>
+
+                <!-- ORDERS SUMMARY -->
+                <div class="card">
+                  <i class="fa fa-box icon"></i>
+                  <h3>Orders Summary</h3>
+                  <div class="stat">18 Orders</div>
+                  <p class="meta">
+                    <span class="badge yellow">5&nbsp;Processing</span>
+                    <span class="badge blue">3&nbsp;Shipped</span>
+                    <span class="badge green">10&nbsp;Delivered</span>
+                  </p>
+                </div>
+
+                <!-- CUSTOMER TRUST -->
+                <div class="card">
+                  <i class="fa fa-star icon"></i>
+                  <h3>Customer Trust</h3>
+                  <div class="stat">4.7 ★</div>
+                  <p class="meta">From 213 reviews</p>
+                  <span class="badge green">Excellent</span>
+                </div>
+
+                <!-- GROWTH INSIGHTS -->
+                <div class="card">
+                  <i class="fa fa-seedling icon"></i>
+                  <h3>Growth Tips</h3>
+                  <p class="meta">Improve visibility</p>
+                  <p class="small">
+                    ✔ Encourage ratings<br>
+                    ✔ Enable fast delivery<br>
+                    ✔ Respond to reviews
+                  </p>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <div id="services" class="tab-panel">
+            <p>Professional services delivered with reliability.<br><strong>Please select Market type <i class="fa-regular fa-circle-check"></i></strong></p>
+
+            <div class="cards">
+              <!-- LOCAL -->
+              <a class="card">
+                <div class="tag">MOST VISITED</div>
+                <i class="fa-solid fa-screwdriver-wrench"></i>
+                <h2>Local Services</h2>
+                <p>
+                  Get reliable services from professionals near you.
+                </p>
+                <div class="label">
+                  <p>Local</p>
+                  <button>View Services</button>
+
+                </div>
+              </a>
+
+              <!-- NATIONAL (MOST VISITED) -->
+              <a class="card">
+                <i class="fa-solid fa-laptop-code"></i>
+                <h2>National Services</h2>
+                <p>
+                  Access verified service providers from across the country.
+                </p>
+                <div class="label">
+                  <p>National</p>
+                  <button>View Services</button>
+
+                </div>
+              </a>
+
+              <!-- GLOBAL -->
+              <a class="card">
+                <i class="fa-solid fa-globe"></i>
+                <h2>Global Services</h2>
+                <p>
+                  Connect with international experts and remote professionals.
+                </p>
+                <div class="label">
+                  <p>Global</p>
+                  <button>View Services</button>
+
+                </div>
+              </a>
+            </div>
+          </div>
+
+          <div id="rentals" class="tab-panel">
+            <p>Affordable rentals for homes, vehicles and equipment.<br><strong>Please select Market type <i class="fa-regular fa-circle-check"></i></strong></p>
+
+            <div class="cards">
+              <!-- LOCAL -->
+              <a class="card">
+                <div class="tag">MOST VISITED</div>
+                <i class="fa-solid fa-house"></i>
+                <h2>Local Rentals</h2>
+                <p>
+                  Find rentals close to you including homes, vehicles, tools, and equipment.
+                </p>
+                <div class="label">
+                  <p>Local</p>
+                  <button>View Rentals</button>
+
+                </div>
+              </a>
+
+              <!-- NATIONAL (MOST VISITED) -->
+              <a class="card">
+                <i class="fa-solid fa-building"></i>
+                <h2>National Rentals</h2>
+                <p>
+                  Browse rental options available across the country.
+                </p>
+                <div class="label">
+                  <p>National</p>
+                  <button>View Rentals</button>
+
+                </div>
+              </a>
+
+              <!-- GLOBAL -->
+              <a class="card">
+                <i class="fa-solid fa-jet-fighter-up"></i>
+                <h2>Global Rentals</h2>
+                <p>
+                  Access international rental opportunities for travel, relocation, and cross-border projects.
+                </p>
+                <div class="label">
+                  <p>Global</p>
+                  <button>View Rentals</button>
+
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tabs-container" id="toggleMarketSourceTab">
+        <div class="tabs">
+          <button class="tab-btn-msource active" data-tab="shops">Shops</button>
+          <button class="tab-btn-msource" data-tab="supermarkets">Supermarkets</button><!-- 
+          <button class="tab-btn-msource" data-tab="rentals">Rentals</button> -->
+        </div>
+
+        <div class="tab-content">
+          <div id="shops" class="tab-panel-msource active">
             <div class="tab-top">
-              <p>You order we deliver.</p>
-              <button onclick="window.history.back()">
-                <i class="fa-solid fa-circle-arrow-left"></i><span>Go&nbsp;Back</span>
+              <p>Showing markets in <em>Sokoni Ward</em> <br><strong>Please select the market source <i class="fa-regular fa-circle-check"></i></strong></p>
+              <button onclick="goBackToMarketTypes()">
+                <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
               </button>
             </div>
 
-            <div class="food-grid">
+            <!-- SELLERS LIST -->
+            <div class="sellers">
 
-              <!-- CARD 1 -->
-              <div class="food-card">
-                <img class="foodAndSnacksImage" src="Images/Passion Juice.jpg" alt="Product Image">
-                <div class="food-content">
-                  <div class="food-title">Passion Juice</div>
-                  <div class="food-desc">Crispy, golden and freshly prepared.</div>
-                  <div class="price-row">
-                    <div class="price">KES 40</div>
-                    <button class="buy-btn" onclick="togglePaymentOption()">Order</button>
+              <div class="seller">
+                <div class="seller-left">
+                  <div class="avatar">MC</div>
+                  <div>
+                    <div class="name">Main Canteen</div>
+                    <div class="rating">★★★★★ (41)</div>
+                    <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
+                    <div class="meta"><h2>23k&nbsp;<span>followers</span></h2></div>
+                    <div class="bsInfo">Delivery: Pickup · Courier</div>
+                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
                   </div>
                 </div>
+                <a href="marketDisplay.php" class="seller-right">
+                  <div class="promoBadgeGoGold">200+</div>
+                  <div class="bsType">Business Type : <i>Kiosk</i></div>
+                  <div class="action">
+                    <button>View&nbsp;seller</button>
+                  </div>
+                </a>
               </div>
 
-              <!-- CARD 2 -->
-              <div class="food-card">
-                <img class="foodAndSnacksImage" src="Images/Market Hub Logo.avif" alt="Product Image">
-                <div class="food-content">
-                  <div class="food-title">Burger & Fries</div>
-                  <div class="food-desc">Juicy burger served with crispy fries.</div>
-                  <div class="price-row">
-                    <div class="price">KES 650</div>
-                    <button class="buy-btn" onclick="togglePaymentOption()">Order</button>
+              <div class="seller">
+                <div class="seller-left">
+                  <div class="avatar">BE</div>
+                  <div>
+                    <div class="name">BerryFerry</div>
+                    <div class="rating">★★★★★ (165)</div>
+                    <div class="meta"><h2>3&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
+                    <div class="meta"><h2>4&nbsp;<span>followers</span></h2></div>
+                    <div class="bsInfo">Delivery: Pickup · Courier</div>
+                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
                   </div>
                 </div>
+                <a href="marketDisplay.php" class="seller-right">
+                  <div class="promoBadgeDefault">13</div>
+                  <div class="bsType">Business Type : <i>Canteen</i></div>
+                  <div class="action">
+                    <button>View&nbsp;seller</button>
+                  </div>
+                </a>
               </div>
 
-              <!-- CARD 3 -->
-              <div class="food-card">
-                <img class="foodAndSnacksImage" src="Images/Market Hub Logo.avif" alt="Product Image">
-                <div class="food-content">
-                  <div class="food-title">Pizza Slice</div>
-                  <div class="food-desc">Cheesy slice with fresh toppings.</div>
-                  <div class="price-row">
-                    <div class="price">KES 300</div>
-                    <button class="buy-btn" onclick="togglePaymentOption()">Order</button>
+              <div class="seller">
+                <div class="seller-left">
+                  <div class="avatar">WW</div>
+                  <div>
+                    <div class="name">Wwrightbright</div>
+                    <div class="rating">★★★★★ (11)</div>
+                    <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
+                    <div class="meta"><h2>2&nbsp;<span>followers</span></h2></div>
+                    <div class="bsInfo">Delivery: Pickup · Courier</div>
+                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
                   </div>
                 </div>
+                <a href="marketDisplay.php" class="seller-right">
+                  <div class="promoBadgeGoPro">100+</div>
+                  <div class="bsType">Business Type : <i>Kibanda</i></div>
+                  <div class="action">
+                    <button>View&nbsp;seller</button>
+                  </div>
+                </a>
               </div>
 
-              <!-- CARD 4 -->
-              <div class="food-card">
-                <img class="foodAndSnacksImage" src="Images/Market Hub Logo.avif" alt="Product Image">
-                <div class="food-content">
-                  <div class="food-title">Samosas</div>
-                  <div class="food-desc">Crispy snacks filled with spiced meat.</div>
-                  <div class="price-row">
-                    <div class="price">KES 150</div>
-                    <button class="buy-btn" onclick="togglePaymentOption()">Order</button>
+            </div>
+          </div>
+
+          <div id="supermarkets" class="tab-panel-msource">
+            <div class="tab-top">
+              <p>Showing markets in <em>Sokoni Ward</em> <br><strong>Please select the market source <i class="fa-regular fa-circle-check"></i></strong></p>
+              <button onclick="goBackToMarketTypes()">
+                <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
+              </button>
+            </div>
+
+            <!-- SELLERS LIST -->
+            <div class="sellers">
+
+              <div class="seller">
+                <div class="seller-left">
+                  <div class="avatar">NS</div>
+                  <div>
+                    <div class="name">Naivas Supermaket</div>
+                    <div class="rating">★★★★★ (41)</div>
+                    <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
+                    <div class="meta"><h2>23k&nbsp;<span>followers</span></h2></div>
+                    <div class="bsInfo">Delivery: Pickup · Courier</div>
+                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
                   </div>
                 </div>
+                <a href="marketDisplay.php" class="seller-right">
+                  <div class="promoBadgeGoGold">1000+</div>
+                  <div class="bsType">Business Type : <i>Kiosk</i></div>
+                  <div class="action">
+                    <button>View&nbsp;seller</button>
+                  </div>
+                </a>
+              </div>
+
+              <div class="seller">
+                <div class="seller-left">
+                  <div class="avatar">CM</div>
+                  <div>
+                    <div class="name">Cherowamaye Minimarket</div>
+                    <div class="rating">★★★★★ (165)</div>
+                    <div class="meta"><h2>3&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
+                    <div class="meta"><h2>4&nbsp;<span>followers</span></h2></div>
+                    <div class="bsInfo">Delivery: Pickup · Courier</div>
+                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
+                  </div>
+                </div>
+                <a href="marketDisplay.php" class="seller-right">
+                  <div class="promoBadgeDefault">287</div>
+                  <div class="bsType">Business Type : <i>Canteen</i></div>
+                  <div class="action">
+                    <button>View&nbsp;seller</button>
+                  </div>
+                </a>
+              </div>
+
+              <div class="seller">
+                <div class="seller-left">
+                  <div class="avatar">AW</div>
+                  <div>
+                    <div class="name">Abul Wholesale</div>
+                    <div class="rating">★★★★★ (11)</div>
+                    <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
+                    <div class="meta"><h2>2&nbsp;<span>followers</span></h2></div>
+                    <div class="bsInfo">Delivery: Pickup · Courier</div>
+                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
+                  </div>
+                </div>
+                <a href="marketDisplay.php" class="seller-right">
+                  <div class="promoBadgeGoPro">500+</div>
+                  <div class="bsType">Business Type : <i>Kibanda</i></div>
+                  <div class="action">
+                    <button>View&nbsp;seller</button>
+                  </div>
+                </a>
               </div>
 
             </div>
           </div>
         </div>
       </div>
+
+      <h1>Transaction History</h1>
+
+      <div class="filter-bar">
+        <select id="statusFilter">
+          <option value="all">All Transactions</option>
+          <option value="Delivered">Delivered</option>
+          <option value="Shipped">Shipped</option>
+          <option value="Processing">Processing</option>
+        </select>
+      </div>
+
+      <!-- DESKTOP TABLE -->
+      <div class="table-wrapper">
+        <table id="sellerTransactions">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Buyer</th>
+              <th>Qty</th>
+              <th>Total</th>
+              <th>Payment</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-status="Delivered">
+              <td>ORD-10021</td>
+              <td>John Doe</td>
+              <td>2</td>
+              <td>KES 7,000</td>
+              <td><span class="badge paid">Paid</span></td>
+              <td><span class="badge delivered">Delivered</span></td>
+              <td>12 Feb 2026</td>
+              <td class="actions">
+                <div>
+                <button class="btn-view">View</button>
+                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
+                </div>
+              </td>
+            </tr>
+
+            <tr data-status="Processing">
+              <td>ORD-10022</td>
+              <td>Jane Smith</td>
+              <td>1</td>
+              <td>KES 6,800</td>
+              <td><span class="badge pending">Pending</span></td>
+              <td><span class="badge processing">Processing</span></td>
+              <td>13 Feb 2026</td>
+              <td class="actions">
+                <div>
+                <button class="btn-view">View</button>
+                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
+                </div>
+              </td>
+            </tr>
+
+            <tr data-status="Shipped">
+              <td>ORD-10023</td>
+              <td>Mary Johnson</td>
+              <td>3</td>
+              <td>KES 12,000</td>
+              <td><span class="badge paid">Paid</span></td>
+              <td><span class="badge shipped">Shipped</span></td>
+              <td>14 Feb 2026</td>
+              <td class="actions">
+                <div>
+                  <button class="btn-view">View</button>
+                </div>
+              </td>
+            </tr>
+
+            <tr data-status="Processing">
+              <td>ORD-10022</td>
+              <td>Jane Smith</td>
+              <td>1</td>
+              <td>KES 6,800</td>
+              <td><span class="badge pending">Pending</span></td>
+              <td><span class="badge processing">Processing</span></td>
+              <td>13 Feb 2026</td>
+              <td class="actions">
+                <div>
+                <button class="btn-view">View</button>
+                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
+                </div>
+              </td>
+            </tr>
+
+            <tr data-status="Shipped">
+              <td>ORD-10023</td>
+              <td>Mary Johnson</td>
+              <td>3</td>
+              <td>KES 12,000</td>
+              <td><span class="badge paid">Paid</span></td>
+              <td><span class="badge shipped">Shipped</span></td>
+              <td>14 Feb 2026</td>
+              <td class="actions">
+                <div>
+                  <button class="btn-view">View</button>
+                </div>
+              </td>
+            </tr>
+
+            <tr data-status="Processing">
+              <td>ORD-10022</td>
+              <td>Jane Smith</td>
+              <td>1</td>
+              <td>KES 6,800</td>
+              <td><span class="badge pending">Pending</span></td>
+              <td><span class="badge processing">Processing</span></td>
+              <td>13 Feb 2026</td>
+              <td class="actions">
+                <div>
+                <button class="btn-view">View</button>
+                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
+                </div>
+              </td>
+            </tr>
+
+            <tr data-status="Shipped">
+              <td>ORD-10023</td>
+              <td>Mary Johnson</td>
+              <td>3</td>
+              <td>KES 12,000</td>
+              <td><span class="badge paid">Paid</span></td>
+              <td><span class="badge shipped">Shipped</span></td>
+              <td>14 Feb 2026</td>
+              <td class="actions">
+                <div>
+                  <button class="btn-view">View</button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Add more rows here as needed -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- MOBILE CARDS -->
+      <div class="cards" id="orderCards">
+
+      <div class="order-card" data-status="Delivered">
+        <div class="card-header">
+          <img src="Images/Market Hub Logo.avif" class="product-img">
+          <div>
+            <div class="card-title">Wireless Headphones</div>
+            <div class="card-meta">Order: MH-10231 • National</div>
+          </div>
+        </div>
+
+        <div class="card-row">
+          <span>Price</span>
+          <strong>KES 3,500</strong>
+        </div>
+
+        <div class="card-row">
+          <span>Status</span>
+          <span class="badge delivered">Delivered</span>
+        </div>
+
+        <div class="card-actions">
+          <div></div>
+          <button class="btn-view">View</button>
+          <button class="btn-track">Track</button>
+        </div>
+      </div>
+
+      <div class="order-card" data-status="Processing">
+        <div class="card-header">
+          <img src="Images/Market Hub Logo.avif" class="product-img">
+          <div>
+            <div class="card-title">Smart Watch</div>
+            <div class="card-meta">Order: MH-10702 • Global</div>
+          </div>
+        </div>
+
+        <div class="card-row">
+          <span>Price</span>
+          <strong>KES 6,800</strong>
+        </div>
+
+        <div class="card-row">
+          <span>Status</span>
+          <span class="badge processing">Processing</span>
+        </div>
+
+        <div class="card-actions">
+          <button class="btn-view">View</button>
+          <button class="btn-cancel">Cancel</button>
+        </div>
+      </div>
+
+      <div class="order-card" data-status="Processing">
+        <div class="card-header">
+          <img src="Images/Market Hub Logo.avif" class="product-img">
+          <div>
+            <div class="card-title">Smart Watch</div>
+            <div class="card-meta">Order: MH-10702 • Global</div>
+          </div>
+        </div>
+
+        <div class="card-row">
+          <span>Price</span>
+          <strong>KES 6,800</strong>
+        </div>
+
+        <div class="card-row">
+          <span>Status</span>
+          <span class="badge processing">Processing</span>
+        </div>
+
+        <div class="card-actions">
+          <button class="btn-view">View</button>
+          <button class="btn-cancel">Cancel</button>
+        </div>
+      </div>
+
+      <div class="order-card" data-status="Delivered">
+        <div class="card-header">
+          <img src="Images/Market Hub Logo.avif" class="product-img">
+          <div>
+            <div class="card-title">Wireless Headphones</div>
+            <div class="card-meta">Order: MH-10231 • National</div>
+          </div>
+        </div>
+
+        <div class="card-row">
+          <span>Price</span>
+          <strong>KES 3,500</strong>
+        </div>
+
+        <div class="card-row">
+          <span>Status</span>
+          <span class="badge delivered">Delivered</span>
+        </div>
+
+        <div class="card-actions">
+          <div></div>
+          <button class="btn-view">View</button>
+          <button class="btn-track">Track</button>
+        </div>
+      </div>
+
+
+      <div class="order-card" data-status="Delivered">
+        <div class="card-header">
+          <img src="Images/Market Hub Logo.avif" class="product-img">
+          <div>
+            <div class="card-title">Wireless Headphones</div>
+            <div class="card-meta">Order: MH-10231 • National</div>
+          </div>
+        </div>
+
+        <div class="card-row">
+          <span>Price</span>
+          <strong>KES 3,500</strong>
+        </div>
+
+        <div class="card-row">
+          <span>Status</span>
+          <span class="badge delivered">Delivered</span>
+        </div>
+
+        <div class="card-actions">
+          <div></div>
+          <button class="btn-view">View</button>
+          <button class="btn-track">Track</button>
+        </div>
+      </div>
+
+
+      <div class="order-card" data-status="Processing">
+        <div class="card-header">
+          <img src="Images/Market Hub Logo.avif" class="product-img">
+          <div>
+            <div class="card-title">Smart Watch</div>
+            <div class="card-meta">Order: MH-10702 • Global</div>
+          </div>
+        </div>
+
+        <div class="card-row">
+          <span>Price</span>
+          <strong>KES 6,800</strong>
+        </div>
+
+        <div class="card-row">
+          <span>Status</span>
+          <span class="badge processing">Processing</span>
+        </div>
+
+        <div class="card-actions">
+          <button class="btn-view">View</button>
+          <button class="btn-cancel">Cancel</button>
+        </div>
+      </div>
+
+      <div class="order-card" data-status="Processing">
+        <div class="card-header">
+          <img src="Images/Market Hub Logo.avif" class="product-img">
+          <div>
+            <div class="card-title">Smart Watch</div>
+            <div class="card-meta">Order: MH-10702 • Global</div>
+          </div>
+        </div>
+
+        <div class="card-row">
+          <span>Price</span>
+          <strong>KES 6,800</strong>
+        </div>
+
+        <div class="card-row">
+          <span>Status</span>
+          <span class="badge processing">Processing</span>
+        </div>
+
+        <div class="card-actions">
+          <button class="btn-view">View</button>
+          <button class="btn-cancel">Cancel</button>
+        </div>
+      </div>
+
+      </div>
+      
+      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleOrderMain()">View&nbsp;All&nbsp;Transactions</button> to access all your orders.</p>
+
     </main>
-  
+
+    <main class="buyerMain" id="orderMain">
+
+      <div class="order-group">
+        <div class="order-header">
+          <div>
+            <strong>Order #ORD-90321</strong><br>
+            <span>Placed on 12 Feb 2026</span>
+          </div>
+          <div>3 Items</div>
+        </div>
+
+        <div class="order-items-grid">
+
+          <!-- ITEM 1 -->
+          <div class="order-item">
+            <div class="item-top">
+              <div class="item-info">
+                <h4>Wireless Headphones</h4>
+                <p>Seller: TechZone</p>
+                <p>Qty: 1 • Total: KES 3,200</p>
+                <p>Status: <span class="status shipped">Shipped</span></p>
+                <span class="market-badge">National</span>
+              </div>
+              <img src="Images/Market Hub Logo.avif" alt="Product">
+            </div>
+
+            <div class="item-actions">
+              <button class="toggle" data-target="d1">View details</button>
+            </div>
+
+            <div class="item-extra" id="d1">
+              <div class="extra-box">
+                <strong>Tracking</strong><br>
+                Packed → Shipped
+              </div>
+              <div class="extra-box">
+                <strong>Payment</strong><br>
+                M-Pesa • KES 3,200
+              </div>
+            </div>
+          </div>
+
+          <!-- ITEM 2 -->
+          <div class="order-item">
+            <div class="item-top">
+              <div class="item-info">
+                <h4>Office Chair</h4>
+                <p>Seller: Comfort Furnish</p>
+                <p>Qty: 2 • Total: KES 18,000</p>
+                <p>Status: <span class="status processing">Processing</span></p>
+                <span class="market-badge">Local</span>
+              </div>
+              <img src="Images/Market Hub Logo.avif" alt="Product">
+            </div>
+
+            <div class="item-actions">
+              <button class="toggle" data-target="d2">View details</button>
+            </div>
+
+            <div class="item-extra" id="d2">
+              <div class="extra-box">
+                Awaiting dispatch
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <p class="toggleOrdersOrMarket"><button href="" onclick="toggleMarketMain()">Go&nbsp;back</button> to continue shopping.</p>
+    </main>
     <footer>
       <p>&copy; 2025/2026, Market Hub.com, All Rights reserved.</p>
     </footer>
@@ -196,6 +931,5 @@
     });
   });
   </script>
-  
 </body>
 </html>

@@ -425,3 +425,64 @@ document.querySelectorAll(".add-to-cart-btn").forEach(btn => {
     addToCart(product);
   });
 });
+
+// ================= HEADER SECTION =================
+let headerTimer;
+let firstLoadShown = false; // ✅ FIX #1
+
+function showTopSection(timeout = 3000) {
+  const header = document.querySelector(".topSection");
+  if (!header) return;
+
+  header.classList.add("show");
+
+  clearTimeout(headerTimer);
+  headerTimer = setTimeout(() => {
+    header.classList.remove("show");
+  }, timeout);
+}
+
+/* ---------- SHOW ON FIRST LOAD ---------- */
+document.addEventListener("DOMContentLoaded", () => {
+  showTopSection(4000); // ✅ always show on first load
+  firstLoadShown = true;
+});
+
+/* ---------- SHOW ON SCROLL ---------- */
+let lastScrollY = window.scrollY;
+let scrollTimeout;
+
+window.addEventListener("scroll", () => {
+  const diff = Math.abs(window.scrollY - lastScrollY);
+
+  if (diff > 20) {
+    showTopSection(2500);
+  }
+
+  lastScrollY = window.scrollY;
+
+  clearTimeout(scrollTimeout);
+  scrollTimeout = setTimeout(() => {
+    document.querySelector(".topSection")?.classList.remove("show");
+  }, 2800);
+});
+
+/* ---------- SHOW ON USER ACTION ---------- */
+document.addEventListener("click", e => {
+  if (
+    e.target.closest(".add-to-cart-btn") ||
+    e.target.closest(".cart-wrapper") ||
+    e.target.closest(".buy-btn")
+  ) {
+    showTopSection(3000);
+  }
+});
+
+/* ---------- CART TOGGLE ---------- */
+function toggleCartBar() {
+  const box = document.getElementById("cart-container");
+  if (!box) return;
+
+  box.style.display = box.style.display === "flex" ? "none" : "flex";
+  showTopSection(4000);
+}
