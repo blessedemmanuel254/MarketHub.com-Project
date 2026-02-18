@@ -12,6 +12,11 @@ function togglePaymentOption() {
   payOverlay.classList.toggle("active");
 }
 
+function toggleCartBar() {
+  var box = document.getElementById("cart-container");
+  box.style.display = box.style.display === "flex" ? "none" : "flex";
+}
+
 function sendWhatsAppMessage() {
   var message = document.getElementById("userMessage").value.trim();
   if (message !== "") {
@@ -155,26 +160,34 @@ function toggleProfileOption() {
 /* Recent Order Js */
 
 // Show only the 5 most recent orders
-const tableBody = document.querySelector("#ordersTable tbody");
-const allRows = Array.from(tableBody.querySelectorAll("tr"));
-allRows.forEach((row, index) => {
-  if(index >= 5) row.style.display = "none";
-});
+document.addEventListener("DOMContentLoaded", () => {
+  const tableBody = document.querySelector("#ordersTable tbody");
+  const filter = document.getElementById("statusFilter");
 
-// Filter by status
-const filter = document.getElementById("statusFilter");
-filter.addEventListener("change", () => {
-  const value = filter.value;
-  let visibleCount = 0;
+  if (!tableBody) return; // 🔑 PREVENT CRASH
 
-  document.querySelectorAll("#ordersTable tbody tr").forEach(el => {
-    if (value === "all" || el.dataset.status === value) {
-      el.style.display = visibleCount < 5 ? "" : "none"; // only 5
-      visibleCount++;
-    } else {
-      el.style.display = "none";
-    }
+  const allRows = Array.from(tableBody.querySelectorAll("tr"));
+
+  // Show only 5
+  allRows.forEach((row, index) => {
+    if (index >= 5) row.style.display = "none";
   });
+
+  if (filter) {
+    filter.addEventListener("change", () => {
+      const value = filter.value;
+      let visibleCount = 0;
+
+      allRows.forEach(el => {
+        if (value === "all" || el.dataset.status === value) {
+          el.style.display = visibleCount < 5 ? "" : "none";
+          visibleCount++;
+        } else {
+          el.style.display = "none";
+        }
+      });
+    });
+  }
 });
 
 /* Limit Mobile Order Cards Js */
@@ -286,3 +299,129 @@ function goBackToMarketTypes() {
     if (sourcePanel) sourcePanel.classList.add('active');
   }
 }
+
+// CART JS
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  const subtotalEl = document.getElementById('subtotal');
+  const totalEl = document.getElementById('total');
+
+  if (!subtotalEl || !totalEl) return; // 🔑 SAFE EXIT
+
+  const deliveryFee = 0;
+
+  function updateTotals() {
+    let subtotal = 0;
+    const items = document.querySelectorAll('.cart-item');
+    const emptyMsg = document.getElementById('emptyCartMessage');
+
+    // 🔹 Handle empty cart
+    if (items.length === 0) {
+      if (emptyMsg) emptyMsg.style.display = "block";
+      subtotalEl.textContent = "KES 0";
+      totalEl.textContent = "KES 0";
+      return;
+    } else {
+      if (emptyMsg) emptyMsg.style.display = "none";
+    }
+
+    items.forEach(item => {
+      const price = parseInt(item.dataset.price);
+      const qty = parseInt(item.querySelector('.qty-number').textContent);
+      subtotal += price * qty;
+    });
+
+    subtotalEl.textContent = "KES " + subtotal;
+    totalEl.textContent = "KES " + (subtotal + deliveryFee);
+  }
+
+  document.addEventListener("click", e => {
+
+    if (e.target.classList.contains("plus")) {
+      const qty = e.target.parentElement.querySelector(".qty-number");
+      qty.textContent = parseInt(qty.textContent) + 1;
+    }
+
+    if (e.target.classList.contains("minus")) {
+      const qty = e.target.parentElement.querySelector(".qty-number");
+      if (parseInt(qty.textContent) > 1) {
+        qty.textContent--;
+      }
+    }
+
+    if (e.target.classList.contains("remove-btn")) {
+      e.target.closest(".cart-item").remove();
+    }
+
+    updateTotals();
+    updateCartCount();
+  });
+
+  updateTotals();
+});
+
+const cartItemsContainer = document.getElementById("cartItems");
+const cartCountEl = document.querySelector(".cart-count");
+
+function updateCartCount() {
+  let count = 0;
+  document.querySelectorAll(".cart-item").forEach(item => {
+    count += parseInt(item.querySelector(".qty-number").textContent);
+  });
+  cartCountEl.textContent = count;
+}
+
+function addToCart(product) {
+  const existingItem = [...document.querySelectorAll(".cart-item")]
+    .find(item => item.dataset.name === product.name);
+
+  // If product already in cart → increase qty
+  if (existingItem) {
+    const qtyEl = existingItem.querySelector(".qty-number");
+    qtyEl.textContent = parseInt(qtyEl.textContent) + 1;
+  } 
+  // Else → create new cart item
+  else {
+    const item = document.createElement("div");
+    item.className = "cart-item";
+    item.dataset.price = product.price;
+    item.dataset.name = product.name;
+
+    item.innerHTML = `
+      <div class="cart-left">
+        <img src="${product.image}" alt="">
+        <div class="cart-info">
+          <h4>${product.name}</h4>
+          <p>KES ${product.price}</p>
+          <div class="remove-btn">Remove</div>
+        </div>
+      </div>
+
+      <div class="quantity-control">
+        <button class="qty-btn minus">-</button>
+        <div class="qty-number">1</div>
+        <button class="qty-btn plus">+</button>
+      </div>
+    `;
+
+    cartItemsContainer.appendChild(item);
+  }
+
+  updateTotals();
+  updateCartCount();
+}
+
+document.querySelectorAll(".add-to-cart-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const card = btn.closest(".variable-card");
+
+    const product = {
+      name: card.dataset.name,
+      price: parseInt(card.dataset.price),
+      image: card.dataset.image
+    };
+
+    addToCart(product);
+  });
+});

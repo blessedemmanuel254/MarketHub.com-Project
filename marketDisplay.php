@@ -42,9 +42,9 @@ if (!isset($_SESSION['created'])) {
 <body>
   <div class="container">
     <section class="topSection">
-      <div class="cart-wrapper">
+      <div class="cart-wrapper" onclick="toggleCartBar()">
         <span class="cart-icon">📦</span>
-        <span class="cart-count">3</span>
+        <span class="cart-count">0</span>
       </div>
       <button onclick="window.history.back()">
         <i class="fa-solid fa-circle-arrow-left"></i><span>Go&nbsp;Back</span>
@@ -52,79 +52,16 @@ if (!isset($_SESSION['created'])) {
 
 
     </section>
-    <div class="cartOverlay" onclick="toggleCartBar()" id="cartOverlay"></div>
-
-    <div class="cart-container">
-      <h1>My Cart</h1>
+    <div class="cart-container" id="cart-container">
+      <div class="cartTop">
+        <h1>My Cart</h1>
+        <i class="fa-solid fa-xmark" onclick="toggleCartBar()"></i>
+      </div>
       <div class="inner-cart-container">
         <div class="cart-items" id="cartItems">
-
-          <div class="cart-item" data-price="40">
-            <div class="cart-left">
-              <img src="Images/Passion Juice.jpg" alt="">
-              <div class="cart-info">
-                <h4>Passion Juice</h4>
-                <p>KES 40</p>
-                <div class="remove-btn">Remove</div>
-              </div>
-            </div>
-
-            <div class="quantity-control">
-              <button class="qty-btn minus">-</button>
-              <div class="qty-number">1</div>
-              <button class="qty-btn plus">+</button>
-            </div>
+          <div id="emptyCartMessage" class="empty-cart">
+            🛒 Your cart is empty
           </div>
-
-          <div class="cart-item" data-price="650">
-            <div class="cart-left">
-              <img src="Images/Market Hub Logo.avif" alt="">
-              <div class="cart-info">
-                <h4>Burger & Fries</h4>
-                <p>KES 650</p>
-                <div class="remove-btn">Remove</div>
-              </div>
-            </div>
-
-            <div class="quantity-control">
-              <button class="qty-btn minus">-</button>
-              <div class="qty-number">1</div>
-              <button class="qty-btn plus">+</button>
-            </div>
-          </div>
-          <div class="cart-item" data-price="650">
-            <div class="cart-left">
-              <img src="Images/Market Hub Logo.avif" alt="">
-              <div class="cart-info">
-                <h4>Burger & Fries</h4>
-                <p>KES 650</p>
-                <div class="remove-btn">Remove</div>
-              </div>
-            </div>
-
-            <div class="quantity-control">
-              <button class="qty-btn minus">-</button>
-              <div class="qty-number">1</div>
-              <button class="qty-btn plus">+</button>
-            </div>
-          </div>
-          <div class="cart-item" data-price="650">
-            <div class="cart-left">
-              <img src="Images/Market Hub Logo.avif" alt="">
-              <div class="cart-info">
-                <h4>Burger & Fries</h4>
-                <p>KES 650</p>
-                <div class="remove-btn">Remove</div>
-              </div>
-            </div>
-
-            <div class="quantity-control">
-              <button class="qty-btn minus">-</button>
-              <div class="qty-number">1</div>
-              <button class="qty-btn plus">+</button>
-            </div>
-          </div>
-
         </div>
 
         <div class="cart-summary">
@@ -135,7 +72,17 @@ if (!isset($_SESSION['created'])) {
 
           <div class="summary-row">
             <span>Delivery</span>
-            <span>KES 100</span>
+            <span>KES 0</span>
+          </div>
+
+          <div class="summary-row">
+            <span>Discount</span>
+            <span>KES 0</span>
+          </div>
+
+          <div class="summary-row">
+            <span>Market Hub Points</span>
+            <span>KES 0</span>
           </div>
 
           <div class="summary-row summary-total">
@@ -143,7 +90,7 @@ if (!isset($_SESSION['created'])) {
             <span id="total">KES 0</span>
           </div>
 
-          <button class="checkout-btn">Proceed to Payment</button>
+          <button class="checkout-btn" onclick="togglePaymentOption()">Proceed&nbsp;to&nbsp;Payment</button>
         </div>
       </div>
     </div>
@@ -238,14 +185,15 @@ if (!isset($_SESSION['created'])) {
               <p>You order we deliver.</p>
             </div>
 
-            <div class="food-grid">
+            <div class="variables-grid">
 
               <!-- CARD 1 -->
-              <div class="food-card">
-                <img class="foodAndSnacksImage" src="Images/Passion Juice.jpg" alt="Product Image">
-                <div class="food-content">
-                  <div class="food-title">Passion Juice</div>
-                  <div class="food-desc">Crispy, golden and freshly prepared.</div>
+              <div class="variable-card" data-name="Passion Juice" data-price="40" data-image="Images/Passion Juice.jpg">
+                <button class="add-to-cart-btn">Add&nbsp;to&nbsp;cart</button>
+                <img class="variableAndSnacksImage" src="Images/Passion Juice.jpg" alt="Product Image">
+                <div class="variable-content">
+                  <div class="variable-title">Passion Juice</div>
+                  <div class="variable-desc">Crispy, golden and freshly prepared.</div>
                   <div class="price-row">
                     <div class="price">KES 40</div>
                     <button class="buy-btn" onclick="togglePaymentOption()">Order</button>
@@ -254,11 +202,12 @@ if (!isset($_SESSION['created'])) {
               </div>
 
               <!-- CARD 2 -->
-              <div class="food-card">
-                <img class="foodAndSnacksImage" src="Images/Market Hub Logo.avif" alt="Product Image">
-                <div class="food-content">
-                  <div class="food-title">Burger & Fries</div>
-                  <div class="food-desc">Juicy burger served with crispy fries.</div>
+              <div class="variable-card" data-name="Burger & Fries" data-price="650" data-image="Images/Market Hub Logo.avif">
+                <button class="add-to-cart-btn">Add&nbsp;to&nbsp;cart</button>
+                <img class="variableAndSnacksImage" src="Images/Market Hub Logo.avif" alt="Product Image">
+                <div class="variable-content">
+                  <div class="variable-title">Burger & Fries</div>
+                  <div class="variable-desc">Juicy burger served with crispy fries.</div>
                   <div class="price-row">
                     <div class="price">KES 650</div>
                     <button class="buy-btn" onclick="togglePaymentOption()">Order</button>
@@ -267,11 +216,12 @@ if (!isset($_SESSION['created'])) {
               </div>
 
               <!-- CARD 3 -->
-              <div class="food-card">
-                <img class="foodAndSnacksImage" src="Images/Market Hub Logo.avif" alt="Product Image">
-                <div class="food-content">
-                  <div class="food-title">Pizza Slice</div>
-                  <div class="food-desc">Cheesy slice with fresh toppings.</div>
+              <div class="variable-card" data-name="Pizza Slice" data-price="300" data-image="Images/Market Hub Logo.avif">
+                <button class="add-to-cart-btn">Add&nbsp;to&nbsp;cart</button>
+                <img class="variableAndSnacksImage" src="Images/Market Hub Logo.avif" alt="Product Image">
+                <div class="variable-content">
+                  <div class="variable-title">Pizza Slice</div>
+                  <div class="variable-desc">Cheesy slice with fresh toppings.</div>
                   <div class="price-row">
                     <div class="price">KES 300</div>
                     <button class="buy-btn" onclick="togglePaymentOption()">Order</button>
@@ -280,11 +230,12 @@ if (!isset($_SESSION['created'])) {
               </div>
 
               <!-- CARD 4 -->
-              <div class="food-card">
-                <img class="foodAndSnacksImage" src="Images/Market Hub Logo.avif" alt="Product Image">
-                <div class="food-content">
-                  <div class="food-title">Samosas</div>
-                  <div class="food-desc">Crispy snacks filled with spiced meat.</div>
+              <div class="variable-card" data-name="Samosas" data-price="150" data-image="Images/Market Hub Logo.avif">
+                <button class="add-to-cart-btn">Add&nbsp;to&nbsp;cart</button>
+                <img class="variableAndSnacksImage" src="Images/Market Hub Logo.avif" alt="Product Image">
+                <div class="variable-content">
+                  <div class="variable-title">Samosas</div>
+                  <div class="variable-desc">Crispy snacks filled with spiced meat.</div>
                   <div class="price-row">
                     <div class="price">KES 150</div>
                     <button class="buy-btn" onclick="togglePaymentOption()">Order</button>

@@ -301,7 +301,7 @@ html body {
   border-radius: 4px;
 }
 
-.container #whatsapp-chat-box .chat-header i {
+.container #whatsapp-chat-box .chat-header i, .container .cart-container .cartTop i {
   font-size: 25px;
   color: #8988889d;
   cursor: pointer;
@@ -2042,16 +2042,17 @@ a.seller-right {
 /* =====================
    GRID LAYOUT
 ===================== */
-.food-grid {
+.variables-grid {
   display: grid;
   gap: 10px;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
 
 /* =====================
-   FOOD CARD
+   variable CARD
 ===================== */
-.food-card {
+.variables-grid .variable-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   border-radius: 4px;
@@ -2062,10 +2063,35 @@ a.seller-right {
   margin: 0 auto;
 }
 
+/* Add to cart button */
+.variables-grid .variable-card .add-to-cart-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+
+  background: #088000;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 16px;
+  font-size: 12px;
+
+  cursor: pointer;
+  z-index: 2;
+}
+
+.variables-grid .variable-card .add-to-cart-btn:hover {
+  opacity: .875;
+}
+
+.variables-grid .variable-card .add-to-cart-btn:active {
+  transform: scale(0.95);
+}
+
 /* =====================
    IMAGE
 ===================== */
-.foodAndSnacksImage {
+.variableAndSnacksImage {
   width: 100%;
   height: clamp(160px, 30vw, 220px);
   background-size: cover;
@@ -2075,17 +2101,17 @@ a.seller-right {
 /* =====================
    CONTENT
 ===================== */
-.food-content {
+.variable-content {
   padding: 10px;
 }
 
-.food-title {
+.variable-title {
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 6px;
 }
 
-.food-desc {
+.variable-desc {
   font-size: 13px;
   color: #aaa;
   margin-bottom: 12px;
@@ -2182,18 +2208,31 @@ a.seller-right {
    CART BAR
 ===================== */
 .container .cart-container {
-  display: flex;
+  display: none;
   flex-direction: column;
   gap: 10px;
-  padding: 20px;
+  padding: 10px;
   align-items: center;
   width: 80%;
   margin: 0 auto;
 }
 
+.container .cart-container .cartTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  padding: 0 20px;
+}
+
+.container .cart-container h1 {
+  font-size: 24px;
+}
+
 .container .cart-container .inner-cart-container {
   max-width: 1000px;
-  margin: 30px auto;
+  margin: 20px auto;
   display: flex;
   gap: 30px;
   flex-wrap: wrap;
@@ -2208,23 +2247,23 @@ a.seller-right {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 15px;
+  padding: 10px;
   border: 1px solid #eee;
-  border-radius: 12px;
-  margin-bottom: 15px;
+  border-radius: 4px;
+  margin-bottom: 10px;
 }
 
 .container .cart-container .inner-cart-container .cart-items .cart-item .cart-left {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 10px;
 }
 
 .container .cart-container .inner-cart-container .cart-items .cart-item .cart-left img {
-  width: 70px;
-  height: 70px;
+  width: 60px;
+  height: 60px;
   object-fit: cover;
-  border-radius: 10px;
+  border-radius: 4px;
 }
 
 .container .cart-container .inner-cart-container .cart-items .cart-item .cart-left .cart-info h4 {
@@ -2267,7 +2306,7 @@ a.seller-right {
 .container .cart-container .inner-cart-container .cart-summary {
   flex: 1;
   border: 1px solid #eee;
-  border-radius: 15px;
+  border-radius: 4px;
   padding: 20px;
   height: fit-content;
 }
@@ -2286,25 +2325,26 @@ a.seller-right {
 
 .container .cart-container .inner-cart-container .cart-summary .checkout-btn {
   width: 100%;
-  padding: 12px;
-  border-radius: 10px;
+  padding: 8px 16px;
+  border-radius: 4px;
   border: none;
   background: #000;
   color: #fff;
-  font-size: 1rem;
+  font-size: 14px;
   cursor: pointer;
   margin-top: 20px;
-  transition: 0.3s;
 }
 
 .container .cart-container .inner-cart-container .cart-summary .checkout-btn:hover {
-  background: #333;
+  opacity: .875;
 }
 
 .empty-cart {
   text-align: center;
-  padding: 50px;
-  color: #777;
+  padding: 20px 10px;
+  font-size: 16px;
+  color: #555;
+  display: none;
 }
 
 @media(max-width: 1039px) {
