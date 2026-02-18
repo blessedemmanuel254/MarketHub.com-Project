@@ -41,7 +41,6 @@ if ($result && $result->num_rows === 1) {
     $profileImage = $user['profile_image'] ?? null;
 }
 
-
 $stmt->close();
 
 /* ---------- PROFILE LETTER ---------- */
@@ -187,46 +186,51 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         <div class="tab-content">
           <div id="products" class="tab-panel active">
             <div class="tab-top">
-              <p>Add Products to your shelf</em> <br><strong>Let custormers see what you have to offer <i class="fa-regular fa-circle-check"></i></strong></p>
+              <p>Add products to your catalog</em> <br><strong>Show customers what you offer <i class="fa-regular fa-circle-check"></i></strong></p>
               <button>
                 <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
               </button>
             </div>
             <div class="form-wrapper">
               <form method="POST" enctype="multipart/form-data">
-                <div class="inp-box">
-                  <label>Product Name</label>
-                  <input type="text" name="name" placeholder="Passion Juice">
-                </div>
-                <div class="inp-box">
-
-                  <label>Category</label>
-                  <select name="category">
-                    <option value="">Select category</option>
-                    <option>Food & Snacks</option>
-                    <option>Drinks</option>
-                    <option>Electronics</option>
-                  </select>
-                </div>
-                <div class="inp-box">
-                  <label>Price (KES)</label>
-                  <input type="number" name="price" step="0.01" placeholder="40">
-                </div>
-                <div class="inp-box">
-                  <label>Stock Quantity</label>
-                  <input type="number" name="stock" placeholder="24">
-                </div>
-                <div class="inp-box">
-                  <label>Product Image</label>
-                  <input type="file" accept="image/png,image/jpeg,image/webp" name="photo" accept="image/*">
-                  <div class="note">
-                    400×400 – 1200×1200 px • Max 1MB
+                <h1>Add Product</h1>
+                <p class="errorMessage"><i class="fa-solid fa-circle-exclamation"></i>Image too large!</p>
+                <p class="successMessage"><i class="fa-solid fa-check-circle"></i>Product added successfully!</p>
+                <div class="formBody">
+                  <div class="inp-box">
+                    <label>Product Name</label>
+                    <input type="text" name="name" placeholder="Passion Juice">
                   </div>
-                </div>
+                  <div class="inp-box">
 
-                <button type="submit">
-                  <i class="fa fa-plus"></i> Add Product
-                </button>
+                    <label>Category</label>
+                    <select name="category">
+                      <option value="" class="span"><span>--Select category--</span></option>
+                      <option>Food & Snacks</option>
+                      <option>Drinks</option>
+                      <option>Electronics</option>
+                    </select>
+                  </div>
+                  <div class="inp-box">
+                    <label>Price (KES)</label>
+                    <input type="number" name="price" step="0.01" placeholder="40">
+                  </div>
+                  <div class="inp-box">
+                    <label>Stock Quantity</label>
+                    <input type="number" name="stock" placeholder="24">
+                  </div>
+                  <div class="inp-box">
+                    <label>Product Image</label>
+                    <input type="file" accept="image/png,image/jpeg,image/webp" name="photo" accept="image/*">
+                    <div class="note">
+                      400×400 – 1200×1200 px • Max 1MB
+                    </div>
+                  </div>
+                  <div></div>
+                  <button type="submit">
+                    <i class="fa fa-plus"></i> Add Product
+                  </button>
+                </div>
 
               </form>
             </div>

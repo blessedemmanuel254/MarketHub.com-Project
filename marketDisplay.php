@@ -6,7 +6,7 @@ require_once 'connection.php';
 if (!isset($_SESSION['user_id'])) {
     header("Location: index.php");
     exit();
-}
+} 
 
 /* Optional: regenerate session ID periodically */
 if (!isset($_SESSION['created'])) {

@@ -352,7 +352,7 @@ html body {
 }
 
 .container .payOverlay {
-  background-color: rgba(0, 0, 0, 0.178);
+  background-color: rgba(0, 0, 0, 0.034);
   z-index: 1009;
 }
 
@@ -1254,7 +1254,7 @@ html body {
   font-size: 20px;
 }
 
-.container main .formContainer form p.errorMessage, .container main .formContainer form p.successMessage, .container main form.actpContainer p.errorMessage {
+.container main .formContainer form p.errorMessage, .container main .formContainer form p.successMessage, .container main form.actpContainer p.errorMessage, .tab-content .tab-panel p.errorMessage, .tab-content .tab-panel p.successMessage {
   display: flex;
   align-items: center;
   gap: 5px;
@@ -1262,7 +1262,7 @@ html body {
   color: #ff3b3b;
 }
 
-.container main .formContainer form p.successMessage {
+.container main .formContainer form p.successMessage, .tab-content .tab-panel p.successMessage {
   color: #088000;
 }
 
@@ -1986,7 +1986,8 @@ a.seller-right {
 }
 
 .container form.paymentContainer a {
-  font-size: 14px;
+  font-size: 15px;
+  text-decoration: none;
 }
 
 .bsInfo {
@@ -2537,7 +2538,7 @@ a.seller-right {
 .products-grid .card .card-body .stock.in-stock{ color:green; }
 .products-grid .card .card-body .stock.low-stock{ color:orange; }
 .products-grid .card .card-body .stock.out-stock{ color:red; }
-.card-actions{
+.products-grid .card .card-actions{
   display:flex;
   border-top:1px solid #eee;
 }
@@ -2580,13 +2581,26 @@ a.seller-right {
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: #dedede18;
+}
+
+.tab-content .tab-panel .form-wrapper h1 {
+  font-size: 18px;
+  text-align: left;
+  margin: 0;
 }
 
 .tab-content .tab-panel .form-wrapper form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   background-color: #ffffff;
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   padding: 20px;
+}
+
+.tab-content .tab-panel .form-wrapper form .formBody { 
   width: fit-content;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2599,35 +2613,45 @@ a.seller-right {
   flex-direction: column;
   gap: 10px;
   align-items: center;
-  border: 1px solid #dedede;
   padding: 0;
   border-radius: 4px;
-  position: relative;
+  align-items: flex-start;
 
 }
 
 .tab-content .tab-panel .form-wrapper form .inp-box label {
-  position: absolute;
-  top: 50%;
-  left: 16px;
-  transform: translateY(-50%);
-  pointer-events: none;
-  transition: 0.2s ease all;
-  background-color: #ffffff;
+  font-size: 14px;
+  color: #0f0f0f;
 }
 
-.tab-content .tab-panel .form-wrapper form .inp-box input {
+.tab-content .tab-panel .form-wrapper form .inp-box input, .tab-content .tab-panel .form-wrapper form .inp-box select {
   padding: 8px 16px;
-  border: none;
+  border-radius: 4px;
   width: 100%;
   outline: none;
+  border: 1px solid #dedede;
 }
 
-form .inp-box input:focus + label,
-form .inp-box input:not(:placeholder-shown) + label {
-  top: 0;
-  font-size: 13px;
-  color: black;
-  transform: translateY(-50%) translateY(0);
-  padding: 0 4px;
+.tab-content .tab-panel .form-wrapper form .inp-box select {
+  color: #898888;
+}
+
+.tab-content .tab-panel .form-wrapper form .inp-box .note {
+  font-size: 12px;
+  color: #898888;
+}
+
+.tab-content .tab-panel .form-wrapper form .formBody button {
+  background-color: #0f0f0f;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  align-self: flex-end;
+}
+
+.tab-content .tab-panel .form-wrapper form .formBody button:hover {
+  opacity: .875;
 }

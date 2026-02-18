@@ -142,6 +142,29 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       </section>
       <div class="overlay" onclick="toggleProfileOption()" id="overlay1"></div>
     </header>
+    <div class="payOverlay" onclick="togglePaymentOption()" id="payOverlay"></div>
+    <form class="paymentContainer" action="" id="paymentContainer">
+      <h1>Choose&nbsp;Account <br><span>You can set your default account in settings</span></h1>
+      <label class="radio-container">
+        <div class="rightDiv">
+          <img src="Images/M-PESA_LOGO-01.svg.png" alt="Mpesa Logo" width="60">
+          <p>MPESA<br><span>254759578630</span></p>
+        </div>
+        <input type="radio" name="payment" value="mpesa">
+        <span class="checkmark"></span>
+      </label><!-- 
+      <label class="radio-container">
+        <div class="rightDiv">
+          <img src="Images/credit-card-01.jpg" alt="Mpesa Logo" width="60">
+          <p>Card&nbsp;Payment</p>
+        </div>
+        <input type="radio" name="payment" value="card">
+        <span class="checkmark"></span>
+      </label> -->
+      <button>Continue</button>
+      <a href="" onclick="togglePaymentOption()" data-tab="dashboard">Cancel&nbsp;Withdrawal</a>
+
+    </form>
     <div class="overlay" onclick="toggleWhatsAppChat()" id="overlay"></div>
     <div id="whatsapp-button" onclick="toggleWhatsAppChat()">
       <img src="Images/Market Hub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
@@ -179,13 +202,13 @@ if (!empty($profileImage) && file_exists($profileImage)) {
     <main class="buyerMain" id="buyerMain">
       <div class="tabs-container" id="toggleMarketTypeTab">
         <div class="tabs">
-          <button class="tab-btn active" data-tab="products">Dashboard</button>
-          <button class="tab-btn" data-tab="services">Products</button>
-          <button class="tab-btn" data-tab="rentals">Funds</button>
+          <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+          <button class="tab-btn" data-tab="products">Products</button>
+          <button class="tab-btn" data-tab="funds" onclick="togglePaymentOption()">Funds</button>
         </div>
 
         <div class="tab-content">
-          <div id="products" class="tab-panel active">
+          <div id="dashboard" class="tab-panel active">
             <p>Dashboard Area <br><strong>Your business performance and finances <i class="fa-regular fa-circle-check"></i></strong></p>
             <div class="containerInner">
 
@@ -207,7 +230,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                   <span class="badge green">Eligible</span>
                   <p class="meta">Minimum threshold met</p>
                   <div class="actions">
-                    <button>Withdraw</button>
+                    <button onclick="togglePaymentOption()">Withdraw</button>
                   </div>
                   <p class="small">Last withdrawal: KES 5,000 • 10 Feb</p>
                 </div>
@@ -249,9 +272,9 @@ if (!empty($profileImage) && file_exists($profileImage)) {
             </div>
           </div>
 
-          <div id="services" class="tab-panel">
+          <div id="products" class="tab-panel">
             <div class="tab-top">
-              <p>Your Products Shelf<br><strong>Manage your listed products <i class="fa-regular fa-circle-check"></i></strong></p>
+              <p>Your Products Shelf<br><strong>Manage your listed items efficiently <i class="fa-regular fa-circle-check"></i></strong></p>
               <button>
                 <i class="fa fa-plus"></i>&nbsp;<span>Add&nbsp;Product</span>
               </button>
@@ -348,53 +371,56 @@ if (!empty($profileImage) && file_exists($profileImage)) {
               </div>
             </div>
           </div>
+          
+          <div id="funds" class="tab-panel">
+            <div class="tab-top">
+              <p>Add products to your catalog</em> <br><strong>Show customers what you offer <i class="fa-regular fa-circle-check"></i></strong></p>
+              <button>
+                <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
+              </button>
+            </div>
+            <div class="form-wrapper">
+              <form method="POST" enctype="multipart/form-data">
+                <h1>Add Product</h1>
+                <p class="errorMessage"><i class="fa-solid fa-circle-exclamation"></i>Image too large!</p>
+                <p class="successMessage"><i class="fa-solid fa-check-circle"></i>Product added successfully!</p>
+                <div class="formBody">
+                  <div class="inp-box">
+                    <label>Product Name</label>
+                    <input type="text" name="name" placeholder="Passion Juice">
+                  </div>
+                  <div class="inp-box">
 
-          <div id="rentals" class="tab-panel">
-            <p>Affordable rentals for homes, vehicles and equipment.<br><strong>Please select Market type <i class="fa-regular fa-circle-check"></i></strong></p>
-
-            <div class="cards">
-              <!-- LOCAL -->
-              <a class="card">
-                <div class="tag">MOST VISITED</div>
-                <i class="fa-solid fa-house"></i>
-                <h2>Local Rentals</h2>
-                <p>
-                  Find rentals close to you including homes, vehicles, tools, and equipment.
-                </p>
-                <div class="label">
-                  <p>Local</p>
-                  <button>View Rentals</button>
-
+                    <label>Category</label>
+                    <select name="category">
+                      <option value="" class="span"><span>--Select category--</span></option>
+                      <option>Food & Snacks</option>
+                      <option>Drinks</option>
+                      <option>Electronics</option>
+                    </select>
+                  </div>
+                  <div class="inp-box">
+                    <label>Price (KES)</label>
+                    <input type="number" name="price" step="0.01" placeholder="40">
+                  </div>
+                  <div class="inp-box">
+                    <label>Stock Quantity</label>
+                    <input type="number" name="stock" placeholder="24">
+                  </div>
+                  <div class="inp-box">
+                    <label>Product Image</label>
+                    <input type="file" accept="image/png,image/jpeg,image/webp" name="photo" accept="image/*">
+                    <div class="note">
+                      400×400 – 1200×1200 px • Max 1MB
+                    </div>
+                  </div>
+                  <div></div>
+                  <button type="submit">
+                    <i class="fa fa-plus"></i> Add Product
+                  </button>
                 </div>
-              </a>
 
-              <!-- NATIONAL (MOST VISITED) -->
-              <a class="card">
-                <i class="fa-solid fa-building"></i>
-                <h2>National Rentals</h2>
-                <p>
-                  Browse rental options available across the country.
-                </p>
-                <div class="label">
-                  <p>National</p>
-                  <button>View Rentals</button>
-
-                </div>
-              </a>
-
-              <!-- GLOBAL -->
-              <a class="card">
-                <i class="fa-solid fa-jet-fighter-up"></i>
-                <h2>Global Rentals</h2>
-                <p>
-                  Access international rental opportunities for travel, relocation, and cross-border projects.
-                </p>
-                <div class="label">
-                  <p>Global</p>
-                  <button>View Rentals</button>
-
-                </div>
-              </a>
+              </form>
             </div>
           </div>
         </div>

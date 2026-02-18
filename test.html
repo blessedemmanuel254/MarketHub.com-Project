@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MarketHub | Wallet Withdrawal</title>
+
+<style>
+:root {
+  --black: #000;
+  --gray: #777;
+  --light: #f5f5f5;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+  background: var(--light);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Card */
+.wallet-card {
+  background: #fff;
+  width: 420px;
+  padding: 24px;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0,0,0,.08);
+}
+
+/* Header */
+.wallet-header {
+  margin-bottom: 20px;
+}
+
+.wallet-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.wallet-header p {
+  margin: 5px 0 0;
+  color: var(--gray);
+  font-size: 14px;
+}
+
+/* Balance */
+.balance-box {
+  background: var(--black);
+  color: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.balance-box span {
+  font-size: 13px;
+  opacity: .8;
+}
+
+.balance-box h3 {
+  margin: 5px 0 0;
+  font-size: 24px;
+}
+
+/* Form */
+form label {
+  font-size: 13px;
+  color: var(--gray);
+  display: block;
+  margin-bottom: 4px;
+}
+
+form input,
+form select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+form input:focus,
+form select:focus {
+  outline: none;
+  border-color: var(--black);
+}
+
+/* Button */
+button {
+  width: 100%;
+  padding: 12px;
+  background: var(--black);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: .9;
+}
+
+/* Info */
+.note {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--gray);
+  text-align: center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="wallet-card">
+
+  <div class="wallet-header">
+    <h2>Withdraw Funds</h2>
+    <p>Transfer money from your MarketHub wallet</p>
+  </div>
+
+  <div class="balance-box">
+    <span>Available Balance</span>
+    <h3>KES 12,450.00</h3>
+  </div>
+
+  <form>
+    <label>Withdrawal Amount</label>
+    <input type="number" placeholder="Enter amount">
+
+    <label>Withdrawal Method</label>
+    <select>
+      <option>Select method</option>
+      <option>M-Pesa</option>
+      <option>Bank Transfer</option>
+      <option>PayPal</option>
+    </select>
+
+    <label>Account Details</label>
+    <input type="text" placeholder="Phone number / Bank / PayPal">
+
+    <button type="button">Request Withdrawal</button>
+  </form>
+
+  <div class="note">
+    Withdrawals are processed within 24 hours
+  </div>
+
+</div>
+
+</body>
+</html>
