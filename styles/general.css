@@ -509,6 +509,7 @@ html body {
 .container main.buyerMain .tabs-container, .container main.buyerMain h1, .container main.buyerMain .filter-bar, .container main.buyerMain .table-wrapper {
   width: 90%;
   margin: 10px auto;
+  background-color: #ffffff;
 }
 
 #toggleMarketSourceTab {
@@ -651,7 +652,6 @@ html body {
 .tabs-container .tab-content .tab-panel .cards a.card:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transform: translateY(-6px);
-
 }
 
 .tabs-container .tab-content .tab-panel .cards a.card i.fa-solid {
@@ -859,7 +859,7 @@ html body {
 }
 
 /* Oder Management Section CSS */
-.container main.buyerMain#orderMain {
+.container main.buyerMain#orderMain, .container main.buyerMain#ordersTrackMain {
   background-color: #8988882b;
   display: none;
 }
@@ -1207,6 +1207,10 @@ html body {
 
   .container main.buyerMain .table-wrapper {
     display: none;
+  }
+
+  .container main.buyerMain .table-wrapper {
+    display: block;
   }
   
   .container main.buyerMain .cards {
@@ -1877,6 +1881,7 @@ a.seller-right {
   padding: 16px;
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #dedede;
 
 }
 
@@ -2397,7 +2402,7 @@ a.seller-right {
   gap:18px;
 }
 
-.containerInner .card {
+.containerInner .card, .form-wrapper .formBody .card {
   background:#fff;
   border-radius:4px;
   padding:20px;
@@ -2406,17 +2411,17 @@ a.seller-right {
   transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
 }
 
-.containerInner .card:hover {
+.containerInner .card:hover, .form-wrapper .formBody .card:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transform: translateY(-6px);
 }
 
-.containerInner .card h3 {
+.containerInner .card h3, .form-wrapper .formBody .card h3 {
   margin:0 0 10px;
   font-size:16px;
 }
 
-.containerInner .card .icon {
+.containerInner .card .icon, .form-wrapper .formBody .card .icon {
   position:absolute;
   top:18px;
   right:18px;
@@ -2424,20 +2429,20 @@ a.seller-right {
   color:#898888;
 }
 
-.containerInner .card .stat {
+.containerInner .card .stat, .form-wrapper .formBody .card .stat {
   font-size:24px;
   font-weight:bold;
   margin-bottom:10px;
 }
 
-.containerInner .card .meta {
+.containerInner .card .meta, .form-wrapper .formBody .card .meta {
   display: flex;
   align-items: center;
   gap: 5px;
   margin: 0;
 }
 
-.containerInner .card .badge {
+.containerInner .card .badge, .form-wrapper .formBody .card .badge {
   padding:4px 8px;
   border-radius:4px;
   font-size:12px;
@@ -2450,13 +2455,14 @@ a.seller-right {
 .containerInner .card .badge.red{background:#fee2e2;}
 .containerInner .card .badge.blue{background:#e0f2fe; color: #1a4fd8;}
 
-.containerInner .card .progress {
+.containerInner .card .progress, .form-wrapper .formBody .card .progress {
   height:8px;
   background:#eee;
   border-radius:10px;
   margin:10px 0;
 }
-.containerInner .card .progress span {
+
+.containerInner .card .progress span, .form-wrapper .formBody .card .progress span {
   display:block;
   height:100%;
   background:#000;
@@ -2581,7 +2587,7 @@ a.seller-right {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #dedede18;
+  background-color: #dedede48;
 }
 
 .tab-content .tab-panel .form-wrapper h1 {
@@ -2601,10 +2607,10 @@ a.seller-right {
 }
 
 .tab-content .tab-panel .form-wrapper form .formBody { 
-  width: fit-content;
+  width: 100%;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 20px;
 
 }
 
@@ -2641,6 +2647,10 @@ a.seller-right {
   color: #898888;
 }
 
+.tab-content .tab-panel .form-wrapper form .inp-box button {
+  width: 100%;
+}
+
 .tab-content .tab-panel .form-wrapper form .formBody button {
   background-color: #0f0f0f;
   color: #ffffff;
@@ -2654,4 +2664,10 @@ a.seller-right {
 
 .tab-content .tab-panel .form-wrapper form .formBody button:hover {
   opacity: .875;
+}
+
+@media(max-width: 594px) {
+  .tab-content .tab-panel .form-wrapper form .formBody { 
+    grid-template-columns: 1fr;
+  }
 }

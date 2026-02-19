@@ -107,7 +107,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
           </p>
         </div>
         <div class="rhs">
-          <a class="lkOdr" onclick="toggleOrderMain()">
+          <a class="lkOdr" onclick="toggleSellerOrdersTrack()">
             <div class="odrIconDiv">
               <i class="fa-brands fa-first-order-alt"></i>
               <p>8</p>
@@ -199,7 +199,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       </div>
     </div>
 
-    <main class="buyerMain" id="buyerMain">
+    <main class="buyerMain" id="sellerMain">
       <div class="tabs-container" id="toggleMarketTypeTab">
         <div class="tabs">
           <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
@@ -275,7 +275,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
           <div id="products" class="tab-panel">
             <div class="tab-top">
               <p>Your Products Shelf<br><strong>Manage your listed items efficiently <i class="fa-regular fa-circle-check"></i></strong></p>
-              <button>
+              <button class="tab-btn" data-tab="add-products">
                 <i class="fa fa-plus"></i>&nbsp;<span>Add&nbsp;Product</span>
               </button>
             </div>
@@ -372,11 +372,11 @@ if (!empty($profileImage) && file_exists($profileImage)) {
             </div>
           </div>
           
-          <div id="funds" class="tab-panel">
+          <div id="add-products" class="tab-panel">
             <div class="tab-top">
               <p>Add products to your catalog</em> <br><strong>Show customers what you offer <i class="fa-regular fa-circle-check"></i></strong></p>
               <button>
-                <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
+                <i class="fa-solid fa-circle-arrow-left" data-tab="products"></i>&nbsp;<span>Go&nbsp;Back</span>
               </button>
             </div>
             <div class="form-wrapper">
@@ -423,177 +423,45 @@ if (!empty($profileImage) && file_exists($profileImage)) {
               </form>
             </div>
           </div>
-        </div>
-      </div>
-      <div class="tabs-container" id="toggleMarketSourceTab">
-        <div class="tabs">
-          <button class="tab-btn-msource active" data-tab="shops">Shops</button>
-          <button class="tab-btn-msource" data-tab="supermarkets">Supermarkets</button><!-- 
-          <button class="tab-btn-msource" data-tab="rentals">Rentals</button> -->
-        </div>
-
-        <div class="tab-content">
-          <div id="shops" class="tab-panel-msource active">
-            <div class="tab-top">
-              <p>Showing markets in <em>Sokoni Ward</em> <br><strong>Please select the market source <i class="fa-regular fa-circle-check"></i></strong></p>
-              <button onclick="goBackToMarketTypes()">
-                <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
-              </button>
-            </div>
-
-            <!-- SELLERS LIST -->
-            <div class="sellers">
-
-              <div class="seller">
-                <div class="seller-left">
-                  <div class="avatar">MC</div>
+          
+          <div id="funds" class="tab-panel">
+            <p>Access your earnings</em> <br><strong>Withdraw funds you’ve earned from completed sales <i class="fa-regular fa-circle-check"></i></strong></p>
+            
+            <div class="form-wrapper">
+              <form method="POST" enctype="multipart/form-data">
+                <h1>Withdraw Funds</h1>
+                <p class="errorMessage"><i class="fa-solid fa-circle-exclamation"></i>Insufficient funds in your wallet!</p>
+                <p class="successMessage"><i class="fa-solid fa-check-circle"></i>Withdrawal request submitted successfully!</p>
+                <div class="formBody">
+                  <!-- WALLET HEALTH -->
+                  <div class="card">
+                    <i class="fa fa-wallet icon"></i>
+                    <h3>Wallet Health</h3>
+                    <div class="stat">KES 12,450</div>
+                    <p class="meta">Available for withdrawal</p>
+                    <div class="progress"><span style="width:75%"></span></div>
+                    <p class="small">KES 3,200 pending clearance</p>
+                  </div>
                   <div>
-                    <div class="name">Main Canteen</div>
-                    <div class="rating">★★★★★ (41)</div>
-                    <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
-                    <div class="meta"><h2>23k&nbsp;<span>followers</span></h2></div>
-                    <div class="bsInfo">Delivery: Pickup · Courier</div>
-                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
+                    <div class="inp-box">
+                      <label>Withdrawal Amount</label>
+                      <input type="number" placeholder="Enter amount">
+                      <button type="button">Request Withdrawal</button>
+                    </div>
                   </div>
                 </div>
-                <a href="marketDisplay.php" class="seller-right">
-                  <div class="promoBadgeGoGold">200+</div>
-                  <div class="bsType">Business Type : <i>Kiosk</i></div>
-                  <div class="action">
-                    <button>View&nbsp;seller</button>
-                  </div>
-                </a>
-              </div>
 
-              <div class="seller">
-                <div class="seller-left">
-                  <div class="avatar">BE</div>
-                  <div>
-                    <div class="name">BerryFerry</div>
-                    <div class="rating">★★★★★ (165)</div>
-                    <div class="meta"><h2>3&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
-                    <div class="meta"><h2>4&nbsp;<span>followers</span></h2></div>
-                    <div class="bsInfo">Delivery: Pickup · Courier</div>
-                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
-                  </div>
-                </div>
-                <a href="marketDisplay.php" class="seller-right">
-                  <div class="promoBadgeDefault">13</div>
-                  <div class="bsType">Business Type : <i>Canteen</i></div>
-                  <div class="action">
-                    <button>View&nbsp;seller</button>
-                  </div>
-                </a>
-              </div>
-
-              <div class="seller">
-                <div class="seller-left">
-                  <div class="avatar">WW</div>
-                  <div>
-                    <div class="name">Wwrightbright</div>
-                    <div class="rating">★★★★★ (11)</div>
-                    <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
-                    <div class="meta"><h2>2&nbsp;<span>followers</span></h2></div>
-                    <div class="bsInfo">Delivery: Pickup · Courier</div>
-                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
-                  </div>
-                </div>
-                <a href="marketDisplay.php" class="seller-right">
-                  <div class="promoBadgeGoPro">100+</div>
-                  <div class="bsType">Business Type : <i>Kibanda</i></div>
-                  <div class="action">
-                    <button>View&nbsp;seller</button>
-                  </div>
-                </a>
-              </div>
-
-            </div>
-          </div>
-
-          <div id="supermarkets" class="tab-panel-msource">
-            <div class="tab-top">
-              <p>Showing markets in <em>Sokoni Ward</em> <br><strong>Please select the market source <i class="fa-regular fa-circle-check"></i></strong></p>
-              <button onclick="goBackToMarketTypes()">
-                <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
-              </button>
-            </div>
-
-            <!-- SELLERS LIST -->
-            <div class="sellers">
-
-              <div class="seller">
-                <div class="seller-left">
-                  <div class="avatar">NS</div>
-                  <div>
-                    <div class="name">Naivas Supermaket</div>
-                    <div class="rating">★★★★★ (41)</div>
-                    <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
-                    <div class="meta"><h2>23k&nbsp;<span>followers</span></h2></div>
-                    <div class="bsInfo">Delivery: Pickup · Courier</div>
-                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
-                  </div>
-                </div>
-                <a href="marketDisplay.php" class="seller-right">
-                  <div class="promoBadgeGoGold">1000+</div>
-                  <div class="bsType">Business Type : <i>Kiosk</i></div>
-                  <div class="action">
-                    <button>View&nbsp;seller</button>
-                  </div>
-                </a>
-              </div>
-
-              <div class="seller">
-                <div class="seller-left">
-                  <div class="avatar">CM</div>
-                  <div>
-                    <div class="name">Cherowamaye Minimarket</div>
-                    <div class="rating">★★★★★ (165)</div>
-                    <div class="meta"><h2>3&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
-                    <div class="meta"><h2>4&nbsp;<span>followers</span></h2></div>
-                    <div class="bsInfo">Delivery: Pickup · Courier</div>
-                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
-                  </div>
-                </div>
-                <a href="marketDisplay.php" class="seller-right">
-                  <div class="promoBadgeDefault">287</div>
-                  <div class="bsType">Business Type : <i>Canteen</i></div>
-                  <div class="action">
-                    <button>View&nbsp;seller</button>
-                  </div>
-                </a>
-              </div>
-
-              <div class="seller">
-                <div class="seller-left">
-                  <div class="avatar">AW</div>
-                  <div>
-                    <div class="name">Abul Wholesale</div>
-                    <div class="rating">★★★★★ (11)</div>
-                    <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
-                    <div class="meta"><h2>2&nbsp;<span>followers</span></h2></div>
-                    <div class="bsInfo">Delivery: Pickup · Courier</div>
-                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
-                  </div>
-                </div>
-                <a href="marketDisplay.php" class="seller-right">
-                  <div class="promoBadgeGoPro">500+</div>
-                  <div class="bsType">Business Type : <i>Kibanda</i></div>
-                  <div class="action">
-                    <button>View&nbsp;seller</button>
-                  </div>
-                </a>
-              </div>
-
+              </form>
             </div>
           </div>
         </div>
       </div>
 
-      <h1>Transaction History</h1>
+      <h1>Most Recent Orders</h1>
 
       <div class="filter-bar">
         <select id="statusFilter">
-          <option value="all">All Transactions</option>
+          <option value="all">All Orders</option>
           <option value="Delivered">Delivered</option>
           <option value="Shipped">Shipped</option>
           <option value="Processing">Processing</option>
@@ -626,7 +494,6 @@ if (!empty($profileImage) && file_exists($profileImage)) {
               <td>12 Feb 2026</td>
               <td class="actions">
                 <div>
-                <button class="btn-view">View</button>
                 <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
                 </div>
               </td>
@@ -642,7 +509,6 @@ if (!empty($profileImage) && file_exists($profileImage)) {
               <td>13 Feb 2026</td>
               <td class="actions">
                 <div>
-                <button class="btn-view">View</button>
                 <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
                 </div>
               </td>
@@ -658,7 +524,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
               <td>14 Feb 2026</td>
               <td class="actions">
                 <div>
-                  <button class="btn-view">View</button>
+                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
                 </div>
               </td>
             </tr>
@@ -673,7 +539,6 @@ if (!empty($profileImage) && file_exists($profileImage)) {
               <td>13 Feb 2026</td>
               <td class="actions">
                 <div>
-                <button class="btn-view">View</button>
                 <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
                 </div>
               </td>
@@ -689,7 +554,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
               <td>14 Feb 2026</td>
               <td class="actions">
                 <div>
-                  <button class="btn-view">View</button>
+                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
                 </div>
               </td>
             </tr>
@@ -704,7 +569,6 @@ if (!empty($profileImage) && file_exists($profileImage)) {
               <td>13 Feb 2026</td>
               <td class="actions">
                 <div>
-                <button class="btn-view">View</button>
                 <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
                 </div>
               </td>
@@ -720,7 +584,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
               <td>14 Feb 2026</td>
               <td class="actions">
                 <div>
-                  <button class="btn-view">View</button>
+                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
                 </div>
               </td>
             </tr>
@@ -755,7 +619,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         <div class="card-actions">
           <div></div>
           <button class="btn-view">View</button>
-          <button class="btn-track">Track</button>
+          <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
         </div>
       </div>
 
@@ -831,7 +695,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         <div class="card-actions">
           <div></div>
           <button class="btn-view">View</button>
-          <button class="btn-track">Track</button>
+          <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
         </div>
       </div>
 
@@ -858,7 +722,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         <div class="card-actions">
           <div></div>
           <button class="btn-view">View</button>
-          <button class="btn-track">Track</button>
+          <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
         </div>
       </div>
 
@@ -915,80 +779,137 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
       </div>
       
-      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleOrderMain()">View&nbsp;All&nbsp;Transactions</button> to access all your orders.</p>
+      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleSellerOrdersTrack()">View&nbsp;All&nbsp;Orders</button> to access all your orders.</p>
 
     </main>
 
-    <main class="buyerMain" id="orderMain">
+    <main class="buyerMain" id="ordersTrackMain">
+      <div class="table-wrapper">
+        <table id="sellerTransactions">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Buyer</th>
+              <th>Qty</th>
+              <th>Total</th>
+              <th>Payment</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-status="Delivered">
+              <td>ORD-10021</td>
+              <td>John Doe</td>
+              <td>2</td>
+              <td>KES 7,000</td>
+              <td><span class="badge paid">Paid</span></td>
+              <td><span class="badge delivered">Delivered</span></td>
+              <td>12 Feb 2026</td>
+              <td class="actions">
+                <div>
+                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
+                </div>
+              </td>
+            </tr>
 
-      <div class="order-group">
-        <div class="order-header">
-          <div>
-            <strong>Order #ORD-90321</strong><br>
-            <span>Placed on 12 Feb 2026</span>
-          </div>
-          <div>3 Items</div>
-        </div>
+            <tr data-status="Processing">
+              <td>ORD-10022</td>
+              <td>Jane Smith</td>
+              <td>1</td>
+              <td>KES 6,800</td>
+              <td><span class="badge pending">Pending</span></td>
+              <td><span class="badge processing">Processing</span></td>
+              <td>13 Feb 2026</td>
+              <td class="actions">
+                <div>
+                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
+                </div>
+              </td>
+            </tr>
 
-        <div class="order-items-grid">
+            <tr data-status="Shipped">
+              <td>ORD-10023</td>
+              <td>Mary Johnson</td>
+              <td>3</td>
+              <td>KES 12,000</td>
+              <td><span class="badge paid">Paid</span></td>
+              <td><span class="badge shipped">Shipped</span></td>
+              <td>14 Feb 2026</td>
+              <td class="actions">
+                <div>
+                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
+                </div>
+              </td>
+            </tr>
 
-          <!-- ITEM 1 -->
-          <div class="order-item">
-            <div class="item-top">
-              <div class="item-info">
-                <h4>Wireless Headphones</h4>
-                <p>Seller: TechZone</p>
-                <p>Qty: 1 • Total: KES 3,200</p>
-                <p>Status: <span class="status shipped">Shipped</span></p>
-                <span class="market-badge">National</span>
-              </div>
-              <img src="Images/Market Hub Logo.avif" alt="Product">
-            </div>
+            <tr data-status="Processing">
+              <td>ORD-10022</td>
+              <td>Jane Smith</td>
+              <td>1</td>
+              <td>KES 6,800</td>
+              <td><span class="badge pending">Pending</span></td>
+              <td><span class="badge processing">Processing</span></td>
+              <td>13 Feb 2026</td>
+              <td class="actions">
+                <div>
+                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
+                </div>
+              </td>
+            </tr>
 
-            <div class="item-actions">
-              <button class="toggle" data-target="d1">View details</button>
-            </div>
+            <tr data-status="Shipped">
+              <td>ORD-10023</td>
+              <td>Mary Johnson</td>
+              <td>3</td>
+              <td>KES 12,000</td>
+              <td><span class="badge paid">Paid</span></td>
+              <td><span class="badge shipped">Shipped</span></td>
+              <td>14 Feb 2026</td>
+              <td class="actions">
+                <div>
+                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
+                </div>
+              </td>
+            </tr>
 
-            <div class="item-extra" id="d1">
-              <div class="extra-box">
-                <strong>Tracking</strong><br>
-                Packed → Shipped
-              </div>
-              <div class="extra-box">
-                <strong>Payment</strong><br>
-                M-Pesa • KES 3,200
-              </div>
-            </div>
-          </div>
+            <tr data-status="Processing">
+              <td>ORD-10022</td>
+              <td>Jane Smith</td>
+              <td>1</td>
+              <td>KES 6,800</td>
+              <td><span class="badge pending">Pending</span></td>
+              <td><span class="badge processing">Processing</span></td>
+              <td>13 Feb 2026</td>
+              <td class="actions">
+                <div>
+                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
+                </div>
+              </td>
+            </tr>
 
-          <!-- ITEM 2 -->
-          <div class="order-item">
-            <div class="item-top">
-              <div class="item-info">
-                <h4>Office Chair</h4>
-                <p>Seller: Comfort Furnish</p>
-                <p>Qty: 2 • Total: KES 18,000</p>
-                <p>Status: <span class="status processing">Processing</span></p>
-                <span class="market-badge">Local</span>
-              </div>
-              <img src="Images/Market Hub Logo.avif" alt="Product">
-            </div>
+            <tr data-status="Shipped">
+              <td>ORD-10023</td>
+              <td>Mary Johnson</td>
+              <td>3</td>
+              <td>KES 12,000</td>
+              <td><span class="badge paid">Paid</span></td>
+              <td><span class="badge shipped">Shipped</span></td>
+              <td>14 Feb 2026</td>
+              <td class="actions">
+                <div>
+                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
+                </div>
+              </td>
+            </tr>
 
-            <div class="item-actions">
-              <button class="toggle" data-target="d2">View details</button>
-            </div>
-
-            <div class="item-extra" id="d2">
-              <div class="extra-box">
-                Awaiting dispatch
-              </div>
-            </div>
-          </div>
-
-        </div>
+            <!-- Add more rows here as needed -->
+          </tbody>
+        </table>
       </div>
 
-      <p class="toggleOrdersOrMarket"><button href="" onclick="toggleMarketMain()">Go&nbsp;back</button> to continue shopping.</p>
+      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleSellerOrdersTrack()">Go&nbsp;back</button> to continue delivering.</p>
     </main>
     <footer>
       <p>&copy; 2025/2026, Market Hub.com, All Rights reserved.</p>
@@ -996,17 +917,6 @@ if (!empty($profileImage) && file_exists($profileImage)) {
   </div>
   
   <script src="Scripts/general.js" type="text/javascript"></script>
-
-  <script>
-  document.querySelectorAll(".toggle").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const target = document.getElementById(btn.dataset.target);
-      target.classList.toggle("active");
-      btn.textContent = target.classList.contains("active")
-        ? "Hide details"
-        : "View details";
-    });
-  });
   </script>
 </body>
 </html>

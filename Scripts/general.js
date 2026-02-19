@@ -213,19 +213,24 @@ document.querySelectorAll(".toggleOrd").forEach(btn => {
       : "View details";
   });
 });
-
-function toggleOrderMain() {
+function toggleOrderMarket() {
   const orderMain = document.getElementById("orderMain");
   const marketMain = document.getElementById("marketMain");
-  orderMain.style.display = "block";
-  marketMain.style.display = "none";
+
+  const isMarketVisible = marketMain.style.display !== "none";
+
+  marketMain.style.display = isMarketVisible ? "none" : "flex";
+  orderMain.style.display = isMarketVisible ? "flex" : "none";
 }
 
-function toggleMarketMain() {
-  const orderMain = document.getElementById("orderMain");
-  const marketMain = document.getElementById("marketMain");
-  orderMain.style.display = "none";
-  marketMain.style.display = "block";
+function toggleSellerOrdersTrack() {
+  const sellerMain = document.getElementById("sellerMain");
+  const ordersTrackMain = document.getElementById("ordersTrackMain");
+
+  const isSellerVisible = sellerMain.style.display !== "none";
+
+  sellerMain.style.display = isSellerVisible ? "none" : "flex";
+  ordersTrackMain.style.display = isSellerVisible ? "flex" : "none";
 }
 
 /* ================= MARKET NAVIGATION (FIXED) ================= */

@@ -107,7 +107,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
           </p>
         </div>
         <div class="rhs">
-          <a class="lkOdr" onclick="toggleOrderMain()">
+          <a class="lkOdr" onclick="toggleOrderMarket()">
             <div class="odrIconDiv">
               <i class="fa-brands fa-first-order-alt"></i>
               <p>8</p>
@@ -835,7 +835,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
       </div>
       
-      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleOrderMain()">View&nbsp;All&nbsp;Orders</button> to access all your orders.</p>
+      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleOrderMarket()">View&nbsp;All&nbsp;Orders</button> to access all your orders.</p>
 
     </main>
 
@@ -908,7 +908,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         </div>
       </div>
 
-      <p class="toggleOrdersOrMarket"><button href="" onclick="toggleMarketMain()">Go&nbsp;back</button> to continue shopping.</p>
+      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleOrderMarket()">Go&nbsp;back</button> to continue shopping.</p>
     </main>
     <footer>
       <p>&copy; 2025/2026, Market Hub.com, All Rights reserved.</p>
