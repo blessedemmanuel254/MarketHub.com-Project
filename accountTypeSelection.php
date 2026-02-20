@@ -41,6 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
   <div class="container">
+    <div class="overlay" onclick="toggleWhatsAppChat()" id="overlay"></div>
     <div id="whatsapp-button" onclick="toggleWhatsAppChat()">
       <img src="Images/Market Hub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
     </div>

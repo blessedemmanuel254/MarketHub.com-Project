@@ -1543,7 +1543,6 @@ html body {
 .container main form.actpContainer .actpGrid .account-card {
   position: relative;
   background: white;
-  border: 1px solid #dedede;
   border-radius: 4px;
   padding: 16px;
   text-align: center;
@@ -1553,7 +1552,7 @@ html body {
 }
 
 .container main form.actpContainer .actpGrid .account-card.selected {
-  background-color: #f0f8ff;
+  background-color: #09800046;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 

@@ -44,9 +44,9 @@ function normalizePhone($phone) {
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $identifier = trim($_POST['identifier'] ?? '');
-  $password = $_POST['password'] ?? '';
+  $passsword = $_POST['password'] ?? '';
 
-  if (empty($identifier) || empty($password)) {
+  if (empty($identifier) || empty($passsword)) {
     $error = "All fields are required.";
   } else {
     $encrypted_email = base64_encode($identifier);
@@ -63,7 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if ($result->num_rows === 1) {
       $user = $result->fetch_assoc();
 
-      if (password_verify($password, $user['password'])) {
+      if (password_verify($passsword, $user['password'])) {
         $success = "Successfully logged in! <span id='redirect-msg'></span>";
         $_SESSION['user_id'] = $user['user_id'];
         $_SESSION['username'] = $user['username'];
@@ -145,7 +145,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <label>Username, email or phone</label>
               </div>
               <div class="inpBox">
-                <input type="password" name="password" value="<?php echo htmlspecialchars($password ?? ''); ?>" id="password" class="password-field" placeholder="" required>
+                <input type="password" name="password" value="<?php echo htmlspecialchars($passsword ?? ''); ?>" id="password" class="password-field" placeholder="" required>
                 <label>Password</label>
                 <i class="fa-regular fa-eye toggle-password" title="Show Password"></i>
 
