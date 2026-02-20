@@ -275,9 +275,10 @@ if (!empty($profileImage) && file_exists($profileImage)) {
           <div id="products" class="tab-panel">
             <div class="tab-top">
               <p>Your Products Shelf<br><strong>Manage your listed items efficiently <i class="fa-regular fa-circle-check"></i></strong></p>
-              <button class="tab-btn" data-tab="add-products">
+              <button onclick="toggleProductsAdd(true)">
                 <i class="fa fa-plus"></i>&nbsp;<span>Add&nbsp;Product</span>
               </button>
+
             </div>
 
             <!-- PRODUCTS GRID -->
@@ -375,9 +376,10 @@ if (!empty($profileImage) && file_exists($profileImage)) {
           <div id="add-products" class="tab-panel">
             <div class="tab-top">
               <p>Add products to your catalog</em> <br><strong>Show customers what you offer <i class="fa-regular fa-circle-check"></i></strong></p>
-              <button>
-                <i class="fa-solid fa-circle-arrow-left" data-tab="products"></i>&nbsp;<span>Go&nbsp;Back</span>
+              <button onclick="toggleProductsAdd(false)">
+                <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
               </button>
+
             </div>
             <div class="form-wrapper">
               <form method="POST" enctype="multipart/form-data">
@@ -470,7 +472,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
       <!-- DESKTOP TABLE -->
       <div class="table-wrapper">
-        <table id="sellerTransactions">
+        <table id="ordersTable">
           <thead>
             <tr>
               <th>Order ID</th>
@@ -597,186 +599,151 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       <!-- MOBILE CARDS -->
       <div class="cards" id="orderCards">
 
-      <div class="order-card" data-status="Delivered">
-        <div class="card-header">
-          <img src="Images/Market Hub Logo.avif" class="product-img">
-          <div>
-            <div class="card-title">Wireless Headphones</div>
-            <div class="card-meta">Order: MH-10231 • National</div>
+        <div class="order-card" data-status="Processing">
+          <div class="card-header">
+            <img src="Images/Market Hub Logo.avif" class="product-img">
+            <div>
+              <div class="card-title">Smart Watch</div>
+              <div class="card-meta">Order: MH-10702 • Global</div>
+            </div>
+          </div>
+
+          <div class="card-row">
+            <span>Price</span>
+            <strong>KES 6,800</strong>
+          </div>
+
+          <div class="card-row">
+            <span>Status</span>
+            <span class="badge processing">Processing</span>
+          </div>
+
+          <div class="card-actions">
+            <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
           </div>
         </div>
 
-        <div class="card-row">
-          <span>Price</span>
-          <strong>KES 3,500</strong>
-        </div>
+        <div class="order-card" data-status="Processing">
+          <div class="card-header">
+            <img src="Images/Market Hub Logo.avif" class="product-img">
+            <div>
+              <div class="card-title">Smart Watch</div>
+              <div class="card-meta">Order: MH-10702 • Global</div>
+            </div>
+          </div>
 
-        <div class="card-row">
-          <span>Status</span>
-          <span class="badge delivered">Delivered</span>
-        </div>
+          <div class="card-row">
+            <span>Price</span>
+            <strong>KES 6,800</strong>
+          </div>
 
-        <div class="card-actions">
-          <div></div>
-          <button class="btn-view">View</button>
-          <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-        </div>
-      </div>
+          <div class="card-row">
+            <span>Status</span>
+            <span class="badge processing">Processing</span>
+          </div>
 
-      <div class="order-card" data-status="Processing">
-        <div class="card-header">
-          <img src="Images/Market Hub Logo.avif" class="product-img">
-          <div>
-            <div class="card-title">Smart Watch</div>
-            <div class="card-meta">Order: MH-10702 • Global</div>
+          <div class="card-actions">
+            <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
           </div>
         </div>
 
-        <div class="card-row">
-          <span>Price</span>
-          <strong>KES 6,800</strong>
-        </div>
+        <div class="order-card" data-status="Delivered">
+          <div class="card-header">
+            <img src="Images/Market Hub Logo.avif" class="product-img">
+            <div>
+              <div class="card-title">Wireless Headphones</div>
+              <div class="card-meta">Order: MH-10231 • National</div>
+            </div>
+          </div>
 
-        <div class="card-row">
-          <span>Status</span>
-          <span class="badge processing">Processing</span>
-        </div>
+          <div class="card-row">
+            <span>Price</span>
+            <strong>KES 3,500</strong>
+          </div>
 
-        <div class="card-actions">
-          <button class="btn-view">View</button>
-          <button class="btn-cancel">Cancel</button>
-        </div>
-      </div>
+          <div class="card-row">
+            <span>Status</span>
+            <span class="badge delivered">Delivered</span>
+          </div>
 
-      <div class="order-card" data-status="Processing">
-        <div class="card-header">
-          <img src="Images/Market Hub Logo.avif" class="product-img">
-          <div>
-            <div class="card-title">Smart Watch</div>
-            <div class="card-meta">Order: MH-10702 • Global</div>
+          <div class="card-actions">
+            <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
           </div>
         </div>
 
-        <div class="card-row">
-          <span>Price</span>
-          <strong>KES 6,800</strong>
-        </div>
 
-        <div class="card-row">
-          <span>Status</span>
-          <span class="badge processing">Processing</span>
-        </div>
+        <div class="order-card" data-status="Delivered">
+          <div class="card-header">
+            <img src="Images/Market Hub Logo.avif" class="product-img">
+            <div>
+              <div class="card-title">Wireless Headphones</div>
+              <div class="card-meta">Order: MH-10231 • National</div>
+            </div>
+          </div>
 
-        <div class="card-actions">
-          <button class="btn-view">View</button>
-          <button class="btn-cancel">Cancel</button>
-        </div>
-      </div>
+          <div class="card-row">
+            <span>Price</span>
+            <strong>KES 3,500</strong>
+          </div>
 
-      <div class="order-card" data-status="Delivered">
-        <div class="card-header">
-          <img src="Images/Market Hub Logo.avif" class="product-img">
-          <div>
-            <div class="card-title">Wireless Headphones</div>
-            <div class="card-meta">Order: MH-10231 • National</div>
+          <div class="card-row">
+            <span>Status</span>
+            <span class="badge delivered">Delivered</span>
+          </div>
+
+          <div class="card-actions">
+            <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
           </div>
         </div>
 
-        <div class="card-row">
-          <span>Price</span>
-          <strong>KES 3,500</strong>
-        </div>
 
-        <div class="card-row">
-          <span>Status</span>
-          <span class="badge delivered">Delivered</span>
-        </div>
+        <div class="order-card" data-status="Processing">
+          <div class="card-header">
+            <img src="Images/Market Hub Logo.avif" class="product-img">
+            <div>
+              <div class="card-title">Smart Watch</div>
+              <div class="card-meta">Order: MH-10702 • Global</div>
+            </div>
+          </div>
 
-        <div class="card-actions">
-          <div></div>
-          <button class="btn-view">View</button>
-          <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-        </div>
-      </div>
+          <div class="card-row">
+            <span>Price</span>
+            <strong>KES 6,800</strong>
+          </div>
 
+          <div class="card-row">
+            <span>Status</span>
+            <span class="badge processing">Processing</span>
+          </div>
 
-      <div class="order-card" data-status="Delivered">
-        <div class="card-header">
-          <img src="Images/Market Hub Logo.avif" class="product-img">
-          <div>
-            <div class="card-title">Wireless Headphones</div>
-            <div class="card-meta">Order: MH-10231 • National</div>
+          <div class="card-actions">
+            <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
           </div>
         </div>
 
-        <div class="card-row">
-          <span>Price</span>
-          <strong>KES 3,500</strong>
-        </div>
+        <div class="order-card" data-status="Processing">
+          <div class="card-header">
+            <img src="Images/Market Hub Logo.avif" class="product-img">
+            <div>
+              <div class="card-title">Smart Watch</div>
+              <div class="card-meta">Order: MH-10702 • Global</div>
+            </div>
+          </div>
 
-        <div class="card-row">
-          <span>Status</span>
-          <span class="badge delivered">Delivered</span>
-        </div>
+          <div class="card-row">
+            <span>Price</span>
+            <strong>KES 6,800</strong>
+          </div>
 
-        <div class="card-actions">
-          <div></div>
-          <button class="btn-view">View</button>
-          <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-        </div>
-      </div>
+          <div class="card-row">
+            <span>Status</span>
+            <span class="badge processing">Processing</span>
+          </div>
 
-
-      <div class="order-card" data-status="Processing">
-        <div class="card-header">
-          <img src="Images/Market Hub Logo.avif" class="product-img">
-          <div>
-            <div class="card-title">Smart Watch</div>
-            <div class="card-meta">Order: MH-10702 • Global</div>
+          <div class="card-actions">
+            <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
           </div>
         </div>
-
-        <div class="card-row">
-          <span>Price</span>
-          <strong>KES 6,800</strong>
-        </div>
-
-        <div class="card-row">
-          <span>Status</span>
-          <span class="badge processing">Processing</span>
-        </div>
-
-        <div class="card-actions">
-          <button class="btn-view">View</button>
-          <button class="btn-cancel">Cancel</button>
-        </div>
-      </div>
-
-      <div class="order-card" data-status="Processing">
-        <div class="card-header">
-          <img src="Images/Market Hub Logo.avif" class="product-img">
-          <div>
-            <div class="card-title">Smart Watch</div>
-            <div class="card-meta">Order: MH-10702 • Global</div>
-          </div>
-        </div>
-
-        <div class="card-row">
-          <span>Price</span>
-          <strong>KES 6,800</strong>
-        </div>
-
-        <div class="card-row">
-          <span>Status</span>
-          <span class="badge processing">Processing</span>
-        </div>
-
-        <div class="card-actions">
-          <button class="btn-view">View</button>
-          <button class="btn-cancel">Cancel</button>
-        </div>
-      </div>
-
       </div>
       
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleSellerOrdersTrack()">View&nbsp;All&nbsp;Orders</button> to access all your orders.</p>
@@ -784,10 +751,17 @@ if (!empty($profileImage) && file_exists($profileImage)) {
     </main>
 
     <main class="buyerMain" id="ordersTrackMain">
-      <div class="table-wrapper">
+      <div class="tab-top">
+        <p>Track customer orders<br><strong>Monitor order status easily <i class="fa-regular fa-circle-check"></i></strong></p>
+        <button onclick="toggleSellerOrdersTrack()">
+          <i class="fa-solid fa-circle-arrow-left" data-tab="products"></i> <span>Go&nbsp;Back</span>
+        </button>
+      </div>
+      <div class="table-wrapper sellerOrdersTrack">
         <table id="sellerTransactions">
           <thead>
             <tr>
+              <th>#</th>
               <th>Order ID</th>
               <th>Buyer</th>
               <th>Qty</th>
@@ -800,6 +774,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
           </thead>
           <tbody>
             <tr data-status="Delivered">
+              <td>1.</td>
               <td>ORD-10021</td>
               <td>John Doe</td>
               <td>2</td>
@@ -815,6 +790,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
             </tr>
 
             <tr data-status="Processing">
+              <td>2.</td>
               <td>ORD-10022</td>
               <td>Jane Smith</td>
               <td>1</td>
@@ -830,6 +806,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
             </tr>
 
             <tr data-status="Shipped">
+              <td>3.</td>
               <td>ORD-10023</td>
               <td>Mary Johnson</td>
               <td>3</td>
@@ -845,6 +822,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
             </tr>
 
             <tr data-status="Processing">
+              <td>4.</td>
               <td>ORD-10022</td>
               <td>Jane Smith</td>
               <td>1</td>
@@ -860,6 +838,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
             </tr>
 
             <tr data-status="Shipped">
+              <td>5.</td>
               <td>ORD-10023</td>
               <td>Mary Johnson</td>
               <td>3</td>
@@ -875,6 +854,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
             </tr>
 
             <tr data-status="Processing">
+              <td>6.</td>
               <td>ORD-10022</td>
               <td>Jane Smith</td>
               <td>1</td>
@@ -890,6 +870,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
             </tr>
 
             <tr data-status="Shipped">
+              <td>7.</td>
               <td>ORD-10023</td>
               <td>Mary Johnson</td>
               <td>3</td>

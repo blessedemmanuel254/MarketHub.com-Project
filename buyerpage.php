@@ -360,7 +360,6 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                     <div class="rating">★★★★★ (41)</div>
                     <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
                     <div class="meta"><h2>23k&nbsp;<span>followers</span></h2></div>
-                    <div class="bsInfo">Delivery: Pickup · Courier</div>
                     <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
                   </div>
                 </div>
@@ -381,7 +380,6 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                     <div class="rating">★★★★★ (165)</div>
                     <div class="meta"><h2>3&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
                     <div class="meta"><h2>4&nbsp;<span>followers</span></h2></div>
-                    <div class="bsInfo">Delivery: Pickup · Courier</div>
                     <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
                   </div>
                 </div>
@@ -402,7 +400,6 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                     <div class="rating">★★★★★ (11)</div>
                     <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
                     <div class="meta"><h2>2&nbsp;<span>followers</span></h2></div>
-                    <div class="bsInfo">Delivery: Pickup · Courier</div>
                     <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
                   </div>
                 </div>
@@ -437,7 +434,6 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                     <div class="rating">★★★★★ (41)</div>
                     <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
                     <div class="meta"><h2>23k&nbsp;<span>followers</span></h2></div>
-                    <div class="bsInfo">Delivery: Pickup · Courier</div>
                     <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
                   </div>
                 </div>
@@ -458,7 +454,6 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                     <div class="rating">★★★★★ (165)</div>
                     <div class="meta"><h2>3&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
                     <div class="meta"><h2>4&nbsp;<span>followers</span></h2></div>
-                    <div class="bsInfo">Delivery: Pickup · Courier</div>
                     <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
                   </div>
                 </div>
@@ -479,7 +474,6 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                     <div class="rating">★★★★★ (11)</div>
                     <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
                     <div class="meta"><h2>2&nbsp;<span>followers</span></h2></div>
-                    <div class="bsInfo">Delivery: Pickup · Courier</div>
                     <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
                   </div>
                 </div>
@@ -840,6 +834,12 @@ if (!empty($profileImage) && file_exists($profileImage)) {
     </main>
 
     <main class="buyerMain" id="orderMain">
+      <div class="tab-top">
+        <p>Track your purchases<br><strong>View order and delivery status <i class="fa-regular fa-circle-check"></i></strong></p>
+        <button onclick="toggleOrderMarket()">
+          <i class="fa-solid fa-circle-arrow-left" data-tab="products"></i> <span>Go&nbsp;Back</span>
+        </button>
+      </div>
 
       <div class="order-group">
         <div class="order-header">

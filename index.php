@@ -138,48 +138,77 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           <?php elseif ($success): ?>
             <p class="successMessage"><i class="fa-solid fa-check-circle"></i> <?= $success ?></p>
           <?php endif; ?>
-          <div class="inpBox">
-            <input type="text" name="identifier" value="<?php echo htmlspecialchars($identifier ?? ''); ?>" placeholder="" required>
-            <label>Username, email or phone</label>
-          </div>
-          <div class="inpBox">
-            <input type="password" name="password" value="<?php echo htmlspecialchars($password ?? ''); ?>" id="password" class="password-field" placeholder="" required>
-            <label>Password</label>
-            <i class="fa-regular fa-eye toggle-password" title="Show Password"></i>
-
-            <!-- Password strength -->
-            <div class="password-strength">
-              <div class="strength-bar">
-                <div class="strength-fill" id="strengthFill"></div>
+          <div class="form-content-wrapper">
+            <div class="form-content">
+              <div class="inpBox">
+                <input type="text" name="identifier" value="<?php echo htmlspecialchars($identifier ?? ''); ?>" placeholder="" required>
+                <label>Username, email or phone</label>
               </div>
-              <ul class="strength-rules">
-                <li id="len">• At least 8 characters</li>
-                <li id="upper">• Uppercase letter</li>
-                <li id="lower">• Lowercase letter</li>
-                <li id="number">• Number</li>
-                <li id="special">• Special character</li>
-              </ul>
+              <div class="inpBox">
+                <input type="password" name="password" value="<?php echo htmlspecialchars($password ?? ''); ?>" id="password" class="password-field" placeholder="" required>
+                <label>Password</label>
+                <i class="fa-regular fa-eye toggle-password" title="Show Password"></i>
+
+                <!-- Password strength -->
+                <div class="password-strength">
+                  <div class="strength-bar">
+                    <div class="strength-fill" id="strengthFill"></div>
+                  </div>
+                  <ul class="strength-rules">
+                    <li id="len">• At least 8 characters</li>
+                    <li id="upper">• Uppercase letter</li>
+                    <li id="lower">• Lowercase letter</li>
+                    <li id="number">• Number</li>
+                    <li id="special">• Special character</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="account-type-box">
+                <p class="account-title">Login as</p>
+
+                <label>
+                  <input type="radio" name="login_type" value="buyer" required>
+                  Buyer
+                </label>
+
+                <label>
+                  <input type="radio" name="login_type" value="seller">
+                  Seller
+                </label>
+
+                <label>
+                  <input type="radio" name="login_type" value="agent">
+                  Agent
+                </label>
+
+                <label>
+                  <input type="radio" name="login_type" value="admin">
+                  Administrator
+                </label>
+              </div>
+              <div class="remember-me">
+                <input type="checkbox" id="remember" name="remember">
+                <label for="remember">Remember me</label>
+              </div>
+              <button type="submit">Login</button>
+              <p class="reDctor"><a href="#" class="anchFgt">Forgot password</a></p>
             </div>
-          </div>
-          <div class="remember-me">
-            <input type="checkbox" id="remember" name="remember">
-            <label for="remember">Remember me</label>
-          </div>
-          <button type="submit">Login</button>
-          <p class="reDctor"><a href="#" class="anchFgt">Forgot password</a></p>
-          <p class="reDctor">Don't have an account? <a href="accountTypeSelection.php">Register</a></p>
-          <div class="or-divider">or</div>
-          <div class="socialLogin">
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google" width="20">
-            <p>Login with google</p>
-          </div>
-          <div class="socialLogin">
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg" alt="Apple" width="20">
-            <p>Login with apple</p>
-          </div>
-          <div class="socialLogin">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft" width="20">
-            <p>Login with microsoft account</p>
+            <div class="form-content">
+              <p class="reDctor">Don't have an account? <a href="accountTypeSelection.php">Register</a></p>
+              <div class="or-divider">or</div>
+              <div class="socialLogin">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google" width="20">
+                <p>Login with google</p>
+              </div>
+              <div class="socialLogin">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg" alt="Apple" width="20">
+                <p>Login with apple</p>
+              </div>
+              <div class="socialLogin">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft" width="20">
+                <p>Login with microsoft account</p>
+              </div>
+            </div>
           </div>
         </form>
       </div>

@@ -2,160 +2,236 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>MarketHub | Wallet Withdrawal</title>
+<title>Market Hub | Super Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-:root {
-  --black: #000;
-  --gray: #777;
-  --light: #f5f5f5;
+*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,sans-serif}
+
+:root{
+ --dark:#111;--light:#fff;--gray:#777;--border:#ddd;--bg:#f4f4f4;
 }
 
-* {
-  box-sizing: border-box;
-  font-family: "Segoe UI", sans-serif;
+body{display:flex;min-height:100vh;background:var(--bg)}
+
+/* SIDEBAR */
+.sidebar{
+ width:240px;background:var(--dark);color:#fff;padding:20px
+}
+.sidebar h2{text-align:center;margin-bottom:30px}
+.sidebar li{
+ list-style:none;padding:12px;border-radius:6px;
+ margin-bottom:10px;cursor:pointer
+}
+.sidebar li:hover,.sidebar .active{background:#222}
+
+/* MAIN */
+.main{flex:1;padding:20px}
+
+/* TOPBAR */
+.topbar{margin-bottom:20px}
+.topbar h1{font-size:22px}
+
+/* CARDS */
+.cards{
+ display:grid;
+ grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+ gap:18px;
+ margin-bottom:30px
+}
+.card{
+ background:#fff;
+ border:1px solid var(--border);
+ border-radius:12px;
+ padding:18px
+}
+.card h3{
+ font-size:14px;
+ color:var(--gray);
+ margin-bottom:6px
+}
+.value{
+ font-size:28px;
+ font-weight:bold;
+}
+.sub{
+ font-size:13px;
+ color:var(--gray);
+ margin-bottom:8px
+}
+.progress{
+ height:8px;
+ background:#eee;
+ border-radius:5px;
+ margin:10px 0
+}
+.bar{
+ height:100%;
+ background:#000;
+ border-radius:5px
+}
+.list{
+ list-style:none;
+ font-size:14px;
+ margin-top:10px
+}
+.list li{
+ display:flex;
+ justify-content:space-between;
+ padding:5px 0;
+ border-bottom:1px dashed #eee
+}
+.profit{
+ color:#000;
+ font-weight:bold
+}
+.loss{
+ color:#777;
 }
 
-body {
-  margin: 0;
-  background: var(--light);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+/* SECTION */
+.section{
+ background:#fff;
+ border:1px solid var(--border);
+ border-radius:12px;
+ padding:20px;
+ margin-bottom:20px
 }
+.section h2{margin-bottom:15px;font-size:18px}
 
-/* Card */
-.wallet-card {
-  background: #fff;
-  width: 420px;
-  padding: 24px;
-  border-radius: 10px;
-  box-shadow: 0 8px 20px rgba(0,0,0,.08);
+/* TABLE */
+table{width:100%;border-collapse:collapse}
+th,td{padding:12px;border-bottom:1px solid var(--border)}
+th{background:#fafafa}
+.badge{
+ padding:4px 10px;
+ border-radius:14px;
+ font-size:12px
 }
-
-/* Header */
-.wallet-header {
-  margin-bottom: 20px;
-}
-
-.wallet-header h2 {
-  margin: 0;
-  font-size: 20px;
-}
-
-.wallet-header p {
-  margin: 5px 0 0;
-  color: var(--gray);
-  font-size: 14px;
-}
-
-/* Balance */
-.balance-box {
-  background: var(--black);
-  color: #fff;
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-}
-
-.balance-box span {
-  font-size: 13px;
-  opacity: .8;
-}
-
-.balance-box h3 {
-  margin: 5px 0 0;
-  font-size: 24px;
-}
-
-/* Form */
-form label {
-  font-size: 13px;
-  color: var(--gray);
-  display: block;
-  margin-bottom: 4px;
-}
-
-form input,
-form select {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 15px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
-}
-
-form input:focus,
-form select:focus {
-  outline: none;
-  border-color: var(--black);
-}
-
-/* Button */
-button {
-  width: 100%;
-  padding: 12px;
-  background: var(--black);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-button:hover {
-  opacity: .9;
-}
-
-/* Info */
-.note {
-  margin-top: 12px;
-  font-size: 12px;
-  color: var(--gray);
-  text-align: center;
-}
+.ok{background:#000;color:#fff}
+.warn{background:#ccc}
 </style>
 </head>
 
 <body>
 
-<div class="wallet-card">
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <h2>Market Hub</h2>
+  <ul>
+    <li class="active">Overview</li>
+    <li>Sellers</li>
+    <li>Buyers</li>
+    <li>Property Owners</li>
+    <li>Transactions</li>
+    <li>Finance</li>
+    <li>Settings</li>
+  </ul>
+</div>
 
-  <div class="wallet-header">
-    <h2>Withdraw Funds</h2>
-    <p>Transfer money from your MarketHub wallet</p>
+<!-- MAIN -->
+<div class="main">
+
+<div class="topbar">
+  <h1>Super Admin Dashboard</h1>
+</div>
+
+<!-- DETAILED ADMIN CARDS -->
+<div class="cards">
+
+  <!-- GMV -->
+  <div class="card">
+    <h3>Gross Transaction Volume (GMV)</h3>
+    <div class="value">KES 2,450,000</div>
+    <div class="sub">All platform transactions (monthly)</div>
+    <div class="progress"><div class="bar" style="width:82%"></div></div>
+    <small>↑ 18% growth vs last month</small>
   </div>
 
-  <div class="balance-box">
-    <span>Available Balance</span>
-    <h3>KES 12,450.00</h3>
+  <!-- PLATFORM COMMISSION -->
+  <div class="card">
+    <h3>Platform Commission</h3>
+    <div class="value">KES 245,000</div>
+    <div class="sub">Avg commission rate: 10%</div>
+    <ul class="list">
+      <li><span>E-commerce</span><strong>KES 165,000</strong></li>
+      <li><span>Property Rentals</span><strong>KES 80,000</strong></li>
+    </ul>
   </div>
 
-  <form>
-    <label>Withdrawal Amount</label>
-    <input type="number" placeholder="Enter amount">
+  <!-- OPERATIONAL COSTS -->
+  <div class="card">
+    <h3>Operational Costs</h3>
+    <div class="value loss">KES 68,500</div>
+    <div class="sub">Monthly expenses</div>
+    <ul class="list">
+      <li><span>Hosting & Servers</span><strong>18,000</strong></li>
+      <li><span>Payments (MPESA)</span><strong>22,500</strong></li>
+      <li><span>Staff & Ops</span><strong>28,000</strong></li>
+    </ul>
+  </div>
 
-    <label>Withdrawal Method</label>
-    <select>
-      <option>Select method</option>
-      <option>M-Pesa</option>
-      <option>Bank Transfer</option>
-      <option>PayPal</option>
-    </select>
+  <!-- NET PROFIT -->
+  <div class="card">
+    <h3>Net Profit</h3>
+    <div class="value profit">KES 176,500</div>
+    <div class="sub">Commission − Operating Costs</div>
+    <div class="progress"><div class="bar" style="width:71%"></div></div>
+    <small>Healthy margin (72%)</small>
+  </div>
 
-    <label>Account Details</label>
-    <input type="text" placeholder="Phone number / Bank / PayPal">
+  <!-- USER ECOSYSTEM -->
+  <div class="card">
+    <h3>User Ecosystem</h3>
+    <div class="value">1,387</div>
+    <ul class="list">
+      <li><span>Sellers</span><strong>385</strong></li>
+      <li><span>Buyers</span><strong>860</strong></li>
+      <li><span>Property Owners</span><strong>142</strong></li>
+    </ul>
+  </div>
 
-    <button type="button">Request Withdrawal</button>
-  </form>
-
-  <div class="note">
-    Withdrawals are processed within 24 hours
+  <!-- PLATFORM HEALTH -->
+  <div class="card">
+    <h3>Platform Health</h3>
+    <div class="value">Stable</div>
+    <ul class="list">
+      <li><span>API</span><strong>Online</strong></li>
+      <li><span>MPESA</span><strong>Connected</strong></li>
+      <li><span>Disputes</span><strong>3 Active</strong></li>
+    </ul>
   </div>
 
 </div>
 
+<!-- TRANSACTIONS -->
+<div class="section">
+<h2>Recent Transactions</h2>
+<table>
+<tr>
+ <th>Transaction ID</th>
+ <th>Type</th>
+ <th>Amount</th>
+ <th>Commission</th>
+ <th>Status</th>
+</tr>
+<tr>
+ <td>#TX20491</td>
+ <td>Buyer → Seller</td>
+ <td>KES 45,000</td>
+ <td>KES 4,500</td>
+ <td><span class="badge ok">Completed</span></td>
+</tr>
+<tr>
+ <td>#TX20492</td>
+ <td>Tenant → Owner</td>
+ <td>KES 18,000</td>
+ <td>KES 1,800</td>
+ <td><span class="badge warn">Pending</span></td>
+</tr>
+</table>
+</div>
+
+</div>
 </body>
 </html>

@@ -13,8 +13,9 @@ function togglePaymentOption() {
 }
 
 function toggleCartBar() {
-  var box = document.getElementById("cart-container");
-  box.style.display = box.style.display === "flex" ? "none" : "flex";
+  document.querySelector('.cart-container')?.classList.toggle('show');
+  var cartOverlay = document.getElementById("cartOverlay");
+  cartOverlay.classList.toggle("active");
 }
 
 function sendWhatsAppMessage() {
@@ -213,6 +214,7 @@ document.querySelectorAll(".toggleOrd").forEach(btn => {
       : "View details";
   });
 });
+
 function toggleOrderMarket() {
   const orderMain = document.getElementById("orderMain");
   const marketMain = document.getElementById("marketMain");
@@ -283,7 +285,7 @@ function goBackToMarketTypes() {
   const marketMain = document.getElementById("marketMain");
   const orderMain = document.getElementById("orderMain");
 
-  if (marketMain) marketMain.style.display = "block";
+  if (marketMain) marketMain.style.display = "flex";
   if (orderMain) orderMain.style.display = "none";
 
   showMarketContainer("type");
@@ -305,97 +307,75 @@ function goBackToMarketTypes() {
   }
 }
 
-// CART JS
+/* =========================
+   CART LOGIC – FULL SCRIPT
+========================= */
 
-document.addEventListener("DOMContentLoaded", () => {
-
-  const subtotalEl = document.getElementById('subtotal');
-  const totalEl = document.getElementById('total');
-
-  if (!subtotalEl || !totalEl) return; // 🔑 SAFE EXIT
-
-  const deliveryFee = 0;
-
-  function updateTotals() {
-    let subtotal = 0;
-    const items = document.querySelectorAll('.cart-item');
-    const emptyMsg = document.getElementById('emptyCartMessage');
-
-    // 🔹 Handle empty cart
-    if (items.length === 0) {
-      if (emptyMsg) emptyMsg.style.display = "block";
-      subtotalEl.textContent = "KES 0";
-      totalEl.textContent = "KES 0";
-      return;
-    } else {
-      if (emptyMsg) emptyMsg.style.display = "none";
-    }
-
-    items.forEach(item => {
-      const price = parseInt(item.dataset.price);
-      const qty = parseInt(item.querySelector('.qty-number').textContent);
-      subtotal += price * qty;
-    });
-
-    subtotalEl.textContent = "KES " + subtotal;
-    totalEl.textContent = "KES " + (subtotal + deliveryFee);
-  }
-
-  document.addEventListener("click", e => {
-
-    if (e.target.classList.contains("plus")) {
-      const qty = e.target.parentElement.querySelector(".qty-number");
-      qty.textContent = parseInt(qty.textContent) + 1;
-    }
-
-    if (e.target.classList.contains("minus")) {
-      const qty = e.target.parentElement.querySelector(".qty-number");
-      if (parseInt(qty.textContent) > 1) {
-        qty.textContent--;
-      }
-    }
-
-    if (e.target.classList.contains("remove-btn")) {
-      e.target.closest(".cart-item").remove();
-    }
-
-    updateTotals();
-    updateCartCount();
-  });
-
-  updateTotals();
-});
-
+/* ---------- GLOBAL ELEMENTS ---------- */
 const cartItemsContainer = document.getElementById("cartItems");
 const cartCountEl = document.querySelector(".cart-count");
+const subtotalEl = document.getElementById("subtotal");
+const totalEl = document.getElementById("total");
+const emptyMsg = document.getElementById("emptyCartMessage");
 
+const deliveryFee = 0;
+
+/* ---------- UPDATE TOTALS ---------- */
+function updateTotals() {
+  if (!subtotalEl || !totalEl) return;
+
+  let subtotal = 0;
+  const items = document.querySelectorAll(".cart-item");
+
+  if (items.length === 0) {
+    if (emptyMsg) emptyMsg.style.display = "block";
+    subtotalEl.textContent = "KES 0";
+    totalEl.textContent = "KES 0";
+    updateCartCount();
+    return;
+  }
+
+  if (emptyMsg) emptyMsg.style.display = "none";
+
+  items.forEach(item => {
+    const price = Number(item.dataset.price);
+    const qty = Number(item.querySelector(".qty-number").textContent);
+    subtotal += price * qty;
+  });
+
+  subtotalEl.textContent = `KES ${subtotal}`;
+  totalEl.textContent = `KES ${subtotal + deliveryFee}`;
+}
+
+/* ---------- UPDATE CART COUNT ---------- */
 function updateCartCount() {
   let count = 0;
   document.querySelectorAll(".cart-item").forEach(item => {
-    count += parseInt(item.querySelector(".qty-number").textContent);
+    count += Number(item.querySelector(".qty-number").textContent);
   });
-  cartCountEl.textContent = count;
+
+  if (cartCountEl) cartCountEl.textContent = count;
 }
 
+/* ---------- ADD TO CART ---------- */
 function addToCart(product) {
+  if (!cartItemsContainer) return;
+
   const existingItem = [...document.querySelectorAll(".cart-item")]
     .find(item => item.dataset.name === product.name);
 
-  // If product already in cart → increase qty
   if (existingItem) {
     const qtyEl = existingItem.querySelector(".qty-number");
-    qtyEl.textContent = parseInt(qtyEl.textContent) + 1;
-  } 
-  // Else → create new cart item
-  else {
+    qtyEl.textContent = Number(qtyEl.textContent) + 1;
+  } else {
     const item = document.createElement("div");
     item.className = "cart-item";
-    item.dataset.price = product.price;
     item.dataset.name = product.name;
+    item.dataset.price = product.price;
 
     item.innerHTML = `
       <div class="cart-left">
-        <img src="${product.image}" alt="">
+        <img src="${product.image}" alt="${product.name}">
         <div class="cart-info">
           <h4>${product.name}</h4>
           <p>KES ${product.price}</p>
@@ -417,18 +397,53 @@ function addToCart(product) {
   updateCartCount();
 }
 
+/* ---------- GLOBAL CLICK HANDLER ---------- */
+document.addEventListener("click", e => {
+
+  /* Increase quantity */
+  if (e.target.classList.contains("plus")) {
+    const qty = e.target.parentElement.querySelector(".qty-number");
+    qty.textContent = Number(qty.textContent) + 1;
+  }
+
+  /* Decrease quantity */
+  if (e.target.classList.contains("minus")) {
+    const qty = e.target.parentElement.querySelector(".qty-number");
+    if (Number(qty.textContent) > 1) {
+      qty.textContent = Number(qty.textContent) - 1;
+    }
+  }
+
+  /* Remove item */
+  if (e.target.classList.contains("remove-btn")) {
+    e.target.closest(".cart-item")?.remove();
+  }
+
+  updateTotals();
+  updateCartCount();
+});
+
+/* ---------- ADD-TO-CART BUTTONS ---------- */
 document.querySelectorAll(".add-to-cart-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     const card = btn.closest(".variable-card");
 
+    if (!card) return;
+
     const product = {
       name: card.dataset.name,
-      price: parseInt(card.dataset.price),
+      price: Number(card.dataset.price),
       image: card.dataset.image
     };
 
     addToCart(product);
   });
+});
+
+/* ---------- INIT ---------- */
+document.addEventListener("DOMContentLoaded", () => {
+  updateTotals();
+  updateCartCount();
 });
 
 // ================= HEADER SECTION =================
@@ -483,11 +498,51 @@ document.addEventListener("click", e => {
   }
 });
 
-/* ---------- CART TOGGLE ---------- */
-function toggleCartBar() {
-  const box = document.getElementById("cart-container");
-  if (!box) return;
+// ---------- SHOW ON USER ACTIVITY ----------
+let activityTimer;
 
-  box.style.display = box.style.display === "flex" ? "none" : "flex";
-  showTopSection(4000);
+document.addEventListener("mousemove", () => {
+  clearTimeout(activityTimer);
+  showTopSection(2000);
+
+  activityTimer = setTimeout(() => {
+    document.querySelector(".topSection")?.classList.remove("show");
+  }, 3000);
+});
+
+// ---------- SHOW ON MOUSE MOVE (TOP EDGE) ----------
+let mouseCooldown;
+
+document.addEventListener("mousemove", (e) => {
+  // Trigger only when cursor is near top (e.g. 80px)
+  if (e.clientY < 80) {
+    if (mouseCooldown) return;
+
+    showTopSection(2500);
+
+    mouseCooldown = true;
+    setTimeout(() => {
+      mouseCooldown = false;
+    }, 1000); // throttle to prevent spam
+  }
+});
+
+// ADD PRODUCT TOGGLE
+function toggleProductsAdd(showAdd) {
+  const products = document.getElementById("products");
+  const addProducts = document.getElementById("add-products");
+
+  if (showAdd) {
+    products.classList.remove("active");
+    addProducts.classList.add("active");
+  } else {
+    products.classList.add("active");
+    addProducts.classList.remove("active");
+  }
+}
+
+function toggleNavigationBar() {
+  const navOverlay = document.getElementById("navOverlay");
+  navOverlay.classList.toggle("active");
+  document.querySelector('.navigation-bar')?.classList.toggle('show');
 }

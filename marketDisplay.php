@@ -54,7 +54,7 @@ if (!isset($_SESSION['created'])) {
     </section>
     <div class="cart-container" id="cart-container">
       <div class="cartTop">
-        <h1>My Cart</h1>
+        <h1>My&nbsp;Cart</h1>
         <i class="fa-solid fa-xmark" onclick="toggleCartBar()"></i>
       </div>
       <div class="inner-cart-container">
@@ -94,6 +94,7 @@ if (!isset($_SESSION['created'])) {
         </div>
       </div>
     </div>
+    <div class="cartOverlay" onclick="toggleCartBar()" id="cartOverlay"></div>
     <div class="payOverlay" onclick="togglePaymentOption()" id="payOverlay"></div>
     <form class="paymentContainer" action="" id="paymentContainer">
       <h1>Choose&nbsp;Account <br><span>You can set your default account in settings</span></h1>
@@ -161,7 +162,6 @@ if (!isset($_SESSION['created'])) {
               <div class="rating">★★★★★ (41)</div>
               <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
               <div class="meta"><h2>23k&nbsp;<span>followers</span></h2></div>
-              <div class="bsInfo">Delivery: Pickup · Courier</div>
               <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
             </div>
           </div>
