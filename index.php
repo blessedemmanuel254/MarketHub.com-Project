@@ -9,6 +9,18 @@ if (!isset($_SESSION['user_id']) && isset($_COOKIE['user_id'])) {
     $_SESSION['account_type'] = $_COOKIE['account_type'];
 }
 
+/* ===============================
+  REDIRECT IF ALREADY LOGGED IN
+================================ */
+if (isset($_SESSION['user_id'], $_SESSION['account_type'])) {
+  switch (strtolower($_SESSION['account_type'])) {
+    case 'seller': header("Location: sellerPage.php"); exit;
+    case 'buyer':  header("Location: buyerPage.php");  exit;
+    case 'agent':  header("Location: agentPage.php");  exit;
+    case 'admin':  header("Location: adminPage.php");  exit;
+  }
+}
+
 /* ---------- SESSION SECURITY ---------- */
 if (isset($_SESSION['user_id'], $_SESSION['account_type'])) {
 
@@ -26,8 +38,7 @@ if (isset($_SESSION['user_id'], $_SESSION['account_type'])) {
   exit();
 }
 
-$error = "";
-$success = "";
+$error = $success = "";
 
 function normalizePhone($phone) {
   // Keep only digits and plus
@@ -45,18 +56,35 @@ function normalizePhone($phone) {
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $identifier = trim($_POST['identifier'] ?? '');
   $passsword = $_POST['password'] ?? '';
+  $login_type  = strtolower($_POST['login_type'] ?? '');
 
-  if (empty($identifier) || empty($passsword)) {
+  if (!$identifier || !$passsword || !$login_type) {
     $error = "All fields are required.";
   } else {
     $encrypted_email = base64_encode($identifier);
     $normalized_phone = normalizePhone($identifier);
     $encrypted_phone = base64_encode($normalized_phone);
 
-    // Check by username, email, or phone
-    $query = "SELECT * FROM users WHERE username = ? OR email = ? OR phone = ?";
+    /*
+    IMPORTANT:
+    Enforce account_type in the query itself
+    */
+    $query = "
+      SELECT *
+      FROM users
+      WHERE account_type = ?
+        AND (username = ? OR email = ? OR phone = ?)
+      LIMIT 1
+    ";
+
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("sss", $identifier, $encrypted_email, $encrypted_phone);
+    $stmt->bind_param(
+      "ssss",
+      $login_type,
+      $identifier,
+      $encrypted_email,
+      $encrypted_phone
+    );
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -166,23 +194,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
               <div class="account-type-box">
                 <p class="account-title">Login as</p>
 
-                <label>
+                <label class="account-type">
                   <input type="radio" name="login_type" value="buyer" required>
-                  Buyer
+                  <div class="radio-dot"></div>
+                  <span>Buyer</span>
                 </label>
 
-                <label>
+                <label class="account-type">
                   <input type="radio" name="login_type" value="seller">
+                  <div class="radio-dot"></div>
                   Seller
                 </label>
 
-                <label>
+                <label class="account-type">
                   <input type="radio" name="login_type" value="agent">
+                  <div class="radio-dot"></div>
                   Agent
                 </label>
 
-                <label>
+                <label class="account-type">
                   <input type="radio" name="login_type" value="admin">
+                  <div class="radio-dot"></div>
                   Administrator
                 </label>
               </div>

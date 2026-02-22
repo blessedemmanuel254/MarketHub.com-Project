@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Dashboard | Market Hub</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #0f0f0f;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+}
+
+.dashboard {
+  width: 100%;
+  max-width: 1250px;
+  padding: 25px;
+}
+
+/* HEADER */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.header h1 {
+  font-size: 22px;
+}
+
+.status {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+/* CARD */
+.card {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 14px;
+  padding: 18px;
+  transition: 0.3s ease;
+}
+
+.card:hover {
+  border-color: #444;
+  transform: translateY(-3px);
+}
+
+.card h3 {
+  font-size: 13px;
+  color: #aaa;
+  margin-bottom: 8px;
+}
+
+.amount {
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.sub-info {
+  font-size: 12px;
+  margin-top: 6px;
+  color: #bbb;
+}
+
+.growth {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.up {
+  color: #16a34a;
+}
+
+.down {
+  color: #dc2626;
+}
+
+/* Progress bar */
+.progress {
+  margin-top: 10px;
+  background: #1a1a1a;
+  height: 6px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 65%;
+  background: #fff;
+}
+
+/* Activate card */
+.activate {
+  background: #fff;
+  color: #000;
+  padding: 12px;
+  border-radius: 10px;
+  text-align: center;
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 12px;
+}
+
+/* LEVELS */
+.level-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin: 6px 0;
+}
+
+/* TABLE */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #222;
+}
+
+th {
+  text-align: left;
+  color: #aaa;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="dashboard">
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>Agent Dashboard</h1>
+    <div class="status">Status: Active</div>
+  </div>
+
+  <!-- TOP CARDS -->
+  <div class="grid">
+
+    <!-- WALLET -->
+    <div class="card">
+      <h3>Total Wallet Balance</h3>
+      <div class="amount">KES 12,540</div>
+      <div class="sub-info">Last withdrawal: 3 days ago</div>
+      <div class="growth up">▲ +18% from last month</div>
+      <div class="progress">
+        <div class="progress-fill"></div>
+      </div>
+      <div class="sub-info">KES 2,460 to next payout milestone</div>
+    </div>
+
+    <!-- ADVERTISING -->
+    <div class="card">
+      <h3>Product Advertising Earnings</h3>
+      <div class="amount">KES 5,400</div>
+      <div class="sub-info">32 conversions this month</div>
+      <div class="growth up">▲ +12% increase</div>
+      <div class="sub-info">Conversion Rate: 4.8%</div>
+    </div>
+
+    <!-- AFFILIATE -->
+    <div class="card">
+      <h3>Affiliate Earnings</h3>
+      <div class="amount">KES 7,140</div>
+      <div class="sub-info">Active Referrals: 18 agents</div>
+      <div class="growth up">▲ +25% growth</div>
+      <div class="sub-info">3 new activations this week</div>
+    </div>
+
+    <!-- NETWORK SIZE -->
+    <div class="card">
+      <h3>Your Network Size</h3>
+      <div class="amount">46 Agents</div>
+      <div class="sub-info">Level 1: 8</div>
+      <div class="sub-info">Level 2: 14</div>
+      <div class="sub-info">Level 3: 24</div>
+      <div class="growth up">▲ +6 new this month</div>
+    </div>
+
+  </div>
+
+  <!-- AFFILIATE BREAKDOWN -->
+  <div class="grid" style="margin-top:20px;">
+
+    <div class="card">
+      <h3>Affiliate Earnings Breakdown</h3>
+
+      <div class="level-row">
+        <span>Level 1 (100 KES)</span>
+        <strong>KES 3,200</strong>
+      </div>
+
+      <div class="level-row">
+        <span>Level 2 (40 KES)</span>
+        <strong>KES 2,240</strong>
+      </div>
+
+      <div class="level-row">
+        <span>Level 3 (20 KES)</span>
+        <strong>KES 1,700</strong>
+      </div>
+
+      <div class="sub-info">Highest earning level: Level 1</div>
+    </div>
+
+    <div class="card">
+      <h3>Referral Performance</h3>
+      <div class="sub-info">Clicks this month: 1,240</div>
+      <div class="sub-info">Agent Signups: 24</div>
+      <div class="sub-info">Activation Rate: 62%</div>
+      <div class="growth up">▲ +8% better than last month</div>
+    </div>
+
+  </div>
+
+  <!-- TRANSACTION HISTORY -->
+  <div class="card" style="margin-top:20px;">
+    <h3>Recent Earnings Activity</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Source</th>
+          <th>Level</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>2026-02-18</td>
+          <td>Agent Activation</td>
+          <td>Level 1</td>
+          <td>+100 KES</td>
+        </tr>
+        <tr>
+          <td>2026-02-19</td>
+          <td>Agent Activation</td>
+          <td>Level 2</td>
+          <td>+40 KES</td>
+        </tr>
+        <tr>
+          <td>2026-02-20</td>
+          <td>Product Advertising</td>
+          <td>-</td>
+          <td>+60 KES</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -571,6 +571,40 @@ html body {
   padding: 8px;
 }
 
+.container main.buyerMain .agentHeader {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  width: 90%;
+  margin: 0 auto;
+}
+
+.container main.buyerMain .agentHeader h1 {
+  font-size: 20px;
+}
+
+.container main.buyerMain .agentHeader p.status {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  color: #0f0f0f;
+
+}
+
+.container main.buyerMain .agentHeader p.status span.verified, .container main.buyerMain .agentHeader p.status span.unverified {
+  color: #088000;
+  background-color: #0980001f;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.container main.buyerMain .agentHeader p.status span.unverified {
+  color: #ff3b3b;
+  background-color: #ff3b3b15;
+}
+
 .tabs-container .tabs {
   display: flex;
 }
@@ -1308,7 +1342,7 @@ html body {
     padding-right: 5px;
   }
 
-  .container main.buyerMain .tabs-container, .container main.buyerMain h1, .container main.buyerMain .filter-bar, .container main.buyerMain .table-wrapper, .containerAdmin .admin-tab-panel .table-wrapper .filter-bar {
+  .container main.buyerMain .tabs-container, .container main.buyerMain h1, .container main.buyerMain .filter-bar, .container main.buyerMain .table-wrapper, .containerAdmin .admin-tab-panel .table-wrapper .filter-bar, .container main.buyerMain .agentHeader {
     width: 100%;
   }
 
@@ -1493,7 +1527,7 @@ html body {
 
 }
 
-.container main .formContainer form .account-type-box label {
+.container main .formContainer form .account-type-box label.account-type {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1503,6 +1537,34 @@ html body {
   border: 1px solid #dedede;
   background-color: #ffffff;
   border-radius: 4px;
+  width: fit-content;
+}
+
+/* ---- RADIO UI ---- */
+label.account-type input { display: none; }
+
+label.account-type .radio-dot {
+  width: 16px;
+  height: 16px;
+  border: 1px solid #898888;
+  border-radius: 50%;
+  position: relative;
+}
+
+label.account-type input:checked + .radio-dot {
+  border-color: #000;
+}
+
+label.account-type input:checked + .radio-dot::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  background: #000;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .container main .formContainer form .account-type-box label input {
