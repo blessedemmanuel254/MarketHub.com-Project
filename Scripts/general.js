@@ -541,8 +541,44 @@ function toggleProductsAdd(showAdd) {
   }
 }
 
+
+// ADMIN DASHBOARD JS
 function toggleNavigationBar() {
   const navOverlay = document.getElementById("navOverlay");
   navOverlay.classList.toggle("active");
   document.querySelector('.navigation-bar')?.classList.toggle('show');
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  const tabs = document.querySelectorAll(".nav-link");
+  const panels = document.querySelectorAll(".admin-tab-panel");
+
+  // ✅ FORCE Dashboard as default
+  tabs.forEach(t => t.classList.remove("active"));
+  panels.forEach(p => p.classList.remove("active"));
+
+  const defaultTab = document.querySelector('.nav-link[data-tab="dashboard"]');
+  const defaultPanel = document.querySelector('.admin-tab-panel[data-tab="dashboard"]');
+
+  defaultTab.classList.add("active");
+  defaultPanel.classList.add("active");
+
+  tabs.forEach(tab => {
+    tab.addEventListener("click", e => {
+      e.preventDefault();
+
+      const target = tab.dataset.tab;
+      if (!target) return;
+
+      tabs.forEach(t => t.classList.remove("active"));
+      panels.forEach(p => p.classList.remove("active"));
+
+      tab.classList.add("active");
+      document
+        .querySelector(`.admin-tab-panel[data-tab="${target}"]`)
+        ?.classList.add("active");
+
+      toggleNavigationBar?.();
+    });
+  });
+});

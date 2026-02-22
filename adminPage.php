@@ -19,8 +19,33 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,70090000000;1,800;1,900&display=swap" rel="stylesheet">
+
+  <!-- jQuery + DataTables JS -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   
   <title>ADMIN Page | Market Hub</title>
+  <style>
+    /* Pagination buttons */
+    .dataTables_wrapper .dataTables_paginate .paginate_button{
+      background-color: #898888;
+    }
+
+    /* Hover effect */
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+      background: #898888da;
+    }
+
+    /* Active page */
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+      background: #088000 !important;
+    }
+
+    /* Info text below table */
+    .dataTables_wrapper .dataTables_info {
+      color: #ffffff;
+    }
+  </style>
 </head>
 <body>
   <div class="containerAdmin">
@@ -45,19 +70,23 @@
     <div class="navigation-bar">
       <h4>Admin&nbsp;Navigation<i class="fa-solid fa-xmark" onclick="toggleNavigationBar()"></i></h4>
       <nav>
-        <a href="adminpage.php" class="active"><i class="fa-solid fa-gauge"></i>Dashboard</a>
-        <a href="agentPage.php"><i class="fa-solid fa-users"></i>Sales Agents</a>
-        <a href="sellerPage.php"><i class="fa-solid fa-store"></i>Sellers</a>
-        <a href="buyerPage.php"><i class="fa-solid fa-cart-shopping"></i>Buyers</a>
-        <a href="propertyOwnerPage.php"><i class="fa-solid fa-building"></i>Property Owners</a>
-        <a href="transactionsPage.php"><i class="fa-solid fa-money-bill-transfer"></i>Transactions</a>
-        <a href="settingsPage.php"><i class="fa-solid fa-gear"></i>Settings</a>
-        <a href="logout.php"><i class="fa-solid fa-arrow-right-from-bracket"></i>Logout</a>
+        <a href="#" class="nav-link active" data-tab="dashboard">
+          <i class="fa-solid fa-gauge"></i>Dashboard
+        </a>
+        <a href="agentPage.php" class="nav-link"><i class="fa-solid fa-users"></i>Sales Agents</a>
+        <a href="sellerPage.php" class="nav-link"><i class="fa-solid fa-store"></i>Sellers</a>
+        <a href="buyerPage.php" class="nav-link"><i class="fa-solid fa-cart-shopping"></i>Buyers</a>
+        <a href="propertyOwnerPage.php" class="nav-link"><i class="fa-solid fa-building"></i>Property Owners</a>
+        <a href="#" class="nav-link" data-tab="transactions">
+          <i class="fa-solid fa-money-bill-transfer"></i>Transactions
+        </a>
+        <a href="settingsPage.php" class="nav-link"><i class="fa-solid fa-gear"></i>Settings</a>
+        <a href="logout.php" class="nav-link"><i class="fa-solid fa-arrow-right-from-bracket"></i>Logout</a>
       </nav>
 
     </div>
     <main class="adminMain">
-      <div class="admin-tab-panel">
+      <div class="admin-tab-panel active" data-tab="dashboard">
         <nav>
           <p>Dashboard</p>
           <ul>
@@ -156,9 +185,9 @@
           <div class="filter-bar">
             <select id="statusFilter">
               <option value="all">All Transactions</option>
-              <option value="Delivered">Completed</option>
+              <option value="Paid">Completed</option>
               <option value="Shipped">Pending</option>
-              <option value="Processing">Processing</option>
+              <option value="Pending">Processing</option>
             </select>
           </div>
           <table id="ordersTable">
@@ -174,7 +203,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
+              <tr data-status="Paid">
                 <td>1.</td>
                 <td>#TX20491</td>
                 <td>Buyer → Seller</td>
@@ -183,7 +212,7 @@
                 <td><span class="badge paid">Completed</span></td>
                 <td>2025-01-15</td>
               </tr>
-              <tr>
+              <tr data-status="Pending">
                 <td>2.</td>
                 <td>#TX20492</td>
                 <td>Tenant → Owner</td>
@@ -192,7 +221,7 @@
                 <td><span class="badge pending">Pending</span></td>
                 <td>2025-01-16</td>
               </tr>
-              <tr>
+              <tr data-status="Paid">
                 <td>3.</td>
                 <td>#TX20493</td>
                 <td>Buyer → Seller</td>
@@ -201,7 +230,7 @@
                 <td><span class="badge paid">Completed</span></td>
                 <td>2025-01-17</td>
               </tr>
-              <tr>
+              <tr data-status="Pending">
                 <td>4.</td>
                 <td>#TX20494</td>
                 <td>Tenant → Owner</td>
@@ -210,7 +239,7 @@
                 <td><span class="badge pending">Pending</span></td>
                 <td>2025-01-18</td>
               </tr>
-              <tr>
+              <tr data-status="Paid">
                 <td>5.</td>
                 <td>#TX20495</td>
                 <td>Buyer → Seller</td>
@@ -219,8 +248,283 @@
                 <td><span class="badge paid">Completed</span></td>
                 <td>2025-01-19</td>
               </tr>
-              <tr>
+              <tr data-status="Pending">
                 <td>6.</td>
+                <td>#TX20496</td>
+                <td>Tenant → Owner</td>
+                <td>KES 18,000</td>
+                <td>KES 1,800</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td>2025-01-20</td>
+              </tr>
+              <tr data-status="Paid">
+                <td>5.</td>
+                <td>#TX20495</td>
+                <td>Buyer → Seller</td>
+                <td>KES 45,000</td>
+                <td>KES 4,500</td>
+                <td><span class="badge paid">Completed</span></td>
+                <td>2025-01-19</td>
+              </tr>
+              <tr data-status="Pending">
+                <td>6.</td>
+                <td>#TX20496</td>
+                <td>Tenant → Owner</td>
+                <td>KES 18,000</td>
+                <td>KES 1,800</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td>2025-01-20</td>
+              </tr>
+              <tr data-status="Paid">
+                <td>5.</td>
+                <td>#TX20495</td>
+                <td>Buyer → Seller</td>
+                <td>KES 45,000</td>
+                <td>KES 4,500</td>
+                <td><span class="badge paid">Completed</span></td>
+                <td>2025-01-19</td>
+              </tr>
+              <tr data-status="Pending">
+                <td>6.</td>
+                <td>#TX20496</td>
+                <td>Tenant → Owner</td>
+                <td>KES 18,000</td>
+                <td>KES 1,800</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td>2025-01-20</td>
+              </tr>
+              <tr data-status="Paid">
+                <td>5.</td>
+                <td>#TX20495</td>
+                <td>Buyer → Seller</td>
+                <td>KES 45,000</td>
+                <td>KES 4,500</td>
+                <td><span class="badge paid">Completed</span></td>
+                <td>2025-01-19</td>
+              </tr>
+              <tr data-status="Pending">
+                <td>6.</td>
+                <td>#TX20496</td>
+                <td>Tenant → Owner</td>
+                <td>KES 18,000</td>
+                <td>KES 1,800</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td>2025-01-20</td>
+              </tr>
+              <tr data-status="Paid">
+                <td>5.</td>
+                <td>#TX20495</td>
+                <td>Buyer → Seller</td>
+                <td>KES 45,000</td>
+                <td>KES 4,500</td>
+                <td><span class="badge paid">Completed</span></td>
+                <td>2025-01-19</td>
+              </tr>
+              <tr data-status="Pending">
+                <td>6.</td>
+                <td>#TX20496</td>
+                <td>Tenant → Owner</td>
+                <td>KES 18,000</td>
+                <td>KES 1,800</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td>2025-01-20</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="admin-tab-panel" data-tab="transactions">
+        <nav>
+          <p>Transactions</p>
+          <ul>
+            <a href="">Home ~ </a> 
+            <a href="" class="active">Transactions</a><!-- 
+            <a href="">Orders</a>
+            <a href="">Users</a> -->
+          </ul>
+        </nav>
+        <h2>View all tansactions</h2>
+        <div class="admin-tab-content">
+        </div>
+        <!-- TRANSACTIONS -->
+        <div class="table-wrapper">
+          <div class="filter-bar">
+            <select id="statusFilter">
+              <option value="all">All Transactions</option>
+              <option value="Delivered">Completed</option>
+              <option value="Shipped">Pending</option>
+              <option value="Processing">Processing</option>
+            </select>
+          </div>
+          <table id="transactionsTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Transaction ID</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Commission</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-status="Paid">
+                <td>1.</td>
+                <td>#TX20491</td>
+                <td>Buyer → Seller</td>
+                <td>KES 45,000</td>
+                <td>KES 4,500</td>
+                <td><span class="badge paid">Completed</span></td>
+                <td>2025-01-15</td>
+              </tr>
+              <tr data-status="Pending">
+                <td>2.</td>
+                <td>#TX20492</td>
+                <td>Tenant → Owner</td>
+                <td>KES 18,000</td>
+                <td>KES 1,800</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td>2025-01-16</td>
+              </tr>
+              <tr data-status="Paid">
+                <td>3.</td>
+                <td>#TX20493</td>
+                <td>Buyer → Seller</td>
+                <td>KES 45,000</td>
+                <td>KES 4,500</td>
+                <td><span class="badge paid">Completed</span></td>
+                <td>2025-01-17</td>
+              </tr>
+              <tr data-status="Pending">
+                <td>4.</td>
+                <td>#TX20494</td>
+                <td>Tenant → Owner</td>
+                <td>KES 18,000</td>
+                <td>KES 1,800</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td>2025-01-18</td>
+              </tr>
+              <tr data-status="Paid">
+                <td>5.</td>
+                <td>#TX20495</td>
+                <td>Buyer → Seller</td>
+                <td>KES 45,000</td>
+                <td>KES 4,500</td>
+                <td><span class="badge paid">Completed</span></td>
+                <td>2025-01-19</td>
+              </tr>
+              <tr data-status="Pending">
+                <td>6.</td>
+                <td>#TX20496</td>
+                <td>Tenant → Owner</td>
+                <td>KES 18,000</td>
+                <td>KES 1,800</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td>2025-01-20</td>
+              </tr>
+              <tr data-status="Paid">
+                <td>7.</td>
+                <td>#TX20495</td>
+                <td>Buyer → Seller</td>
+                <td>KES 45,000</td>
+                <td>KES 4,500</td>
+                <td><span class="badge paid">Completed</span></td>
+                <td>2025-01-19</td>
+              </tr>
+              <tr data-status="Pending">
+                <td>8.</td>
+                <td>#TX20496</td>
+                <td>Tenant → Owner</td>
+                <td>KES 18,000</td>
+                <td>KES 1,800</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td>2025-01-20</td>
+              </tr>
+              <tr data-status="Paid">
+                <td>9.</td>
+                <td>#TX20495</td>
+                <td>Buyer → Seller</td>
+                <td>KES 45,000</td>
+                <td>KES 4,500</td>
+                <td><span class="badge paid">Completed</span></td>
+                <td>2025-01-19</td>
+              </tr>
+              <tr data-status="Pending">
+                <td>10.</td>
+                <td>#TX20496</td>
+                <td>Tenant → Owner</td>
+                <td>KES 18,000</td>
+                <td>KES 1,800</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td>2025-01-20</td>
+              </tr>
+              <tr data-status="Paid">
+                <td>11.</td>
+                <td>#TX20495</td>
+                <td>Buyer → Seller</td>
+                <td>KES 45,000</td>
+                <td>KES 4,500</td>
+                <td><span class="badge paid">Completed</span></td>
+                <td>2025-01-19</td>
+              </tr>
+              <tr data-status="Pending">
+                <td>12.</td>
+                <td>#TX20496</td>
+                <td>Tenant → Owner</td>
+                <td>KES 18,000</td>
+                <td>KES 1,800</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td>2025-01-20</td>
+              </tr>
+              <tr data-status="Paid">
+                <td>13.</td>
+                <td>#TX20495</td>
+                <td>Buyer → Seller</td>
+                <td>KES 45,000</td>
+                <td>KES 4,500</td>
+                <td><span class="badge paid">Completed</span></td>
+                <td>2025-01-19</td>
+              </tr>
+              <tr data-status="Pending">
+                <td>14.</td>
+                <td>#TX20496</td>
+                <td>Tenant → Owner</td>
+                <td>KES 18,000</td>
+                <td>KES 1,800</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td>2025-01-20</td>
+              </tr>
+              <tr data-status="Paid">
+                <td>15.</td>
+                <td>#TX20495</td>
+                <td>Buyer → Seller</td>
+                <td>KES 45,000</td>
+                <td>KES 4,500</td>
+                <td><span class="badge paid">Completed</span></td>
+                <td>2025-01-19</td>
+              </tr>
+              <tr data-status="Pending">
+                <td>16.</td>
+                <td>#TX20496</td>
+                <td>Tenant → Owner</td>
+                <td>KES 18,000</td>
+                <td>KES 1,800</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td>2025-01-20</td>
+              </tr>
+              <tr data-status="Paid">
+                <td>17.</td>
+                <td>#TX20495</td>
+                <td>Buyer → Seller</td>
+                <td>KES 45,000</td>
+                <td>KES 4,500</td>
+                <td><span class="badge paid">Completed</span></td>
+                <td>2025-01-19</td>
+              </tr>
+              <tr data-status="Pending">
+                <td>18.</td>
                 <td>#TX20496</td>
                 <td>Tenant → Owner</td>
                 <td>KES 18,000</td>
@@ -240,5 +544,24 @@
     </footer>
   </div>
   <script src="Scripts/general.js" type="text/javascript"></script>
+  <script>
+    // DataTables Script Js
+    $(document).ready(function () {
+      $('#transactionsTable').DataTable({
+        pagingType: "simple_numbers", // only numbers + prev/next
+        pageLength: 15,               // rows per page
+        lengthChange: false,          // hide "Show X entries"
+        searching: true,              // keep search box
+        ordering: true,               // column sorting
+        stateSave: true,              // ✅ remembers pagination, search & sort
+        language: {
+          paginate: {
+            previous: "PREV",
+            next: "NEXT"
+          }
+        }
+      });
+    });
+  </script>
 </body>
 </html>

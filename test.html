@@ -2,236 +2,362 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Market Hub | Super Admin</title>
+<title>Market Hub – Order Chat</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,sans-serif}
-
-:root{
- --dark:#111;--light:#fff;--gray:#777;--border:#ddd;--bg:#f4f4f4;
+* {
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
 }
 
-body{display:flex;min-height:100vh;background:var(--bg)}
-
-/* SIDEBAR */
-.sidebar{
- width:240px;background:var(--dark);color:#fff;padding:20px
-}
-.sidebar h2{text-align:center;margin-bottom:30px}
-.sidebar li{
- list-style:none;padding:12px;border-radius:6px;
- margin-bottom:10px;cursor:pointer
-}
-.sidebar li:hover,.sidebar .active{background:#222}
-
-/* MAIN */
-.main{flex:1;padding:20px}
-
-/* TOPBAR */
-.topbar{margin-bottom:20px}
-.topbar h1{font-size:22px}
-
-/* CARDS */
-.cards{
- display:grid;
- grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
- gap:18px;
- margin-bottom:30px
-}
-.card{
- background:#fff;
- border:1px solid var(--border);
- border-radius:12px;
- padding:18px
-}
-.card h3{
- font-size:14px;
- color:var(--gray);
- margin-bottom:6px
-}
-.value{
- font-size:28px;
- font-weight:bold;
-}
-.sub{
- font-size:13px;
- color:var(--gray);
- margin-bottom:8px
-}
-.progress{
- height:8px;
- background:#eee;
- border-radius:5px;
- margin:10px 0
-}
-.bar{
- height:100%;
- background:#000;
- border-radius:5px
-}
-.list{
- list-style:none;
- font-size:14px;
- margin-top:10px
-}
-.list li{
- display:flex;
- justify-content:space-between;
- padding:5px 0;
- border-bottom:1px dashed #eee
-}
-.profit{
- color:#000;
- font-weight:bold
-}
-.loss{
- color:#777;
+body {
+  margin: 0;
+  display: flex;
+  justify-content: center;
 }
 
-/* SECTION */
-.section{
- background:#fff;
- border:1px solid var(--border);
- border-radius:12px;
- padding:20px;
- margin-bottom:20px
+/* MAIN WRAPPER */
+.chat-wrapper {
+  width: 100%;
+  max-width: 420px;
+  height: 100vh;
+  background: #dedede;
+  background-image: url('/Images/Whatsapp\ default\ wallpaper.avif');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
+  color: #fff;
 }
-.section h2{margin-bottom:15px;font-size:18px}
 
-/* TABLE */
-table{width:100%;border-collapse:collapse}
-th,td{padding:12px;border-bottom:1px solid var(--border)}
-th{background:#fafafa}
-.badge{
- padding:4px 10px;
- border-radius:14px;
- font-size:12px
+/* HEADER */
+.chat-header {
+  padding: 14px;
+  background: #151515;
+  border-bottom: 1px solid #222;
 }
-.ok{background:#000;color:#fff}
-.warn{background:#ccc}
+
+.chat-header h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.chat-header .meta {
+  font-size: 12px;
+  color: #aaa;
+}
+
+.status {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #088000;
+}
+
+/* CHAT BODY */
+.chat-body {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.message {
+  max-width: 75%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.system {
+  align-self: center;
+  background: #1a1a1a;
+  color: #aaa;
+  font-size: 11px;
+}
+
+.location-link {
+  font-size: 12px;
+  color: #088000;
+  text-decoration: underline;
+}
+
+.chat-body {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* MESSAGE CONTAINER */
+.chat-message {
+  display: flex;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+/* ALIGNMENT */
+.chat-message.buyer {
+  justify-content: flex-end;
+}
+
+.chat-message.seller {
+  justify-content: flex-start;
+}
+
+/* BUBBLE */
+.bubble {
+  position: relative;
+  max-width: 75%;
+  padding: 8px 12px;
+  border-radius: 18px;
+  font-size: 13px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  border: 1px solid #dedede;
+}
+
+/* BUYER STYLE */
+.chat-message.buyer .bubble {
+  background: #beffb9;
+  color: #0f0f0f;
+  border-bottom-right-radius: 0;
+}
+
+/* SELLER STYLE */
+.chat-message.seller .bubble {
+  background: #ffffff;
+  color: #0f0f0f;
+  border-bottom-left-radius: 0;
+}
+
+/* TIME */
+.time {
+  display: block;
+  font-size: 10px;
+  opacity: 0.6;
+  margin-top: 4px;
+  text-align: right;
+}
+
+/* ANIMATION */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* FOOTER */
+.chat-footer {
+  padding: 10px;
+  background: #ffffff;
+}
+
+.chat-actions {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.chat-actions button {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.location-btn {
+  background: #333;
+  color: #fff;
+}
+
+.complete-btn {
+  background: #ff3b3b;
+  color: #ffffff;
+}
+
+.chat-input {
+  display: flex;
+  gap: 4px;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
+  outline: none;
+  border: 1px solid #dedede;
+}
+
+.send-btn {
+  background: #0f0f0f;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+}
+
+/* LOCKED */
+.locked {
+  opacity: 0.5;
+  pointer-events: none;
+}
 </style>
 </head>
 
 <body>
 
-<!-- SIDEBAR -->
-<div class="sidebar">
-  <h2>Market Hub</h2>
-  <ul>
-    <li class="active">Overview</li>
-    <li>Sellers</li>
-    <li>Buyers</li>
-    <li>Property Owners</li>
-    <li>Transactions</li>
-    <li>Finance</li>
-    <li>Settings</li>
-  </ul>
-</div>
+<div class="chat-wrapper">
 
-<!-- MAIN -->
-<div class="main">
-
-<div class="topbar">
-  <h1>Super Admin Dashboard</h1>
-</div>
-
-<!-- DETAILED ADMIN CARDS -->
-<div class="cards">
-
-  <!-- GMV -->
-  <div class="card">
-    <h3>Gross Transaction Volume (GMV)</h3>
-    <div class="value">KES 2,450,000</div>
-    <div class="sub">All platform transactions (monthly)</div>
-    <div class="progress"><div class="bar" style="width:82%"></div></div>
-    <small>↑ 18% growth vs last month</small>
+  <!-- HEADER -->
+  <div class="chat-header">
+    <h3>Order Chat • Seller: Alex</h3>
+    <div class="meta">Item: Office Chair (Rental • 3 Days)</div>
+    <div class="status" id="orderStatus">Order in progress</div>
   </div>
 
-  <!-- PLATFORM COMMISSION -->
-  <div class="card">
-    <h3>Platform Commission</h3>
-    <div class="value">KES 245,000</div>
-    <div class="sub">Avg commission rate: 10%</div>
-    <ul class="list">
-      <li><span>E-commerce</span><strong>KES 165,000</strong></li>
-      <li><span>Property Rentals</span><strong>KES 80,000</strong></li>
-    </ul>
+  <!-- CHAT BODY -->
+  <div class="chat-body" id="chatBody">
+
+    <!-- Seller Message -->
+    <div class="chat-message seller">
+      <div class="bubble">
+        Hello 👋 I’m ready to deliver your product.
+        <span class="time">10:32 AM</span>
+      </div>
+    </div>
+
   </div>
 
-  <!-- OPERATIONAL COSTS -->
-  <div class="card">
-    <h3>Operational Costs</h3>
-    <div class="value loss">KES 68,500</div>
-    <div class="sub">Monthly expenses</div>
-    <ul class="list">
-      <li><span>Hosting & Servers</span><strong>18,000</strong></li>
-      <li><span>Payments (MPESA)</span><strong>22,500</strong></li>
-      <li><span>Staff & Ops</span><strong>28,000</strong></li>
-    </ul>
-  </div>
+  <!-- FOOTER -->
+  <div class="chat-footer" id="chatFooter">
 
-  <!-- NET PROFIT -->
-  <div class="card">
-    <h3>Net Profit</h3>
-    <div class="value profit">KES 176,500</div>
-    <div class="sub">Commission − Operating Costs</div>
-    <div class="progress"><div class="bar" style="width:71%"></div></div>
-    <small>Healthy margin (72%)</small>
-  </div>
+    <div class="chat-actions">
+      <button class="location-btn" onclick="shareLocation()">📍 Share Location</button>
+      <button class="complete-btn" onclick="completeOrder()">✔ I have Received Order</button>
+    </div>
 
-  <!-- USER ECOSYSTEM -->
-  <div class="card">
-    <h3>User Ecosystem</h3>
-    <div class="value">1,387</div>
-    <ul class="list">
-      <li><span>Sellers</span><strong>385</strong></li>
-      <li><span>Buyers</span><strong>860</strong></li>
-      <li><span>Property Owners</span><strong>142</strong></li>
-    </ul>
-  </div>
+    <div class="chat-input">
+      <input type="text" id="chatInput" placeholder="Type a message..." />
+      <button class="send-btn" onclick="sendMessage()">Send</button>
+    </div>
 
-  <!-- PLATFORM HEALTH -->
-  <div class="card">
-    <h3>Platform Health</h3>
-    <div class="value">Stable</div>
-    <ul class="list">
-      <li><span>API</span><strong>Online</strong></li>
-      <li><span>MPESA</span><strong>Connected</strong></li>
-      <li><span>Disputes</span><strong>3 Active</strong></li>
-    </ul>
   </div>
 
 </div>
 
-<!-- TRANSACTIONS -->
-<div class="section">
-<h2>Recent Transactions</h2>
-<table>
-<tr>
- <th>Transaction ID</th>
- <th>Type</th>
- <th>Amount</th>
- <th>Commission</th>
- <th>Status</th>
-</tr>
-<tr>
- <td>#TX20491</td>
- <td>Buyer → Seller</td>
- <td>KES 45,000</td>
- <td>KES 4,500</td>
- <td><span class="badge ok">Completed</span></td>
-</tr>
-<tr>
- <td>#TX20492</td>
- <td>Tenant → Owner</td>
- <td>KES 18,000</td>
- <td>KES 1,800</td>
- <td><span class="badge warn">Pending</span></td>
-</tr>
-</table>
-</div>
+<script>
+const chatBody = document.getElementById("chatBody");
+const chatInput = document.getElementById("chatInput");
+const orderStatus = document.getElementById("orderStatus");
+const chatFooter = document.getElementById("chatFooter");
 
-</div>
+/* SEND MESSAGE */
+function sendMessage() {
+  const input = document.getElementById("chatInput");
+  if (!input.value.trim()) return;
+
+  const messageWrapper = document.createElement("div");
+  messageWrapper.className = "chat-message buyer";
+
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+
+  const time = new Date().toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  bubble.innerHTML = `
+    ${input.value}
+    <span class="time">${time}</span>
+  `;
+
+  messageWrapper.appendChild(bubble);
+  document.getElementById("chatBody").appendChild(messageWrapper);
+
+  input.value = "";
+  chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+function shareLocation() {
+  if (!navigator.geolocation) {
+    alert("Geolocation not supported");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      const accuracy = pos.coords.accuracy; // meters
+
+      const link = `https://www.google.com/maps?q=${lat},${lng}`;
+
+      const time = new Date().toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      const messageWrapper = document.createElement("div");
+      messageWrapper.className = "chat-message buyer";
+
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+
+      bubble.innerHTML = `
+        📍 <strong>My location</strong><br>
+        <a class="location-link" href="${link}" target="_blank">
+          Open in Google Maps
+        </a>
+        <br><small>Accuracy: ±${Math.round(accuracy)}m</small>
+        <span class="time">${time}</span>
+      `;
+
+      messageWrapper.appendChild(bubble);
+      chatBody.appendChild(messageWrapper);
+      chatBody.scrollTop = chatBody.scrollHeight;
+    },
+    function(error) {
+      alert("Unable to retrieve location.");
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    }
+  );
+}
+
+/* COMPLETE ORDER */
+function completeOrder() {
+  if (!confirm("This will mark the order as completed and close the chat. Continue?")) return;
+
+  orderStatus.textContent = "Order Completed • Chat Closed";
+  orderStatus.style.color = "#ffb703";
+
+  const systemMsg = document.createElement("div");
+  systemMsg.className = "message system";
+  systemMsg.textContent =
+    "✅ Order marked as completed. Chat has been closed.";
+  chatBody.appendChild(systemMsg);
+
+  chatFooter.classList.add("locked");
+}
+</script>
+
 </body>
 </html>

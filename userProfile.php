@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $update->execute();
     $update->close();
 
-    header("Location: buyerprofile.php?updated=1");
+    header("Location: userProfile.php?updated=1");
     exit();
 }
 
@@ -195,6 +195,107 @@ if (!empty($user['profile_image'])) {
           <div class="form-group">
             <label>username</label>
             <input type="text" name="username" value="<?= safe($user['username']); ?>">
+          </div>
+
+
+          <div class="form-group">
+            <label>Country</label>
+            <select name="country">
+              <option <?= $user['country']=='Kenya'?'selected':'' ?>>Kenya</option>
+              <option <?= $user['country']=='Uganda'?'selected':'' ?>>Uganda</option>
+              <option <?= $user['country']=='Tanzania'?'selected':'' ?>>Tanzania</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>County</label>
+            <input type="text" name="county" value="<?= safe($user['county']); ?>">
+          </div>
+
+          <div class="form-group">
+            <label>Ward</label>
+            <input type="text" name="ward" value="<?= safe($user['ward']); ?>">
+          </div>
+
+          <div class="form-group">
+            <label>Physical Address</label>
+            <input type="text" name="address" value="<?= safe($user['address']); ?>">
+          </div>
+
+          <div class="form-group">
+            <label>Market Hub Role</label>
+            <select name="account_type">
+              <option value="buyer" <?= $user['account_type']=='buyer'?'selected':'' ?>>Buyer</option>
+              <option value="seller" <?= $user['account_type']=='seller'?'selected':'' ?>>Seller</option>
+              <option value="service_provider" <?= $user['account_type']=='service_provider'?'selected':'' ?>>Service Provider</option>
+            </select>
+          </div>
+          <div></div>
+
+          <div class="save-btn">
+            <button type="submit">Save Profile</button>
+          </div>
+
+        </form>
+      </div>
+    </main>
+    <main class="profile-main">
+      <div class="container profile-container">
+
+        <?php if (isset($_GET['updated'])): ?>
+          <div class="success"><i class="fa-solid fa-check-circle"></i>Profile updated successfully!</div>
+        <?php endif; ?>
+
+        <div class="profile-header">
+          <div class="profile-pic">
+            <img id="profilePreview"
+              src="<?= safe($user['profile_image']) ?: 'Images/Market Hub Logo.avif'; ?>">
+              <input type="file" id="profileImage" name="profile_image" accept="image/png,image/jpeg,image/webp" form="profileForm">
+            <label for="profileImage"><i class="fa fa-camera"></i></label>
+          </div>
+          <div>
+            <h2><?= safe($user['full_name']); ?></h2>
+            <p>Edit your Market Hub details</p>
+          </div>
+        </div>
+
+        <form id="profileForm" class="profile-form" method="POST" enctype="multipart/form-data">
+
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" name="full_name" value="<?= safe($user['full_name']); ?>">
+          </div>
+
+          <div class="form-group">
+            <label>Email (read-only)</label>
+            <input type="email" value="<?= safe($user['email']); ?>" disabled>
+          </div>
+
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="text" name="phone" value="<?= safe($user['phone']); ?>">
+          </div>
+
+          <div class="form-group">
+            <label>Bio (max <?= $bioMaxLength ?> characters)</label>
+            <textarea id="bioTextarea" name="bio" maxlength="<?= $bioMaxLength ?>" 
+                      placeholder="Tell something about yourself..."><?= $safeBio ?></textarea>
+            <small id="bioCount"><?= strlen($bio) ?>/<?= $bioMaxLength ?> characters</small>
+          </div>
+
+          <!-- <div class="form-group">
+            <label>Bio</label>
+            <textarea name="bio" placeholder="Tell people about yourself..."><?= safe($user['bio']); ?></textarea>
+          </div> -->
+
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" name="username" value="<?= safe($user['username']); ?>">
+          </div>
+
+          <div class="form-group">
+            <label>Business Name</label>
+            <input type="text" name="busname" value="<?= safe($user['busname']); ?>">
           </div>
 
 

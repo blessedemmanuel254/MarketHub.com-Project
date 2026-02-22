@@ -778,7 +778,6 @@ html body {
 .table-wrapper  {
   border-radius: 4px;
   overflow-x: auto;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   scrollbar-width: thin;
   scrollbar-color: #000000 #eeeeee;
 }
@@ -946,7 +945,7 @@ html body {
 
 /* Oder Management Section CSS */
 .container main.buyerMain#orderMain, .container main.buyerMain#ordersTrackMain {
-  background-color: #8988882b;
+  background-color: #ffffff;
   display: none;
 }
 
@@ -2767,7 +2766,7 @@ a.seller-right {
 
 .products-grid .card .card-actions button {
   flex: 1;
-  padding: 8px 16px;
+  padding: 10px 16px;
   border: none;
   background: none;
   cursor: pointer;
@@ -2978,9 +2977,25 @@ ADMIN DASHBOARD
 .containerAdmin main.adminMain .admin-tab-panel {
   width: 100%;
   border-radius: 4px;
-  display: flex;
   flex-direction: column;
   gap: 10px;
+  display: none;
+  animation: fadeSlide 0.35s ease;
+}
+
+.containerAdmin main.adminMain .admin-tab-panel.active {
+  display: flex;
+}
+
+@keyframes fadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .containerAdmin main.adminMain .admin-tab-panel nav {
@@ -3208,7 +3223,7 @@ ADMIN DASHBOARD
   width: 100%;
 }
 
-.containerAdmin .navigation-bar nav a {
+.containerAdmin .navigation-bar nav a.nav-link {
   text-decoration: none;
   font-size: 12px;
   color: #ffffff;
@@ -3232,13 +3247,103 @@ ADMIN DASHBOARD
     background 0.3s ease;
 }
 
-.containerAdmin .navigation-bar nav a:hover {
+.containerAdmin .navigation-bar nav a.nav-link.active, .containerAdmin .navigation-bar nav a.nav-link.active i {
+  color: #088000;
+}
+
+.containerAdmin .navigation-bar nav a.nav-link:hover {
   transform: translateY(-6px);
   box-shadow: 0 10px 20px rgba(0,0,0,0.4);
   box-shadow: 0 4px 8px hsla(0, 0%, 54%, 0.376);
 }
 
-.containerAdmin .navigation-bar nav a i {
+.containerAdmin .navigation-bar nav a.nav-link i {
   font-size: 20px;
   color: #898888;
+}
+
+
+
+/* =====================
+  PAGINATION SECTION
+===================== */
+
+/* Pagination container */
+.dataTables_wrapper .dataTables_paginate {
+  margin-bottom: 10px;
+  text-align: right;
+}
+
+/* Pagination buttons */
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+  display: inline-block;
+  margin: 0 4px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: normal;
+  color: #333 !important;
+  background: #8988889f;
+  border: none;
+  cursor: pointer;
+  transition: all 0.1s ease-in-out;
+}
+
+/* Hover effect */
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+  background: #0f268c1c;
+  color: #0f0f0f !important;
+}
+
+/* Active page */
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  background: #0f0f0f !important;
+  color: white !important;
+  font-weight: bold;
+}
+
+/* Disabled state */
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #eaeaea;
+  border-color: #ccc;
+}
+
+/* Wrapper alignment */
+.dataTables_wrapper .dataTables_filter {
+  float: right;
+  margin-bottom: 10px;
+
+}
+
+.dataTables_wrapper .dataTables_filter label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #898888;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Search input */
+.dataTables_wrapper .dataTables_filter input {
+  padding: 6px 12px;
+  border: 1px solid #898888;
+  border-radius: 4px;
+  outline: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.dataTables_wrapper .dataTables_filter input:focus {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Info text below table */
+.dataTables_wrapper .dataTables_info {
+  font-size: 13px;
+  color: #0f0f0f;
+  padding: 10px;
+  padding-bottom: 0;
 }

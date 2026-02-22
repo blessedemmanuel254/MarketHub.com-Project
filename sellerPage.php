@@ -93,6 +93,10 @@ if (!empty($profileImage) && file_exists($profileImage)) {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,70090000000;1,800;1,900&display=swap" rel="stylesheet">
 
+  <!-- jQuery + DataTables JS -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
   <title>Seller Page | Market Hub</title>
 </head>
 <body>
@@ -133,7 +137,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                 <p class="avatar-letter large"><?php echo $safeLetter; ?></p>
               <?php endif; ?>
 
-              <a href="buyerprofile.php"><i class="fa-solid fa-eye"></i>View Profile</a>
+              <a href="userProfile.php"><i class="fa-solid fa-eye"></i>View Profile</a>
               <a href="logout.php"><i class="fa-solid fa-arrow-right-from-bracket"></i>Logout</a>
             </div>
           </div>
@@ -143,7 +147,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       <div class="overlay" onclick="toggleProfileOption()" id="overlay1"></div>
     </header>
     <div class="payOverlay" onclick="togglePaymentOption()" id="payOverlay"></div>
-    <form class="paymentContainer" action="" id="paymentContainer">
+    <form class="paymentContainer" action="" id="paymentContainer">9
       <h1>Choose&nbsp;Account <br><span>You can set your default account in settings</span></h1>
       <label class="radio-container">
         <div class="rightDiv">
@@ -898,6 +902,24 @@ if (!empty($profileImage) && file_exists($profileImage)) {
   </div>
   
   <script src="Scripts/general.js" type="text/javascript"></script>
+  <script>
+    // DataTables Script Js
+    $(document).ready(function () {
+      $('#sellerTransactions').DataTable({
+        pagingType: "simple_numbers", // only numbers + prev/next
+        pageLength: 15,               // rows per page
+        lengthChange: false,          // hide "Show X entries"
+        searching: true,              // keep search box
+        ordering: true,               // column sorting
+        stateSave: true,              // ✅ remembers pagination, search & sort
+        language: {
+          paginate: {
+            previous: "PREV",
+            next: "NEXT"
+          }
+        }
+      });
+    });
   </script>
 </body>
 </html>

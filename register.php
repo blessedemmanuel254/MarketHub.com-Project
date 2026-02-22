@@ -11,11 +11,18 @@ if (!isset($_SESSION['accountType'])) {
 $accountType = $_SESSION['accountType']; // buyer | seller
 
 $error = "";
-$username = "";
 $success = "";
+$full_name = "";
+$username = "";
+$email = "";
+$phone = "";
 $country = "";
 $county = "";
 $ward = "";
+$address = "";
+$busname = "";
+$bustype = "";
+$market = "";
 
 function normalizePhoneNumber($rawPhone) {
   // Remove all characters except numbers and plus sign
@@ -49,20 +56,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
     return ""; // valid
   }
-
-  $accountType = isset($_SESSION['accountType']) ? ucfirst(trim($_SESSION['accountType'])) : '';
+  
   $full_name = trim($_POST['full_name'] ?? '');
-  $country = trim($_POST['country'] ?? '');
-  $county = trim($_POST['county'] ?? '');
-  $ward = trim($_POST['ward'] ?? '');
   $username = trim($_POST['username'] ?? '');
   $email = trim($_POST['email'] ?? '');
   $phone = trim($_POST['phone'] ?? '');
   $password = $_POST['password'] ?? '';
   $confirm_password = $_POST['confirm_password'] ?? '';
+  $country = trim($_POST['country'] ?? '');
+  $county = trim($_POST['county'] ?? '');
+  $ward = trim($_POST['ward'] ?? '');
   $address = trim($_POST['address'] ?? '');
 
-  if (empty($country) || empty($county) || empty($ward) || empty($username) || empty($email) || empty($phone) || empty($password) || empty($confirm_password) || empty($address)) {
+  if (!$full_name || !$username || !$email || !$phone || !$password || !$confirm_password || !$country || !$county || !$ward || !$address || ($accountType === 'seller' && (!$busname || !$bustype || !$market))) {
     $error = "All fields are required.";
   } else if (!$accountType) {
     $error = 'Visit the <a href="accountTypeSelection.php">account-type selection</a> page to proceed.';
@@ -394,7 +400,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <form action="" method="POST">
           <h2>Register account on Market Hub</h2>
           <div class="account-type">
-            <div class="account-icon">🛒</div>
+            <div class="account-icon">📦</div>
             <div class="regInfo">
               <h4>Account type</h4>
               <p><?= ucfirst(htmlspecialchars($accountType)) ?></p>
@@ -425,29 +431,31 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <label>Phone</label>
               </div>
               <div class="inpBox">
-                <input type="busname" name="busname" value="<?php echo htmlspecialchars($busname ?? ''); ?>" placeholder="" required>
+                <input type="text" name="busname" value="<?= htmlspecialchars($busname ?? '') ?>" placeholder="" required>
                 <label>Business Name</label>
               </div>
+
               <div class="selectorBox">
                 <span>Market</span>
                 <select id="market" name="market" required>
-                  <option value=""><p>-- Select Market --</p></option><!-- 
-                  <option value="Local" <?php echo ($country === 'Local') ? 'selected' : ''; ?>>Local</option> -->
-                  <option value="National" <?php echo ($country === 'National') ? 'selected' : ''; ?>>National</option>
-                  <option value="National" <?php echo ($country === 'National') ? 'selected' : ''; ?>>National</option>
+                  <option value="">-- Select Market --</option>
+                  <option value="Local" <?= ($market ?? '') === 'Local' ? 'selected' : ''; ?>>Local</option>
+                  <option value="National" <?= ($market ?? '') === 'National' ? 'selected' : ''; ?>>National</option><!-- 
+                  <option value="Global" <?= ($market ?? '') === 'Global' ? 'selected' : ''; ?>>Global</option> -->
                 </select>
               </div>
+
               <div class="selectorBox">
                 <span>Business type</span>
-                <select id="market" name="market" required>
-                  <option value=""><p>-- Select Type --</p></option>
-                  <option value="shop" <?php echo ($country === 'shop') ? 'selected' : ''; ?>>Shop</option>
-                  <option value="supermarket" <?php echo ($country === 'supermarket') ? 'selected' : ''; ?>>Supermarket</option>
-                  <option value="kiosk" <?php echo ($country === 'kiosk') ? 'selected' : ''; ?>>Kiosk</option>
-                  <option value="kibanda" <?php echo ($country === 'National') ? 'selected' : ''; ?>>Kibanda</option>
-                  <option value="canteen" <?php echo ($country === 'canteen') ? 'selected' : ''; ?>>Canteen</option>
-                  <option value="service_provider" <?php echo ($country === 'service_provider') ? 'selected' : ''; ?>>Service Provider</option>
-                  <option value="rental" <?php echo ($country === 'rental') ? 'selected' : ''; ?>>Rental</option>
+                <select id="bustype" name="bustype" required>
+                  <option value="">-- Select Type --</option>
+                  <option value="shop" <?= ($bustype ?? '') === 'shop' ? 'selected' : ''; ?>>Shop</option>
+                  <option value="supermarket" <?= ($bustype ?? '') === 'supermarket' ? 'selected' : ''; ?>>Supermarket</option>
+                  <option value="kiosk" <?= ($bustype ?? '') === 'kiosk' ? 'selected' : ''; ?>>Kiosk</option>
+                  <option value="kibanda" <?= ($bustype ?? '') === 'kibanda' ? 'selected' : ''; ?>>Kibanda</option>
+                  <option value="canteen" <?= ($bustype ?? '') === 'canteen' ? 'selected' : ''; ?>>Canteen</option>
+                  <option value="service_provider" <?= ($bustype ?? '') === 'service_provider' ? 'selected' : ''; ?>>Service Provider</option>
+                  <option value="rental" <?= ($bustype ?? '') === 'rental' ? 'selected' : ''; ?>>Rental</option>
                 </select>
               </div>
             </div>

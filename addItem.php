@@ -132,7 +132,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                 <p class="avatar-letter large"><?php echo $safeLetter; ?></p>
               <?php endif; ?>
 
-              <a href="buyerprofile.php"><i class="fa-solid fa-eye"></i>View Profile</a>
+              <a href="userProfile.php"><i class="fa-solid fa-eye"></i>View Profile</a>
               <a href="logout.php"><i class="fa-solid fa-arrow-right-from-bracket"></i>Logout</a>
             </div>
           </div>
