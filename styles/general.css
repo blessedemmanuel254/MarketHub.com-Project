@@ -1375,7 +1375,7 @@ html body {
     justify-content: center;
   }
 
-  .container main#ordersTrackMain .tab-top, .container main.buyerMain#earningsTrackMain {
+  .container main#ordersTrackMain .tab-top, .container main.buyerMain#earningsTrackMain, .container main#earningsTrackMain .tab-top {
     margin: 10px 0;
     width: 100%;
   }

@@ -247,21 +247,25 @@ function toggleSellerOrdersTrack() {
 function toggleAgentOrdersTrack() {
   const agentMain = document.getElementById("agentMain");
   const orderMain = document.getElementById("orderMain");
+  const earningsTrackMain = document.getElementById("earningsTrackMain");
 
-  const isAgentVisible = agentMain.style.display !== "none";
+  const isOrderVisible = getComputedStyle(orderMain).display !== "none";
 
-  agentMain.style.display = isAgentVisible ? "none" : "flex";
-  orderMain.style.display = isAgentVisible ? "flex" : "none";
+  orderMain.style.display = isOrderVisible ? "none" : "flex";
+  agentMain.style.display = isOrderVisible ? "flex" : "none";
+  earningsTrackMain.style.display = "none";
 }
 
 function toggleAgentEarningsTrack() {
   const agentMain = document.getElementById("agentMain");
+  const orderMain = document.getElementById("orderMain");
   const earningsTrackMain = document.getElementById("earningsTrackMain");
 
-  const isAgentVisible = agentMain.style.display !== "none";
+  const isEarningsVisible = getComputedStyle(earningsTrackMain).display !== "none";
 
-  agentMain.style.display = isAgentVisible ? "none" : "flex";
-  earningsTrackMain.style.display = isAgentVisible ? "flex" : "none";
+  earningsTrackMain.style.display = isEarningsVisible ? "none" : "flex";
+  agentMain.style.display = isEarningsVisible ? "flex" : "none";
+  orderMain.style.display = "none";
 }
 
 /* ================= MARKET NAVIGATION (FIXED) ================= */
