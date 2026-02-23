@@ -554,7 +554,7 @@ html body {
   margin: 10px 0;
 }
 
-#toggleMarketSourceTab {
+#toggleMarketSourceTab, #toggleMarketTypeTabAgent {
   display: none;
 }
 
@@ -613,14 +613,14 @@ html body {
 
 .container main.buyerMain .agentHeader p.status span.unverified {
   color: #ff3b3b;
-  background-color: #ff3b3b15;
+  background-color: #ff3b3b2a;
 }
 
 .tabs-container .tabs {
   display: flex;
 }
 
-.tabs-container .tabs .tab-btn, .tabs-container .tabs .tab-btn-msource {
+.tabs-container .tabs .tab-btn, .tabs-container .tabs .tab-btn-msource, .tabs-container .tabs .tab-btn-mtype  {
   flex: 1;
   padding: 8px;
   border: none;
@@ -633,11 +633,11 @@ html body {
   border-radius: 10px 10px 0 0;
 }
 
-.tabs-container .tabs .tab-btn:hover, .tabs-container .tabs .tab-btn-msource:hover {
+.tabs-container .tabs .tab-btn:hover, .tabs-container .tabs .tab-btn-msource:hover, .tabs-container .tabs .tab-btn-mtype:hover {
   background-color: #dedede42;
 }
 
-.tabs-container .tabs .tab-btn.active, .tabs-container .tabs .tab-btn-msource.active {
+.tabs-container .tabs .tab-btn.active, .tabs-container .tabs .tab-btn-msource.active, .tabs-container .tabs .tab-btn-mtype.active {
   font-weight: bold;
   border-radius: 10px 10px 0 0;
   border: 1px solid #dedede;
@@ -650,7 +650,7 @@ html body {
   height: fit-content;
 }
 
-.tabs-container .tab-content .tab-panel, .tabs-container .tab-content .tab-panel-msource {
+.tabs-container .tab-content .tab-panel, .tabs-container .tab-content .tab-panel-msource, .tabs-container .tab-content .tab-panel-mtype  {
   position: relative;
   width: 100%;
   padding: 10px;
@@ -661,22 +661,22 @@ html body {
   gap: 20px;
 }
 
-.tabs-container .tab-content .tab-panel p,  .tabs-container .tab-content .tab-panel-msource p, .container main .tab-top p {
+.tabs-container .tab-content .tab-panel p,  .tabs-container .tab-content .tab-panel-msource p, .container main .tab-top p, .tabs-container .tab-content .tab-panel-mtype p {
   font-size: 14px;
   color: #898888;
   line-height: 30px;
 }
 
-.tabs-container .tab-content .tab-panel p i,  .tabs-container .tab-content .tab-panel-msource p i, .container main .tab-top p i {
+.tabs-container .tab-content .tab-panel p i,  .tabs-container .tab-content .tab-panel-msource p i, .container main .tab-top p i, .tabs-container .tab-content .tab-panel-msource p i {
   font-size: 14px;
   line-height: 30px;
 }
 
-.tabs-container .tab-content .tab-panel p em,  .tabs-container .tab-content .tab-panel-msource p em, .container main .tab-top p em {
+.tabs-container .tab-content .tab-panel p em,  .tabs-container .tab-content .tab-panel-msource p em, .container main .tab-top p em, .tabs-container .tab-content .tab-panel-mtype p em {
   color: #0f0f0f;
 }
 
-.tabs-container .tab-content .tab-panel p strong, .tabs-container .tab-content .tab-panel-msource p strong, .container main .tab-top p strong {
+.tabs-container .tab-content .tab-panel p strong, .tabs-container .tab-content .tab-panel-msource p strong, .container main .tab-top p strong, .tabs-container .tab-content .tab-panel-mtype p strong {
   font-size: 16px;
   color: #ff3b3b;
   font-weight: normal;
@@ -686,7 +686,7 @@ html body {
   color: #088000;
 }
 
-.tabs-container .tab-content .tab-panel.active,  .tabs-container .tab-content .tab-panel-msource.active {
+.tabs-container .tab-content .tab-panel.active,  .tabs-container .tab-content .tab-panel-msource.active, .tabs-container .tab-content .tab-panel-mtype.active {
   display: flex;
   transform: translateX(0);
   pointer-events: auto;
@@ -703,7 +703,7 @@ html body {
   gap: 5px;
 }
 
-.container main#ordersTrackMain .tab-top {
+.container main#ordersTrackMain .tab-top, .container main#earningsTrackMain .tab-top {
   width: 90%;
   margin: 10px auto;
 }
@@ -727,13 +727,13 @@ html body {
   opacity: .875;
 }
 
-.tabs-container .tab-content .tab-panel .cards {
+.tabs-container .tab-content .tab-panel .cards, .tabs-container .tab-content .tab-panel-mtype .cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 30px;
 }
 
-.tabs-container .tab-content .tab-panel .cards a.card {
+.tabs-container .tab-content .tab-panel .cards a.card, .tabs-container .tab-content .tab-panel-mtype .cards a.card {
   text-emphasis: none;
   border-radius: 4px;
   padding: 8px 16px;
@@ -744,7 +744,7 @@ html body {
   transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
 }
 
-.tabs-container .tab-content .tab-panel .cards a.card:hover, .admin-tab-content .cards .card:hover {
+.tabs-container .tab-content .tab-panel .cards a.card:hover, .admin-tab-content .cards .card:hover, .tabs-container .tab-content .tab-panel-mtype .cards a.card:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transform: translateY(-6px);
 }
@@ -754,7 +754,7 @@ html body {
 
 }
 
-.tabs-container .tab-content .tab-panel .cards a.card i.fa-solid, .tabs-container .tab-content .tab-panel .cards a.card i.fa-brands {
+.tabs-container .tab-content .tab-panel .cards a.card i.fa-solid, .tabs-container .tab-content .tab-panel .cards a.card i.fa-brands, .tabs-container .tab-content .tab-panel-mtype .cards a.card i.fa-solid, .tabs-container .tab-content .tab-panel-mtype .cards a.card i.fa-brands {
   font-size: 35px;
   margin-bottom: 10px;
   display: inline-block;
@@ -765,18 +765,18 @@ html body {
   color: rgba(9, 128, 0, 0.774)
 }
 
-.tabs-container .tab-content .tab-panel .cards a.card h2 {
+.tabs-container .tab-content .tab-panel .cards a.card h2, .tabs-container .tab-content .tab-panel-mtype .cards a.card h2 {
   font-size: 18px;
   margin-bottom: 6px;
 }
 
-.tabs-container .tab-content .tab-panel .cards a.card p {
+.tabs-container .tab-content .tab-panel .cards a.card p, .tabs-container .tab-content .tab-panel-mtype .cards a.card p {
   font-size: 14px;
   line-height: 1.6;
   color: inherit;
 }
 
-.tabs-container .tab-content .tab-panel .cards a.card .label {
+.tabs-container .tab-content .tab-panel .cards a.card .label, .tabs-container .tab-content .tab-panel-mtype .cards a.card .label {
   display: flex;
   justify-content: space-between;
   width: 100%;
@@ -785,7 +785,7 @@ html body {
   font-size: 14px;
 }
 
-.tabs-container .tab-content .tab-panel .cards a.card .label p {
+.tabs-container .tab-content .tab-panel .cards a.card .label p, .tabs-container .tab-content .tab-panel-mtype .cards a.card .label p {
   display: inline-block;
   margin-top: 10px;
   font-weight: bold;
@@ -796,7 +796,7 @@ html body {
   padding-bottom: 4px;
 }
 
-.tabs-container .tab-content .tab-panel .cards a.card .label button {
+.tabs-container .tab-content .tab-panel .cards a.card .label button, .tabs-container .tab-content .tab-panel-mtype .cards a.card .label button {
   border: none;
   padding: 8px 16px;
   border-radius: 4px;
@@ -805,7 +805,7 @@ html body {
   cursor: pointer;
 }
 
-.tabs-container .tab-content .tab-panel .cards a.card .tag {
+.tabs-container .tab-content .tab-panel .cards a.card .tag, .tabs-container .tab-content .tab-panel-mtype .cards a.card .tag {
   position: absolute;
   top: 15px;
   right: 15px;
@@ -818,7 +818,7 @@ html body {
   border-radius: 4px;
 }
 
-.tabs-container .tab-content .tab-panel .cards a.card .card:hover .tag {
+.tabs-container .tab-content .tab-panel .cards a.card .card:hover .tag, .tabs-container .tab-content .tab-panel-mtype .cards a.card .card:hover .tag {
   background: #ffffff;
   color: #000;
   border-color: #ffffff;
@@ -993,7 +993,7 @@ html body {
 }
 
 /* Oder Management Section CSS */
-.container main.buyerMain#orderMain, .container main.buyerMain#ordersTrackMain {
+.container main.buyerMain#orderMain, .container main.buyerMain#ordersTrackMain, .container main.buyerMain#earningsTrackMain {
   background-color: #ffffff;
   display: none;
 }
@@ -1375,7 +1375,7 @@ html body {
     justify-content: center;
   }
 
-  .container main#ordersTrackMain .tab-top {
+  .container main#ordersTrackMain .tab-top, .container main.buyerMain#earningsTrackMain {
     margin: 10px 0;
     width: 100%;
   }
@@ -1436,7 +1436,6 @@ html body {
 
 .container main .formContainer form p.errorMessage, .container main .formContainer form p.successMessage, .container main form.actpContainer p.errorMessage, .tab-content .tab-panel p.errorMessage, .tab-content .tab-panel p.successMessage {
   display: flex;
-  align-items: center;
   gap: 5px;
   font-size: 14px;
   color: #ff3b3b;
@@ -2755,10 +2754,10 @@ a.seller-right {
 }
 
 .containerInner .card .progress span, .form-wrapper .formBody .card .progress span {
-  display:block;
-  height:100%;
-  background:#000;
-  border-radius:10px;
+  display: block;
+  height: 100%;
+  background: #0f0f0f;;
+  border-radius: 10px;
 }
 
 .containerInner .card .actions {
@@ -2906,6 +2905,8 @@ a.seller-right {
   font-size: 14px;
   color: #0f0f0f;
   width: fit-content;
+  border-radius: 4px;
+  background-color: #ffffff;
 
 }
 
@@ -2980,6 +2981,10 @@ a.seller-right {
 @media(max-width: 670px) {
   .tab-content .tab-panel .form-wrapper form .formBody { 
     grid-template-columns: 1fr;
+  }
+  
+  .tab-content .tab-panel .form-wrapper form {
+    width: 100%;
   }
 }
 

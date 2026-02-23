@@ -114,15 +114,19 @@ document.addEventListener("DOMContentLoaded", function () {
 /* Main Page Tabs */
 let lastActiveMarketTypeTab = null;  // Tracks last market type tab
 let lastActiveMarketSourceTab = null; // Tracks last source tab
+let lastActiveMarketAgentTab = null; // Tracks last source tab
 
 document.addEventListener("DOMContentLoaded", () => {
   lastActiveMarketTypeTab = document.querySelector('.tab-btn.active');
   lastActiveMarketSourceTab = document.querySelector('.tab-btn-msource.active');
+  lastActiveMarketAgentTab = document.querySelector('.tab-btn-mtype.active');
 
   const tabs = document.querySelectorAll('.tab-btn');
   const tabsmsource = document.querySelectorAll('.tab-btn-msource');
+  const tabsmtype = document.querySelectorAll('.tab-btn-mtype');
   const panels = document.querySelectorAll('.tab-panel');
   const panelsmsource = document.querySelectorAll('.tab-panel-msource');
+  const panelsmtype = document.querySelectorAll('.tab-panel-mtype');
 
   function activateTab(tab) {
     const target = tab.dataset.tab;
@@ -130,8 +134,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Deactivate all tabs & panels
     tabs.forEach(t => t.classList.remove('active'));
     tabsmsource.forEach(t => t.classList.remove('active'));
+    tabsmtype.forEach(t => t.classList.remove('active'));
     panels.forEach(p => p.classList.remove('active'));
     panelsmsource.forEach(p => p.classList.remove('active'));
+    panelsmtype.forEach(p => p.classList.remove('active'));
 
     // Activate clicked tab & its panel
     tab.classList.add('active');
@@ -142,11 +148,14 @@ document.addEventListener("DOMContentLoaded", () => {
       lastActiveMarketTypeTab = tab;
     } else if (tab.classList.contains('tab-btn-msource')) {
       lastActiveMarketSourceTab = tab;
+    } else if (tab.classList.contains('tab-btn-mtype')) {
+      lastActiveMarketAgentTab = tab;
     }
   }
 
   tabs.forEach(tab => tab.addEventListener('click', () => activateTab(tab)));
   tabsmsource.forEach(tab => tab.addEventListener('click', () => activateTab(tab)));
+  tabsmtype.forEach(tab => tab.addEventListener('click', () => activateTab(tab)));
 
 });
 
@@ -235,6 +244,26 @@ function toggleSellerOrdersTrack() {
   ordersTrackMain.style.display = isSellerVisible ? "flex" : "none";
 }
 
+function toggleAgentOrdersTrack() {
+  const agentMain = document.getElementById("agentMain");
+  const orderMain = document.getElementById("orderMain");
+
+  const isAgentVisible = agentMain.style.display !== "none";
+
+  agentMain.style.display = isAgentVisible ? "none" : "flex";
+  orderMain.style.display = isAgentVisible ? "flex" : "none";
+}
+
+function toggleAgentEarningsTrack() {
+  const agentMain = document.getElementById("agentMain");
+  const earningsTrackMain = document.getElementById("earningsTrackMain");
+
+  const isAgentVisible = agentMain.style.display !== "none";
+
+  agentMain.style.display = isAgentVisible ? "none" : "flex";
+  earningsTrackMain.style.display = isAgentVisible ? "flex" : "none";
+}
+
 /* ================= MARKET NAVIGATION (FIXED) ================= */
 function showMarketContainer(target) {
   const typeTab = document.getElementById("toggleMarketTypeTab");
@@ -250,6 +279,23 @@ function showMarketContainer(target) {
   if (target === "source") {
     typeTab.style.display = "none";
     sourceTab.style.display = "block";
+  }
+}
+
+function showMarketTypeContainer(target) {
+  const agentTab = document.getElementById("toggleAgentTab");
+  const typeTab = document.getElementById("toggleMarketTypeTabAgent");
+
+  if (!agentTab || !typeTab) return;
+
+  if (target === "agent") {
+    agentTab.style.display = "block";
+    typeTab.style.display = "none";
+  }
+
+  if (target === "type") {
+    agentTab.style.display = "none";
+    typeTab.style.display = "block";
   }
 }
 
@@ -279,6 +325,30 @@ function openMarketSource(sourceTabId = "shops") {
   }
 }
 
+function openMarketType(typeTabId = "products") {
+  showMarketTypeContainer("type");
+
+  // Deactivate all type tabs & panels
+  document.querySelectorAll(".tab-btn-mtype").forEach(btn =>
+    btn.classList.remove("active")
+  );
+  document.querySelectorAll(".tab-panel-mtype").forEach(panel =>
+    panel.classList.remove("active")
+  );
+
+  // Activate the correct type tab
+  const btn = document.querySelector(`.tab-btn-mtype[data-tab="${typeTabId}"]`);
+  const panel = document.getElementById(typeTabId);
+
+  if (btn && panel) {
+    btn.classList.add("active");
+    panel.classList.add("active");
+
+    // Track as last active type tab
+    lastActiveMarketAgentTab = btn;
+  }
+}
+
 /* ================= GO BACK ================= */
 
 function goBackToMarketTypes() {
@@ -304,6 +374,32 @@ function goBackToMarketTypes() {
     lastActiveMarketSourceTab.classList.add('active');
     const sourcePanel = document.getElementById(lastActiveMarketSourceTab.dataset.tab);
     if (sourcePanel) sourcePanel.classList.add('active');
+  }
+}
+
+function goBackToAgent() {
+  const agentTab = document.getElementById("agentMain");
+  const productsTab = document.getElementById("toggleMarketTypeTabAgent");
+
+  if (agentTab) agentMain.style.display = "flex";
+  if (productsTab) orderMain.style.display = "none";
+
+  showMarketTypeContainer("agent");
+
+  // Restore last active agent tab
+  if (lastActiveMarketAgentTab) {
+    lastActiveMarketAgentTab.classList.add('active');
+    const panel = document.getElementById(lastActiveMarketAgentTab.dataset.tab);
+    if (panel) panel.classList.add('active');
+  }
+
+  // Optionally, if you want to **return to the last source tab** after re-opening source
+  // Example: after user goes to Shops → Supermarkets → Back → then clicks a source tab again,
+  // the previous last source tab is remembered
+  if (lastActiveMarketTypeTab) {
+    lastActiveMarketTypeTab.classList.add('active');
+    const typePanel = document.getElementById(lastActiveMarketTypeTab.dataset.tab);
+    if (typePanel) typePanel.classList.add('active');
   }
 }
 
@@ -530,6 +626,19 @@ document.addEventListener("mousemove", (e) => {
 // ADD PRODUCT TOGGLE
 function toggleProductsAdd(showAdd) {
   const products = document.getElementById("products");
+  const addProducts = document.getElementById("add-products");
+
+  if (showAdd) {
+    products.classList.remove("active");
+    addProducts.classList.add("active");
+  } else {
+    products.classList.add("active");
+    addProducts.classList.remove("active");
+  }
+}
+
+function toggleAgentAdd(showAdd) {
+  const products = document.getElementById("agency");
   const addProducts = document.getElementById("add-products");
 
   if (showAdd) {

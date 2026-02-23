@@ -115,12 +115,17 @@ if (!empty($profileImage) && file_exists($profileImage)) {
           </p>
         </div>
         <div class="rhs">
-          <a class="lkOdr" onclick="toggleSellerOrdersTrack()">
+          <a class="lkOdr" onclick="toggleAgentOrdersTrack()">
             <div class="odrIconDiv">
               <i class="fa-brands fa-first-order-alt"></i>
               <p>8</p>
             </div>
-            <p>Order(s)</p>
+          </a>
+          <a class="lkOdr" onclick="toggleAgentEarningsTrack()">
+            <div class="odrIconDiv">
+              <i class="fa-solid fa-sack-dollar"></i>
+              <p>3</p>
+            </div>
           </a>
           <select name="" id="ward">
             <option value="">Kilifi</option>
@@ -207,17 +212,17 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       </div>
     </div>
 
-    <main class="buyerMain" id="sellerMain">
+    <main class="buyerMain" id="agentMain">
       <div class="agentHeader">
-        <h1>Agent Dashboard</h1>
-        <p class="status">Status:&nbsp;<span class="verified">Verified&nbsp;<i class="fa-solid fa-certificate"></i></span></p><!-- 
-        <p class="status">Status:&nbsp;<span class="unverified">Unverified&nbsp;<i class="fa-solid fa-certificate"></i></span></p> -->
+        <h1>Agent Dashboard</h1><!-- 
+        <p class="status">Status:&nbsp;<span class="verified">Verified&nbsp;<i class="fa-solid fa-certificate"></i></span></p> -->
+        <p class="status">Status:&nbsp;<span class="unverified">Unverified&nbsp;<i class="fa-solid fa-circle-exclamation"></i></span></p>
 
       </div>
-      <div class="tabs-container" id="toggleMarketTypeTab">
+      <div class="tabs-container" id="toggleAgentTab">
         <div class="tabs">
           <button class="tab-btn active" data-tab="dashboard">Sales&nbsp;Board</button>
-          <button class="tab-btn" data-tab="products">My&nbsp;Agency</button>
+          <button class="tab-btn" data-tab="agency">My&nbsp;Agency</button>
           <button class="tab-btn" data-tab="funds" onclick="togglePaymentOption()">Funds</button>
         </div>
 
@@ -228,7 +233,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
             <div class="cards">
               <!-- AGENT -->
-              <a class="card" onclick="openMarketSource('shops')">
+              <a class="card">
                 <i class="fa-brands fa-product-hunt"></i>
                 <h2>Products</h2>
                 <p>
@@ -256,7 +261,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
               </a>
 
               <!-- GLOBAL -->
-              <a class="card">
+              <a class="card" onclick="openMarketType('products')">
                 <i class="fa-brands fa-renren"></i>
                 <h2>Market</h2>
                 <p>
@@ -271,10 +276,10 @@ if (!empty($profileImage) && file_exists($profileImage)) {
             </div>
           </div>
 
-          <div id="products" class="tab-panel agency">
+          <div id="agency" class="tab-panel agency">
             <div class="tab-top">
               <p>Peformance Analytics<br><strong>Monitor your agency and track performance <i class="fa-regular fa-circle-check"></i></strong></p>
-              <button onclick="toggleProductsAdd(true)">
+              <button onclick="toggleAgentAdd(true)">
                 <i class="fa fa-plus"></i>&nbsp;<span>Add&nbsp;Agent</span>
               </button>
 
@@ -375,7 +380,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
           <div id="add-products" class="tab-panel">
             <div class="tab-top">
               <p>Add to your Agency</em> <br><strong>Submit new agent's details to be added <i class="fa-regular fa-circle-check"></i></strong></p>
-              <button onclick="toggleProductsAdd(false)">
+              <button onclick="toggleAgentAdd(false)">
                 <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
               </button>
 
@@ -469,7 +474,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                   <div>
                     <div class="inp-box">
                       <label>Withdraw from Sales</label>
-                      <input type="number" placeholder="Enter amount">
+                      <input type="number" placeholder="Enter amount" min="0">
                       <button type="button">Request Withdrawal</button>
                     </div>
                   </div>
@@ -490,12 +495,330 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                   <div>
                     <div class="inp-box">
                       <label>Withdraw from Agency</label>
-                      <input type="number" placeholder="Enter amount">
+                      <input type="number" placeholder="Enter amount" min="0">
                       <button type="button">Request Withdrawal</button>
                     </div>
                   </div>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tabs-container" id="toggleMarketTypeTabAgent">
+        <div class="tabs">
+          <button class="tab-btn-mtype" data-tab="products">Products</button>
+          <button class="tab-btn-mtype" data-tab="services">Services</button>
+          <button class="tab-btn-mtype" data-tab="rentals">Rentals</button>
+        </div>
+
+        <div class="tab-content">
+          <div id="products" class="tab-panel-mtype">
+            <div class="tab-top">
+            <p>Quality goods from trusted vendors. <br><strong>Please select Market type <i class="fa-regular fa-circle-check"></i></strong></p>
+              <button onclick="goBackToAgent()">
+                <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
+              </button>
+            </div>
+
+            <div class="cards">
+              <!-- LOCAL -->
+              <a class="card" onclick="openMarketSource('source')">
+                <i class="fa-solid fa-location-dot"></i>
+                <h2>Local Market</h2>
+                <p>
+                  Discover products near you.
+                </p>
+                <div class="label">
+                  <p>Local</p>
+                  <button>View Market</button>
+
+                </div>
+              </a>
+
+              <!-- NATIONAL (MOST VISITED) -->
+              <a class="card">
+                <div class="tag">MOST VISITED</div>
+                <i class="fa-solid fa-flag-usa"></i>
+                <h2>National Market</h2>
+                <p>
+                  Browse products from across the country.
+                </p>
+                <div class="label">
+                  <p>National</p>
+                  <button>View Market</button>
+
+                </div>
+              </a>
+
+              <!-- GLOBAL -->
+              <a class="card">
+                <i class="fa-solid fa-earth-americas"></i>
+                <h2>Global Market</h2>
+                <p>
+                  Explore international products.
+                </p>
+                <div class="label">
+                  <p>Global</p>
+                  <button>View Market</button>
+
+                </div>
+              </a>
+            </div>
+          </div>
+
+          <div id="services" class="tab-panel-mtype">
+            <p>Professional services delivered with reliability.<br><strong>Please select Market type <i class="fa-regular fa-circle-check"></i></strong></p>
+
+            <div class="cards">
+              <!-- LOCAL -->
+              <a class="card">
+                <div class="tag">MOST VISITED</div>
+                <i class="fa-solid fa-screwdriver-wrench"></i>
+                <h2>Local Services</h2>
+                <p>
+                  Get reliable services from professionals near you.
+                </p>
+                <div class="label">
+                  <p>Local</p>
+                  <button>View Services</button>
+
+                </div>
+              </a>
+
+              <!-- NATIONAL (MOST VISITED) -->
+              <a class="card">
+                <i class="fa-solid fa-laptop-code"></i>
+                <h2>National Services</h2>
+                <p>
+                  Access verified service providers from across the country.
+                </p>
+                <div class="label">
+                  <p>National</p>
+                  <button>View Services</button>
+
+                </div>
+              </a>
+
+              <!-- GLOBAL -->
+              <a class="card">
+                <i class="fa-solid fa-globe"></i>
+                <h2>Global Services</h2>
+                <p>
+                  Connect with international experts and remote professionals.
+                </p>
+                <div class="label">
+                  <p>Global</p>
+                  <button>View Services</button>
+
+                </div>
+              </a>
+            </div>
+          </div>
+
+          <div id="rentals" class="tab-panel-mtype">
+            <p>Affordable rentals for homes, vehicles and equipment.<br><strong>Please select Market type <i class="fa-regular fa-circle-check"></i></strong></p>
+
+            <div class="cards">
+              <!-- LOCAL -->
+              <a class="card">
+                <div class="tag">MOST VISITED</div>
+                <i class="fa-solid fa-house"></i>
+                <h2>Local Rentals</h2>
+                <p>
+                  Find rentals close to you including homes, vehicles, tools, and equipment.
+                </p>
+                <div class="label">
+                  <p>Local</p>
+                  <button>View Rentals</button>
+
+                </div>
+              </a>
+
+              <!-- NATIONAL (MOST VISITED) -->
+              <a class="card">
+                <i class="fa-solid fa-building"></i>
+                <h2>National Rentals</h2>
+                <p>
+                  Browse rental options available across the country.
+                </p>
+                <div class="label">
+                  <p>National</p>
+                  <button>View Rentals</button>
+
+                </div>
+              </a>
+
+              <!-- GLOBAL -->
+              <a class="card">
+                <i class="fa-solid fa-jet-fighter-up"></i>
+                <h2>Global Rentals</h2>
+                <p>
+                  Access international rental opportunities for travel, relocation, and cross-border projects.
+                </p>
+                <div class="label">
+                  <p>Global</p>
+                  <button>View Rentals</button>
+
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tabs-container" id="toggleMarketSourceTab">
+        <div class="tabs">
+          <button class="tab-btn-msource" data-tab="shops">Shops</button>
+          <button class="tab-btn-msource" data-tab="supermarkets">Supermarkets</button><!-- 
+          <button class="tab-btn-msource" data-tab="rentals">Rentals</button> -->
+        </div>
+
+        <div class="tab-content">
+          <div id="shops" class="tab-panel-msource">
+            <div class="tab-top">
+              <p>Showing markets in <em>Sokoni Ward</em> <br><strong>Please select the market source <i class="fa-regular fa-circle-check"></i></strong></p>
+              <button onclick="goBackToMarketTypes()">
+                <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
+              </button>
+            </div>
+
+            <!-- SELLERS LIST -->
+            <div class="sellers">
+
+              <div class="seller">
+                <div class="seller-left">
+                  <div class="avatar">MC</div>
+                  <div>
+                    <div class="name">Main Canteen</div>
+                    <div class="rating">★★★★★ (41)</div>
+                    <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
+                    <div class="meta"><h2>23k&nbsp;<span>followers</span></h2></div>
+                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
+                  </div>
+                </div>
+                <a href="marketDisplay.php" class="seller-right">
+                  <div class="promoBadgeGoGold">200+</div>
+                  <div class="bsType">Business Type : <i>Kiosk</i></div>
+                  <div class="action">
+                    <button>View&nbsp;seller</button>
+                  </div>
+                </a>
+              </div>
+
+              <div class="seller">
+                <div class="seller-left">
+                  <div class="avatar">BE</div>
+                  <div>
+                    <div class="name">BerryFerry</div>
+                    <div class="rating">★★★★★ (165)</div>
+                    <div class="meta"><h2>3&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
+                    <div class="meta"><h2>4&nbsp;<span>followers</span></h2></div>
+                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
+                  </div>
+                </div>
+                <a href="marketDisplay.php" class="seller-right">
+                  <div class="promoBadgeDefault">13</div>
+                  <div class="bsType">Business Type : <i>Canteen</i></div>
+                  <div class="action">
+                    <button>View&nbsp;seller</button>
+                  </div>
+                </a>
+              </div>
+
+              <div class="seller">
+                <div class="seller-left">
+                  <div class="avatar">WW</div>
+                  <div>
+                    <div class="name">Wwrightbright</div>
+                    <div class="rating">★★★★★ (11)</div>
+                    <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
+                    <div class="meta"><h2>2&nbsp;<span>followers</span></h2></div>
+                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
+                  </div>
+                </div>
+                <a href="marketDisplay.php" class="seller-right">
+                  <div class="promoBadgeGoPro">100+</div>
+                  <div class="bsType">Business Type : <i>Kibanda</i></div>
+                  <div class="action">
+                    <button>View&nbsp;seller</button>
+                  </div>
+                </a>
+              </div>
+
+            </div>
+          </div>
+
+          <div id="supermarkets" class="tab-panel-msource">
+            <div class="tab-top">
+              <p>Showing markets in <em>Sokoni Ward</em> <br><strong>Please select the market source <i class="fa-regular fa-circle-check"></i></strong></p>
+              <button onclick="goBackToMarketTypes()">
+                <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
+              </button>
+            </div>
+
+            <!-- SELLERS LIST -->
+            <div class="sellers">
+
+              <div class="seller">
+                <div class="seller-left">
+                  <div class="avatar">NS</div>
+                  <div>
+                    <div class="name">Naivas Supermaket</div>
+                    <div class="rating">★★★★★ (41)</div>
+                    <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
+                    <div class="meta"><h2>23k&nbsp;<span>followers</span></h2></div>
+                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
+                  </div>
+                </div>
+                <a href="marketDisplay.php" class="seller-right">
+                  <div class="promoBadgeGoGold">1000+</div>
+                  <div class="bsType">Business Type : <i>Kiosk</i></div>
+                  <div class="action">
+                    <button>View&nbsp;seller</button>
+                  </div>
+                </a>
+              </div>
+
+              <div class="seller">
+                <div class="seller-left">
+                  <div class="avatar">CM</div>
+                  <div>
+                    <div class="name">Cherowamaye Minimarket</div>
+                    <div class="rating">★★★★★ (165)</div>
+                    <div class="meta"><h2>3&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
+                    <div class="meta"><h2>4&nbsp;<span>followers</span></h2></div>
+                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
+                  </div>
+                </div>
+                <a href="marketDisplay.php" class="seller-right">
+                  <div class="promoBadgeDefault">287</div>
+                  <div class="bsType">Business Type : <i>Canteen</i></div>
+                  <div class="action">
+                    <button>View&nbsp;seller</button>
+                  </div>
+                </a>
+              </div>
+
+              <div class="seller">
+                <div class="seller-left">
+                  <div class="avatar">AW</div>
+                  <div>
+                    <div class="name">Abul Wholesale</div>
+                    <div class="rating">★★★★★ (11)</div>
+                    <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
+                    <div class="meta"><h2>2&nbsp;<span>followers</span></h2></div>
+                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
+                  </div>
+                </div>
+                <a href="marketDisplay.php" class="seller-right">
+                  <div class="promoBadgeGoPro">500+</div>
+                  <div class="bsType">Business Type : <i>Kibanda</i></div>
+                  <div class="action">
+                    <button>View&nbsp;seller</button>
+                  </div>
+                </a>
+              </div>
+
             </div>
           </div>
         </div>
@@ -734,14 +1057,14 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         </div>
       </div>
       
-      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleSellerOrdersTrack()">View&nbsp;Activity</button> to access all your recent earnings.</p>
+      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleAgentEarningsTrack()">View&nbsp;Activity</button> to access all your recent earnings.</p>
 
     </main>
 
-    <main class="buyerMain" id="ordersTrackMain">
+    <main class="buyerMain" id="earningsTrackMain">
       <div class="tab-top">
         <p>Recent Earnings History<br><strong>View and track your recent flow of income <i class="fa-regular fa-circle-check"></i></strong></p>
-        <button onclick="toggleSellerOrdersTrack()">
+        <button onclick="toggleAgentEarningsTrack()">
           <i class="fa-solid fa-circle-arrow-left" data-tab="products"></i> <span>Go&nbsp;Back</span>
         </button>
       </div>
@@ -824,7 +1147,85 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         </table>
       </div>
 
-      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleSellerOrdersTrack()">Go&nbsp;back</button> to continue with sales.</p>
+      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleAgentEarningsTrack()">Go&nbsp;back</button> to continue with sales.</p>
+    </main>
+
+    <main class="buyerMain" id="orderMain">
+      <div class="tab-top">
+        <p>Track your purchases<br><strong>View order and delivery status <i class="fa-regular fa-circle-check"></i></strong></p>
+        <button onclick="toggleAgentOrdersTrack()">
+          <i class="fa-solid fa-circle-arrow-left" data-tab="products"></i> <span>Go&nbsp;Back</span>
+        </button>
+      </div>
+
+      <div class="order-group">
+        <div class="order-header">
+          <div>
+            <strong>Order #ORD-90321</strong><br>
+            <span>Placed on 12 Feb 2026</span>
+          </div>
+          <div>3 Items</div>
+        </div>
+
+        <div class="order-items-grid">
+
+          <!-- ITEM 1 -->
+          <div class="order-item">
+            <div class="item-top">
+              <div class="item-info">
+                <h4>Wireless Headphones</h4>
+                <p>Seller: TechZone</p>
+                <p>Qty: 1 • Total: KES 3,200</p>
+                <p>Status: <span class="status shipped">Shipped</span></p>
+                <span class="market-badge">National</span>
+              </div>
+              <img src="Images/Market Hub Logo.avif" alt="Product">
+            </div>
+
+            <div class="item-actions">
+              <button class="toggleOrd" data-target="d1">View details</button>
+            </div>
+
+            <div class="item-extra" id="d1">
+              <div class="extra-box">
+                <strong>Tracking</strong><br>
+                Packed → Shipped
+              </div>
+              <div class="extra-box">
+                <strong>Payment</strong><br>
+                M-Pesa • KES 3,200
+              </div>
+            </div>
+          </div>
+
+          <!-- ITEM 2 -->
+          <div class="order-item">
+            <div class="item-top">
+              <div class="item-info">
+                <h4>Office Chair</h4>
+                <p>Seller: Comfort Furnish</p>
+                <p>Qty: 2 • Total: KES 18,000</p>
+                <p>Status: <span class="status processing">Processing</span></p>
+                <span class="market-badge">Local</span>
+              </div>
+              <img src="Images/Market Hub Logo.avif" alt="Product">
+            </div>
+
+            <div class="item-actions">
+              <button class="toggleOrd" data-target="d2">View details</button>
+            </div>
+
+            <div class="item-extra" id="d2">
+              <div class="extra-box">
+                Awaiting dispatch
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleAgentOrdersTrack()">Go&nbsp;back</button> to continue shopping.</p>
     </main>
     <footer>
       <p>&copy; 2025/2026, Market Hub.com, All Rights reserved.</p>
