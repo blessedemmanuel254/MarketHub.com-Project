@@ -422,7 +422,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                   </div>
                   <div></div>
                   <button type="submit">
-                    <i class="fa fa-plus"></i> Add Product
+                    Add Product
                   </button>
                 </div>
 

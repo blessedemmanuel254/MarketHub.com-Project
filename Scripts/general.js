@@ -582,3 +582,23 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
+
+// WALLET TOGGLE
+document.addEventListener("DOMContentLoaded", () => {
+  const walletSelect = document.querySelector(".walletChange");
+  const salesWallet = document.getElementById("salesWallet");
+  const agencyWallet = document.getElementById("agencyWallet");
+
+  // Default view
+  salesWallet.classList.add("active");
+
+  walletSelect.addEventListener("change", () => {
+    if (walletSelect.value === "Sales Wallet") {
+      salesWallet.classList.add("active");
+      agencyWallet.classList.remove("active");
+    } else {
+      agencyWallet.classList.add("active");
+      salesWallet.classList.remove("active");
+    }
+  });
+});

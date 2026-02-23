@@ -14,6 +14,10 @@ if (!isset($_SESSION['created'])) {
     $_SESSION['created'] = time();
 }
 
+$country = "";
+$county = "";
+$ward = "";
+
 /* ---------- FETCH USER DATA ---------- */
 $user_id = $_SESSION['user_id'];
 
@@ -220,172 +224,157 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         <div class="tab-content">
           <div id="dashboard" class="tab-panel active">
             <p>Sales Scope <br><strong>Your work progress and finances <i class="fa-regular fa-circle-check"></i></strong></p>
-            <div class="containerInner">
+            
 
-              <div class="grid">
-                <!-- WALLET HEALTH -->
-                <div class="card">
-                  <i class="fa fa-wallet icon"></i>
-                  <h3>Wallet Health</h3>
-                  <div class="stat">KES 12,450</div>
-                  <p class="meta">Available for withdrawal</p>
-                  <div class="progress"><span style="width:75%"></span></div>
-                  <p class="small">KES 3,200 pending clearance</p>
+            <div class="cards">
+              <!-- AGENT -->
+              <a class="card" onclick="openMarketSource('shops')">
+                <i class="fa-brands fa-product-hunt"></i>
+                <h2>Products</h2>
+                <p>
+                  View your products to market.
+                </p>
+                <div class="label">
+                  <p>AGENT</p>
+                  <button>View Products</button>
+
                 </div>
+              </a>
 
-                <!-- WITHDRAWAL READINESS -->
-                <div class="card">
-                  <i class="fa fa-money-bill-wave icon"></i>
-                  <h3>Withdrawal Status</h3>
-                  <span class="badge green">Eligible</span>
-                  <p class="meta">Minimum threshold met</p>
-                  <div class="actions">
-                    <button onclick="togglePaymentOption()">Withdraw</button>
-                  </div>
-                  <p class="small">Last withdrawal: KES 5,000 • 10 Feb</p>
+              <!-- MARKET -->
+              <a class="card">
+                <i class="fa-brands fa-python"></i>
+                <h2>Withrawal</h2>
+                <p>
+                  View your account withdrawal history.
+                </p>
+                <div class="label">
+                  <p>HISTORY</p>
+                  <button>View History</button>
+
                 </div>
+              </a>
 
-                <!-- ORDERS SUMMARY -->
-                <div class="card">
-                  <i class="fa fa-box icon"></i>
-                  <h3>Orders Summary</h3>
-                  <div class="stat">18 Orders</div>
-                  <p class="meta">
-                    <span class="badge yellow">5&nbsp;Processing</span>
-                    <span class="badge blue">3&nbsp;Shipped</span>
-                    <span class="badge green">10&nbsp;Delivered</span>
-                  </p>
+              <!-- GLOBAL -->
+              <a class="card">
+                <i class="fa-brands fa-renren"></i>
+                <h2>Market</h2>
+                <p>
+                  Also order on Market Hub like other buyers.
+                </p>
+                <div class="label">
+                  <p>Market</p>
+                  <button>View Market</button>
+
                 </div>
-
-                <!-- CUSTOMER TRUST -->
-                <div class="card">
-                  <i class="fa fa-star icon"></i>
-                  <h3>Customer Trust</h3>
-                  <div class="stat">4.7 ★</div>
-                  <p class="meta">From 213 reviews</p>
-                  <span class="badge green">Excellent</span>
-                </div>
-
-                <!-- GROWTH INSIGHTS -->
-                <div class="card">
-                  <i class="fa fa-seedling icon"></i>
-                  <h3>Growth Tips</h3>
-                  <p class="meta">Improve visibility</p>
-                  <p class="small">
-                    ✔ Encourage ratings<br>
-                    ✔ Enable fast delivery<br>
-                    ✔ Respond to reviews
-                  </p>
-                </div>
-
-              </div>
+              </a>
             </div>
           </div>
 
-          <div id="products" class="tab-panel">
+          <div id="products" class="tab-panel agency">
             <div class="tab-top">
-              <p>Your Products Shelf<br><strong>Manage your listed items efficiently <i class="fa-regular fa-circle-check"></i></strong></p>
+              <p>Peformance Analytics<br><strong>Monitor your agency and track performance <i class="fa-regular fa-circle-check"></i></strong></p>
               <button onclick="toggleProductsAdd(true)">
-                <i class="fa fa-plus"></i>&nbsp;<span>Add&nbsp;Product</span>
+                <i class="fa fa-plus"></i>&nbsp;<span>Add&nbsp;Agent</span>
               </button>
 
             </div>
+            <div class="dashboard">
 
-            <!-- PRODUCTS GRID -->
-            <div class="products-grid">
+              <!-- TOP CARDS -->
+              <div class="grid">
 
-              <!-- PRODUCT CARD -->
-              <div class="card">
-                <img src="Images/Passion Juice.jpg" alt="Product">
-                <div class="card-body">
-                  <div class="product-name">Passion Juice</div>
-                  <div class="product-meta">Food & Snacks</div>
-                  <div class="price">KES 40</div>
-                  <div class="stock in-stock">In stock (24)</div>
+                <!-- AGENCY WALLET -->
+                <div class="card">
+                  <h3>Agency Balance</h3>
+                  <div class="amount">KES 12,540</div>
+                  <div class="sub-info">Last withdrawal: 3 days ago</div>
+                  <div class="growth up">▲ +18% from last month</div>
+                  <div class="progress">
+                    <div class="progress-fill"></div>
+                  </div>
+                  <div class="sub-info">KES 2,460 to next payout milestone</div>
                 </div>
-                <div class="card-actions">
-                  <button class="edit"><i class="fa fa-pen"></i> Edit</button>
-                  <button class="delete"><i class="fa fa-trash"></i> Delete</button>
-                </div>
-              </div>
 
-              <!-- PRODUCT CARD -->
-              <div class="card">
-                <img src="Images/Market Hub Logo.avif" alt="Product">
-                <div class="card-body">
-                  <div class="product-name">Smart Watch</div>
-                  <div class="product-meta">Gadgets</div>
-                  <div class="price">KES 6,800</div>
-                  <div class="stock low-stock">Low stock (3)</div>
+                <!-- WITHDRAW HISTORY -->
+                <div class="card">
+                  <h3>Total Withdrawn</h3>
+                  <div class="amount">KES 71,140</div>
+                  <div class="sub-info">12 successful withdrawalss</div>
+                  <div class="growth up">▲ +15% from last month</div>
+                  <div class="sub-info">Endless Payouts in line</div>
                 </div>
-                <div class="card-actions">
-                  <button class="edit"><i class="fa fa-pen"></i> Edit</button>
-                  <button class="delete"><i class="fa fa-trash"></i> Delete</button>
+
+                <!-- NETWORK SIZE -->
+                <div class="card">
+                  <h3>Your Network Size</h3>
+                  <div class="amount">46 Agents</div>
+                  <div class="sub-info">Level 1: 8</div>
+                  <div class="sub-info">Level 2: 14</div>
+                  <div class="sub-info">Level 3: 24</div>
+                  <div class="growth up">▲ +6 new this month</div>
                 </div>
-              </div>
-              <!-- PRODUCT CARD -->
-              <div class="card">
-                <img src="Images/Market Hub Logo.avif" alt="Product">
-                <div class="card-body">
-                  <div class="product-name">Smart Watch</div>
-                  <div class="product-meta">Gadgets</div>
-                  <div class="price">KES 6,800</div>
-                  <div class="stock low-stock">Low stock (3)</div>
+
+                <!-- ADVERTISING -->
+                <div class="card">
+                  <h3>Withdrawal Status</h3>
+                  <span class="wStatus">Eligible</span>
+                  <div class="sub-info-m">Minimum threshold met</div>
+                  <button>Withdraw</button>
+                  <div class="growth up">▲ +12% increase</div>
                 </div>
-                <div class="card-actions">
-                  <button class="edit"><i class="fa fa-pen"></i> Edit</button>
-                  <button class="delete"><i class="fa fa-trash"></i> Delete</button>
-                </div>
-              </div>
-              <!-- PRODUCT CARD -->
-              <div class="card">
-                <img src="Images/Market Hub Logo.avif" alt="Product">
-                <div class="card-body">
-                  <div class="product-name">Smart Watch</div>
-                  <div class="product-meta">Gadgets</div>
-                  <div class="price">KES 6,800</div>
-                  <div class="stock low-stock">Low stock (3)</div>
-                </div>
-                <div class="card-actions">
-                  <button class="edit"><i class="fa fa-pen"></i> Edit</button>
-                  <button class="delete"><i class="fa fa-trash"></i> Delete</button>
-                </div>
-              </div>
-              <!-- PRODUCT CARD -->
-              <div class="card">
-                <img src="Images/Market Hub Logo.avif" alt="Product">
-                <div class="card-body">
-                  <div class="product-name">Smart Watch</div>
-                  <div class="product-meta">Gadgets</div>
-                  <div class="price">KES 6,800</div>
-                  <div class="stock low-stock">Low stock (3)</div>
-                </div>
-                <div class="card-actions">
-                  <button class="edit"><i class="fa fa-pen"></i> Edit</button>
-                  <button class="delete"><i class="fa fa-trash"></i> Delete</button>
-                </div>
+
+                <!-- ADVERTISING --><!-- 
+                <div class="card">
+                  <h3>Product Advertising Earnings</h3>
+                  <div class="amount">KES 5,400</div>
+                  <div class="sub-info">32 conversions this month</div>
+                  <div class="growth up">▲ +12% increase</div>
+                  <div class="sub-info">Conversion Rate: 4.8%</div>
+                </div> -->
+
               </div>
 
-              <!-- PRODUCT CARD -->
-              <div class="card">
-                <img src="Images/Market Hub Logo.avif" alt="Product">
-                <div class="card-body">
-                  <div class="product-name">Office Chair</div>
-                  <div class="product-meta">Furniture</div>
-                  <div class="price">KES 9,000</div>
-                  <div class="stock out-stock">Out of stock</div>
+              <!-- AFFILIATE BREAKDOWN -->
+              <div class="grid" style="margin-top:20px;">
+
+                <div class="card">
+                  <h3>Affiliate Earnings Breakdown</h3>
+
+                  <div class="level-row">
+                    <span>Level 1 (100 KES)</span>
+                    <strong>KES 3,200</strong>
+                  </div>
+
+                  <div class="level-row">
+                    <span>Level 2 (40 KES)</span>
+                    <strong>KES 2,240</strong>
+                  </div>
+
+                  <div class="level-row">
+                    <span>Level 3 (20 KES)</span>
+                    <strong>KES 1,700</strong>
+                  </div>
+
+                  <div class="sub-info">Highest earning level: Level 1</div>
                 </div>
-                <div class="card-actions">
-                  <button class="edit"><i class="fa fa-pen"></i> Edit</button>
-                  <button class="delete"><i class="fa fa-trash"></i> Delete</button>
+
+                <div class="card">
+                  <h3>Referral Performance</h3>
+                  <div class="sub-info">Clicks this month: 1,240</div>
+                  <div class="sub-info">Agent Signups: 24</div>
+                  <div class="sub-info">Activation Rate: 62%</div>
+                  <div class="growth up">▲ +8% better than last month</div>
                 </div>
+
               </div>
+
             </div>
           </div>
           
           <div id="add-products" class="tab-panel">
             <div class="tab-top">
-              <p>Add products to your catalog</em> <br><strong>Show customers what you offer <i class="fa-regular fa-circle-check"></i></strong></p>
+              <p>Add to your Agency</em> <br><strong>Submit new agent's details to be added <i class="fa-regular fa-circle-check"></i></strong></p>
               <button onclick="toggleProductsAdd(false)">
                 <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
               </button>
@@ -393,42 +382,62 @@ if (!empty($profileImage) && file_exists($profileImage)) {
             </div>
             <div class="form-wrapper">
               <form method="POST" enctype="multipart/form-data">
-                <h1>Add Product</h1>
-                <p class="errorMessage"><i class="fa-solid fa-circle-exclamation"></i>Image too large!</p>
-                <p class="successMessage"><i class="fa-solid fa-check-circle"></i>Product added successfully!</p>
+                <h1>Add New Agent Details</h1>
+                <p class="errorMessage"><i class="fa-solid fa-circle-exclamation"></i>Invalid credentials!</p>
+                <p class="successMessage"><i class="fa-solid fa-check-circle"></i>Agent added successfully!</p>
                 <div class="formBody">
                   <div class="inp-box">
-                    <label>Product Name</label>
-                    <input type="text" name="name" placeholder="Passion Juice">
+                    <label>Agent's Full Name</label>
+                    <input type="text" name="agent-full-name" placeholder="Full Name">
+                  </div>
+                  <div class="inp-box">
+                    <label>Agent's Username</label>
+                    <input type="text" name="username" placeholder="e.g blessedemmanuel254">
+                  </div>
+                  <div class="inp-box">
+                    <label>Agent's Email ID</label>
+                    <input type="text" name="agent-email" placeholder="john@example.com">
+                  </div>
+                  <div class="inp-box">
+                    <label>Agent's Phone</label>
+                    <input type="agent-phone" name="agent-email" placeholder="075***630">
                   </div>
                   <div class="inp-box">
 
-                    <label>Category</label>
+                    <label>Country</label>
                     <select name="category">
-                      <option value="" class="span"><span>--Select category--</span></option>
-                      <option>Food & Snacks</option>
-                      <option>Drinks</option>
-                      <option>Electronics</option>
+                      <option value=""><p>-- Select Country --</p></option>
+                      <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
+                      <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                      <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
                     </select>
                   </div>
                   <div class="inp-box">
-                    <label>Price (KES)</label>
-                    <input type="number" name="price" step="0.01" placeholder="40">
+                    <label>Agent's Address</label>
+                    <input type="text" name="agent-address" placeholder="eg. Kilifi town">
                   </div>
                   <div class="inp-box">
-                    <label>Stock Quantity</label>
-                    <input type="number" name="stock" placeholder="24">
+
+                    <label>County</label>
+                    <select name="category">
+                      <option value=""><p>-- Select County --</p></option>
+                      <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kilifi</option><!-- 
+                      <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                      <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                    </select>
                   </div>
                   <div class="inp-box">
-                    <label>Product Image</label>
-                    <input type="file" accept="image/png,image/jpeg,image/webp" name="photo" accept="image/*">
-                    <div class="note">
-                      400×400 – 1200×1200 px • Max 1MB
-                    </div>
+
+                    <label>Ward</label>
+                    <select name="category">
+                      <option value=""><p>-- Select Ward --</p></option>
+                      <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kilifi</option><!-- 
+                      <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                      <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                    </select>
                   </div>
-                  <div></div>
                   <button type="submit">
-                    <i class="fa fa-plus"></i> Add Product
+                    Submit Details
                   </button>
                 </div>
 
@@ -439,30 +448,53 @@ if (!empty($profileImage) && file_exists($profileImage)) {
           <div id="funds" class="tab-panel">
             <p>Access your earnings</em> <br><strong>Withdraw funds you’ve earned from completed sales <i class="fa-regular fa-circle-check"></i></strong></p>
             
-            <div class="form-wrapper">
+            <div class="form-wrapper agency">
               <form method="POST" enctype="multipart/form-data">
                 <h1>Withdraw Funds</h1>
                 <p class="errorMessage"><i class="fa-solid fa-circle-exclamation"></i>Insufficient funds in your wallet!</p>
                 <p class="successMessage"><i class="fa-solid fa-check-circle"></i>Withdrawal request submitted successfully!</p>
-                <div class="formBody">
-                  <!-- WALLET HEALTH -->
+                <select name="" id="" class="walletChange">
+                  <option value="Sales Wallet">Sales Wallet</option>
+                  <option value="Agency Wallet">Agency Wallet</option>
+                </select>
+                <div class="formBody agency" id="salesWallet">
+                  <!-- ADVERTISING -->
                   <div class="card">
-                    <i class="fa fa-wallet icon"></i>
-                    <h3>Wallet Health</h3>
-                    <div class="stat">KES 12,450</div>
-                    <p class="meta">Available for withdrawal</p>
-                    <div class="progress"><span style="width:75%"></span></div>
-                    <p class="small">KES 3,200 pending clearance</p>
+                    <h3>Sales Wallet Balance</h3>
+                    <div class="amount">KES 5,400</div>
+                    <div class="sub-info">32 conversions this month</div>
+                    <div class="growth up">▲ +12% increase</div>
+                    <div class="sub-info">Conversion Rate: 4.8%</div>
                   </div>
                   <div>
                     <div class="inp-box">
-                      <label>Withdrawal Amount</label>
+                      <label>Withdraw from Sales</label>
                       <input type="number" placeholder="Enter amount">
                       <button type="button">Request Withdrawal</button>
                     </div>
                   </div>
                 </div>
+                <div class="formBody agency" id="agencyWallet">
+                  <!-- AGENCY WALLET -->
+                  <div class="card">
+                    <h3>Agency Wallet Balance</h3>
+                    <div class="amount">KES 12,540</div>
+                    <div class="sub-info">Last withdrawal: 3 days ago</div>
+                    <div class="growth up">▲ +18% from last month</div>
+                    <div class="progress">
+                      <div class="progress-fill"></div>
+                    </div>
+                    <div class="sub-info">KES 2,460 to next payout milestone</div>
+                  </div>
 
+                  <div>
+                    <div class="inp-box">
+                      <label>Withdraw from Agency</label>
+                      <input type="number" placeholder="Enter amount">
+                      <button type="button">Request Withdrawal</button>
+                    </div>
+                  </div>
+                </div>
               </form>
             </div>
           </div>
@@ -486,122 +518,68 @@ if (!empty($profileImage) && file_exists($profileImage)) {
           <thead>
             <tr>
               <th>Date</th>
-              <th>Buyer</th>
-              <th>Qty</th>
-              <th>Total</th>
-              <th>Payment</th>
+              <th>Source</th>
               <th>Status</th>
-              <th>Date</th>
-              <th>Actions</th>
+              <th>Level</th>
+              <th>Amount</th>
             </tr>
           </thead>
           <tbody>
             <tr data-status="Delivered">
               <td>12 Feb 2026</td>
-              <td>ORD-10021</td>
-              <td>John Doe</td>
-              <td>2</td>
-              <td>KES 7,000</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td><span class="badge delivered">Delivered</span></td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
+              <td>Agent&nbsp;Activation</td>
+              <td><span class="badge pending">Pending</span></td>
+              <td>Level&nbsp;1</td>
+              <td>KES&nbsp;100</td>
             </tr>
 
             <tr data-status="Processing">
-              <td>ORD-10022</td>
-              <td>Jane Smith</td>
-              <td>1</td>
-              <td>KES 6,800</td>
-              <td><span class="badge pending">Pending</span></td>
-              <td><span class="badge processing">Processing</span></td>
               <td>13 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
+              <td>Product&nbsp;Sales</td>
+              <td><span class="badge processing">Processing</span></td>
+              <td>Product</td>
+              <td>KES&nbsp;7700</td>
             </tr>
 
             <tr data-status="Shipped">
-              <td>ORD-10023</td>
-              <td>Mary Johnson</td>
-              <td>3</td>
-              <td>KES 12,000</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td><span class="badge shipped">Shipped</span></td>
               <td>14 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
+              <td>Agent&nbsp;Activation</td>
+              <td><span class="badge paid">Paid</span></td>
+              <td>Level&nbsp;2</td>
+              <td>KES&nbsp;40</td>
             </tr>
 
             <tr data-status="Processing">
-              <td>ORD-10022</td>
-              <td>Jane Smith</td>
-              <td>1</td>
-              <td>KES 6,800</td>
-              <td><span class="badge pending">Pending</span></td>
-              <td><span class="badge processing">Processing</span></td>
-              <td>13 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
+              <td>14 Feb 2026</td>
+              <td>Product&nbsp;Sales</td>
+              <td><span class="badge paid">Paid</span></td>
+              <td>Product</td>
+              <td>KES&nbsp;800</td>
             </tr>
 
             <tr data-status="Shipped">
-              <td>ORD-10023</td>
-              <td>Mary Johnson</td>
-              <td>3</td>
-              <td>KES 12,000</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td><span class="badge shipped">Shipped</span></td>
               <td>14 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
+              <td>Agent&nbsp;Activation</td>
+              <td><span class="badge paid">Paid</span></td>
+              <td>Level&nbsp;3</td>
+              <td>KES&nbsp;20</td>
             </tr>
 
             <tr data-status="Processing">
-              <td>ORD-10022</td>
-              <td>Jane Smith</td>
-              <td>1</td>
-              <td>KES 6,800</td>
-              <td><span class="badge pending">Pending</span></td>
-              <td><span class="badge processing">Processing</span></td>
               <td>13 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
+              <td>Agent&nbsp;Activation</td>
+              <td><span class="badge paid">Paid</span></td>
+              <td>Level&nbsp;2</td>
+              <td>KES&nbsp;40</td>
             </tr>
 
             <tr data-status="Shipped">
-              <td>ORD-10023</td>
-              <td>Mary Johnson</td>
-              <td>3</td>
-              <td>KES 12,000</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td><span class="badge shipped">Shipped</span></td>
               <td>14 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
+              <td>Agent&nbsp;Activation</td>
+              <td><span class="badge paid">Paid</span></td>
+              <td>Level&nbsp;3</td>
+              <td>KES&nbsp;20</td>
             </tr>
-
-            <!-- Add more rows here as needed -->
           </tbody>
         </table>
       </div>
@@ -756,151 +734,97 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         </div>
       </div>
       
-      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleSellerOrdersTrack()">View&nbsp;All&nbsp;Orders</button> to access all your orders.</p>
+      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleSellerOrdersTrack()">View&nbsp;Activity</button> to access all your recent earnings.</p>
 
     </main>
 
     <main class="buyerMain" id="ordersTrackMain">
       <div class="tab-top">
-        <p>Track customer orders<br><strong>Monitor order status easily <i class="fa-regular fa-circle-check"></i></strong></p>
+        <p>Recent Earnings History<br><strong>View and track your recent flow of income <i class="fa-regular fa-circle-check"></i></strong></p>
         <button onclick="toggleSellerOrdersTrack()">
           <i class="fa-solid fa-circle-arrow-left" data-tab="products"></i> <span>Go&nbsp;Back</span>
         </button>
       </div>
       <div class="table-wrapper sellerOrdersTrack">
-        <table id="sellerTransactions">
+        <table id="agentEarnings">
           <thead>
             <tr>
-              <th>#</th>
-              <th>Order ID</th>
-              <th>Buyer</th>
-              <th>Qty</th>
-              <th>Total</th>
-              <th>Payment</th>
-              <th>Status</th>
               <th>Date</th>
-              <th>Actions</th>
+              <th>Source</th>
+              <th>Level</th>
+              <th>Name</th>
+              <th>Status</th>
+              <th>Amount</th>
             </tr>
           </thead>
           <tbody>
             <tr data-status="Delivered">
-              <td>1.</td>
-              <td>ORD-10021</td>
-              <td>John Doe</td>
-              <td>2</td>
-              <td>KES 7,000</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td><span class="badge delivered">Delivered</span></td>
               <td>12 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
+              <td>Agent&nbsp;Activation</td>
+              <td>Level&nbsp;1</td>
+              <td>Sony_254</td>
+              <td><span class="badge pending">Pending</span></td>
+              <td>KES&nbsp;100</td>
             </tr>
 
             <tr data-status="Processing">
-              <td>2.</td>
-              <td>ORD-10022</td>
-              <td>Jane Smith</td>
-              <td>1</td>
-              <td>KES 6,800</td>
-              <td><span class="badge pending">Pending</span></td>
-              <td><span class="badge processing">Processing</span></td>
               <td>13 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
+              <td>Product&nbsp;Sales</td>
+              <td>Product</td>
+              <td>Passion Juice</td>
+              <td><span class="badge processing">Processing</span></td>
+              <td>KES&nbsp;7700</td>
             </tr>
 
             <tr data-status="Shipped">
-              <td>3.</td>
-              <td>ORD-10023</td>
-              <td>Mary Johnson</td>
-              <td>3</td>
-              <td>KES 12,000</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td><span class="badge shipped">Shipped</span></td>
               <td>14 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
+              <td>Agent&nbsp;Activation</td>
+              <td>Level&nbsp;2</td>
+              <td>Levi254</td>
+              <td><span class="badge paid">Paid</span></td>
+              <td>KES&nbsp;40</td>
             </tr>
 
             <tr data-status="Processing">
-              <td>4.</td>
-              <td>ORD-10022</td>
-              <td>Jane Smith</td>
-              <td>1</td>
-              <td>KES 6,800</td>
-              <td><span class="badge pending">Pending</span></td>
-              <td><span class="badge processing">Processing</span></td>
-              <td>13 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
+              <td>14 Feb 2026</td>
+              <td>Product&nbsp;Sales</td>
+              <td>Product</td>
+              <td>Oraimo Headphones</td>
+              <td><span class="badge paid">Paid</span></td>
+              <td>KES&nbsp;800</td>
             </tr>
 
             <tr data-status="Shipped">
-              <td>5.</td>
-              <td>ORD-10023</td>
-              <td>Mary Johnson</td>
-              <td>3</td>
-              <td>KES 12,000</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td><span class="badge shipped">Shipped</span></td>
               <td>14 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
+              <td>Agent&nbsp;Activation</td>
+              <td>Level&nbsp;3</td>
+              <td>Agentrael</td>
+              <td><span class="badge paid">Paid</span></td>
+              <td>KES&nbsp;20</td>
             </tr>
 
             <tr data-status="Processing">
-              <td>6.</td>
-              <td>ORD-10022</td>
-              <td>Jane Smith</td>
-              <td>1</td>
-              <td>KES 6,800</td>
-              <td><span class="badge pending">Pending</span></td>
-              <td><span class="badge processing">Processing</span></td>
               <td>13 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
+              <td>Agent&nbsp;Activation</td>
+              <td>Level&nbsp;2</td>
+              <td>Kalvani</td>
+              <td><span class="badge paid">Paid</span></td>
+              <td>KES&nbsp;40</td>
             </tr>
 
             <tr data-status="Shipped">
-              <td>7.</td>
-              <td>ORD-10023</td>
-              <td>Mary Johnson</td>
-              <td>3</td>
-              <td>KES 12,000</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td><span class="badge shipped">Shipped</span></td>
               <td>14 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
+              <td>Agent&nbsp;Activation</td>
+              <td>Level&nbsp;3</td>
+              <td>Blessedemmanuel254</td>
+              <td><span class="badge paid">Paid</span></td>
+              <td>KES&nbsp;20</td>
             </tr>
-
-            <!-- Add more rows here as needed -->
           </tbody>
         </table>
       </div>
 
-      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleSellerOrdersTrack()">Go&nbsp;back</button> to continue delivering.</p>
+      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleSellerOrdersTrack()">Go&nbsp;back</button> to continue with sales.</p>
     </main>
     <footer>
       <p>&copy; 2025/2026, Market Hub.com, All Rights reserved.</p>
@@ -911,7 +835,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
   <script>
     // DataTables Script Js
     $(document).ready(function () {
-      $('#sellerTransactions').DataTable({
+      $('#agentEarnings').DataTable({
         pagingType: "simple_numbers", // only numbers + prev/next
         pageLength: 15,               // rows per page
         lengthChange: false,          // hide "Show X entries"
