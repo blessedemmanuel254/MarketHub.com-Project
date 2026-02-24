@@ -48,17 +48,16 @@ document.addEventListener('DOMContentLoaded', function () {
 /* Successful registration and redirecting */
 document.addEventListener("DOMContentLoaded", () => {
   const successParagraph = document.querySelector(".successMessage");
-  if (!successParagraph) return;
-
   const redirectSpan = document.getElementById("redirect-msg");
-  if (!redirectSpan) return;
+
+  // ✅ HARD GUARD — prevents crash
+  if (!successParagraph || !redirectSpan) return;
 
   const baseText = "Redirecting";
-  let dots = "";
   let dotCount = 0;
   let typingDone = false;
-
   let i = 0;
+
   const typing = setInterval(() => {
     if (i < baseText.length) {
       redirectSpan.textContent += baseText.charAt(i);
@@ -67,6 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
       clearInterval(typing);
       typingDone = true;
       animateDots();
+
       setTimeout(() => {
         window.location.href = "index.php";
       }, 3500);
@@ -77,8 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setInterval(() => {
       if (!typingDone) return;
       dotCount = (dotCount + 1) % 4;
-      dots = ".".repeat(dotCount);
-      redirectSpan.textContent = baseText + dots;
+      redirectSpan.textContent = baseText + ".".repeat(dotCount);
     }, 500);
   }
 });
@@ -111,6 +110,13 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
+const STORAGE_KEYS = {
+  marketType: "activeMarketTypeTab",
+  marketSource: "activeMarketSourceTab",
+  agentMarketType: "activeAgentMarketTypeTab",
+  adminTab: "activeAdminTab"
+};
+
 /* Main Page Tabs */
 let lastActiveMarketTypeTab = null;  // Tracks last market type tab
 let lastActiveMarketSourceTab = null; // Tracks last source tab
@@ -128,10 +134,42 @@ document.addEventListener("DOMContentLoaded", () => {
   const panelsmsource = document.querySelectorAll('.tab-panel-msource');
   const panelsmtype = document.querySelectorAll('.tab-panel-mtype');
 
+  // 🔁 RESTORE LAST ACTIVE TABS FROM LOCAL STORAGE
+
+  const savedMarketType = localStorage.getItem(STORAGE_KEYS.marketType);
+  const savedMarketSource = localStorage.getItem(STORAGE_KEYS.marketSource);
+  const savedAgentMarketType = localStorage.getItem(STORAGE_KEYS.agentMarketType);
+
+  // Restore Market Type
+  if (savedMarketType) {
+    const btn = document.querySelector(`.tab-btn[data-tab="${savedMarketType}"]`);
+    const panel = document.getElementById(savedMarketType);
+    btn?.classList.add("active");
+    panel?.classList.add("active");
+  }
+
+  // Restore Market Source
+  if (savedMarketSource) {
+    showMarketContainer("source");
+    const btn = document.querySelector(`.tab-btn-msource[data-tab="${savedMarketSource}"]`);
+    const panel = document.getElementById(savedMarketSource);
+    btn?.classList.add("active");
+    panel?.classList.add("active");
+  }
+
+  // Restore Agent Market Type
+  if (savedAgentMarketType) {
+    const btn = document.querySelector(`.tab-btn-mtype[data-tab="${savedAgentMarketType}"]`);
+    const panel = document.getElementById(savedAgentMarketType);
+    btn?.classList.add("active");
+    panel?.classList.add("active");
+  }
+
   function activateTab(tab) {
     const target = tab.dataset.tab;
+    if (!target) return;
 
-    // Deactivate all tabs & panels
+    // Deactivate all
     tabs.forEach(t => t.classList.remove('active'));
     tabsmsource.forEach(t => t.classList.remove('active'));
     tabsmtype.forEach(t => t.classList.remove('active'));
@@ -139,16 +177,27 @@ document.addEventListener("DOMContentLoaded", () => {
     panelsmsource.forEach(p => p.classList.remove('active'));
     panelsmtype.forEach(p => p.classList.remove('active'));
 
-    // Activate clicked tab & its panel
+    // Activate selected
     tab.classList.add('active');
     document.getElementById(target)?.classList.add('active');
 
-    // Track last active tab depending on type
+    // 🔐 SAVE TO LOCAL STORAGE
     if (tab.classList.contains('tab-btn')) {
+      localStorage.setItem(STORAGE_KEYS.marketType, target);
       lastActiveMarketTypeTab = tab;
-    } else if (tab.classList.contains('tab-btn-msource')) {
+    }
+
+    if (target === "products") {
+      localStorage.setItem("seller:productsView", "list");
+    }
+
+    if (tab.classList.contains('tab-btn-msource')) {
+      localStorage.setItem(STORAGE_KEYS.marketSource, target);
       lastActiveMarketSourceTab = tab;
-    } else if (tab.classList.contains('tab-btn-mtype')) {
+    }
+
+    if (tab.classList.contains('tab-btn-mtype')) {
+      localStorage.setItem(STORAGE_KEYS.agentMarketType, target);
       lastActiveMarketAgentTab = tab;
     }
   }
@@ -156,6 +205,82 @@ document.addEventListener("DOMContentLoaded", () => {
   tabs.forEach(tab => tab.addEventListener('click', () => activateTab(tab)));
   tabsmsource.forEach(tab => tab.addEventListener('click', () => activateTab(tab)));
   tabsmtype.forEach(tab => tab.addEventListener('click', () => activateTab(tab)));
+
+  /* ✅ SELLER DASHBOARD FALLBACK */
+  const hasActiveSellerTab = document.querySelector(".tab-btn.active");
+  const hasActiveSellerPanel = document.querySelector(".tab-panel.active");
+
+  if (!hasActiveSellerTab || !hasActiveSellerPanel) {
+    // Clear any leftovers
+    tabs.forEach(t => t.classList.remove("active"));
+    panels.forEach(p => p.classList.remove("active"));
+
+    // Activate Seller Dashboard
+    const dashboardTab = document.querySelector('.tab-btn[data-tab="dashboard"]');
+    const dashboardPanel = document.getElementById("dashboard");
+
+    dashboardTab?.classList.add("active");
+    dashboardPanel?.classList.add("active");
+
+    // 🔐 Persist it
+    localStorage.setItem(STORAGE_KEYS.marketType, "dashboard");
+  }
+
+  /* ===============================
+   AGENT DASHBOARD DEFAULT
+   =============================== */
+  (() => {
+    const agentContainer = document.getElementById("toggleAgentTab");
+    if (!agentContainer) return; // ⛔ Not agent page
+
+    const agentTabs = agentContainer.querySelectorAll(".tab-btn");
+    const agentPanels = agentContainer.querySelectorAll(".tab-panel");
+
+    const hasActiveAgentTab = agentContainer.querySelector(".tab-btn.active");
+    const hasActiveAgentPanel = agentContainer.querySelector(".tab-panel.active");
+
+    // ✅ Only fallback if NOTHING is active
+    if (!hasActiveAgentTab || !hasActiveAgentPanel) {
+      agentTabs.forEach(t => t.classList.remove("active"));
+      agentPanels.forEach(p => p.classList.remove("active"));
+
+      const dashboardTab =
+        agentContainer.querySelector('.tab-btn[data-tab="dashboard"]');
+      const dashboardPanel =
+        agentContainer.querySelector('#dashboard');
+
+      dashboardTab?.classList.add("active");
+      dashboardPanel?.classList.add("active");
+
+      // 🔐 Persist (optional but recommended)
+      localStorage.setItem("activeAgentDashboard", "dashboard");
+    }
+  })();
+  /* ===============================
+   SELLER PRODUCTS VIEW RESTORE
+   =============================== */
+  (() => {
+    const productsPanel = document.getElementById("products");
+    const addPanel = document.getElementById("add-products");
+    const productsTab =
+      document.querySelector('.tab-btn[data-tab="products"]');
+
+    if (!productsPanel || !addPanel || !productsTab) return;
+
+    // Only restore if PRODUCTS tab is active
+    if (!productsTab.classList.contains("active")) return;
+
+    const savedView = localStorage.getItem("seller:productsView") || "list";
+
+    productsPanel.classList.remove("active");
+    addPanel.classList.remove("active");
+
+    if (savedView === "add") {
+      addPanel.classList.add("active");
+    } else {
+      productsPanel.classList.add("active");
+    }
+  })();
 
 });
 
@@ -737,15 +862,23 @@ document.addEventListener("mousemove", (e) => {
 
 // ADD PRODUCT TOGGLE
 function toggleProductsAdd(showAdd) {
-  const products = document.getElementById("products");
-  const addProducts = document.getElementById("add-products");
+  const productsPanel = document.getElementById("products");
+  const addPanel = document.getElementById("add-products");
+
+  if (!productsPanel || !addPanel) return;
 
   if (showAdd) {
-    products.classList.remove("active");
-    addProducts.classList.add("active");
+    productsPanel.classList.remove("active");
+    addPanel.classList.add("active");
+
+    // ✅ persist state
+    localStorage.setItem("seller:productsView", "add");
   } else {
-    products.classList.add("active");
-    addProducts.classList.remove("active");
+    addPanel.classList.remove("active");
+    productsPanel.classList.add("active");
+
+    // ✅ persist state
+    localStorage.setItem("seller:productsView", "list");
   }
 }
 
@@ -771,18 +904,26 @@ function toggleNavigationBar() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+
+  // ✅ Only run if admin dashboard exists
+  if (!document.querySelector(".admin-tab-panel")) return;
+
   const tabs = document.querySelectorAll(".nav-link");
   const panels = document.querySelectorAll(".admin-tab-panel");
 
-  // ✅ FORCE Dashboard as default
-  tabs.forEach(t => t.classList.remove("active"));
-  panels.forEach(p => p.classList.remove("active"));
+  const hasActiveTab = document.querySelector(".nav-link.active");
+  const hasActivePanel = document.querySelector(".admin-tab-panel.active");
 
-  const defaultTab = document.querySelector('.nav-link[data-tab="dashboard"]');
-  const defaultPanel = document.querySelector('.admin-tab-panel[data-tab="dashboard"]');
+  if (!hasActiveTab || !hasActivePanel) {
+    tabs.forEach(t => t.classList.remove("active"));
+    panels.forEach(p => p.classList.remove("active"));
 
-  defaultTab.classList.add("active");
-  defaultPanel.classList.add("active");
+    const defaultTab = document.querySelector('.nav-link[data-tab="dashboard"]');
+    const defaultPanel = document.querySelector('.admin-tab-panel[data-tab="dashboard"]');
+
+    defaultTab?.classList.add("active");
+    defaultPanel?.classList.add("active");
+  }
 
   tabs.forEach(tab => {
     tab.addEventListener("click", e => {
@@ -802,6 +943,7 @@ document.addEventListener("DOMContentLoaded", () => {
       toggleNavigationBar?.();
     });
   });
+
 });
 
 // WALLET TOGGLE
@@ -811,7 +953,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const agencyWallet = document.getElementById("agencyWallet");
 
   // Default view
-  salesWallet.classList.add("active");
+  salesWallet?.classList.add("active");
 
   walletSelect.addEventListener("change", () => {
     if (walletSelect.value === "Sales Wallet") {

@@ -221,13 +221,13 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       </div>
       <div class="tabs-container" id="toggleAgentTab">
         <div class="tabs">
-          <button class="tab-btn active" data-tab="dashboard">Sales&nbsp;Board</button>
+          <button class="tab-btn" data-tab="dashboard">Sales&nbsp;Board</button>
           <button class="tab-btn" data-tab="agency">My&nbsp;Agency</button>
           <button class="tab-btn" data-tab="funds" onclick="togglePaymentOption()">Funds</button>
         </div>
 
         <div class="tab-content">
-          <div id="dashboard" class="tab-panel active">
+          <div id="dashboard" class="tab-panel">
             <p>Sales Scope <br><strong>Your work progress and finances <i class="fa-regular fa-circle-check"></i></strong></p>
             
 
@@ -388,8 +388,19 @@ if (!empty($profileImage) && file_exists($profileImage)) {
             <div class="form-wrapper">
               <form method="POST" enctype="multipart/form-data">
                 <h1>Add New Agent Details</h1>
-                <p class="errorMessage"><i class="fa-solid fa-circle-exclamation"></i>Invalid credentials!</p>
-                <p class="successMessage"><i class="fa-solid fa-check-circle"></i>Agent added successfully!</p>
+                <?php if (!empty($errors)): ?>
+                  <p class="errorMessage">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <?= implode("<br>", $errors); ?>
+                  </p>
+                <?php endif; ?>
+
+                <?php if (!empty($success)): ?>
+                  <p class="successMessage">
+                    <i class="fa-solid fa-check-circle"></i>
+                    <?= $success; ?>
+                  </p>
+                <?php endif; ?>
                 <div class="formBody">
                   <div class="inp-box">
                     <label>Agent's Full Name</label>
@@ -451,7 +462,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
           </div>
           
           <div id="funds" class="tab-panel">
-            <p>Access your earnings</em> <br><strong>Withdraw funds you’ve earned from completed sales <i class="fa-regular fa-circle-check"></i></strong></p>
+            <p>Access your earnings</em> <br><strong>Withdraw funds you’ve earned from completed sales and agency <i class="fa-regular fa-circle-check"></i></strong></p>
             
             <div class="form-wrapper agency">
               <form method="POST" enctype="multipart/form-data">
@@ -1001,7 +1012,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
     </main>
     <main class="agentWithdrawalH" id="agentWithdrawalH">
       <div class="tab-top">
-        <p>Recent Withdrawal History<br><strong>Preview your withdrawal and continue earning <i class="fa-regular fa-circle-check"></i></strong></p>
+        <p>Recent Withdrawal History<br><strong>Review your withdrawals and continue earning <i class="fa-regular fa-circle-check"></i></strong></p>
         <button onclick="toggleAgentWithdrawals()">
           <i class="fa-solid fa-circle-arrow-left" data-tab="products"></i> <span>Go&nbsp;Back</span>
         </button>

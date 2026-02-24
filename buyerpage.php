@@ -179,13 +179,13 @@ if (!empty($profileImage) && file_exists($profileImage)) {
     <main class="buyerMain" id="marketMain">
       <div class="tabs-container" id="toggleMarketTypeTab">
         <div class="tabs">
-          <button class="tab-btn active" data-tab="products">Products</button>
+          <button class="tab-btn" data-tab="products">Products</button>
           <button class="tab-btn" data-tab="services">Services</button>
           <button class="tab-btn" data-tab="rentals">Rentals</button>
         </div>
 
         <div class="tab-content">
-          <div id="products" class="tab-panel active">
+          <div id="products" class="tab-panel">
             <p>Quality goods from trusted vendors. <br><strong>Please select Market type <i class="fa-regular fa-circle-check"></i></strong></p>
 
             <div class="cards">
@@ -335,13 +335,13 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       </div>
       <div class="tabs-container" id="toggleMarketSourceTab">
         <div class="tabs">
-          <button class="tab-btn-msource active" data-tab="shops">Shops</button>
+          <button class="tab-btn-msource" data-tab="shops">Shops</button>
           <button class="tab-btn-msource" data-tab="supermarkets">Supermarkets</button><!-- 
           <button class="tab-btn-msource" data-tab="rentals">Rentals</button> -->
         </div>
 
         <div class="tab-content">
-          <div id="shops" class="tab-panel-msource active">
+          <div id="shops" class="tab-panel-msource">
             <div class="tab-top">
               <p>Showing markets in <em>Sokoni Ward</em> <br><strong>Please select the market source <i class="fa-regular fa-circle-check"></i></strong></p>
               <button onclick="goBackToMarketTypes()">

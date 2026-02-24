@@ -43,6 +43,52 @@ if ($result && $result->num_rows === 1) {
 
 
 $stmt->close();
+/* ---------- DELETE PRODUCT ---------- */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_product_id'])) {
+    $deleteId = intval($_POST['delete_product_id']);
+
+    // Verify product belongs to current seller
+    $stmt = $conn->prepare("SELECT image_path FROM productservicesrentals WHERE product_id = ? AND user_id = ?");
+    $stmt->bind_param("ii", $deleteId, $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result && $result->num_rows === 1) {
+        $product = $result->fetch_assoc();
+
+        // Delete image file if exists
+        if (!empty($product['image_path']) && file_exists($product['image_path'])) {
+            unlink($product['image_path']);
+        }
+
+        // Delete product from DB
+        $stmtDel = $conn->prepare("DELETE FROM productservicesrentals WHERE product_id = ? AND user_id = ?");
+        $stmtDel->bind_param("ii", $deleteId, $user_id);
+        if ($stmtDel->execute()) {
+            $success = "Product deleted successfully!";
+        } else {
+            $errors[] = "Failed to delete product. Please try again.";
+        }
+        $stmtDel->close();
+    } else {
+        $errors[] = "Product not found or not owned by you.";
+    }
+
+    $stmt->close();
+}
+// ---------- FETCH SELLER PRODUCTS ----------
+$products = [];
+$stmt = $conn->prepare("SELECT * FROM productservicesrentals WHERE user_id = ? ORDER BY created_at DESC");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $products[] = $row;
+    }
+}
+$stmt->close();
 
 /* ---------- PROFILE LETTER ---------- */
 $profileLetter = strtoupper(substr($username, 0, 1));
@@ -69,6 +115,159 @@ if (!empty($profileImage) && file_exists($profileImage)) {
     $safeProfileImage = $defaultAvatar;
 }
 
+
+$errors = [];
+$success = "";
+
+$productName = '';
+$category    = '';
+$price       = '';
+$stock       = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    // ---------- FORM INPUTS ----------
+    $productName = trim($_POST['name'] ?? '');
+    $category    = trim($_POST['category'] ?? '');
+    $price       = floatval($_POST['price'] ?? 0);
+    $stock       = intval($_POST['stock'] ?? 0);
+
+    // ---------- VALIDATION ----------
+    if ($productName === '') {
+        $errors[] = "Product name is required.";
+    }
+
+    if ($category === '') {
+        $errors[] = "Please select a category.";
+    }
+
+    if ($price <= 0) {
+        $errors[] = "Price must be greater than zero.";
+    }
+
+    if ($stock < 0) {
+        $errors[] = "Stock quantity cannot be negative.";
+    }
+
+    if (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== 0) {
+        $errors[] = "Please upload a product image.";
+    }
+
+    // ---------- IMAGE VALIDATION ----------
+    if (empty($errors)) {
+
+        $fileTmp  = $_FILES['photo']['tmp_name'];
+        $fileSize = $_FILES['photo']['size'];
+        $mime     = mime_content_type($fileTmp);
+
+        $allowed = ['image/jpeg', 'image/png', 'image/webp'];
+
+        if (!in_array($mime, $allowed)) {
+            $errors[] = "Invalid image format. Use JPG, PNG or WebP.";
+        }
+
+        if ($fileSize > 5 * 1024 * 1024) {
+            $errors[] = "Image too large. Max size is 5MB.";
+        }
+
+        $imgInfo = getimagesize($fileTmp);
+        if (!$imgInfo) {
+            $errors[] = "Uploaded file is not a valid image.";
+        }
+    }
+
+    // ---------- IMAGE RESIZE & SAVE ----------
+    if (empty($errors)) {
+
+        [$width, $height] = $imgInfo;
+
+        if ($width < 600 || $height < 600) {
+            $errors[] = "Image too small. Minimum size is 600×600 px.";
+        } else {
+
+            $maxSize = 800;
+            $ratio   = min($maxSize / $width, $maxSize / $height, 1);
+
+            $newWidth  = (int)($width * $ratio);
+            $newHeight = (int)($height * $ratio);
+
+            $canvas = imagecreatetruecolor($newWidth, $newHeight);
+
+            switch ($mime) {
+                case 'image/jpeg':
+                    $source = imagecreatefromjpeg($fileTmp);
+                    break;
+                case 'image/png':
+                    $source = imagecreatefrompng($fileTmp);
+                    imagealphablending($canvas, false);
+                    imagesavealpha($canvas, true);
+                    break;
+                case 'image/webp':
+                    $source = imagecreatefromwebp($fileTmp);
+                    break;
+            }
+
+            imagecopyresampled(
+                $canvas,
+                $source,
+                0, 0, 0, 0,
+                $newWidth,
+                $newHeight,
+                $width,
+                $height
+            );
+
+            // Upload directory
+            $uploadDir = 'uploads/products/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            $fileName = uniqid('product_', true) . '.webp';
+            $filePath = $uploadDir . $fileName;
+
+            imagewebp($canvas, $filePath, 80);
+
+            imagedestroy($canvas);
+            imagedestroy($source);
+
+            $fileSizeKB = round(filesize($filePath) / 1024);
+
+            // ---------- INSERT INTO DATABASE ----------
+            $stmt = $conn->prepare("
+                INSERT INTO productservicesrentals (user_id, product_name, category, price, stock_quantity, image_path, image_width, image_height, image_size_kb, image_format) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'webp')
+            ");
+
+            $stmt->bind_param(
+                "issdissii",
+                $user_id,
+                $productName,
+                $category,
+                $price,
+                $stock,
+                $filePath,
+                $newWidth,
+                $newHeight,
+                $fileSizeKB
+            );
+
+            if ($stmt->execute()) {
+              $success = "Product added successfully! Redirecting in <span id='count'>3</span>…";
+              // ✅ Reset the form variables
+              $productName = '';
+              $category    = '';
+              $price       = '';
+              $stock       = '';
+              // ✅ Successful upload: redirect
+              header("Location: sellerPage.php");
+            } else {
+                $errors[] = "Failed to save product. Please try again.";
+            }
+
+            $stmt->close();
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -206,13 +405,13 @@ if (!empty($profileImage) && file_exists($profileImage)) {
     <main class="buyerMain" id="sellerMain">
       <div class="tabs-container" id="toggleMarketTypeTab">
         <div class="tabs">
-          <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+          <button class="tab-btn" data-tab="dashboard">Dashboard</button>
           <button class="tab-btn" data-tab="products">Products</button>
           <button class="tab-btn" data-tab="funds" onclick="togglePaymentOption()">Funds</button>
         </div>
 
         <div class="tab-content">
-          <div id="dashboard" class="tab-panel active">
+          <div id="dashboard" class="tab-panel">
             <p>Dashboard Area <br><strong>Your business performance and finances <i class="fa-regular fa-circle-check"></i></strong></p>
             <div class="containerInner">
 
@@ -287,94 +486,33 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
             <!-- PRODUCTS GRID -->
             <div class="products-grid">
-
-              <!-- PRODUCT CARD -->
-              <div class="card">
-                <img src="Images/Passion Juice.jpg" alt="Product">
-                <div class="card-body">
-                  <div class="product-name">Passion Juice</div>
-                  <div class="product-meta">Food & Snacks</div>
-                  <div class="price">KES 40</div>
-                  <div class="stock in-stock">In stock (24)</div>
-                </div>
-                <div class="card-actions">
-                  <button class="edit"><i class="fa fa-pen"></i> Edit</button>
-                  <button class="delete"><i class="fa fa-trash"></i> Delete</button>
-                </div>
+              <?php if (!empty($products)): ?>
+                <?php foreach ($products as $product): ?>
+                    <div class="card">
+                      <img src="<?= htmlspecialchars($product['image_path']) ?>" alt="<?= htmlspecialchars($product['product_name']) ?>">
+                      <div class="card-body">
+                        <div class="product-name"><?= htmlspecialchars($product['product_name']) ?></div>
+                        <div class="product-meta"><?= htmlspecialchars($product['category']) ?></div>
+                        <div class="price">KES <?= number_format($product['price'], 2) ?></div>
+                        <div class="stock <?= ($product['stock_quantity'] > 5) ? 'in-stock' : (($product['stock_quantity'] > 0) ? 'low-stock' : 'out-stock') ?>">
+                            <?= ($product['stock_quantity'] > 0) ? "In stock ({$product['stock_quantity']})" : "Out of stock" ?>
+                        </div>
+                      </div>
+                      <div class="card-actions">
+                          <button href="editProduct.php?id=<?= $product['product_id'] ?>" class="edit"><i class="fa fa-pen"></i> Edit</button>
+                          <form method="POST" onsubmit="return confirm('Are you sure you want to delete this product?')">
+                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                            <button type="submit" class="delete">
+                                <i class="fa fa-trash"></i> Delete
+                            </button>
+                          </form>
+                      </div>
+                    </div>
+                <?php endforeach; ?>
+                <?php else: ?>
+                    <p>No products uploaded yet. Click "Add Product" to start selling.</p>
+                <?php endif; ?>
               </div>
-
-              <!-- PRODUCT CARD -->
-              <div class="card">
-                <img src="Images/Market Hub Logo.avif" alt="Product">
-                <div class="card-body">
-                  <div class="product-name">Smart Watch</div>
-                  <div class="product-meta">Gadgets</div>
-                  <div class="price">KES 6,800</div>
-                  <div class="stock low-stock">Low stock (3)</div>
-                </div>
-                <div class="card-actions">
-                  <button class="edit"><i class="fa fa-pen"></i> Edit</button>
-                  <button class="delete"><i class="fa fa-trash"></i> Delete</button>
-                </div>
-              </div>
-              <!-- PRODUCT CARD -->
-              <div class="card">
-                <img src="Images/Market Hub Logo.avif" alt="Product">
-                <div class="card-body">
-                  <div class="product-name">Smart Watch</div>
-                  <div class="product-meta">Gadgets</div>
-                  <div class="price">KES 6,800</div>
-                  <div class="stock low-stock">Low stock (3)</div>
-                </div>
-                <div class="card-actions">
-                  <button class="edit"><i class="fa fa-pen"></i> Edit</button>
-                  <button class="delete"><i class="fa fa-trash"></i> Delete</button>
-                </div>
-              </div>
-              <!-- PRODUCT CARD -->
-              <div class="card">
-                <img src="Images/Market Hub Logo.avif" alt="Product">
-                <div class="card-body">
-                  <div class="product-name">Smart Watch</div>
-                  <div class="product-meta">Gadgets</div>
-                  <div class="price">KES 6,800</div>
-                  <div class="stock low-stock">Low stock (3)</div>
-                </div>
-                <div class="card-actions">
-                  <button class="edit"><i class="fa fa-pen"></i> Edit</button>
-                  <button class="delete"><i class="fa fa-trash"></i> Delete</button>
-                </div>
-              </div>
-              <!-- PRODUCT CARD -->
-              <div class="card">
-                <img src="Images/Market Hub Logo.avif" alt="Product">
-                <div class="card-body">
-                  <div class="product-name">Smart Watch</div>
-                  <div class="product-meta">Gadgets</div>
-                  <div class="price">KES 6,800</div>
-                  <div class="stock low-stock">Low stock (3)</div>
-                </div>
-                <div class="card-actions">
-                  <button class="edit"><i class="fa fa-pen"></i> Edit</button>
-                  <button class="delete"><i class="fa fa-trash"></i> Delete</button>
-                </div>
-              </div>
-
-              <!-- PRODUCT CARD -->
-              <div class="card">
-                <img src="Images/Market Hub Logo.avif" alt="Product">
-                <div class="card-body">
-                  <div class="product-name">Office Chair</div>
-                  <div class="product-meta">Furniture</div>
-                  <div class="price">KES 9,000</div>
-                  <div class="stock out-stock">Out of stock</div>
-                </div>
-                <div class="card-actions">
-                  <button class="edit"><i class="fa fa-pen"></i> Edit</button>
-                  <button class="delete"><i class="fa fa-trash"></i> Delete</button>
-                </div>
-              </div>
-            </div>
           </div>
           
           <div id="add-products" class="tab-panel">
@@ -388,36 +526,54 @@ if (!empty($profileImage) && file_exists($profileImage)) {
             <div class="form-wrapper">
               <form method="POST" enctype="multipart/form-data">
                 <h1>Add Product</h1>
-                <p class="errorMessage"><i class="fa-solid fa-circle-exclamation"></i>Image too large!</p>
-                <p class="successMessage"><i class="fa-solid fa-check-circle"></i>Product added successfully!</p>
+                <?php if (!empty($errors)): ?>
+                  <p class="errorMessage">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <?= implode("<br>", $errors); ?>
+                  </p>
+                <?php endif; ?>
+
+                <?php if (!empty($success)): ?>
+                  <p class="successMessage">
+                    <i class="fa-solid fa-check-circle"></i>
+                    <?= $success; ?>
+                  </p>
+                <?php endif; ?>
                 <div class="formBody">
                   <div class="inp-box">
                     <label>Product Name</label>
-                    <input type="text" name="name" placeholder="Passion Juice">
+                    <input type="text" name="name" placeholder="Enter name" value="<?= htmlspecialchars($productName, ENT_QUOTES) ?>">
                   </div>
-                  <div class="inp-box">
 
-                    <label>Category</label>
-                    <select name="category">
-                      <option value="" class="span"><span>--Select category--</span></option>
-                      <option>Food & Snacks</option>
-                      <option>Drinks</option>
-                      <option>Electronics</option>
-                    </select>
-                  </div>
                   <div class="inp-box">
-                    <label>Price (KES)</label>
-                    <input type="number" name="price" step="0.01" placeholder="40">
+                      <label>Category</label>
+                      <select name="category" required>
+                          <option value="">--Select category--</option>
+                          <option <?= ($category === 'Beauty') ? 'selected' : '' ?>>Beauty</option>
+                          <option <?= ($category === 'Electronics') ? 'selected' : '' ?>>Electronics</option>
+                          <option <?= ($category === 'Fashions') ? 'selected' : '' ?>>Fashions</option>
+                          <option <?= ($category === 'Food & Snacks') ? 'selected' : '' ?>>Food & Snacks</option>
+                          <option <?= ($category === 'Home Items') ? 'selected' : '' ?>>Home Items</option>
+                          <option <?= ($category === 'Stationery') ? 'selected' : '' ?>>Stationery</option>
+                      </select>
                   </div>
+
                   <div class="inp-box">
-                    <label>Stock Quantity</label>
-                    <input type="number" name="stock" placeholder="24">
+                      <label>Price (KES)</label>
+                      <input type="number" name="price" step="0.01" placeholder="Enter price" value="<?= htmlspecialchars($price, ENT_QUOTES) ?>">
+                  </div>
+
+                  <div class="inp-box">
+                      <label>Stock Quantity</label>
+                      <input type="number" name="stock" placeholder="e.g 24" value="<?= htmlspecialchars($stock, ENT_QUOTES) ?>">
                   </div>
                   <div class="inp-box">
                     <label>Product Image</label>
-                    <input type="file" accept="image/png,image/jpeg,image/webp" name="photo" accept="image/*">
+                    <input type="file" accept="image/png,image/jpeg,image/webp" name="photo" accept="image/*" required>
+                    
                     <div class="note">
-                      400×400 – 1200×1200 px • Max 1MB
+                      600×600 – 1600×1600 px • Max 5MB<br>
+                      Automatically optimized for buyers
                     </div>
                   </div>
                   <div></div>
@@ -436,8 +592,19 @@ if (!empty($profileImage) && file_exists($profileImage)) {
             <div class="form-wrapper">
               <form method="POST" enctype="multipart/form-data">
                 <h1>Withdraw Funds</h1>
-                <p class="errorMessage"><i class="fa-solid fa-circle-exclamation"></i>Insufficient funds in your wallet!</p>
-                <p class="successMessage"><i class="fa-solid fa-check-circle"></i>Withdrawal request submitted successfully!</p>
+                <?php if (!empty($errors)): ?>
+                  <p class="errorMessage">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <?= implode("<br>", $errors); ?>
+                  </p>
+                <?php endif; ?>
+
+                <?php if (!empty($success)): ?>
+                  <p class="successMessage">
+                    <i class="fa-solid fa-check-circle"></i>
+                    <?= $success; ?>
+                  </p>
+                <?php endif; ?>
                 <div class="formBody">
                   <!-- WALLET HEALTH -->
                   <div class="card">
@@ -920,6 +1087,19 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         }
       });
     });
+  </script>
+  <script>
+    let seconds = 3;
+    const counter = document.getElementById("count");
+
+    const interval = setInterval(() => {
+      seconds--;
+      counter.textContent = seconds;
+      if (seconds <= 0) {
+        clearInterval(interval);
+        window.location.href = "sellerPage.php";
+      }
+    }, 1000);
   </script>
 </body>
 </html>
