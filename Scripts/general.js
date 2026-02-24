@@ -244,28 +244,46 @@ function toggleSellerOrdersTrack() {
   ordersTrackMain.style.display = isSellerVisible ? "flex" : "none";
 }
 
-function toggleAgentOrdersTrack() {
+function toggleAgentOrdersTrack() { 
   const agentMain = document.getElementById("agentMain");
   const orderMain = document.getElementById("orderMain");
   const earningsTrackMain = document.getElementById("earningsTrackMain");
+  const agentWithdrawalH = document.getElementById("agentWithdrawalH");
 
   const isOrderVisible = getComputedStyle(orderMain).display !== "none";
 
   orderMain.style.display = isOrderVisible ? "none" : "flex";
   agentMain.style.display = isOrderVisible ? "flex" : "none";
   earningsTrackMain.style.display = "none";
+  agentWithdrawalH.style.display = "none"; // hide withdrawals
 }
 
 function toggleAgentEarningsTrack() {
   const agentMain = document.getElementById("agentMain");
   const orderMain = document.getElementById("orderMain");
   const earningsTrackMain = document.getElementById("earningsTrackMain");
+  const agentWithdrawalH = document.getElementById("agentWithdrawalH");
 
   const isEarningsVisible = getComputedStyle(earningsTrackMain).display !== "none";
 
   earningsTrackMain.style.display = isEarningsVisible ? "none" : "flex";
   agentMain.style.display = isEarningsVisible ? "flex" : "none";
   orderMain.style.display = "none";
+  agentWithdrawalH.style.display = "none"; // hide withdrawals
+}
+
+function toggleAgentWithdrawals() {
+  const agentMain = document.getElementById("agentMain");
+  const orderMain = document.getElementById("orderMain");
+  const earningsTrackMain = document.getElementById("earningsTrackMain");
+  const agentWithdrawalH = document.getElementById("agentWithdrawalH");
+
+  const isWithdrawalVisible = getComputedStyle(agentWithdrawalH).display !== "none";
+
+  agentWithdrawalH.style.display = isWithdrawalVisible ? "none" : "flex";
+  agentMain.style.display = isWithdrawalVisible ? "flex" : "none";
+  orderMain.style.display = "none";
+  earningsTrackMain.style.display = "none";
 }
 
 /* ================= MARKET NAVIGATION (FIXED) ================= */

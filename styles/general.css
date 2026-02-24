@@ -522,7 +522,7 @@ html body {
   }
 }
 
-.container main.buyerMain, .container main.profile-main, .container main.help-centre-main {
+.container main.buyerMain, .container main.profile-main, .container main.help-centre-main, main.agentWithdrawalH {
   padding: 20px;
   flex: 1 0 auto;
   display: flex;
@@ -609,6 +609,11 @@ html body {
   padding: 4px;
   border-radius: 4px;
   font-size: 12px;
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+
 }
 
 .container main.buyerMain .agentHeader p.status span.unverified {
@@ -703,12 +708,12 @@ html body {
   gap: 5px;
 }
 
-.container main#ordersTrackMain .tab-top, .container main#earningsTrackMain .tab-top {
+.container main#ordersTrackMain .tab-top, .container main#earningsTrackMain .tab-top,  .container main#agentWithdrawalH .tab-top  {
   width: 90%;
   margin: 10px auto;
 }
 
-.container main#orderMain .tab-top {
+.container main#orderMain .tab-top , .container .agentWithdrawalH, .container#agentWithdrawalH {
   width: 100%;
 }
 
@@ -971,7 +976,7 @@ html body {
   gap: 8px;
 }
 
-.container main.buyerMain .toggleOrdersOrMarket {
+.container main.buyerMain .toggleOrdersOrMarket, .container main.agentWithdrawalH .toggleOrdersOrMarket {
   text-align: center;
   color: #898888;
   width: 90%;
@@ -979,7 +984,7 @@ html body {
   margin: 35px auto;
 }
 
-.container main.buyerMain .toggleOrdersOrMarket button {
+.container main.buyerMain .toggleOrdersOrMarket button, .container main.agentWithdrawalH .toggleOrdersOrMarket button {
   padding: 4px 8px;
   border: none;
   border-radius: 4px;
@@ -988,12 +993,12 @@ html body {
   cursor: pointer;
 }
 
-.container main.buyerMain .toggleOrdersOrMarket button:hover {
+.container main.buyerMain .toggleOrdersOrMarket button:hover, .container main.agentWithdrawalH .toggleOrdersOrMarket button:hover {
   opacity: 0.875;
 }
 
 /* Oder Management Section CSS */
-.container main.buyerMain#orderMain, .container main.buyerMain#ordersTrackMain, .container main.buyerMain#earningsTrackMain {
+.container main.buyerMain#orderMain, .container main.buyerMain#ordersTrackMain, .container main.buyerMain#earningsTrackMain, .container main.agentWithdrawalH {
   background-color: #ffffff;
   display: none;
 }
@@ -1361,7 +1366,7 @@ html body {
     width: 100%;
   }
 
-  .container main .tab-top {
+  .container main .tab-top, main.agentWithdrawalH {
     margin: 10px 0;
     width: 100%;
     align-items: center;
@@ -1375,7 +1380,7 @@ html body {
     justify-content: center;
   }
 
-  .container main#ordersTrackMain .tab-top, .container main.buyerMain#earningsTrackMain, .container main#earningsTrackMain .tab-top {
+  .container main#ordersTrackMain .tab-top, .container main.buyerMain#earningsTrackMain, .container main#earningsTrackMain .tab-top, .container main#agentWithdrawalH .tab-top {
     margin: 10px 0;
     width: 100%;
   }
@@ -3560,4 +3565,136 @@ ADMIN DASHBOARD
   font-size: 13px;
   padding: 6px 0;
   border-bottom: 1px dashed #dedede;
+}
+
+/* ================
+WITHDRAW HISTORY 
+=================*/
+
+.containerWH {
+  width: 90%;
+}
+.containerWH h2 {
+  margin-bottom: 10px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* =========================
+   Grid layout for cards
+========================= */
+.containerWH .withdraw-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+/* =========================
+   Withdrawal Card
+========================= */
+.containerWH .withdraw-grid .withdraw-card {
+  background: #09800007;
+  border: 1px solid #dedede;
+  border-radius: 4px;
+  padding: 12px;
+  display: flex;
+  justify-content: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+}
+
+.containerWH .withdraw-grid .withdraw-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-6px);
+}
+
+/* Left section */
+.containerWH .withdraw-grid .withdraw-card .withdraw-left {
+  flex: 1;
+}
+
+.containerWH .withdraw-grid .withdraw-card .withdraw-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.containerWH .withdraw-grid .withdraw-card .withdraw-meta {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.6;
+}
+
+.containerWH .withdraw-grid .withdraw-card .withdraw-reference {
+  font-size: 12px;
+  margin-top: 8px;
+  color: #898888;
+}
+
+/* Right section */
+.containerWH .withdraw-grid .withdraw-card .withdraw-right {
+  margin-top: 12px;
+  text-align: right;
+}
+
+.containerWH .withdraw-grid .withdraw-card .withdraw-amount {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+/* =========================
+   Status buttons
+========================= */
+.containerWH .withdraw-grid .withdraw-card .status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  font-size: 12px;
+  border-radius: 4px;
+  border: none;
+  white-space: nowrap;
+  border: 1px solid;
+}
+
+/* Paid */
+.containerWH .withdraw-grid .withdraw-card .status.paid {
+  color: #088000;
+  background-color: #0980001f;
+}
+
+/* Processing */
+.containerWH .withdraw-grid .withdraw-card .status.status.processing {
+  color: #0b5ed7;
+  border-color: #0b5ed7;
+  background: #e7f1ff;
+}
+
+/* Pending */
+.containerWH .withdraw-grid .withdraw-card .status.status.pending {
+  color: #9c6f19;
+  border-color: #9c6f19;
+  background: #fff7e6;
+}
+
+/* Failed */
+.containerWH .withdraw-grid .withdraw-card .status.status.failed {
+  color: #ff3b3b;
+  background-color: #ff3b3b2a;
+}
+
+/* Rejected */
+.containerWH .withdraw-grid .withdraw-card .status.status.rejected {
+  color: #0f0f0f;
+  border-color: #0f0f0f;
+  background: #f0f0f0;
+}
+
+@media screen and (max-width: 770px) {
+  .containerWH {
+    width: 100%;
+  }
 }

@@ -216,7 +216,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       <div class="agentHeader">
         <h1>Agent Dashboard</h1><!-- 
         <p class="status">Status:&nbsp;<span class="verified">Verified&nbsp;<i class="fa-solid fa-certificate"></i></span></p> -->
-        <p class="status">Status:&nbsp;<span class="unverified">Unverified&nbsp;<i class="fa-solid fa-circle-exclamation"></i></span></p>
+        <p class="status">Status:&nbsp;<span class="unverified"><i class="fa-solid fa-ban"></i>&nbsp;Unverified</span></p>
 
       </div>
       <div class="tabs-container" id="toggleAgentTab">
@@ -247,7 +247,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
               </a>
 
               <!-- MARKET -->
-              <a class="card">
+              <a class="card" onclick="toggleAgentWithdrawals()">
                 <i class="fa-brands fa-python"></i>
                 <h2>Withrawal</h2>
                 <p>
@@ -998,6 +998,122 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       </div>
 
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleAgentEarningsTrack()">Go&nbsp;back</button> to continue with sales.</p>
+    </main>
+    <main class="agentWithdrawalH" id="agentWithdrawalH">
+      <div class="tab-top">
+        <p>Recent Withdrawal History<br><strong>Preview your withdrawal and continue earning <i class="fa-regular fa-circle-check"></i></strong></p>
+        <button onclick="toggleAgentWithdrawals()">
+          <i class="fa-solid fa-circle-arrow-left" data-tab="products"></i> <span>Go&nbsp;Back</span>
+        </button>
+      </div>
+      
+      <div class="containerWH">
+        <h2>Withdrawal History</h2>
+
+        <div class="withdraw-grid">
+          <!-- Paid -->
+          <div class="withdraw-card">
+            <div class="withdraw-left">
+              <div class="withdraw-title">
+                <i class="fa-solid fa-wallet"></i> Sales Wallet Withdrawal
+              </div>
+              <div class="withdraw-meta">
+                <i class="fa-regular fa-calendar"></i> 24 Feb 2026<br>
+                <i class="fa-solid fa-mobile-screen-button"></i> M-Pesa • 07********
+              </div>
+              <div class="withdraw-reference">
+                <i class="fa-solid fa-hashtag"></i> TRX89374219
+              </div>
+            </div>
+            <div class="withdraw-right">
+              <div class="withdraw-amount">KES 3,500</div>
+              <div class="status paid"><i class="fa-solid fa-check-circle"></i> Paid</div>
+            </div>
+          </div>
+
+          <!-- Processing -->
+          <div class="withdraw-card">
+            <div class="withdraw-left">
+              <div class="withdraw-title">
+                <i class="fa-solid fa-wallet"></i> Affiliate Wallet Withdrawal
+              </div>
+              <div class="withdraw-meta">
+                <i class="fa-regular fa-calendar"></i> 22 Feb 2026<br>
+                <i class="fa-solid fa-building-columns"></i> Bank Transfer
+              </div>
+              <div class="withdraw-reference">
+                <i class="fa-solid fa-hashtag"></i> TRX20483910
+              </div>
+            </div>
+            <div class="withdraw-right">
+              <div class="withdraw-amount">KES 5,000</div>
+              <div class="status processing"><i class="fa-solid fa-spinner fa-spin"></i> Processing</div>
+            </div>
+          </div>
+
+          <!-- Pending -->
+          <div class="withdraw-card">
+            <div class="withdraw-left">
+              <div class="withdraw-title">
+                <i class="fa-solid fa-wallet"></i> Sales Wallet Withdrawal
+              </div>
+              <div class="withdraw-meta">
+                <i class="fa-regular fa-calendar"></i> 20 Feb 2026<br>
+                <i class="fa-solid fa-mobile-screen-button"></i> M-Pesa
+              </div>
+              <div class="withdraw-reference">
+                <i class="fa-solid fa-hashtag"></i> TRX56473829
+              </div>
+            </div>
+            <div class="withdraw-right">
+              <div class="withdraw-amount">KES 1,800</div>
+              <div class="status pending"><i class="fa-solid fa-clock"></i> Pending</div>
+            </div>
+          </div>
+
+          <!-- Failed -->
+          <div class="withdraw-card">
+            <div class="withdraw-left">
+              <div class="withdraw-title">
+                <i class="fa-solid fa-wallet"></i> Affiliate Wallet Withdrawal
+              </div>
+              <div class="withdraw-meta">
+                <i class="fa-regular fa-calendar"></i> 18 Feb 2026<br>
+                <i class="fa-solid fa-mobile-screen-button"></i> M-Pesa
+              </div>
+              <div class="withdraw-reference">
+                <i class="fa-solid fa-hashtag"></i> TRX99887766
+              </div>
+            </div>
+            <div class="withdraw-right">
+              <div class="withdraw-amount">KES 900</div>
+              <div class="status failed"><i class="fa-solid fa-circle-xmark"></i> Failed</div>
+            </div>
+          </div>
+
+          <!-- Rejected -->
+          <div class="withdraw-card">
+            <div class="withdraw-left">
+              <div class="withdraw-title">
+                <i class="fa-solid fa-wallet"></i> Sales Wallet Withdrawal
+              </div>
+              <div class="withdraw-meta">
+                <i class="fa-regular fa-calendar"></i> 15 Feb 2026<br>
+                <i class="fa-solid fa-triangle-exclamation"></i> Verification issue
+              </div>
+              <div class="withdraw-reference">
+                <i class="fa-solid fa-hashtag"></i> TRX11223344
+              </div>
+            </div>
+            <div class="withdraw-right">
+              <div class="withdraw-amount">KES 2,400</div>
+              <div class="status rejected"><i class="fa-solid fa-ban"></i> Rejected</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleAgentWithdrawals()">Go&nbsp;back</button> to continue with sales.</p>
     </main>
 
     <main class="buyerMain" id="orderMain">
