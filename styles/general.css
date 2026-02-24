@@ -1384,7 +1384,7 @@ html body {
     display: none;
   }
 
-  .container main.buyerMain .table-wrapper.sellerOrdersTrack {
+  .container main.buyerMain .table-wrapper.sellerOrdersTrack, .container main.buyerMain .table-wrapper.agentEarningsTrack  {
     display: block;
   }
   

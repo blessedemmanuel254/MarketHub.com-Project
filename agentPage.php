@@ -836,7 +836,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       </div>
 
       <!-- DESKTOP TABLE -->
-      <div class="table-wrapper">
+      <div class="table-wrapper agentEarningsTrack">
         <table id="ordersTable">
           <thead>
             <tr>
@@ -906,156 +906,6 @@ if (!empty($profileImage) && file_exists($profileImage)) {
           </tbody>
         </table>
       </div>
-
-      <!-- MOBILE CARDS -->
-      <div class="cards" id="orderCards">
-
-        <div class="order-card" data-status="Processing">
-          <div class="card-header">
-            <img src="Images/Market Hub Logo.avif" class="product-img">
-            <div>
-              <div class="card-title">Smart Watch</div>
-              <div class="card-meta">Order: MH-10702 • Global</div>
-            </div>
-          </div>
-
-          <div class="card-row">
-            <span>Price</span>
-            <strong>KES 6,800</strong>
-          </div>
-
-          <div class="card-row">
-            <span>Status</span>
-            <span class="badge processing">Processing</span>
-          </div>
-
-          <div class="card-actions">
-            <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-          </div>
-        </div>
-
-        <div class="order-card" data-status="Processing">
-          <div class="card-header">
-            <img src="Images/Market Hub Logo.avif" class="product-img">
-            <div>
-              <div class="card-title">Smart Watch</div>
-              <div class="card-meta">Order: MH-10702 • Global</div>
-            </div>
-          </div>
-
-          <div class="card-row">
-            <span>Price</span>
-            <strong>KES 6,800</strong>
-          </div>
-
-          <div class="card-row">
-            <span>Status</span>
-            <span class="badge processing">Processing</span>
-          </div>
-
-          <div class="card-actions">
-            <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-          </div>
-        </div>
-
-        <div class="order-card" data-status="Delivered">
-          <div class="card-header">
-            <img src="Images/Market Hub Logo.avif" class="product-img">
-            <div>
-              <div class="card-title">Wireless Headphones</div>
-              <div class="card-meta">Order: MH-10231 • National</div>
-            </div>
-          </div>
-
-          <div class="card-row">
-            <span>Price</span>
-            <strong>KES 3,500</strong>
-          </div>
-
-          <div class="card-row">
-            <span>Status</span>
-            <span class="badge delivered">Delivered</span>
-          </div>
-
-          <div class="card-actions">
-            <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-          </div>
-        </div>
-
-
-        <div class="order-card" data-status="Delivered">
-          <div class="card-header">
-            <img src="Images/Market Hub Logo.avif" class="product-img">
-            <div>
-              <div class="card-title">Wireless Headphones</div>
-              <div class="card-meta">Order: MH-10231 • National</div>
-            </div>
-          </div>
-
-          <div class="card-row">
-            <span>Price</span>
-            <strong>KES 3,500</strong>
-          </div>
-
-          <div class="card-row">
-            <span>Status</span>
-            <span class="badge delivered">Delivered</span>
-          </div>
-
-          <div class="card-actions">
-            <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-          </div>
-        </div>
-
-
-        <div class="order-card" data-status="Processing">
-          <div class="card-header">
-            <img src="Images/Market Hub Logo.avif" class="product-img">
-            <div>
-              <div class="card-title">Smart Watch</div>
-              <div class="card-meta">Order: MH-10702 • Global</div>
-            </div>
-          </div>
-
-          <div class="card-row">
-            <span>Price</span>
-            <strong>KES 6,800</strong>
-          </div>
-
-          <div class="card-row">
-            <span>Status</span>
-            <span class="badge processing">Processing</span>
-          </div>
-
-          <div class="card-actions">
-            <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-          </div>
-        </div>
-
-        <div class="order-card" data-status="Processing">
-          <div class="card-header">
-            <img src="Images/Market Hub Logo.avif" class="product-img">
-            <div>
-              <div class="card-title">Smart Watch</div>
-              <div class="card-meta">Order: MH-10702 • Global</div>
-            </div>
-          </div>
-
-          <div class="card-row">
-            <span>Price</span>
-            <strong>KES 6,800</strong>
-          </div>
-
-          <div class="card-row">
-            <span>Status</span>
-            <span class="badge processing">Processing</span>
-          </div>
-
-          <div class="card-actions">
-            <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-          </div>
-        </div>
-      </div>
       
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleAgentEarningsTrack()">View&nbsp;Activity</button> to access all your recent earnings.</p>
 
@@ -1068,7 +918,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
           <i class="fa-solid fa-circle-arrow-left" data-tab="products"></i> <span>Go&nbsp;Back</span>
         </button>
       </div>
-      <div class="table-wrapper sellerOrdersTrack">
+      <div class="table-wrapper agentEarningsTrack">
         <table id="agentEarnings">
           <thead>
             <tr>
