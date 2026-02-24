@@ -246,7 +246,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                 </div>
               </a>
 
-              <!-- MARKET -->
+              <!-- WITHDRAWAL HISTORY -->
               <a class="card" onclick="toggleAgentWithdrawals()">
                 <i class="fa-brands fa-python"></i>
                 <h2>Withrawal</h2>
@@ -260,7 +260,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                 </div>
               </a>
 
-              <!-- GLOBAL -->
+              <!-- MARKET -->
               <a class="card" onclick="openMarketType('products')">
                 <i class="fa-brands fa-renren"></i>
                 <h2>Market</h2>
@@ -523,7 +523,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
             <div class="cards">
               <!-- LOCAL -->
-              <a class="card" onclick="openMarketSource('source')">
+              <a class="card" onclick="openAgentMarketSource()">
                 <i class="fa-solid fa-location-dot"></i>
                 <h2>Local Market</h2>
                 <p>
@@ -677,7 +677,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
           <div id="shops" class="tab-panel-msource">
             <div class="tab-top">
               <p>Showing markets in <em>Sokoni Ward</em> <br><strong>Please select the market source <i class="fa-regular fa-circle-check"></i></strong></p>
-              <button onclick="goBackToMarketTypes()">
+              <button onclick="goBackToAgentMarketTypes()">
                 <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
               </button>
             </div>
@@ -751,7 +751,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
           <div id="supermarkets" class="tab-panel-msource">
             <div class="tab-top">
               <p>Showing markets in <em>Sokoni Ward</em> <br><strong>Please select the market source <i class="fa-regular fa-circle-check"></i></strong></p>
-              <button onclick="goBackToMarketTypes()">
+              <button onclick="goBackToAgentMarketTypes()">
                 <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
               </button>
             </div>

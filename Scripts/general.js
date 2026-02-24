@@ -304,6 +304,23 @@ function showMarketContainer(target) {
   }
 }
 
+function showAgentMarketContainer(target) {
+  const typeTab = document.getElementById("toggleMarketTypeTabAgent");
+  const sourceTab = document.getElementById("toggleMarketSourceTab");
+
+  if (!typeTab || !sourceTab) return;
+
+  if (target === "type") {
+    typeTab.style.display = "block";
+    sourceTab.style.display = "none";
+  }
+
+  if (target === "source") {
+    typeTab.style.display = "none";
+    sourceTab.style.display = "block";
+  }
+}
+
 function showMarketTypeContainer(target) {
   const agentTab = document.getElementById("toggleAgentTab");
   const typeTab = document.getElementById("toggleMarketTypeTabAgent");
@@ -321,10 +338,51 @@ function showMarketTypeContainer(target) {
   }
 }
 
+function showAgentMarketTypeContainer(target) {
+  const marketTab = document.getElementById("toggleMarketTypeTabAgent");
+  const sourceTab = document.getElementById("toggleMarketSourceTab");
+
+  if (!marketTab || !sourceTab) return;
+
+  if (target === "type") {
+    marketTab.style.display = "block";
+    sourceTab.style.display = "none";
+  }
+
+  if (target === "source") {
+    marketTab.style.display = "none";
+    sourceTab.style.display = "block";
+  }
+}
+
 /* ================= OPEN MARKET SOURCE (CORRECT) ================= */
 
 function openMarketSource(sourceTabId = "shops") {
   showMarketContainer("source");
+
+  // Deactivate all source tabs & panels
+  document.querySelectorAll(".tab-btn-msource").forEach(btn =>
+    btn.classList.remove("active")
+  );
+  document.querySelectorAll(".tab-panel-msource").forEach(panel =>
+    panel.classList.remove("active")
+  );
+
+  // Activate the correct source tab
+  const btn = document.querySelector(`.tab-btn-msource[data-tab="${sourceTabId}"]`);
+  const panel = document.getElementById(sourceTabId);
+
+  if (btn && panel) {
+    btn.classList.add("active");
+    panel.classList.add("active");
+
+    // Track as last active source tab
+    lastActiveMarketSourceTab = btn;
+  }
+}
+
+function openAgentMarketSource(sourceTabId = "shops") {
+  showAgentMarketContainer("source");
 
   // Deactivate all source tabs & panels
   document.querySelectorAll(".tab-btn-msource").forEach(btn =>
@@ -417,11 +475,43 @@ function goBackToAgent() {
 
   // Optionally, if you want to **return to the last source tab** after re-opening source
   // Example: after user goes to Shops → Supermarkets → Back → then clicks a source tab again,
-  // the previous last source tab is remembered
+  // the previous last type tab is remembered
   if (lastActiveMarketTypeTab) {
     lastActiveMarketTypeTab.classList.add('active');
     const typePanel = document.getElementById(lastActiveMarketTypeTab.dataset.tab);
     if (typePanel) typePanel.classList.add('active');
+  }
+}
+
+function goBackToAgentMarketTypes() {
+  const marketTab = document.getElementById("toggleMarketTypeTabAgent");
+  const sourceTab = document.getElementById("toggleMarketSourceTab");
+
+  if (marketTab) marketTab.style.display = "block";
+  if (sourceTab) sourceTab.style.display = "none";
+
+  showAgentMarketTypeContainer("type");
+
+  // 🔑 CLEAR previous states
+  document.querySelectorAll(".tab-btn-mtype").forEach(btn =>
+    btn.classList.remove("active")
+  );
+  document.querySelectorAll(".tab-panel-mtype").forEach(panel =>
+    panel.classList.remove("active")
+  );
+
+  // 🔑 RESTORE LAST ACTIVE *AGENT* MARKET TYPE TAB
+  if (lastActiveMarketAgentTab) {
+    lastActiveMarketAgentTab.classList.add("active");
+    const panel = document.getElementById(lastActiveMarketAgentTab.dataset.tab);
+    if (panel) panel.classList.add("active");
+  } else {
+    // 🧠 Fallback: default to Products
+    const defaultBtn = document.querySelector('.tab-btn-mtype[data-tab="products"]');
+    const defaultPanel = document.getElementById("products");
+
+    defaultBtn?.classList.add("active");
+    defaultPanel?.classList.add("active");
   }
 }
 

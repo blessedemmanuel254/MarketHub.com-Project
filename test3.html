@@ -2,16 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<title>Agent Products</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Withdrawal History</title>
 
-<!-- Font Awesome CDN -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
 * {
   box-sizing: border-box;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Segoe UI", Arial, sans-serif;
 }
 
 body {
@@ -20,241 +20,294 @@ body {
   color: #000;
 }
 
+/* ================= HEADER ================= */
+.agent-header {
+  background: #000;
+  color: #fff;
+  padding: 18px 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.agent-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.agent-header span {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+/* ================= CONTAINER ================= */
 .container {
-  max-width: 1200px;
-  margin: 40px auto;
-  padding: 0 16px;
+  padding: 20px;
+  max-width: 1300px;
+  margin: auto;
 }
 
-h2 {
-  margin-bottom: 25px;
-  font-size: 24px;
-  font-weight: bold;
-}
-
-/* =========================
-   Grid layout for cards
-========================= */
-.withdraw-grid {
+/* ================= GRID ================= */
+.products-grid {
   display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
 }
 
-/* =========================
-   Withdrawal Card
-========================= */
-.withdraw-card {
+/* ================= PRODUCT CARD ================= */
+.product-card {
   background: #fff;
   border: 1px solid #ddd;
   border-radius: 14px;
-  padding: 18px 20px;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  transition: background 0.2s ease, box-shadow 0.2s ease;
+  transition: 0.25s ease;
+  width: clamp(280px, 100%, 300px);
+  margin: 0 auto;
 }
 
-.withdraw-card:hover {
-  background: #fafafa;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+.product-card:hover {
+  transform: translateY(-3px);
 }
 
-/* Left section */
-.withdraw-left {
+/* IMAGE */
+.product-card img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+}
+
+/* CONTENT */
+.product-content {
+  padding: 14px 16px;
   flex: 1;
 }
 
-.withdraw-title {
-  font-size: 16px;
+.product-title {
+  font-size: 15px;
   font-weight: 600;
   margin-bottom: 6px;
+}
+
+.product-price {
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.product-commission {
+  font-size: 12px;
+  color: #555;
+}
+
+/* ACTIONS */
+.product-actions {
+  display: flex;
+  gap: 8px;
+  padding: 12px 14px;
+  border-top: 1px solid #eee;
+}
+
+/* BUTTONS */
+.btn {
+  flex: 1;
+  padding: 8px;
+  font-size: 13px;
+  border-radius: 8px;
+  border: 1px solid #000;
+  background: #fff;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.withdraw-meta {
-  font-size: 13px;
-  color: #555;
-  line-height: 1.6;
-}
-
-.withdraw-reference {
-  font-size: 12px;
-  margin-top: 8px;
-  color: #777;
-}
-
-/* Right section */
-.withdraw-right {
-  margin-top: 12px;
-  text-align: right;
-}
-
-.withdraw-amount {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 8px;
-}
-
-/* =========================
-   Status buttons
-========================= */
-.status {
-  display: inline-flex;
-  align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 6px 14px;
-  font-size: 12px;
-  font-weight: 600;
-  border-radius: 20px;
-  border: 1px solid;
-  white-space: nowrap;
+  transition: 0.2s ease;
 }
 
-/* Paid */
-.status.paid {
-  color: #0a7a3d;
-  border-color: #0a7a3d;
-  background: #e9f7ef;
+.btn:hover {
+  background: #000;
+  color: #fff;
 }
 
-/* Processing */
-.status.processing {
-  color: #0b5ed7;
-  border-color: #0b5ed7;
-  background: #e7f1ff;
+.btn-share {
+  border-color: #1a73e8;
+  color: #1a73e8;
 }
 
-/* Pending */
-.status.pending {
-  color: #9c6f19;
-  border-color: #9c6f19;
-  background: #fff7e6;
+.btn-share:hover {
+  background: #1a73e8;
+  color: #fff;
 }
 
-/* Failed */
-.status.failed {
-  color: #b02a37;
-  border-color: #b02a37;
-  background: #fdecea;
+/* ================= SHARE MODAL ================= */
+.share-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
 }
 
-/* Rejected */
-.status.rejected {
-  color: #333;
-  border-color: #333;
-  background: #f0f0f0;
+.share-box {
+  background: #fff;
+  padding: 20px;
+  width: 300px;
+  border-radius: 14px;
+}
+
+.share-box h3 {
+  margin-top: 0;
+  font-size: 16px;
+}
+
+.share-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.share-options button {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  background: #f9f9f9;
+  font-size: 13px;
+}
+
+.share-options button:hover {
+  background: #000;
+  color: #fff;
 }
 </style>
 </head>
 
 <body>
+
+<!-- HEADER -->
+<div class="agent-header">
+  <h2>Daily Products</h2>
+  <span>Share & Earn Commission</span>
+</div>
+
+<!-- CONTENT -->
 <div class="container">
-  <h2>Withdrawal History</h2>
+  <div class="products-grid">
 
-  <div class="withdraw-grid">
-    <!-- Paid -->
-    <div class="withdraw-card">
-      <div class="withdraw-left">
-        <div class="withdraw-title">
-          <i class="fa-solid fa-wallet"></i> Sales Wallet Withdrawal
-        </div>
-        <div class="withdraw-meta">
-          <i class="fa-regular fa-calendar"></i> 24 Feb 2026<br>
-          <i class="fa-solid fa-mobile-screen-button"></i> M-Pesa • 07********
-        </div>
-        <div class="withdraw-reference">
-          <i class="fa-solid fa-hashtag"></i> TRX89374219
-        </div>
+    <!-- PRODUCT -->
+    <div class="product-card">
+      <img src="Images/Passion Juice.jpg" alt="">
+      <div class="product-content">
+        <div class="product-title">Smart Watch Series 8</div>
+        <div class="product-price">KES 3,500</div>
+        <div class="product-commission">Commission: 10%</div>
       </div>
-      <div class="withdraw-right">
-        <div class="withdraw-amount">KES 3,500</div>
-        <div class="status paid"><i class="fa-solid fa-check-circle"></i> Paid</div>
+      <div class="product-actions">
+        <button class="btn" onclick="downloadImage(this)">
+          <i class="fa fa-download"></i> Download
+        </button>
+        <button class="btn btn-share" onclick="openShareModal('Smart Watch Series 8')">
+          <i class="fa fa-share-nodes"></i> Share
+        </button>
+      </div>
+    </div>
+    <!-- PRODUCT -->
+    <div class="product-card">
+      <img src="Images/Passion Juice.jpg" alt="">
+      <div class="product-content">
+        <div class="product-title">Smart Watch Series 8</div>
+        <div class="product-price">KES 3,500</div>
+        <div class="product-commission">Commission: 10%</div>
+      </div>
+      <div class="product-actions">
+        <button class="btn" onclick="downloadImage(this)">
+          <i class="fa fa-download"></i> Download
+        </button>
+        <button class="btn btn-share" onclick="openShareModal('Smart Watch Series 8')">
+          <i class="fa fa-share-nodes"></i> Share
+        </button>
+      </div>
+    </div>
+    <!-- PRODUCT -->
+    <div class="product-card">
+      <img src="Images/Passion Juice.jpg" alt="">
+      <div class="product-content">
+        <div class="product-title">Smart Watch Series 8</div>
+        <div class="product-price">KES 3,500</div>
+        <div class="product-commission">Commission: 10%</div>
+      </div>
+      <div class="product-actions">
+        <button class="btn" onclick="downloadImage(this)">
+          <i class="fa fa-download"></i> Download
+        </button>
+        <button class="btn btn-share" onclick="openShareModal('Smart Watch Series 8')">
+          <i class="fa fa-share-nodes"></i> Share
+        </button>
       </div>
     </div>
 
-    <!-- Processing -->
-    <div class="withdraw-card">
-      <div class="withdraw-left">
-        <div class="withdraw-title">
-          <i class="fa-solid fa-wallet"></i> Affiliate Wallet Withdrawal
-        </div>
-        <div class="withdraw-meta">
-          <i class="fa-regular fa-calendar"></i> 22 Feb 2026<br>
-          <i class="fa-solid fa-building-columns"></i> Bank Transfer
-        </div>
-        <div class="withdraw-reference">
-          <i class="fa-solid fa-hashtag"></i> TRX20483910
-        </div>
-      </div>
-      <div class="withdraw-right">
-        <div class="withdraw-amount">KES 5,000</div>
-        <div class="status processing"><i class="fa-solid fa-spinner fa-spin"></i> Processing</div>
-      </div>
-    </div>
+    <!-- Duplicate cards dynamically later -->
 
-    <!-- Pending -->
-    <div class="withdraw-card">
-      <div class="withdraw-left">
-        <div class="withdraw-title">
-          <i class="fa-solid fa-wallet"></i> Sales Wallet Withdrawal
-        </div>
-        <div class="withdraw-meta">
-          <i class="fa-regular fa-calendar"></i> 20 Feb 2026<br>
-          <i class="fa-solid fa-mobile-screen-button"></i> M-Pesa
-        </div>
-        <div class="withdraw-reference">
-          <i class="fa-solid fa-hashtag"></i> TRX56473829
-        </div>
-      </div>
-      <div class="withdraw-right">
-        <div class="withdraw-amount">KES 1,800</div>
-        <div class="status pending"><i class="fa-solid fa-clock"></i> Pending</div>
-      </div>
-    </div>
+  </div>
+</div>
 
-    <!-- Failed -->
-    <div class="withdraw-card">
-      <div class="withdraw-left">
-        <div class="withdraw-title">
-          <i class="fa-solid fa-wallet"></i> Affiliate Wallet Withdrawal
-        </div>
-        <div class="withdraw-meta">
-          <i class="fa-regular fa-calendar"></i> 18 Feb 2026<br>
-          <i class="fa-solid fa-mobile-screen-button"></i> M-Pesa
-        </div>
-        <div class="withdraw-reference">
-          <i class="fa-solid fa-hashtag"></i> TRX99887766
-        </div>
-      </div>
-      <div class="withdraw-right">
-        <div class="withdraw-amount">KES 900</div>
-        <div class="status failed"><i class="fa-solid fa-circle-xmark"></i> Failed</div>
-      </div>
-    </div>
-
-    <!-- Rejected -->
-    <div class="withdraw-card">
-      <div class="withdraw-left">
-        <div class="withdraw-title">
-          <i class="fa-solid fa-wallet"></i> Sales Wallet Withdrawal
-        </div>
-        <div class="withdraw-meta">
-          <i class="fa-regular fa-calendar"></i> 15 Feb 2026<br>
-          <i class="fa-solid fa-triangle-exclamation"></i> Verification issue
-        </div>
-        <div class="withdraw-reference">
-          <i class="fa-solid fa-hashtag"></i> TRX11223344
-        </div>
-      </div>
-      <div class="withdraw-right">
-        <div class="withdraw-amount">KES 2,400</div>
-        <div class="status rejected"><i class="fa-solid fa-ban"></i> Rejected</div>
-      </div>
+<!-- SHARE MODAL -->
+<div class="share-modal" id="shareModal">
+  <div class="share-box">
+    <h3>Share Product</h3>
+    <div class="share-options">
+      <button onclick="shareWhatsApp()">WhatsApp</button>
+      <button onclick="shareFacebook()">Facebook</button>
+      <button onclick="shareX()">X</button>
+      <button onclick="copyLink()">Copy Link</button>
     </div>
   </div>
 </div>
+
+<script>
+let currentProduct = "";
+
+// Download image
+function downloadImage(btn) {
+  const img = btn.closest('.product-card').querySelector('img').src;
+  const a = document.createElement("a");
+  a.href = img;
+  a.download = "product.jpg";
+  a.click();
+}
+
+// Share modal
+function openShareModal(product) {
+  currentProduct = product;
+  document.getElementById("shareModal").style.display = "flex";
+}
+
+document.getElementById("shareModal").addEventListener("click", e => {
+  if (e.target.id === "shareModal") {
+    e.target.style.display = "none";
+  }
+});
+
+// Share handlers
+function shareWhatsApp() {
+  window.open(`https://wa.me/?text=Check out this product: ${currentProduct}`, "_blank");
+}
+
+function shareFacebook() {
+  alert("Facebook share integration");
+}
+
+function shareX() {
+  alert("X share integration");
+}
+
+function copyLink() {
+  navigator.clipboard.writeText("https://yourproductlink.com");
+  alert("Link copied");
+}
+</script>
+
 </body>
 </html>
