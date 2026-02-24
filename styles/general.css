@@ -2350,8 +2350,18 @@ a.seller-right {
 .variableAndSnacksImage {
   width: 100%;
   height: clamp(160px, 30vw, 220px);
-  background-size: cover;
-  background-position: center;
+
+  object-fit: cover;       /* 🔑 crops neatly, no distortion */
+  object-position: center; /* keeps focus centered */
+
+  display: block;
+  background: #f4f4f4;     /* fallback if image is slow/broken */
+  image-rendering: auto;
+}
+
+.variables-grid .variable-card:hover .variableAndSnacksImage {
+  transform: scale(1.03);
+  transition: transform 0.6s ease;
 }
 
 /* =====================
