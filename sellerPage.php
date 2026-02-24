@@ -147,7 +147,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       <div class="overlay" onclick="toggleProfileOption()" id="overlay1"></div>
     </header>
     <div class="payOverlay" onclick="togglePaymentOption()" id="payOverlay"></div>
-    <form class="paymentContainer" action="" id="paymentContainer">9
+    <form class="paymentContainer" action="" id="paymentContainer">
       <h1>Choose&nbsp;Account <br><span>You can set your default account in settings</span></h1>
       <label class="radio-container">
         <div class="rightDiv">
