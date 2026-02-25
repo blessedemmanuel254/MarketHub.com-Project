@@ -196,6 +196,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             switch ($mime) {
                 case 'image/jpeg':
                     $source = imagecreatefromjpeg($fileTmp);
+                    // ----- FIX ORIENTATION -----
+                    if (function_exists('exif_read_data')) {
+                        $exif = @exif_read_data($fileTmp);
+                        if (!empty($exif['Orientation'])) {
+                            switch ($exif['Orientation']) {
+                                case 3:
+                                    $source = imagerotate($source, 180, 0);
+                                    break;
+                                case 6:
+                                    $source = imagerotate($source, -90, 0);
+                                    break;
+                                case 8:
+                                    $source = imagerotate($source, 90, 0);
+                                    break;
+                            }
+                        }
+                    }
+
                     break;
                 case 'image/png':
                     $source = imagecreatefrompng($fileTmp);
@@ -252,7 +270,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
 
             if ($stmt->execute()) {
-              $success = "Product added successfully! Redirecting in <span id='count'>3</span>…";
+              $success = "Product added successfully! <span id='count'>3</span>…";
               // ✅ Reset the form variables
               $productName = '';
               $category    = '';
@@ -540,7 +558,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="formBody">
                   <div class="inp-box">
                     <label>Product Name</label>
-                    <input type="text" name="name" placeholder="Enter name" value="<?= htmlspecialchars($productName, ENT_QUOTES) ?>">
+                    <input type="text" name="name" placeholder="Enter name" value="<?= htmlspecialchars($productName, ENT_QUOTES) ?>" required>
                   </div>
 
                   <div class="inp-box">
