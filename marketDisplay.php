@@ -250,7 +250,7 @@ if (!isset($_SESSION['created'])) {
     </footer>
   </div>
   
-  <script src="Scripts/general.js" type="text/javascript"></script>
+  <script src="Scripts/general.js" type="text/javascript" defer></script>
 
   <script>
   document.querySelectorAll(".toggle").forEach(btn => {

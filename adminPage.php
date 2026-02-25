@@ -543,7 +543,7 @@
       <p>&copy; 2025/2026, Market Hub.com, All Rights reserved.</p>
     </footer>
   </div>
-  <script src="Scripts/general.js" type="text/javascript"></script>
+  <script src="Scripts/general.js" type="text/javascript" defer></script>
   <script>
     // DataTables Script Js
     $(document).ready(function () {

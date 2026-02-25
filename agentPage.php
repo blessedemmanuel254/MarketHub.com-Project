@@ -1209,7 +1209,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
     </footer>
   </div>
   
-  <script src="Scripts/general.js" type="text/javascript"></script>
+  <script src="Scripts/general.js" type="text/javascript" defer></script>
   <script>
     // DataTables Script Js
     $(document).ready(function () {

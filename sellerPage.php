@@ -258,10 +258,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               $category    = '';
               $price       = '';
               $stock       = '';
-              // ✅ Successful upload: redirect
-              header("Location: sellerPage.php");
             } else {
-                $errors[] = "Failed to save product. Please try again.";
+              $errors[] = "Failed to save product. Please try again.";
             }
 
             $stmt->close();
@@ -560,12 +558,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                   <div class="inp-box">
                       <label>Price (KES)</label>
-                      <input type="number" name="price" step="0.01" placeholder="Enter price" value="<?= htmlspecialchars($price, ENT_QUOTES) ?>">
+                      <input type="number" name="price" step="0.01" placeholder="Enter price" value="<?= htmlspecialchars($price, ENT_QUOTES) ?>" required>
                   </div>
 
                   <div class="inp-box">
                       <label>Stock Quantity</label>
-                      <input type="number" name="stock" placeholder="e.g 24" value="<?= htmlspecialchars($stock, ENT_QUOTES) ?>">
+                      <input type="number" name="stock" placeholder="e.g 24" value="<?= htmlspecialchars($stock, ENT_QUOTES) ?>" required>
                   </div>
                   <div class="inp-box">
                     <label>Product Image</label>
@@ -1068,7 +1066,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </footer>
   </div>
   
-  <script src="Scripts/general.js" type="text/javascript"></script>
+  <script src="Scripts/general.js" type="text/javascript" defer></script>
   <script>
     // DataTables Script Js
     $(document).ready(function () {

@@ -377,7 +377,7 @@ $accountType = isset($_SESSION['accountType']) ? ucfirst($_SESSION['accountType'
     </footer>
   </div>
   
-  <script src="Scripts/general.js" type="text/javascript"></script>
+  <script src="Scripts/general.js" type="text/javascript" defer></script>
   <script>
     const passwordInput = document.getElementById("password");
     const strengthFill = document.getElementById("strengthFill");

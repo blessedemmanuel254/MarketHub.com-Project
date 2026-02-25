@@ -365,7 +365,7 @@
     </footer>
   </div>
   
-  <script src="Scripts/general.js" type="text/javascript"></script>
+  <script src="Scripts/general.js" type="text/javascript" defer></script>
 
   <script>
     function toggleFAQ(element) {

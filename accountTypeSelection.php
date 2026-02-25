@@ -126,6 +126,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </footer>
   </div>
   
-  <script src="Scripts/general.js" type="text/javascript"></script>
+  <script src="Scripts/general.js" type="text/javascript" defer></script>
 </body>
 </html>

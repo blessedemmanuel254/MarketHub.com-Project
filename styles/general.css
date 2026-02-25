@@ -692,7 +692,7 @@ html body {
   font-weight: normal;
 }
 
-.tabs-container .tab-content .tab-panel-msource p strong, .container main .tab-top p strong, .tabs-container .tab-content .tab-panel-mtype p strong, #toggleMarketSourceTab .tab-content .tab-panel p strong, #toggleMarketSourceTab .tab-content .tab-panel-msource p strong {
+.tabs-container .tab-content .tab-panel-msource p strong, .container main .tab-top p strong, .tabs-container .tab-content .tab-panel-mtype p strong, #toggleMarketSourceTab .tab-content .tab-panel p strong, #toggleMarketSourceTab .tab-content .tab-panel-msource p strong, #toggleMarketTypeTab .tab-content .tab-panel p strong {
   color: #088000;
 
 }
@@ -2821,6 +2821,7 @@ a.seller-right {
   flex-direction: column;
   width: clamp(200px, 100%, 300px);
   margin: 0 auto;
+  border: 1px solid #dedede;
 }
 
 .products-grid .card img {
@@ -2842,7 +2843,7 @@ a.seller-right {
 .products-grid .card .card-body .product-meta {
   font-size: 13px;
   color: #666;
-  margin-bottom: 10px;
+  margin-bottom: 5px 0;
 }
 
 .products-grid .card .card-body .price {
@@ -2858,8 +2859,9 @@ a.seller-right {
 .products-grid .card .card-body .stock.low-stock{ color:orange; }
 .products-grid .card .card-body .stock.out-stock{ color:red; }
 .products-grid .card .card-actions{
-  display:flex;
+  display:grid;
   border-top:1px solid #eee;
+  grid-template-columns: 1fr 1fr;
 }
 
 .products-grid .card .card-actions button {
@@ -2877,10 +2879,12 @@ a.seller-right {
 
 .products-grid .card .card-actions button.edit{
   color:#088000;
+  width: 100%;
 }
 
 .products-grid .card .card-actions button.delete{
   color:#ff3b3b;
+  width: 100%;
 }
 
 .empty {

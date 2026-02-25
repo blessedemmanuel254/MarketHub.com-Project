@@ -148,13 +148,15 @@ document.addEventListener("DOMContentLoaded", () => {
     panel?.classList.add("active");
   }
 
-  // Restore Market Source
+  // Restore Market Source (but DO NOT auto-switch container)
   if (savedMarketSource) {
-    showMarketContainer("source");
     const btn = document.querySelector(`.tab-btn-msource[data-tab="${savedMarketSource}"]`);
     const panel = document.getElementById(savedMarketSource);
+
     btn?.classList.add("active");
     panel?.classList.add("active");
+
+    lastActiveMarketSourceTab = btn;
   }
 
   // Restore Agent Market Type
@@ -225,6 +227,37 @@ document.addEventListener("DOMContentLoaded", () => {
     // 🔐 Persist it
     localStorage.setItem(STORAGE_KEYS.marketType, "dashboard");
   }
+
+  // ===============================
+  // BUYER MARKET DEFAULT (PRODUCTS)
+  // ===============================
+  (() => {
+    const marketTypeContainer = document.getElementById("toggleMarketTypeTab");
+    if (!marketTypeContainer) return; // ⛔ Not buyer page
+
+    const tabs = marketTypeContainer.querySelectorAll(".tab-btn");
+    const panels = marketTypeContainer.querySelectorAll(".tab-panel");
+
+    const hasActiveTab = marketTypeContainer.querySelector(".tab-btn.active");
+    const hasActivePanel = marketTypeContainer.querySelector(".tab-panel.active");
+
+    // ✅ If NOTHING is active → default to Products
+    if (!hasActiveTab || !hasActivePanel) {
+      tabs.forEach(t => t.classList.remove("active"));
+      panels.forEach(p => p.classList.remove("active"));
+
+      const defaultTab =
+        marketTypeContainer.querySelector('.tab-btn[data-tab="products"]');
+      const defaultPanel = document.getElementById("products");
+
+      defaultTab?.classList.add("active");
+      defaultPanel?.classList.add("active");
+
+      // 🔐 Persist for consistency
+      localStorage.setItem(STORAGE_KEYS.marketType, "products");
+      lastActiveMarketTypeTab = defaultTab;
+    }
+  })();
 
   /* ===============================
    AGENT DASHBOARD DEFAULT
@@ -955,13 +988,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // Default view
   salesWallet?.classList.add("active");
 
-  walletSelect.addEventListener("change", () => {
-    if (walletSelect.value === "Sales Wallet") {
-      salesWallet.classList.add("active");
-      agencyWallet.classList.remove("active");
-    } else {
-      agencyWallet.classList.add("active");
-      salesWallet.classList.remove("active");
-    }
-  });
+  if (walletSelect) {
+    walletSelect.addEventListener("change", () => {
+      if (walletSelect.value === "Sales Wallet") {
+        salesWallet.classList.add("active");
+        agencyWallet.classList.remove("active");
+      } else {
+        agencyWallet.classList.add("active");
+        salesWallet.classList.remove("active");
+      }
+    });
+  }
 });
