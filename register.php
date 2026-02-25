@@ -57,16 +57,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     return ""; // valid
   }
   
-  $full_name = trim($_POST['full_name'] ?? '');
-  $username = trim($_POST['username'] ?? '');
-  $email = trim($_POST['email'] ?? '');
-  $phone = trim($_POST['phone'] ?? '');
-  $password = $_POST['password'] ?? '';
-  $confirm_password = $_POST['confirm_password'] ?? '';
-  $country = trim($_POST['country'] ?? '');
-  $county = trim($_POST['county'] ?? '');
-  $ward = trim($_POST['ward'] ?? '');
-  $address = trim($_POST['address'] ?? '');
+
+    $full_name = trim($_POST['full_name'] ?? '');
+    $username = trim($_POST['username'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $confirm_password = $_POST['confirm_password'] ?? '';
+    $country = trim($_POST['country'] ?? '');
+    $county = trim($_POST['county'] ?? '');
+    $ward = trim($_POST['ward'] ?? '');
+    $address = trim($_POST['address'] ?? '');
+    $busname = trim($_POST['busname'] ?? '');
+    $bustype = trim($_POST['bustype'] ?? '');
+    $market = trim($_POST['market'] ?? '');
 
   if (!$full_name || !$username || !$email || !$phone || !$password || !$confirm_password || !$country || !$county || !$ward || !$address || ($accountType === 'seller' && (!$busname || !$bustype || !$market))) {
     $error = "All fields are required.";
@@ -86,6 +90,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $error = 'Username is too long!';
   } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $error = 'Invalid email address!';
+  } elseif ($accountType === 'seller' && strlen($busname) > 25) {
+    $error = "Business name too long!";
+  } elseif (strlen($address) > 25) {
+    $error = "Address too long!";
   } else {
     $encrypted_email = base64_encode($email);
     $normalized_phone = normalizePhoneNumber($phone);
@@ -120,9 +128,36 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if (!$error) {
           $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+          // Force NULL for buyer accounts
+          if ($accountType === 'buyer') {
+              $busname = null;
+              $bustype = null;
+              $market  = null;
+          }
 
-          $stmt = $conn->prepare("INSERT INTO users (account_type, full_name, country, county, ward, username, address, email, phone, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-          $stmt->bind_param("ssssssssss", $accountType, $full_name, $country, $county, $ward, $username, $address, $encrypted_email, $encrypted_phone, $hashedPassword);
+          // Insert into database
+          $stmt = $conn->prepare("
+              INSERT INTO users 
+              (account_type, full_name, username, email, phone, password, country, county, ward, address, business_name, business_type, market_scope, total_sales, rating_average, rating_count, created_at, updated_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, NOW(), NOW())
+          ");
+
+          $stmt->bind_param(
+              "sssssssssssss",  // 13 s's match 13 placeholders
+              $accountType,
+              $full_name,
+              $username,
+              $encrypted_email,
+              $encrypted_phone,
+              $hashedPassword,
+              $country,
+              $county,
+              $ward,
+              $address,
+              $busname,
+              $bustype,
+              $market
+          );
 
           if ($stmt->execute()) {
             $success = "Account registered successfully! <span id='redirect-msg'></span>";

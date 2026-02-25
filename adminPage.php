@@ -1,3 +1,40 @@
+<?php
+session_start();
+require_once 'connection.php';
+
+/* ---------- SESSION SECURITY ---------- */
+if (!isset($_SESSION['user_id'])) {
+    header("Location: index.php");
+    exit();
+} 
+
+/* Optional: regenerate session ID periodically */
+if (!isset($_SESSION['created'])) {
+    session_regenerate_id(true);
+    $_SESSION['created'] = time();
+}
+
+/* ---------- ROLE ACCESS CONTROL ---------- */
+$allowedRole = 'administrator';
+
+$roleStmt = $conn->prepare(
+    "SELECT account_type FROM users WHERE user_id = ? LIMIT 1"
+);
+$roleStmt->bind_param("i", $_SESSION['user_id']);
+$roleStmt->execute();
+$roleStmt->bind_result($accountType);
+$roleStmt->fetch();
+$roleStmt->close();
+
+if ($accountType !== $allowedRole) {
+    // Optional: destroy session for safety
+    // session_destroy();
+
+    header("Location: index.php");
+    exit();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

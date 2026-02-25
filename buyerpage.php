@@ -14,6 +14,107 @@ if (!isset($_SESSION['created'])) {
     $_SESSION['created'] = time();
 }
 
+/* ---------- ROLE ACCESS CONTROL ---------- */
+$allowedRole = 'buyer'; // change to 'seller' on seller-only pages
+
+$roleStmt = $conn->prepare(
+    "SELECT account_type FROM users WHERE user_id = ? LIMIT 1"
+);
+$roleStmt->bind_param("i", $_SESSION['user_id']);
+$roleStmt->execute();
+$roleStmt->bind_result($accountType);
+$roleStmt->fetch();
+$roleStmt->close();
+
+if ($accountType !== $allowedRole) {
+    // Optional: destroy session for safety
+    // session_destroy();
+
+    header("Location: index.php");
+    exit();
+}
+
+/* ---------- AJAX FOLLOW / UNFOLLOW ---------- */
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST' &&
+    isset($_POST['seller_id']) &&
+    isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+    strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
+) {
+    header('Content-Type: application/json');
+
+    if (!isset($_SESSION['user_id'])) {
+        echo json_encode(['error' => 'Not logged in']);
+        exit;
+    }
+
+    $currentUser = $_SESSION['user_id'];
+    $sellerId = (int) $_POST['seller_id'];
+
+    if ($sellerId <= 0 || $sellerId === $currentUser) {
+        echo json_encode(['error' => 'Invalid user']);
+        exit;
+    }
+
+    // Check if already following
+    $stmt = $conn->prepare(
+        "SELECT 1 FROM user_followers WHERE follower_id = ? AND followed_id = ?"
+    );
+    $stmt->bind_param("ii", $currentUser, $sellerId);
+    $stmt->execute();
+    $stmt->store_result();
+
+    if ($stmt->num_rows > 0) {
+        // UNFOLLOW
+        $stmt->close();
+        $stmt = $conn->prepare(
+            "DELETE FROM user_followers WHERE follower_id = ? AND followed_id = ?"
+        );
+        $stmt->bind_param("ii", $currentUser, $sellerId);
+        $stmt->execute();
+        $isFollowing = false;
+    } else {
+        // FOLLOW
+        $stmt->close();
+        $stmt = $conn->prepare(
+            "INSERT INTO user_followers (follower_id, followed_id, followed_at)
+             VALUES (?, ?, NOW())"
+        );
+        $stmt->bind_param("ii", $currentUser, $sellerId);
+        $stmt->execute();
+        $isFollowing = true;
+    }
+
+    $stmt->close();
+
+    // Get updated counts
+    $followersStmt = $conn->prepare(
+        "SELECT COUNT(*) FROM user_followers WHERE followed_id = ?"
+    );
+    $followersStmt->bind_param("i", $sellerId);
+    $followersStmt->execute();
+    $followersStmt->bind_result($followersCount);
+    $followersStmt->fetch();
+    $followersStmt->close();
+
+    $followingStmt = $conn->prepare(
+        "SELECT COUNT(*) FROM user_followers WHERE follower_id = ?"
+    );
+    $followingStmt->bind_param("i", $sellerId);
+    $followingStmt->execute();
+    $followingStmt->bind_result($followingCount);
+    $followingStmt->fetch();
+    $followingStmt->close();
+
+    echo json_encode([
+        'success' => true,
+        'is_following' => $isFollowing,
+        'followers' => $followersCount,
+        'following' => $followingCount
+    ]);
+    exit;
+}
+
 /* ---------- FETCH USER DATA ---------- */
 $user_id = $_SESSION['user_id'];
 
@@ -69,6 +170,35 @@ if (!empty($profileImage) && file_exists($profileImage)) {
     $safeProfileImage = $defaultAvatar;
 }
 
+// Current logged in user
+$currentUserId = $_SESSION['user_id'];
+
+$sellerQuery = "
+    SELECT 
+        u.user_id, u.username, u.business_name, u.business_type, u.market_scope, u.ward, u.profile_image, u.address, u.total_sales,
+        (SELECT COUNT(*) FROM user_followers uf WHERE uf.follower_id = u.user_id) AS following_count,
+        (SELECT COUNT(*) FROM user_followers uf WHERE uf.followed_id = u.user_id) AS followers_count,
+        (SELECT COUNT(*) FROM user_followers uf WHERE uf.follower_id = ? AND uf.followed_id = u.user_id) AS is_following
+    FROM users u
+    WHERE u.account_type = 'seller'
+    ORDER BY u.total_sales DESC
+    LIMIT 50
+";
+
+$stmt = $conn->prepare($sellerQuery);
+$stmt->bind_param("i", $currentUserId);
+$stmt->execute();
+$result = $stmt->get_result();
+
+$sellers = [];
+while ($row = $result->fetch_assoc()) {
+    // Capitalize names and types
+    $row['business_name'] = ucwords(strtolower($row['business_name']));
+    $row['business_type'] = ucwords(strtolower($row['business_type']));
+    $row['address'] = ucwords(strtolower($row['address']));
+    $sellers[] = $row;
+}
+$stmt->close();
 ?>
 
 <!DOCTYPE html>
@@ -349,70 +479,108 @@ if (!empty($profileImage) && file_exists($profileImage)) {
               </button>
             </div>
 
-            <!-- SELLERS LIST -->
             <div class="sellers">
-
-              <div class="seller">
-                <div class="seller-left">
-                  <div class="avatar">MC</div>
-                  <div>
-                    <div class="name">Main Canteen</div>
-                    <div class="rating">★★★★★ (41)</div>
-                    <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
-                    <div class="meta"><h2>23k&nbsp;<span>followers</span></h2></div>
-                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
-                  </div>
-                </div>
-                <a href="marketDisplay.php" class="seller-right">
-                  <div class="promoBadgeGoGold">200+</div>
-                  <div class="bsType">Business Type : <i>Kiosk</i></div>
-                  <div class="action">
-                    <button>View&nbsp;seller</button>
-                  </div>
-                </a>
+            <?php if (empty($sellers)): ?>
+              <div class="no-market-message">
+                No markets available.
               </div>
+            <?php else: ?>
+                <?php foreach ($sellers as $seller): ?>
+                    <?php
+                        // Safe outputs
+                        $bName = htmlspecialchars($seller['business_name'], ENT_QUOTES, 'UTF-8');
+                        $bType = htmlspecialchars($seller['business_type'], ENT_QUOTES, 'UTF-8');
+                        $address = htmlspecialchars($seller['address'], ENT_QUOTES, 'UTF-8');
+                        $avatar = !empty($seller['profile_image']) && file_exists($seller['profile_image']) 
+                                  ? htmlspecialchars($seller['profile_image'], ENT_QUOTES, 'UTF-8') 
+                                  : $defaultAvatar;
+                        $initials = strtoupper(substr($bName, 0, 1)) . (isset($seller['business_name'][1]) ? strtoupper(substr($bName, 1, 1)) : '');
+                    ?>
+                    <div class="seller">
+                        <div class="seller-left">
+                            <div class="avatar"><?php echo $initials; ?></div>
+                            <div>
+                                <div class="name"><?php echo $bName; ?></div>
+                                <div class="rating">★★★★★ (<?php echo rand(5, 200); ?>)</div>
+                                <div class="meta">
+                                    <h2 class="following-count" data-seller="<?php echo $seller['user_id']; ?>">
+                                        <?php echo $seller['following_count']; ?>&nbsp;<span>following</span>
+                                    </h2>
 
-              <div class="seller">
-                <div class="seller-left">
-                  <div class="avatar">BE</div>
-                  <div>
-                    <div class="name">BerryFerry</div>
-                    <div class="rating">★★★★★ (165)</div>
-                    <div class="meta"><h2>3&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
-                    <div class="meta"><h2>4&nbsp;<span>followers</span></h2></div>
-                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
-                  </div>
-                </div>
-                <a href="marketDisplay.php" class="seller-right">
-                  <div class="promoBadgeDefault">13</div>
-                  <div class="bsType">Business Type : <i>Canteen</i></div>
-                  <div class="action">
-                    <button>View&nbsp;seller</button>
-                  </div>
-                </a>
-              </div>
+                                    <h2 class="followBtn" data-seller="<?php echo $seller['user_id']; ?>">
+                                        <?php echo $seller['is_following'] ? 'Following' : 'Follow'; ?>
+                                    </h2>
+                                </div>
 
-              <div class="seller">
-                <div class="seller-left">
-                  <div class="avatar">WW</div>
-                  <div>
-                    <div class="name">Wwrightbright</div>
-                    <div class="rating">★★★★★ (11)</div>
-                    <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
-                    <div class="meta"><h2>2&nbsp;<span>followers</span></h2></div>
-                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
-                  </div>
-                </div>
-                <a href="marketDisplay.php" class="seller-right">
-                  <div class="promoBadgeGoPro">100+</div>
-                  <div class="bsType">Business Type : <i>Kibanda</i></div>
-                  <div class="action">
-                    <button>View&nbsp;seller</button>
-                  </div>
-                </a>
-              </div>
-
+                                <div class="meta">
+                                    <h2 class="followers-count" data-seller="<?php echo $seller['user_id']; ?>">
+                                        <?php echo $seller['followers_count']; ?>&nbsp;<span>followers</span>
+                                    </h2>
+                                </div>
+                                <div class="bsInfo"><strong>Location :</strong> <?php echo $address; ?></div>
+                            </div>
+                        </div>
+                        <a href="marketDisplay.php?seller=<?php echo $seller['user_id']; ?>" class="seller-right">
+                            <div class="promoBadgeDefault"><?php echo $seller['total_sales']; ?>+</div>
+                            <div class="bsType">Business Type : <i><?php echo $bType; ?></i></div>
+                            <div class="action">
+                                <button>View&nbsp;seller</button>
+                            </div>
+                        </a>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
             </div>
+            <script>
+            document.querySelectorAll('.followBtn').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    const sellerId = this.dataset.seller;
+                    const button = this;
+
+                    if (!sellerId) return;
+
+                    fetch(window.location.href, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: `seller_id=${sellerId}`
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.success) {
+                            alert(data.error || 'Something went wrong');
+                            return;
+                        }
+
+                        // Toggle button text
+                        button.textContent = data.is_following ? 'Following' : 'Follow';
+
+                        // Update counts
+                        const followersEl = document.querySelector(
+                            `.followers-count[data-seller="${sellerId}"]`
+                        );
+                        const followingEl = document.querySelector(
+                            `.following-count[data-seller="${sellerId}"]`
+                        );
+
+                        if (followersEl) {
+                            followersEl.innerHTML = `${data.followers}&nbsp;<span>followers</span>`;
+                        }
+
+                        if (followingEl) {
+                            followingEl.innerHTML = `${data.following}&nbsp;<span>following</span>`;
+                        }
+                    })
+                    .catch(() => {
+                        alert('Network error');
+                    });
+                });
+            });
+            </script>
           </div>
 
           <div id="supermarkets" class="tab-panel-msource">

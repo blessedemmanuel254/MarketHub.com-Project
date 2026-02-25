@@ -681,7 +681,7 @@ html body {
   color: #0f0f0f;
 }
 
-.tabs-container .tab-content .tab-panel p strong {
+.tabs-container#toggleMarketTypeTab .tab-content .tab-panel p strong {
   color: #ff3b3b;
 
 }
@@ -1957,7 +1957,15 @@ label.account-type input:checked + .radio-dot::after {
   grid-template-columns: 1fr auto;
   gap: 12px;
   background-color: #dedede41;
- /*  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sellers .no-market-message {
+  color: #898888;
+}
+
+.seller.mDisplay {
+  box-shadow: none;
 }
 
 .seller-left {

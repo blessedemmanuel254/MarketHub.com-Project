@@ -13,6 +13,158 @@ if (!isset($_SESSION['created'])) {
     session_regenerate_id(true);
     $_SESSION['created'] = time();
 }
+
+
+/* ---------- HANDLE FOLLOW / UNFOLLOW AJAX ---------- */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'toggle_follow') {
+
+    if (!isset($_SESSION['user_id'])) {
+        echo json_encode(['success' => false, 'error' => 'Not logged in']);
+        exit();
+    }
+
+    $followerId = $_SESSION['user_id'];
+    $followedId = (int)($_POST['seller_id'] ?? 0);
+
+    if ($followedId <= 0 || $followedId === $followerId) {
+        echo json_encode(['success' => false, 'error' => 'Invalid request']);
+        exit();
+    }
+
+    /* Check if already following */
+    $check = $conn->prepare(
+        "SELECT 1 FROM user_followers WHERE follower_id = ? AND followed_id = ?"
+    );
+    $check->bind_param("ii", $followerId, $followedId);
+    $check->execute();
+    $check->store_result();
+
+    if ($check->num_rows > 0) {
+        // UNFOLLOW
+        $delete = $conn->prepare(
+            "DELETE FROM user_followers WHERE follower_id = ? AND followed_id = ?"
+        );
+        $delete->bind_param("ii", $followerId, $followedId);
+        $delete->execute();
+        $delete->close();
+
+        $isFollowing = false;
+    } else {
+        // FOLLOW
+        $insert = $conn->prepare(
+            "INSERT INTO user_followers (follower_id, followed_id) VALUES (?, ?)"
+        );
+        $insert->bind_param("ii", $followerId, $followedId);
+        $insert->execute();
+        $insert->close();
+
+        $isFollowing = true;
+    }
+    $check->close();
+
+    /* Updated followers count */
+    $countStmt = $conn->prepare(
+        "SELECT COUNT(*) FROM user_followers WHERE followed_id = ?"
+    );
+    $countStmt->bind_param("i", $followedId);
+    $countStmt->execute();
+    $countStmt->bind_result($followersCount);
+    $countStmt->fetch();
+    $countStmt->close();
+
+    echo json_encode([
+        'success' => true,
+        'is_following' => $isFollowing,
+        'followers' => $followersCount
+    ]);
+    exit();
+}
+
+if (!isset($_GET['seller']) || !is_numeric($_GET['seller'])) {
+    die("Invalid seller");
+}
+
+$buyerId  = $_SESSION['user_id'];
+$sellerId = (int)$_GET['seller'];
+
+/* ---------- FETCH SELLER PROFILE ---------- */
+$sellerStmt = $conn->prepare("
+    SELECT 
+        user_id,
+        business_name,
+        business_type,
+        market_scope,
+        address,
+        ward,
+        profile_image,
+        total_sales,
+        rating_average,
+        rating_count
+    FROM users
+    WHERE user_id = ? AND account_type = 'seller'
+    LIMIT 1
+");
+$sellerStmt->bind_param("i", $sellerId);
+$sellerStmt->execute();
+$seller = $sellerStmt->get_result()->fetch_assoc();
+$sellerStmt->close();
+
+if (!$seller) {
+    die("Seller not found");
+}
+
+/* ---------- FOLLOWERS COUNT ---------- */
+$followersStmt = $conn->prepare(
+    "SELECT COUNT(*) FROM user_followers WHERE followed_id = ?"
+);
+$followersStmt->bind_param("i", $sellerId);
+$followersStmt->execute();
+$followersStmt->bind_result($followersCount);
+$followersStmt->fetch();
+$followersStmt->close();
+
+/* ---------- FOLLOWING COUNT ---------- */
+$followingStmt = $conn->prepare(
+    "SELECT COUNT(*) FROM user_followers WHERE follower_id = ?"
+);
+$followingStmt->bind_param("i", $sellerId);
+$followingStmt->execute();
+$followingStmt->bind_result($followingCount);
+$followingStmt->fetch();
+$followingStmt->close();
+
+/* ---------- IS BUYER FOLLOWING SELLER ---------- */
+$isFollowing = false;
+$checkFollow = $conn->prepare(
+    "SELECT 1 FROM user_followers WHERE follower_id = ? AND followed_id = ?"
+);
+$checkFollow->bind_param("ii", $buyerId, $sellerId);
+$checkFollow->execute();
+$checkFollow->store_result();
+$isFollowing = $checkFollow->num_rows > 0;
+$checkFollow->close();
+
+/* ---------- FETCH SELLER PRODUCTS ---------- */
+$products = [];
+
+$productStmt = $conn->prepare("
+    SELECT 
+        product_id,
+        product_name,
+        price,
+        image_path
+    FROM productservicesrentals
+    WHERE user_id = ? AND status = 'active'
+    ORDER BY created_at DESC
+");
+$productStmt->bind_param("i", $sellerId);
+$productStmt->execute();
+$result = $productStmt->get_result();
+
+while ($row = $result->fetch_assoc()) {
+    $products[] = $row;
+}
+$productStmt->close();
 ?>
 
 <!DOCTYPE html>
@@ -153,23 +305,56 @@ if (!isset($_SESSION['created'])) {
     </div>
     <main class="sellerMain" id="marketMain">
       <div class="sellerProfileContainer">
-        <div class="seller">
+        <div class="seller mDisplay">
           <div class="seller-left">
-            <div class="avatar">MC</div><!-- 
+            <div class="avatar">
+              <?php echo strtoupper(substr($seller['business_name'], 0, 2)); ?>
+            </div><!-- 
             <img src="" alt="Seller Logo"> -->
             <div>
-              <div class="name">Main Canteen</div>
-              <div class="rating">★★★★★ (41)</div>
-              <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
-              <div class="meta"><h2>23k&nbsp;<span>followers</span></h2></div>
-              <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
+              <div class="name">
+                <?php echo htmlspecialchars(ucwords(strtolower($seller['business_name']))); ?>
+              </div>
+
+              <div class="rating">
+                ★★★★★ (<?php echo (int)$seller['rating_count']; ?>)
+              </div>
+
+              <div class="meta">
+                <h2 class="following-count" data-seller="<?php echo $sellerId; ?>">
+                  <?php echo $followingCount; ?>&nbsp;<span>following</span>
+                </h2>
+
+                <h2 class="followBtn"
+                    data-seller="<?php echo $sellerId; ?>">
+                  <?php echo $isFollowing ? 'Following' : 'Follow'; ?>
+                </h2>
+              </div>
+
+              <div class="meta">
+                <h2 class="followers-count" data-seller="<?php echo $sellerId; ?>">
+                  <?php echo $followersCount; ?>&nbsp;<span>followers</span>
+                </h2>
+              </div>
+
+              <div class="bsInfo">
+                <strong>Location :</strong>
+                <?php echo htmlspecialchars(ucwords(strtolower($seller['address']))); ?>
+              </div>
             </div>
           </div>
           <a href="" class="seller-right">
-            <div class="promoBadgeGoGold">200+</div>
-            <div class="bsType">Business Type : <i>Kiosk</i></div>
+            <div class="promoBadgeGoGold">
+              <?php echo (int)$seller['total_sales']; ?>+
+            </div>
+
+            <div class="bsType">
+              Business Type :
+              <i><?php echo ucwords(strtolower($seller['business_type'])); ?></i>
+            </div>
+
             <div class="action">
-              <h2>LOCAL MARKET</h2>
+              <h2><?php echo strtoupper($seller['market_scope']); ?> MARKET</h2>
             </div>
           </a>
         </div>
@@ -186,58 +371,34 @@ if (!isset($_SESSION['created'])) {
             </div>
 
             <div class="variables-grid">
+              <?php if ($products): ?>
+                <?php foreach ($products as $product): ?>
+                  <div class="variable-card"
+                      data-name="<?php echo htmlspecialchars($product['product_name']); ?>"
+                      data-price="<?php echo $product['price']; ?>"
+                      data-image="<?php echo $product['image_path']; ?>">
 
-              <!-- CARD 1 -->
-              <div class="variable-card" data-name="Passion Juice" data-price="40" data-image="Images/Passion Juice.jpg">
-                <button class="add-to-cart-btn">Add&nbsp;to&nbsp;cart</button>
-                <img class="variableAndSnacksImage" src="Images/Passion Juice.jpg" alt="Product Image">
-                <div class="variable-content">
-                  <div class="variable-title">Passion Juice</div>
-                  <div class="price-row">
-                    <div class="price">KES 40</div>
-                    <button class="buy-btn" onclick="togglePaymentOption()">Order</button>
-                  </div>
-                </div>
-              </div>
+                    <button class="add-to-cart-btn">Add&nbsp;to&nbsp;cart</button>
 
-              <!-- CARD 2 -->
-              <div class="variable-card" data-name="Burger & Fries" data-price="650" data-image="Images/Market Hub Logo.avif">
-                <button class="add-to-cart-btn">Add&nbsp;to&nbsp;cart</button>
-                <img class="variableAndSnacksImage" src="Images/Market Hub Logo.avif" alt="Product Image">
-                <div class="variable-content">
-                  <div class="variable-title">Burger & Fries</div>
-                  <div class="price-row">
-                    <div class="price">KES 650</div>
-                    <button class="buy-btn" onclick="togglePaymentOption()">Order</button>
-                  </div>
-                </div>
-              </div>
+                    <img class="variableAndSnacksImage"
+                        src="<?php echo htmlspecialchars($product['image_path']); ?>"
+                        alt="Product Image">
 
-              <!-- CARD 3 -->
-              <div class="variable-card" data-name="Pizza Slice" data-price="300" data-image="Images/Market Hub Logo.avif">
-                <button class="add-to-cart-btn">Add&nbsp;to&nbsp;cart</button>
-                <img class="variableAndSnacksImage" src="Images/Market Hub Logo.avif" alt="Product Image">
-                <div class="variable-content">
-                  <div class="variable-title">Pizza Slice</div>
-                  <div class="price-row">
-                    <div class="price">KES 300</div>
-                    <button class="buy-btn" onclick="togglePaymentOption()">Order</button>
-                  </div>
-                </div>
-              </div>
+                    <div class="variable-content">
+                      <div class="variable-title">
+                        <?php echo htmlspecialchars($product['product_name']); ?>
+                      </div>
 
-              <!-- CARD 4 -->
-              <div class="variable-card" data-name="Samosas" data-price="150" data-image="Images/Market Hub Logo.avif">
-                <button class="add-to-cart-btn">Add&nbsp;to&nbsp;cart</button>
-                <img class="variableAndSnacksImage" src="Images/Market Hub Logo.avif" alt="Product Image">
-                <div class="variable-content">
-                  <div class="variable-title">Samosas</div>
-                  <div class="price-row">
-                    <div class="price">KES 150</div>
-                    <button class="buy-btn" onclick="togglePaymentOption()">Order</button>
+                      <div class="price-row">
+                        <div class="price">KES <?php echo number_format($product['price']); ?></div>
+                        <button class="buy-btn" onclick="togglePaymentOption()">Order</button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                <?php endforeach; ?>
+              <?php else: ?>
+                <p>No products available.</p>
+              <?php endif; ?>
 
             </div>
           </div>
@@ -261,6 +422,41 @@ if (!isset($_SESSION['created'])) {
         ? "Hide details"
         : "View details";
     });
+  });
+  </script>
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+      const followBtn = document.querySelector(".followBtn");
+      const followersCountEl = document.querySelector(".followers-count");
+
+      if (!followBtn) return;
+
+      followBtn.addEventListener("click", function () {
+          const sellerId = this.dataset.seller;
+
+          fetch("marketDisplay.php", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/x-www-form-urlencoded"
+              },
+              body: `action=toggle_follow&seller_id=${sellerId}`
+          })
+          .then(res => res.json())
+          .then(data => {
+              if (!data.success) {
+                  alert(data.error || "Action failed");
+                  return;
+              }
+
+              followBtn.textContent = data.is_following ? "Following" : "Follow";
+
+              if (followersCountEl) {
+                  followersCountEl.innerHTML =
+                      `${data.followers}&nbsp;<span>followers</span>`;
+              }
+          })
+          .catch(() => alert("Network error"));
+      });
   });
   </script>
   
