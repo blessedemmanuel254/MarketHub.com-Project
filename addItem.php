@@ -221,7 +221,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                   </div>
                   <div class="inp-box">
                     <label>Product Image</label>
-                    <input type="file" accept="image/png,image/jpeg,image/webp" name="photo" accept="image/*">
+                    <input type="file" name="photo" accept="image/png,image/jpeg,image/webp" required>
                     <div class="note">
                       400×400 – 1200×1200 px • Max 1MB
                     </div>

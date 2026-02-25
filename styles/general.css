@@ -2016,7 +2016,7 @@ label.account-type input:checked + .radio-dot::after {
   font-weight: normal;
 }
 
-.meta h2.followBtn {
+.meta h2.followBtn, .meta h2.followingBtn {
   font-weight: normal;
   background-color: #0f0f0f;
   padding: 4px 16px;
@@ -2027,6 +2027,12 @@ label.account-type input:checked + .radio-dot::after {
   width: fit-content;
   font-size: 12px;
   cursor: pointer;
+}
+
+.meta h2.followingBtn {
+  color: #0f0f0f;
+  background-color: #dedede;
+  border: 1px solid #8988886b;
 }
 
 .meta h2.followBtn:hover {

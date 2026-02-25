@@ -503,13 +503,16 @@ $stmt->close();
                                 <div class="name"><?php echo $bName; ?></div>
                                 <div class="rating">★★★★★ (<?php echo rand(5, 200); ?>)</div>
                                 <div class="meta">
-                                    <h2 class="following-count" data-seller="<?php echo $seller['user_id']; ?>">
-                                        <?php echo $seller['following_count']; ?>&nbsp;<span>following</span>
-                                    </h2>
+                                  <h2 class="following-count" data-seller="<?php echo $seller['user_id']; ?>">
+                                      <?php echo $seller['following_count']; ?>&nbsp;<span>following</span>
+                                  </h2>
 
-                                    <h2 class="followBtn" data-seller="<?php echo $seller['user_id']; ?>">
-                                        <?php echo $seller['is_following'] ? 'Following' : 'Follow'; ?>
-                                    </h2>
+                                  <h2 
+                                    class="<?php echo $seller['is_following'] ? 'followingBtn' : 'followBtn'; ?>" 
+                                    data-seller="<?php echo $seller['user_id']; ?>"
+                                  >
+                                    <?php echo $seller['is_following'] ? 'Following' : 'Follow'; ?>
+                                  </h2>
                                 </div>
 
                                 <div class="meta">
@@ -532,52 +535,60 @@ $stmt->close();
             <?php endif; ?>
             </div>
             <script>
-            document.querySelectorAll('.followBtn').forEach(btn => {
-                btn.addEventListener('click', function (e) {
-                    e.preventDefault();
+            document.addEventListener('click', function (e) {
+                const button = e.target.closest('.followBtn, .followingBtn');
+                if (!button) return;
 
-                    const sellerId = this.dataset.seller;
-                    const button = this;
+                e.preventDefault();
 
-                    if (!sellerId) return;
+                const sellerId = button.dataset.seller;
+                if (!sellerId) return;
 
-                    fetch(window.location.href, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: `seller_id=${sellerId}`
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (!data.success) {
-                            alert(data.error || 'Something went wrong');
-                            return;
-                        }
+                fetch(window.location.href, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: `seller_id=${sellerId}`
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success) {
+                        alert(data.error || 'Something went wrong');
+                        return;
+                    }
 
-                        // Toggle button text
-                        button.textContent = data.is_following ? 'Following' : 'Follow';
+                    /* ---------- TOGGLE TEXT ---------- */
+                    button.textContent = data.is_following ? 'Following' : 'Follow';
 
-                        // Update counts
-                        const followersEl = document.querySelector(
-                            `.followers-count[data-seller="${sellerId}"]`
-                        );
-                        const followingEl = document.querySelector(
-                            `.following-count[data-seller="${sellerId}"]`
-                        );
+                    /* ---------- TOGGLE CLASS ---------- */
+                    if (data.is_following) {
+                        button.classList.remove('followBtn');
+                        button.classList.add('followingBtn');
+                    } else {
+                        button.classList.remove('followingBtn');
+                        button.classList.add('followBtn');
+                    }
 
-                        if (followersEl) {
-                            followersEl.innerHTML = `${data.followers}&nbsp;<span>followers</span>`;
-                        }
+                    /* ---------- UPDATE COUNTS ---------- */
+                    const followersEl = document.querySelector(
+                        `.followers-count[data-seller="${sellerId}"]`
+                    );
+                    const followingEl = document.querySelector(
+                        `.following-count[data-seller="${sellerId}"]`
+                    );
 
-                        if (followingEl) {
-                            followingEl.innerHTML = `${data.following}&nbsp;<span>following</span>`;
-                        }
-                    })
-                    .catch(() => {
-                        alert('Network error');
-                    });
+                    if (followersEl) {
+                        followersEl.innerHTML = `${data.followers}&nbsp;<span>followers</span>`;
+                    }
+
+                    if (followingEl) {
+                        followingEl.innerHTML = `${data.following}&nbsp;<span>following</span>`;
+                    }
+                })
+                .catch(() => {
+                    alert('Network error');
                 });
             });
             </script>

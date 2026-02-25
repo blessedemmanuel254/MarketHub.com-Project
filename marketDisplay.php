@@ -324,9 +324,10 @@ $productStmt->close();
                 <h2 class="following-count" data-seller="<?php echo $sellerId; ?>">
                   <?php echo $followingCount; ?>&nbsp;<span>following</span>
                 </h2>
-
-                <h2 class="followBtn"
-                    data-seller="<?php echo $sellerId; ?>">
+                <h2 
+                  class="<?php echo $isFollowing  ? 'followingBtn' : 'followBtn'; ?>" 
+                  data-seller="<?php echo $seller['user_id']; ?>"
+                >
                   <?php echo $isFollowing ? 'Following' : 'Follow'; ?>
                 </h2>
               </div>
@@ -426,18 +427,24 @@ $productStmt->close();
   </script>
   <script>
   document.addEventListener("DOMContentLoaded", () => {
-      const followBtn = document.querySelector(".followBtn");
-      const followersCountEl = document.querySelector(".followers-count");
+      document.addEventListener("click", (e) => {
+          // Handle clicks on both followBtn and followingBtn
+          const button = e.target.closest(".followBtn, .followingBtn");
+          if (!button) return;
 
-      if (!followBtn) return;
+          e.preventDefault();
 
-      followBtn.addEventListener("click", function () {
-          const sellerId = this.dataset.seller;
+          const sellerId = button.dataset.seller;
+          if (!sellerId) return;
+
+          // Disable button briefly to prevent double-click
+          button.style.pointerEvents = "none";
 
           fetch("marketDisplay.php", {
               method: "POST",
               headers: {
-                  "Content-Type": "application/x-www-form-urlencoded"
+                  "Content-Type": "application/x-www-form-urlencoded",
+                  "X-Requested-With": "XMLHttpRequest"
               },
               body: `action=toggle_follow&seller_id=${sellerId}`
           })
@@ -448,14 +455,32 @@ $productStmt->close();
                   return;
               }
 
-              followBtn.textContent = data.is_following ? "Following" : "Follow";
+              // Toggle text
+              button.textContent = data.is_following ? "Following" : "Follow";
+
+              // Toggle class
+              if (data.is_following) {
+                  button.classList.remove("followBtn");
+                  button.classList.add("followingBtn");
+              } else {
+                  button.classList.remove("followingBtn");
+                  button.classList.add("followBtn");
+              }
+
+              // Update followers count
+              const followersCountEl = document.querySelector(
+                  `.followers-count[data-seller="${sellerId}"]`
+              );
 
               if (followersCountEl) {
-                  followersCountEl.innerHTML =
-                      `${data.followers}&nbsp;<span>followers</span>`;
+                  followersCountEl.innerHTML = `${data.followers}&nbsp;<span>followers</span>`;
               }
           })
-          .catch(() => alert("Network error"));
+          .catch(() => alert("Network error"))
+          .finally(() => {
+              // Re-enable button
+              button.style.pointerEvents = "auto";
+          });
       });
   });
   </script>

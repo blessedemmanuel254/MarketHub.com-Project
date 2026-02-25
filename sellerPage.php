@@ -87,18 +87,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_product_id']))
         if ($stmtDel->execute()) {
             $success = "Product deleted successfully!";
         } else {
-            $errors[] = "Failed to delete product. Please try again.";
+            $error = "Failed to delete product. Please try again.";
         }
         $stmtDel->close();
     } else {
-        $errors[] = "Product not found or not owned by you.";
+        $error = "Product not found or not owned by you.";
     }
 
     $stmt->close();
 }
 // ---------- FETCH SELLER PRODUCTS ----------
 $products = [];
-$stmt = $conn->prepare("SELECT * FROM productservicesrentals WHERE user_id = ? ORDER BY created_at DESC");
+$stmt = $conn->prepare("
+    SELECT product_id, product_name, category, price, stock_quantity, image_path
+    FROM productservicesrentals
+    WHERE user_id = ?
+    ORDER BY created_at DESC
+");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -136,7 +141,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 }
 
 
-$errors = [];
+$error = "";
 $success = "";
 
 $productName = '';
@@ -144,8 +149,7 @@ $category    = '';
 $price       = '';
 $stock       = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_product_id'])) {
     // ---------- FORM INPUTS ----------
     $productName = trim($_POST['name'] ?? '');
     $category    = trim($_POST['category'] ?? '');
@@ -154,27 +158,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // ---------- VALIDATION ----------
     if ($productName === '') {
-        $errors[] = "Product name is required.";
+      $error = "Product name is required.";
     }
 
-    if ($category === '') {
-        $errors[] = "Please select a category.";
+    elseif ($category === '') {
+      $error = "Please select a category.";
     }
 
-    if ($price <= 0) {
-        $errors[] = "Price must be greater than zero.";
+    elseif ($price <= 0) {
+      $error = "Price must be greater than zero.";
     }
 
-    if ($stock < 0) {
-        $errors[] = "Stock quantity cannot be negative.";
+    elseif ($stock < 0) {
+      $error = "Stock quantity cannot be negative.";
     }
 
-    if (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== 0) {
-        $errors[] = "Please upload a product image.";
+    elseif (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== 0) {
+      $error = "Please upload a product image.";
     }
+
 
     // ---------- IMAGE VALIDATION ----------
-    if (empty($errors)) {
+    if (empty($error)) {
 
         $fileTmp  = $_FILES['photo']['tmp_name'];
         $fileSize = $_FILES['photo']['size'];
@@ -183,29 +188,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $allowed = ['image/jpeg', 'image/png', 'image/webp'];
 
         if (!in_array($mime, $allowed)) {
-            $errors[] = "Invalid image format. Use JPG, PNG or WebP.";
+          $error = "Invalid image format. Use JPG, PNG or WebP.";
         }
-
-        if ($fileSize > 5 * 1024 * 1024) {
-            $errors[] = "Image too large. Max size is 5MB.";
+        elseif ($fileSize > 5 * 1024 * 1024) {
+          $error = "Image too large. Max size is 5MB.";
         }
-
         $imgInfo = getimagesize($fileTmp);
         if (!$imgInfo) {
-            $errors[] = "Uploaded file is not a valid image.";
+          $error = "Uploaded file is not a valid image.";
         }
+        
+        if (empty($error)) {
+        $imgHash = md5_file($fileTmp);
+    }
+    }
+    if (empty($error)) {
+
+        $dupStmt = $conn->prepare("
+            SELECT product_name, image_hash 
+            FROM productservicesrentals 
+            WHERE user_id = ? 
+            AND (product_name = ? OR image_hash = ?) 
+            LIMIT 1
+        ");
+
+        $dupStmt->bind_param("iss", $user_id, $productName, $imgHash);
+        $dupStmt->execute();
+        $dupStmt->store_result();
+        $dupStmt->bind_result($existingName, $existingHash);
+
+        if ($dupStmt->num_rows > 0) {
+            $dupStmt->fetch();
+
+            if ($existingName === $productName) {
+                $error = "Product name already exists.";
+            }
+            elseif ($existingHash === $imgHash) {
+                $error = "Image already exists.";
+            }
+        }
+
+        $dupStmt->close();
     }
 
     // ---------- IMAGE RESIZE & SAVE ----------
-    if (empty($errors)) {
+    if (empty($error)) {
 
         [$width, $height] = $imgInfo;
 
         if ($width < 600 || $height < 600) {
-            $errors[] = "Image too small. Minimum size is 600×600 px.";
+            $error = "Image too small. Minimum size is 600×600 px.";
         } else {
 
-            $maxSize = 800;
+            $maxSize = 700;
             $ratio   = min($maxSize / $width, $maxSize / $height, 1);
 
             $newWidth  = (int)($width * $ratio);
@@ -264,7 +299,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $fileName = uniqid('product_', true) . '.webp';
             $filePath = $uploadDir . $fileName;
 
-            imagewebp($canvas, $filePath, 80);
+            imagewebp($canvas, $filePath, 75);
 
             imagedestroy($canvas);
             imagedestroy($source);
@@ -273,11 +308,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // ---------- INSERT INTO DATABASE ----------
             $stmt = $conn->prepare("
-                INSERT INTO productservicesrentals (user_id, product_name, category, price, stock_quantity, image_path, image_width, image_height, image_size_kb, image_format) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'webp')
+                INSERT INTO productservicesrentals (user_id, product_name, category, price, stock_quantity, image_path, image_width, image_height, image_size_kb, image_format, image_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'webp', ?)
             ");
 
             $stmt->bind_param(
-                "issdissii",
+                "issdissiis",
                 $user_id,
                 $productName,
                 $category,
@@ -286,7 +321,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $filePath,
                 $newWidth,
                 $newHeight,
-                $fileSizeKB
+                $fileSizeKB,
+                $imgHash
             );
 
             if ($stmt->execute()) {
@@ -297,7 +333,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               $price       = '';
               $stock       = '';
             } else {
-              $errors[] = "Failed to save product. Please try again.";
+              $error = "Failed to save product. Please try again.";
             }
 
             $stmt->close();
@@ -525,7 +561,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               <?php if (!empty($products)): ?>
                 <?php foreach ($products as $product): ?>
                     <div class="card">
-                      <img src="<?= htmlspecialchars($product['image_path']) ?>" alt="<?= htmlspecialchars($product['product_name']) ?>">
+                      <img src="<?= htmlspecialchars($product['image_path']) ?>" loading="lazy" decoding="async" alt="<?= htmlspecialchars($product['product_name']) ?>">
                       <div class="card-body">
                         <div class="product-name"><?= htmlspecialchars($product['product_name']) ?></div>
                         <div class="product-meta"><?= htmlspecialchars($product['category']) ?></div>
@@ -562,10 +598,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="form-wrapper">
               <form method="POST" enctype="multipart/form-data">
                 <h1>Add Product</h1>
-                <?php if (!empty($errors)): ?>
+                <?php if (!empty($error)): ?>
                   <p class="errorMessage">
                     <i class="fa-solid fa-circle-exclamation"></i>
-                    <?= implode("<br>", $errors); ?>
+                    <?= htmlspecialchars($error); ?>
                   </p>
                 <?php endif; ?>
 
@@ -596,16 +632,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                   <div class="inp-box">
                       <label>Price (KES)</label>
-                      <input type="number" name="price" step="0.01" placeholder="Enter price" value="<?= htmlspecialchars($price, ENT_QUOTES) ?>" required>
+                      <input type="number" name="price" step="1" placeholder="Enter price" value="<?= htmlspecialchars($price, ENT_QUOTES) ?>" oninput="this.value = this.value.replace(/[^0-9]/g, '')" min="0" required>
                   </div>
 
                   <div class="inp-box">
                       <label>Stock Quantity</label>
-                      <input type="number" name="stock" placeholder="e.g 24" value="<?= htmlspecialchars($stock, ENT_QUOTES) ?>" required>
+                      <input type="number" name="stock" placeholder="e.g 24" value="<?= htmlspecialchars($stock, ENT_QUOTES) ?>" oninput="this.value = this.value.replace(/[^0-9]/g, '')" min="0" step="1" required>
                   </div>
                   <div class="inp-box">
                     <label>Product Image</label>
-                    <input type="file" accept="image/png,image/jpeg,image/webp" name="photo" accept="image/*" required>
+                    <input type="file" name="photo" accept="image/png,image/jpeg,image/webp" required>
                     
                     <div class="note">
                       600×600 – 1600×1600 px • Max 5MB<br>
@@ -628,10 +664,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="form-wrapper">
               <form method="POST" enctype="multipart/form-data">
                 <h1>Withdraw Funds</h1>
-                <?php if (!empty($errors)): ?>
+                <?php if (!empty($error)): ?>
                   <p class="errorMessage">
                     <i class="fa-solid fa-circle-exclamation"></i>
-                    <?= implode("<br>", $errors); ?>
+                    <?= htmlspecialchars($error); ?>
                   </p>
                 <?php endif; ?>
 
