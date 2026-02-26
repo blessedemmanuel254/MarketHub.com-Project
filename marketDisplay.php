@@ -270,12 +270,15 @@ $isFollowing = $checkFollow->num_rows > 0;
 $checkFollow->close();
 
 /* ---------- FETCH SELLER PRODUCTS ---------- */
-$products = [];
+
+
+$productsByCategory = [];
 
 $productStmt = $conn->prepare("
     SELECT 
         product_id,
         product_name,
+        category,
         stock_quantity,
         price,
         image_path
@@ -288,8 +291,14 @@ $productStmt->execute();
 $result = $productStmt->get_result();
 
 while ($row = $result->fetch_assoc()) {
-    $products[] = $row;
+    $category = $row['category'] ?? 'Uncategorized';
+    $productsByCategory[$category][] = $row;
 }
+
+function formatProductName($name) {
+  return ucwords(strtolower($name));
+}
+
 $productStmt->close();
 ?>
 
@@ -470,9 +479,21 @@ $productStmt->close();
               </div>
             </div>
           </div>
-          <a href="" class="seller-right">
-            <div class="promoBadgeGoGold">
-              <?php echo (int)$seller['total_sales']; ?>+
+            <a href="" class="seller-right">
+            <?php
+            $totalSales = (int)$seller['total_sales'];
+
+            if ($totalSales < 100) {
+                $badgeClass = 'promoBadgeDefault';
+            } elseif ($totalSales >= 100 && $totalSales < 200) {
+                $badgeClass = 'promoBadgeGoGold';
+            } else { // >= 200
+                $badgeClass = 'promoBadgeGoPro';
+            }
+            ?>
+
+            <div class="<?php echo $badgeClass; ?>">
+                <?php echo $totalSales; ?>+
             </div>
 
             <div class="bsType">
@@ -487,52 +508,82 @@ $productStmt->close();
         </div>
       </div>
       <div class="tabs-container">
+        <?php if (empty($productsByCategory)): ?>
+            <p>No products available.</p>
+        <?php endif; ?>
         <div class="tabs">
-          <button class="tab-btn active" data-tab="products">Food&nbsp;&&nbsp;Snacks</button>
+          <?php 
+          $first = true;
+          foreach ($productsByCategory as $category => $items): 
+              $safeId = preg_replace('/[^a-zA-Z0-9]/', '_', strtolower($category));
+          ?>
+              <button 
+                  class="tab-btn <?= $first ? 'active' : '' ?>" 
+                  data-tab="<?= $safeId ?>"
+              >
+                  <?= htmlspecialchars($category) ?>
+              </button>
+          <?php 
+              $first = false;
+          endforeach; 
+          ?>
         </div>
-
         <div class="tab-content">
-          <div id="products" class="tab-panel active">
-            <div class="tab-top">
-              <p>You order we deliver.</p>
-            </div>
-
-            <div class="variables-grid">
-              <?php if ($products): ?>
-                <?php foreach ($products as $product): ?>
-                  <div class="variable-card"
-                    data-id="<?php echo $product['product_id']; ?>"
-                    data-name="<?php echo htmlspecialchars($product['product_name']); ?>"
-                    data-price="<?php echo $product['price']; ?>"
-                    data-image="<?php echo $product['image_path']; ?>">
-
-                    <button class="add-to-cart-btn">Add&nbsp;to&nbsp;cart</button>
-
-                    <img class="variableAndSnacksImage"
-                        src="<?php echo htmlspecialchars($product['image_path']); ?>"
-                        alt="Product Image">
-
-                    <div class="variable-content">
-                      <div class="variable-title">
-                        <?php echo htmlspecialchars($product['product_name']); ?>
-                      </div>
-                      <div class="stock <?= ($product['stock_quantity'] > 5) ? 'in-stock' : (($product['stock_quantity'] > 0) ? 'low-stock' : 'out-stock') ?>">
-                          <?= ($product['stock_quantity'] > 0) ? "In stock ({$product['stock_quantity']})" : "Out of stock" ?>
-                      </div>
-
-                      <div class="price-row">
-                        <div class="price">KES <?php echo number_format($product['price'], 2); ?></div>
-                        <button class="buy-btn" onclick="togglePaymentOption()">Order</button>
-                      </div>
-                    </div>
-                  </div>
-                <?php endforeach; ?>
-              <?php else: ?>
-                <p>No products available.</p>
-              <?php endif; ?>
-
-            </div>
+          <div class="tab-top">
+            <p>You order we deliver.</p>
           </div>
+        <?php 
+        $first = true;
+        foreach ($productsByCategory as $category => $items): 
+            $safeId = preg_replace('/[^a-zA-Z0-9]/', '_', strtolower($category));
+        ?>
+            <div id="<?= $safeId ?>" class="tab-panel <?= $first ? 'active' : '' ?>">
+                
+                <div class="variables-grid">
+                    <?php foreach ($items as $product): ?>
+                        <div class="variable-card"
+                            data-id="<?= $product['product_id']; ?>"
+                            data-name="<?= htmlspecialchars($product['product_name']); ?>"
+                            data-price="<?= $product['price']; ?>"
+                            data-image="<?= $product['image_path']; ?>">
+
+                            <button class="add-to-cart-btn">Add&nbsp;to&nbsp;cart</button>
+
+                            <img class="variableAndSnacksImage"
+                                src="<?= htmlspecialchars($product['image_path']); ?>"
+                                alt="Product Image">
+
+                            <div class="variable-content">
+                              <div class="variable-title">
+                                <?= htmlspecialchars(formatProductName($product['product_name'])); ?>
+                              </div>
+
+                              <div class="stock 
+                                <?= ($product['stock_quantity'] > 5) ? 'in-stock' : 
+                                    (($product['stock_quantity'] > 0) ? 'low-stock' : 'out-stock') ?>">
+                                <?= ($product['stock_quantity'] > 0) 
+                                    ? "In stock ({$product['stock_quantity']})" 
+                                    : "Out of stock" ?>
+                              </div>
+
+                              <div class="price-row">
+                                  <div class="price">
+                                      KES <?= number_format($product['price'], 2); ?>
+                                  </div>
+                                  <button class="buy-btn" onclick="togglePaymentOption()">
+                                      Order
+                                  </button>
+                              </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+
+            </div>
+        <?php 
+            $first = false;
+        endforeach; 
+        ?>
         </div>
       </div>
     </main>

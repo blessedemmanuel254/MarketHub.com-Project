@@ -15,7 +15,7 @@ if (!isset($_SESSION['created'])) {
 }
 
 /* ---------- ROLE ACCESS CONTROL ---------- */
-$allowedRole = 'agent';
+/* $allowedRole = 'agent';
 
 $roleStmt = $conn->prepare(
     "SELECT account_type FROM users WHERE user_id = ? LIMIT 1"
@@ -26,13 +26,13 @@ $roleStmt->bind_result($accountType);
 $roleStmt->fetch();
 $roleStmt->close();
 
-if ($accountType !== $allowedRole) {
+if ($accountType !== $allowedRole) { */
     // Optional: destroy session for safety
     // session_destroy();
-
+/* 
     header("Location: index.php");
     exit();
-}
+} */
 
 $country = "";
 $county = "";
@@ -253,7 +253,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
             <div class="cards">
               <!-- AGENT -->
-              <a class="card">
+              <a class="card" onclick="toggleAgentProductsPage()">
                 <i class="fa-brands fa-product-hunt"></i>
                 <h2>Products</h2>
                 <p>
@@ -536,7 +536,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
           </div>
         </div>
       </div>
-      <div class="tabs-container" id="toggleMarketTypeTabAgent">
+      <div class="tabs-container strongRed" id="toggleMarketTypeTabAgent">
         <div class="tabs">
           <button class="tab-btn-mtype" data-tab="products">Products</button>
           <button class="tab-btn-mtype" data-tab="services">Services</button>
@@ -546,7 +546,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         <div class="tab-content">
           <div id="products" class="tab-panel-mtype">
             <div class="tab-top">
-            <p>Quality goods from trusted vendors. <br><strong>Please select Market type <i class="fa-regular fa-circle-check"></i></strong></p>
+              <p>Quality goods from trusted vendors. <br><strong>Please select Market type <i class="fa-regular fa-circle-check"></i></strong></p>
               <button onclick="goBackToAgent()">
                 <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
               </button>
@@ -599,7 +599,12 @@ if (!empty($profileImage) && file_exists($profileImage)) {
           </div>
 
           <div id="services" class="tab-panel-mtype">
-            <p>Professional services delivered with reliability.<br><strong>Please select Market type <i class="fa-regular fa-circle-check"></i></strong></p>
+            <div class="tab-top">
+              <p>Professional services delivered with reliability.<br><strong>Please select Market type <i class="fa-regular fa-circle-check"></i></strong></p>
+              <button onclick="goBackToAgent()">
+                <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
+              </button>
+            </div>
 
             <div class="cards">
               <!-- LOCAL -->
@@ -648,7 +653,12 @@ if (!empty($profileImage) && file_exists($profileImage)) {
           </div>
 
           <div id="rentals" class="tab-panel-mtype">
-            <p>Affordable rentals for homes, vehicles and equipment.<br><strong>Please select Market type <i class="fa-regular fa-circle-check"></i></strong></p>
+            <div class="tab-top">
+              <p>Affordable rentals for homes, vehicles and equipment.<br><strong>Please select Market type <i class="fa-regular fa-circle-check"></i></strong></p>
+              <button onclick="goBackToAgent()">
+                <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
+              </button>
+            </div>
 
             <div class="cards">
               <!-- LOCAL -->
@@ -940,6 +950,24 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleAgentEarningsTrack()">View&nbsp;Activity</button> to access all your recent earnings.</p>
 
+    </main>
+
+    <main class="buyerMain" id="productsAgentMain">
+      <div class="tab-top">
+        <p>Products main page<br><strong>View products, download and post products <i class="fa-regular fa-circle-check"></i></strong></p>
+        <button onclick="toggleAgentProductsPage()">
+          <i class="fa-solid fa-circle-arrow-left" data-tab="products"></i> <span>Go&nbsp;Back</span>
+        </button>
+      </div>
+      <div class="table-wrapper sellerOrdersTrack active">
+        <div class="header">
+          <h1>Market Hub Daily Products</h1>
+          <p>Download and post across all platforms today.</p>
+        </div>
+
+        <div class="products-grid" id="productsContainer"></div>
+      </div>
+      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleAgentProductsPage()">Go&nbsp;back</button> to continue with sales.</p>
     </main>
 
     <main class="buyerMain" id="earningsTrackMain">

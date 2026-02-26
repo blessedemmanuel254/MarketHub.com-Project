@@ -402,18 +402,21 @@ function toggleSellerOrdersTrack() {
   ordersTrackMain.style.display = isSellerVisible ? "flex" : "none";
 }
 
-function toggleAgentOrdersTrack() { 
+function toggleAgentOrdersTrack() {  
   const agentMain = document.getElementById("agentMain");
   const orderMain = document.getElementById("orderMain");
   const earningsTrackMain = document.getElementById("earningsTrackMain");
   const agentWithdrawalH = document.getElementById("agentWithdrawalH");
+  const agentProductMain = document.getElementById("productsAgentMain");
 
   const isOrderVisible = getComputedStyle(orderMain).display !== "none";
 
   orderMain.style.display = isOrderVisible ? "none" : "flex";
   agentMain.style.display = isOrderVisible ? "flex" : "none";
+
   earningsTrackMain.style.display = "none";
-  agentWithdrawalH.style.display = "none"; // hide withdrawals
+  agentWithdrawalH.style.display = "none";
+  agentProductMain.style.display = "none";
 }
 
 function toggleAgentEarningsTrack() {
@@ -421,13 +424,16 @@ function toggleAgentEarningsTrack() {
   const orderMain = document.getElementById("orderMain");
   const earningsTrackMain = document.getElementById("earningsTrackMain");
   const agentWithdrawalH = document.getElementById("agentWithdrawalH");
+  const agentProductMain = document.getElementById("productsAgentMain");
 
   const isEarningsVisible = getComputedStyle(earningsTrackMain).display !== "none";
 
   earningsTrackMain.style.display = isEarningsVisible ? "none" : "flex";
   agentMain.style.display = isEarningsVisible ? "flex" : "none";
+
   orderMain.style.display = "none";
-  agentWithdrawalH.style.display = "none"; // hide withdrawals
+  agentWithdrawalH.style.display = "none";
+  agentProductMain.style.display = "none";
 }
 
 function toggleAgentWithdrawals() {
@@ -435,13 +441,33 @@ function toggleAgentWithdrawals() {
   const orderMain = document.getElementById("orderMain");
   const earningsTrackMain = document.getElementById("earningsTrackMain");
   const agentWithdrawalH = document.getElementById("agentWithdrawalH");
+  const agentProductMain = document.getElementById("productsAgentMain");
 
   const isWithdrawalVisible = getComputedStyle(agentWithdrawalH).display !== "none";
 
   agentWithdrawalH.style.display = isWithdrawalVisible ? "none" : "flex";
   agentMain.style.display = isWithdrawalVisible ? "flex" : "none";
+
   orderMain.style.display = "none";
   earningsTrackMain.style.display = "none";
+  agentProductMain.style.display = "none";
+}
+
+function toggleAgentProductsPage() {
+  const agentMain = document.getElementById("agentMain");
+  const orderMain = document.getElementById("orderMain");
+  const earningsTrackMain = document.getElementById("earningsTrackMain");
+  const agentWithdrawalH = document.getElementById("agentWithdrawalH");
+  const agentProductMain = document.getElementById("productsAgentMain");
+
+  const isProductsVisible = getComputedStyle(agentProductMain).display !== "none";
+
+  agentProductMain.style.display = isProductsVisible ? "none" : "flex";
+  agentMain.style.display = isProductsVisible ? "flex" : "none";
+
+  orderMain.style.display = "none";
+  earningsTrackMain.style.display = "none";
+  agentWithdrawalH.style.display = "none";
 }
 
 /* ================= MARKET NAVIGATION (FIXED) ================= */
@@ -691,7 +717,7 @@ function updateTotals() {
   if (!subtotalEl || !totalEl) return;
 
   let subtotal = 0;
-  const items = document.querySelectorAll(".cart-item");
+  const items = cartItemsContainer.querySelectorAll(".cart-item");
 
   if (items.length === 0) {
     if (emptyMsg) emptyMsg.style.display = "block";
@@ -765,17 +791,17 @@ function loadCart() {
 
     cartItemsContainer.innerHTML = "";
 
-    if (!data.items.length) {
-      cartItemsContainer.innerHTML = `
-        <div id="emptyCartMessage" class="empty-cart">
-          🛒 Your cart is empty
-        </div>
-      `;
+    if (!data.success || !data.items || data.items.length === 0) {
+      cartItemsContainer.innerHTML = "";
+      cartItemsContainer.style.display = "none";   // hide column
+      emptyMsg.style.display = "block";
       updateTotals();
+      updateCartCount();
       return;
     }
 
     emptyMsg.style.display = "none";
+    cartItemsContainer.style.display = "block";
 
     data.items.forEach(item => {
 
@@ -842,16 +868,6 @@ function changeQty(productId, newQty) {
   .then(data => {
     if (data.success) loadCart();
   });
-}
-
-function checkIfCartEmpty() {
-  const items = document.querySelectorAll(".cart-item");
-
-  if (items.length === 0) {
-    if (emptyMsg) emptyMsg.style.display = "block";
-  } else {
-    if (emptyMsg) emptyMsg.style.display = "none";
-  }
 }
 
 /* ---------- GLOBAL CLICK HANDLER ---------- */
@@ -1090,4 +1106,103 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+});
+
+
+
+// ==============================
+// DAILY PRODUCTS CONFIGURATION
+// ==============================
+
+const dailyProducts = [
+  {
+    id: 1,
+    name: "Executive Leather Laptop Bag",
+    price: "KES 1,300",
+    description: "Premium executive laptop bag. Durable and stylish.",
+    image: "Images/Executive Leather Laptop Bag.png"
+  },
+  {
+    id: 2,
+    name: "6 Litre Electric Pressure Cooker",
+    price: "KES 5,200",
+    description: "Fast cooking, energy saving, perfect for family meals.",
+    image: "Images/6 Litre Electric Pressure Cooker.png"
+  },
+  {
+    id: 3,
+    name: "16-inch Standing Fan",
+    price: "KES 2,350",
+    description: "Powerful airflow with adjustable height.",
+    image: "Images/Ipcone 16-inch standing fan.png"
+  },
+  {
+    id: 4,
+    name: "Large Travel Duffel Bag",
+    price: "KES 1,250",
+    description: "Spacious travel bag. Ideal for weekend trips.",
+    image: "Images/Large Travel Duffel Bag.png"
+  },
+  {
+    id: 5,
+    name: "Velvet Curtains",
+    price: "KES 2,700",
+    description: "Elegant home curtains. Premium soft material.",
+    image: "Images/Velvet Curtains.png"
+  }
+];
+
+// ==============================
+// RENDER PRODUCTS
+// ==============================
+
+const container = document.getElementById("productsContainer");
+const today = new Date().getDay(); // 0 = Sunday
+
+dailyProducts.forEach(product => {
+
+  const card = document.createElement("div");
+  card.className = "product-card";
+
+  card.innerHTML = `
+    <img src="${product.image}" alt="${product.name}">
+    <div class="product-name">${product.name}</div>
+    <div class="product-price">${product.price}</div>
+    <div class="product-description">${product.description}</div>
+    <button class="download-btn" data-id="${product.id}">
+      Download for Posting
+    </button>
+  `;
+
+  container.appendChild(card);
+});
+
+// ==============================
+// DOWNLOAD + SAVE TO LOCAL STORAGE
+// ==============================
+
+document.addEventListener("click", function(e) {
+
+  if (!e.target.classList.contains("download-btn")) return;
+  if (today === 0) return;
+
+  const id = parseInt(e.target.dataset.id);
+  const product = dailyProducts.find(p => p.id === id);
+
+  // Save individually
+  localStorage.setItem(
+    "marketHubDailyProduct_" + product.id,
+    JSON.stringify(product)
+  );
+
+  // Trigger image download
+  const link = document.createElement("a");
+  link.href = product.image;
+  link.download = product.name.replace(/\s+/g, "_") + ".jpg";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  alert(product.name + " saved locally. Ready for posting.");
+
 });

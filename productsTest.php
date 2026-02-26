@@ -474,7 +474,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_product_id'])
       </div>
     </div>
 
-    <main class="buyerMain" id="sellerMain">
+    <main class="buyerMain" id="productsAgentMain">
       <div class="tab-top">
         <p>Products main page<br><strong>View products, download and post products <i class="fa-regular fa-circle-check"></i></strong></p>
         <button onclick="toggleSellerOrdersTrack()">

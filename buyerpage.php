@@ -307,7 +307,7 @@ $stmt->close();
     </div>
 
     <main class="buyerMain" id="marketMain">
-      <div class="tabs-container" id="toggleMarketTypeTab">
+      <div class="tabs-container strongRed" id="toggleMarketTypeTab">
         <div class="tabs">
           <button class="tab-btn" data-tab="products">Products</button>
           <button class="tab-btn" data-tab="services">Services</button>

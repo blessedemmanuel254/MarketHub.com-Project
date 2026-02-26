@@ -270,6 +270,7 @@ html body {
   display: flex;
   justify-content: center;
   align-items: center;
+  font-weight: normal;
 }
 
 .container header .rhs .profile-icon .profileOption a {
@@ -681,19 +682,14 @@ html body {
   color: #0f0f0f;
 }
 
-.tabs-container#toggleMarketTypeTab .tab-content .tab-panel p strong {
-  color: #ff3b3b;
-
-}
-
 .tabs-container .tab-content .tab-panel p strong, .tabs-container .tab-content .tab-panel-msource p strong, .container main .tab-top p strong, .tabs-container .tab-content .tab-panel-mtype p strong, #toggleMarketSourceTab .tab-content .tab-panel p strong, #toggleMarketSourceTab .tab-content .tab-panel-msource p strong {
   font-size: 15px;
-  color: #ff3b3b;
   font-weight: normal;
+  color: #088000;
 }
 
-.tabs-container .tab-content .tab-panel-msource p strong, .container main .tab-top p strong, .tabs-container .tab-content .tab-panel-mtype p strong, #toggleMarketSourceTab .tab-content .tab-panel p strong, #toggleMarketSourceTab .tab-content .tab-panel-msource p strong, #toggleMarketTypeTab .tab-content .tab-panel p strong {
-  color: #088000;
+.tabs-container.strongRed .tab-content .tab-panel p strong, .tabs-container.strongRed .tab-content .tab-panel-mtype p strong {
+  color: #ff3b3b;
 
 }
 
@@ -1004,7 +1000,7 @@ html body {
 }
 
 /* Oder Management Section CSS */
-.container main.buyerMain#orderMain, .container main.buyerMain#ordersTrackMain, .container main.buyerMain#earningsTrackMain, .container main.agentWithdrawalH {
+.container main.buyerMain#orderMain, .container main.buyerMain#ordersTrackMain, .container main.buyerMain#earningsTrackMain, .container main.agentWithdrawalH, .container main.buyerMain#productsAgentMain {
   background-color: #ffffff;
   display: none;
 }
@@ -1950,8 +1946,8 @@ label.account-type input:checked + .radio-dot::after {
 ===================== */
 .sellers {
   display: grid;
-  gap: 10px;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 25px;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
 }
 
 /* =====================
@@ -2072,7 +2068,7 @@ a.seller-right {
   text-align: center;
 }
 
-.promoBadgeGoPro {
+.promoBadgeGoGold {
   background: linear-gradient(
     145deg,
     #FFF3B0,
@@ -2093,7 +2089,7 @@ a.seller-right {
   text-align: center;
 }
 
-.promoBadgeGoGold {
+.promoBadgeGoPro {
   background: linear-gradient(
     135deg,
     #e8fff9 0%,
@@ -2720,14 +2716,16 @@ a.seller-right {
   opacity: .875;
 }
 
-.empty-cart {
+.container .cart-container .inner-cart-container #emptyCartMessage.empty-cart {
   text-align: center;
   padding: 20px 10px;
   font-size: 16px;
-  color: #555;
+  color: #898888;
   display: none;
   border: 1px solid #dedede;
   border-radius: 4px;
+  flex: 2;
+  height: fit-content;
 }
 
 @media(max-width: 768px) {
@@ -3766,27 +3764,36 @@ WITHDRAW HISTORY
 AGENTS' PRODUCTS CSS
 =======================*/
 
-.header {
+.container main#productsAgentMain .header {
   text-align: left;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
+  text-align: center;
 }
 
-.header h1 {
-  font-size: 28px;
+.container main#productsAgentMain .header h1 {
+  font-size: 22px;
 }
 
-.header p {
+.container main#productsAgentMain .header p {
   font-size: 14px;
-  margin-top: 8px;
+  color: #898888;
+
 }
 
-.products-grid {
+.container main#productsAgentMain .products-grid {
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-  gap:20px;
+  gap:40px;
 }
 
-.product-card {
+@media screen and (max-width: 581px) {
+  .container main#productsAgentMain .products-grid {
+    gap:20px;
+  }
+  
+}
+
+.container main#productsAgentMain .product-card {
   border: 1px solid #dedede;
   display: flex;
   flex-direction: column;
@@ -3799,37 +3806,37 @@ AGENTS' PRODUCTS CSS
   margin: 0 auto;
 }
 
-.product-card:hover {
+.container main#productsAgentMain .product-card:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transform: translateY(-6px);
 }
 
-.product-card img {
+.container main#productsAgentMain .product-card img {
   width: 100%;
   height: 250px;
   object-fit: cover;
 }
 
-.product-name {
+.container main#productsAgentMain .product-name {
   font-weight: bold;
   font-size: 16px;
   color: #0f0f0f;
   padding: 0 10px;
 }
 
-.product-price {
+.container main#productsAgentMain .product-price {
   font-size: 14px;
   padding: 0 10px;
 }
 
-.product-description {
+.container main#productsAgentMain .product-description {
   font-size: 13px;
   line-height: 1.5;
   color: #898888;
   padding: 0 10px;
 }
 
-.download-btn {
+.container main#productsAgentMain .download-btn {
   padding: 8px 16px;
   background: #000;
   color: #fff;
@@ -3842,18 +3849,6 @@ AGENTS' PRODUCTS CSS
   margin-bottom: 10px;
 }
 
-.download-btn:hover {
+.container main#productsAgentMain .download-btn:hover {
   opacity: .875;
-}
-
-.disabled {
-  background: #ccc !important;
-  color: #666 !important;
-  cursor: not-allowed;
-}
-
-.footer-note {
-  margin-top: 50px;
-  text-align: center;
-  font-size: 12px;
 }
