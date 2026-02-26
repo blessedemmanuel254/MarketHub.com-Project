@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 25, 2026 at 09:43 PM
+-- Generation Time: Feb 26, 2026 at 10:57 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -39,8 +39,9 @@ CREATE TABLE `user_followers` (
 
 INSERT INTO `user_followers` (`follower_id`, `followed_id`, `followed_at`) VALUES
 (14, 15, '2026-02-25 20:34:14'),
-(14, 17, '2026-02-25 20:26:20'),
-(14, 18, '2026-02-25 20:26:17');
+(14, 17, '2026-02-25 23:27:58'),
+(14, 18, '2026-02-25 20:26:17'),
+(16, 17, '2026-02-25 21:49:03');
 
 --
 -- Indexes for dumped tables
