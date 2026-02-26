@@ -276,6 +276,7 @@ $productStmt = $conn->prepare("
     SELECT 
         product_id,
         product_name,
+        stock_quantity,
         price,
         image_path
     FROM productservicesrentals
@@ -515,8 +516,9 @@ $productStmt->close();
                       <div class="variable-title">
                         <?php echo htmlspecialchars($product['product_name']); ?>
                       </div>
-                      
-                      <div class="stock in-stock">In stock</div>
+                      <div class="stock <?= ($product['stock_quantity'] > 5) ? 'in-stock' : (($product['stock_quantity'] > 0) ? 'low-stock' : 'out-stock') ?>">
+                          <?= ($product['stock_quantity'] > 0) ? "In stock ({$product['stock_quantity']})" : "Out of stock" ?>
+                      </div>
 
                       <div class="price-row">
                         <div class="price">KES <?php echo number_format($product['price'], 2); ?></div>

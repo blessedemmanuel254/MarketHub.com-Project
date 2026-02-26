@@ -2402,13 +2402,21 @@ a.seller-right {
 .variable-content .variable-title {
   font-size: 14px;
   font-weight: 600;
-}
+}/* 
 
 .variable-content .variable-desc {
   font-size: 13px;
   color: #aaa;
   margin-bottom: 12px;
+} */
+
+.variable-content .stock {
+  font-size:12px;
 }
+
+.variable-content .stock.in-stock{ color:green; }
+.variable-content .stock.low-stock{ color:orange; }
+.variable-content .stock.out-stock{ color:red; }
 
 .variable-content .price-row {
   display: flex;
