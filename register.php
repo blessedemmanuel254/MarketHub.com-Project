@@ -21,6 +21,7 @@ $county = "";
 $ward = "";
 $address = "";
 $busname = "";
+$busmodel = "";
 $bustype = "";
 $market = "";
 
@@ -69,10 +70,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $ward = trim($_POST['ward'] ?? '');
     $address = trim($_POST['address'] ?? '');
     $busname = trim($_POST['busname'] ?? '');
+    $busmodel = trim($_POST['busmodel'] ?? '');
     $bustype = trim($_POST['bustype'] ?? '');
     $market = trim($_POST['market'] ?? '');
 
-  if (!$full_name || !$username || !$email || !$phone || !$password || !$confirm_password || !$country || !$county || !$ward || !$address || ($accountType === 'seller' && (!$busname || !$bustype || !$market))) {
+  if (!$full_name || !$username || !$email || !$phone || !$password || !$confirm_password || !$country || !$county || !$ward || !$address || ($accountType === 'seller' && (!$busname || !$busmodel || !$bustype || !$market))) {
     $error = "All fields are required.";
   } else if (!$accountType) {
     $error = 'Visit the <a href="accountTypeSelection.php">account-type selection</a> page to proceed.';
@@ -131,6 +133,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           // Force NULL for buyer accounts
           if ($accountType === 'buyer') {
               $busname = null;
+              $busmodel = null;
               $bustype = null;
               $market  = null;
           }
@@ -138,12 +141,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           // Insert into database
           $stmt = $conn->prepare("
               INSERT INTO users 
-              (account_type, full_name, username, email, phone, password, country, county, ward, address, business_name, business_type, market_scope, total_sales, rating_average, rating_count, created_at, updated_at)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, NOW(), NOW())
+              (account_type, full_name, username, email, phone, password, country, county, ward, address, business_name, business_model, business_type, market_scope, total_sales, rating_average, rating_count, created_at, updated_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, NOW(), NOW())
           ");
 
           $stmt->bind_param(
-              "sssssssssssss",  // 13 s's match 13 placeholders
+              "ssssssssssssss",
               $accountType,
               $full_name,
               $username,
@@ -155,6 +158,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
               $ward,
               $address,
               $busname,
+              $busmodel,
               $bustype,
               $market
           );
@@ -469,14 +473,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <input type="text" name="busname" value="<?= htmlspecialchars($busname ?? '') ?>" placeholder="" required>
                 <label>Business Name</label>
               </div>
-
+              
               <div class="selectorBox">
-                <span>Market</span>
-                <select id="market" name="market" required>
-                  <option value="">-- Select Market --</option>
-                  <option value="Local" <?= ($market ?? '') === 'Local' ? 'selected' : ''; ?>>Local</option>
-                  <option value="National" <?= ($market ?? '') === 'National' ? 'selected' : ''; ?>>National</option><!-- 
-                  <option value="Global" <?= ($market ?? '') === 'Global' ? 'selected' : ''; ?>>Global</option> -->
+                <span>Business Model</span>
+                <select id="busmodel" name="busmodel" required>
+                  <option value="">-- Select Business Model --</option>
+                  <option value="products" <?= ($busmodel ?? '') === 'products' ? 'selected' : ''; ?>>Products</option>
+                  <option value="dervices" <?= ($busmodel ?? '') === 'dervices' ? 'selected' : ''; ?>>Services</option>
+                  <option value="dental" <?= ($busmodel ?? '') === 'dental' ? 'selected' : ''; ?>>Rental</option>
                 </select>
               </div>
 
@@ -508,6 +512,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                   <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
                 </select>
               </div>
+
+              <div class="selectorBox">
+                <span>Market Type</span>
+                <select id="market" name="market" required>
+                  <option value="">-- Select Market Type --</option>
+                  <option value="local" <?= ($market ?? '') === 'local' ? 'selected' : ''; ?>>Local</option>
+                  <option value="national" <?= ($market ?? '') === 'national' ? 'selected' : ''; ?>>National</option>
+                  <option value="global" <?= ($market ?? '') === 'global' ? 'selected' : ''; ?>>Global</option>
+                </select>
+              </div>
+
               <div class="selectorBox">
                 <span>County</span>
                 <select id="county" name="county" required>

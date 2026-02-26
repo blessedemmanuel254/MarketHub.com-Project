@@ -1,20 +1,20 @@
 <?php
-session_start();
-require_once 'connection.php';
+/* session_start();
+require_once 'connection.php'; */
 
-/* ---------- SESSION SECURITY ---------- */
+/* ---------- SESSION SECURITY ---------- *//* 
 if (!isset($_SESSION['user_id'])) {
     header("Location: index.php");
     exit();
-} 
+}  */
 
-/* Optional: regenerate session ID periodically */
+/* Optional: regenerate session ID periodically *//* 
 if (!isset($_SESSION['created'])) {
     session_regenerate_id(true);
     $_SESSION['created'] = time();
 }
-
-/* ---------- ROLE ACCESS CONTROL ---------- */
+ */
+/* ---------- ROLE ACCESS CONTROL ---------- *//* 
 $allowedRole = 'administrator';
 
 $roleStmt = $conn->prepare(
@@ -26,13 +26,13 @@ $roleStmt->bind_result($accountType);
 $roleStmt->fetch();
 $roleStmt->close();
 
-if ($accountType !== $allowedRole) {
+if ($accountType !== $allowedRole) { */
     // Optional: destroy session for safety
-    // session_destroy();
+    // session_destroy();/* 
 
-    header("Location: index.php");
+    /* header("Location: index.php");
     exit();
-}
+} */
 ?>
 
 <!DOCTYPE html>
@@ -84,7 +84,7 @@ if ($accountType !== $allowedRole) {
     }
   </style>
 </head>
-<body>
+<body id="adminBody">
   <div class="containerAdmin">
     <section>
       <h1>ADMIN&nbsp;PANEL<br><span>Market&nbsp;Hub</span></h1>

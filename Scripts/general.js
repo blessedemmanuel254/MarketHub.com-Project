@@ -724,43 +724,134 @@ function updateCartCount() {
 }
 
 /* ---------- ADD TO CART ---------- */
-function addToCart(product) {
-  if (!cartItemsContainer) return;
+function addToCart(productId) {
 
-  const existingItem = [...document.querySelectorAll(".cart-item")]
-    .find(item => item.dataset.name === product.name);
+  fetch("marketDisplay.php", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: `action=add_to_cart&product_id=${productId}`
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      loadCart();
+    }
+  });
+}
 
-  if (existingItem) {
-    const qtyEl = existingItem.querySelector(".qty-number");
-    qtyEl.textContent = Number(qtyEl.textContent) + 1;
-  } else {
-    const item = document.createElement("div");
-    item.className = "cart-item";
-    item.dataset.name = product.name;
-    item.dataset.price = product.price;
+document.querySelectorAll(".add-to-cart-btn").forEach(btn => {
+  btn.addEventListener("click", function() {
 
-    item.innerHTML = `
-      <div class="cart-left">
-        <img src="${product.image}" alt="${product.name}">
-        <div class="cart-info">
-          <h4>${product.name}</h4>
-          <p>KES ${product.price}</p>
-          <div class="remove-btn">Remove</div>
+    const card = this.closest(".variable-card");
+    const productId = card.dataset.id;
+
+    addToCart(productId);
+  });
+});
+
+function loadCart() {
+
+  fetch("marketDisplay.php", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: "action=fetch_cart"
+  })
+  .then(res => res.json())
+  .then(data => {
+
+    cartItemsContainer.innerHTML = "";
+
+    if (!data.items.length) {
+      cartItemsContainer.innerHTML = `
+        <div id="emptyCartMessage" class="empty-cart">
+          🛒 Your cart is empty
         </div>
-      </div>
+      `;
+      updateTotals();
+      return;
+    }
 
-      <div class="quantity-control">
-        <button class="qty-btn minus">-</button>
-        <div class="qty-number">1</div>
-        <button class="qty-btn plus">+</button>
-      </div>
-    `;
+    emptyMsg.style.display = "none";
 
-    cartItemsContainer.appendChild(item);
+    data.items.forEach(item => {
+
+      const div = document.createElement("div");
+      div.className = "cart-item";
+      div.dataset.price = item.price;
+
+      div.innerHTML = `
+        <div class="cart-left">
+          <img src="${item.image_path}">
+          <div class="cart-info">
+            <h4>${item.product_name}</h4>
+            <p>KES ${item.price}</p>
+            <div class="remove-btn" onclick="removeItem(${item.product_id})">
+              Remove
+            </div>
+          </div>
+        </div>
+
+        <div class="quantity-control">
+          <button onclick="changeQty(${item.product_id}, ${item.quantity - 1})" class="qty-btn minus">-</button>
+          <div class="qty-number">${item.quantity}</div>
+          <button onclick="changeQty(${item.product_id}, ${item.quantity + 1})" class="qty-btn plus">+</button>
+        </div>
+      `;
+
+      cartItemsContainer.appendChild(div);
+    });
+
+    updateTotals();
+    updateCartCount();
+  });
+}
+
+document.addEventListener("DOMContentLoaded", loadCart);
+
+function removeItem(productId) {
+
+  fetch("marketDisplay.php", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: `action=remove_from_cart&product_id=${productId}`
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) loadCart();
+  });
+}
+
+function changeQty(productId, newQty) {
+
+  if (newQty < 1) return;
+
+  fetch("marketDisplay.php", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: `action=update_quantity&product_id=${productId}&quantity=${newQty}`
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) loadCart();
+  });
+}
+
+function checkIfCartEmpty() {
+  const items = document.querySelectorAll(".cart-item");
+
+  if (items.length === 0) {
+    if (emptyMsg) emptyMsg.style.display = "block";
+  } else {
+    if (emptyMsg) emptyMsg.style.display = "none";
   }
-
-  updateTotals();
-  updateCartCount();
 }
 
 /* ---------- GLOBAL CLICK HANDLER ---------- */

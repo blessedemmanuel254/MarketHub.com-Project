@@ -1337,6 +1337,13 @@ html body {
   opacity: 0.875;
 }
 
+.container main .tab-top {
+  margin: 10px 0;
+  width: 100%;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 @media (max-width: 385px) {
   .container header {
     padding: 20px 10px;
@@ -2320,8 +2327,8 @@ a.seller-right {
 ===================== */
 .variables-grid {
   display: grid;
-  gap: 10px;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit,minmax(250px,1fr));
+  gap: 20px;
 }
 
 /* =====================
@@ -2332,12 +2339,12 @@ a.seller-right {
   display: flex;
   flex-direction: column;
   border-radius: 4px;
-  max-width: 250px;
+  width: clamp(200px, 100%, 300px);
   overflow: hidden;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
   border: 1px solid #dedede;
   margin: 0 auto;
-  width: 100%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Add to cart button */
@@ -2392,25 +2399,24 @@ a.seller-right {
   padding: 10px;
 }
 
-.variable-title {
+.variable-content .variable-title {
   font-size: 14px;
   font-weight: 600;
-  margin-bottom: 6px;
 }
 
-.variable-desc {
+.variable-content .variable-desc {
   font-size: 13px;
   color: #aaa;
   margin-bottom: 12px;
 }
 
-.price-row {
+.variable-content .price-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.price {
+.variable-content .price-row .price {
   font-size: 14px;
   font-weight: bold;
 }
@@ -2844,6 +2850,11 @@ a.seller-right {
   object-fit: cover;
 }
 
+.products-grid .card:hover img {
+  transform: scale(1.03);
+  transition: transform 0.6s ease;
+}
+
 .products-grid .card .card-body {
   padding: 10px;
   flex: 1;
@@ -3034,6 +3045,11 @@ a.seller-right {
 /* ===========================================
 ADMIN DASHBOARD
 ============================================ */
+body#adminBody {
+  background-color: #0f0f0f;
+
+}
+
 .containerAdmin {
   background-color: #0f0f0f;
 }
@@ -3736,4 +3752,100 @@ WITHDRAW HISTORY
   .containerWH {
     width: 100%;
   }
+}
+
+/*=======================
+AGENTS' PRODUCTS CSS
+=======================*/
+
+.header {
+  text-align: left;
+  margin-bottom: 40px;
+}
+
+.header h1 {
+  font-size: 28px;
+}
+
+.header p {
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.products-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:20px;
+}
+
+.product-card {
+  border: 1px solid #dedede;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  transition: 0.3s;
+  overflow: hidden;
+  border-radius: 4px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+  width: clamp(250px, 100%, 300px);
+  margin: 0 auto;
+}
+
+.product-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-6px);
+}
+
+.product-card img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+}
+
+.product-name {
+  font-weight: bold;
+  font-size: 16px;
+  color: #0f0f0f;
+  padding: 0 10px;
+}
+
+.product-price {
+  font-size: 14px;
+  padding: 0 10px;
+}
+
+.product-description {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #898888;
+  padding: 0 10px;
+}
+
+.download-btn {
+  padding: 8px 16px;
+  background: #000;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
+  border-radius: 4px;
+  margin: 0 10px;
+  margin-bottom: 10px;
+}
+
+.download-btn:hover {
+  opacity: .875;
+}
+
+.disabled {
+  background: #ccc !important;
+  color: #666 !important;
+  cursor: not-allowed;
+}
+
+.footer-note {
+  margin-top: 50px;
+  text-align: center;
+  font-size: 12px;
 }

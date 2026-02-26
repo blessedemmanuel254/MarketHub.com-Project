@@ -80,6 +80,131 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     exit();
 }
 
+/* ---------- HANDLE CART AJAX ---------- */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+
+  if (!isset($_SESSION['user_id'])) {
+      echo json_encode(['success' => false, 'error' => 'Not logged in']);
+      exit();
+  }
+
+  $userId = $_SESSION['user_id'];
+  $action = $_POST['action'];
+
+  /* ================= ADD TO CART ================= */
+  if ($action === 'add_to_cart') {
+
+      $productId = (int)($_POST['product_id'] ?? 0);
+
+      if ($productId <= 0) {
+          echo json_encode(['success' => false]);
+          exit();
+      }
+
+      // Check if already in cart
+      $check = $conn->prepare("
+          SELECT quantity FROM user_cart
+          WHERE user_id = ? AND product_id = ?
+      ");
+      $check->bind_param("ii", $userId, $productId);
+      $check->execute();
+      $check->bind_result($qty);
+
+      if ($check->fetch()) {
+          $check->close();
+
+          $update = $conn->prepare("
+              UPDATE user_cart
+              SET quantity = quantity + 1
+              WHERE user_id = ? AND product_id = ?
+          ");
+          $update->bind_param("ii", $userId, $productId);
+          $update->execute();
+          $update->close();
+
+      } else {
+          $check->close();
+
+          $insert = $conn->prepare("
+              INSERT INTO user_cart (user_id, product_id, quantity)
+              VALUES (?, ?, 1)
+          ");
+          $insert->bind_param("ii", $userId, $productId);
+          $insert->execute();
+          $insert->close();
+      }
+
+      echo json_encode(['success' => true]);
+      exit();
+  }
+
+  /* ================= FETCH CART ================= */
+  if ($action === 'fetch_cart') {
+
+      $stmt = $conn->prepare("
+          SELECT 
+              uc.product_id,
+              uc.quantity,
+              p.product_name,
+              p.price,
+              p.image_path
+          FROM user_cart uc
+          JOIN productservicesrentals p 
+              ON uc.product_id = p.product_id
+          WHERE uc.user_id = ?
+      ");
+      $stmt->bind_param("i", $userId);
+      $stmt->execute();
+      $result = $stmt->get_result();
+
+      $items = [];
+      while ($row = $result->fetch_assoc()) {
+          $items[] = $row;
+      }
+
+      echo json_encode(['success' => true, 'items' => $items]);
+      exit();
+  }
+
+  /* ================= REMOVE ================= */
+  if ($action === 'remove_from_cart') {
+
+      $productId = (int)($_POST['product_id'] ?? 0);
+
+      $stmt = $conn->prepare("
+          DELETE FROM user_cart
+          WHERE user_id = ? AND product_id = ?
+      ");
+      $stmt->bind_param("ii", $userId, $productId);
+      $stmt->execute();
+      $stmt->close();
+
+      echo json_encode(['success' => true]);
+      exit();
+  }
+
+  /* ================= UPDATE QUANTITY ================= */
+  if ($action === 'update_quantity') {
+
+      $productId = (int)($_POST['product_id'] ?? 0);
+      $quantity  = (int)($_POST['quantity'] ?? 1);
+
+      if ($quantity <= 0) $quantity = 1;
+
+      $stmt = $conn->prepare("
+          UPDATE user_cart
+          SET quantity = ?
+          WHERE user_id = ? AND product_id = ?
+      ");
+      $stmt->bind_param("iii", $quantity, $userId, $productId);
+      $stmt->execute();
+      $stmt->close();
+
+      echo json_encode(['success' => true]);
+      exit();
+  }
+}
+
 if (!isset($_GET['seller']) || !is_numeric($_GET['seller'])) {
     die("Invalid seller");
 }
@@ -211,9 +336,9 @@ $productStmt->close();
       </div>
       <div class="inner-cart-container">
         <div class="cart-items" id="cartItems">
-          <div id="emptyCartMessage" class="empty-cart">
-            🛒 Your cart is empty
-          </div>
+        </div>
+        <div id="emptyCartMessage" class="empty-cart">
+          🛒 Your cart is empty
         </div>
 
         <div class="cart-summary">
@@ -375,9 +500,10 @@ $productStmt->close();
               <?php if ($products): ?>
                 <?php foreach ($products as $product): ?>
                   <div class="variable-card"
-                      data-name="<?php echo htmlspecialchars($product['product_name']); ?>"
-                      data-price="<?php echo $product['price']; ?>"
-                      data-image="<?php echo $product['image_path']; ?>">
+                    data-id="<?php echo $product['product_id']; ?>"
+                    data-name="<?php echo htmlspecialchars($product['product_name']); ?>"
+                    data-price="<?php echo $product['price']; ?>"
+                    data-image="<?php echo $product['image_path']; ?>">
 
                     <button class="add-to-cart-btn">Add&nbsp;to&nbsp;cart</button>
 
@@ -389,9 +515,11 @@ $productStmt->close();
                       <div class="variable-title">
                         <?php echo htmlspecialchars($product['product_name']); ?>
                       </div>
+                      
+                      <div class="stock in-stock">In stock</div>
 
                       <div class="price-row">
-                        <div class="price">KES <?php echo number_format($product['price']); ?></div>
+                        <div class="price">KES <?php echo number_format($product['price'], 2); ?></div>
                         <button class="buy-btn" onclick="togglePaymentOption()">Order</button>
                       </div>
                     </div>

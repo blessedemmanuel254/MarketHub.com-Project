@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 25, 2026 at 03:31 PM
+-- Generation Time: Feb 25, 2026 at 09:44 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -35,6 +35,7 @@ CREATE TABLE `productservicesrentals` (
   `price` decimal(10,2) NOT NULL,
   `stock_quantity` int(11) NOT NULL DEFAULT 0,
   `image_path` varchar(255) NOT NULL,
+  `image_hash` varchar(32) DEFAULT NULL,
   `image_width` int(11) DEFAULT NULL,
   `image_height` int(11) DEFAULT NULL,
   `image_size_kb` int(11) DEFAULT NULL,
@@ -53,7 +54,9 @@ CREATE TABLE `productservicesrentals` (
 --
 ALTER TABLE `productservicesrentals`
   ADD PRIMARY KEY (`product_id`),
-  ADD KEY `user_id` (`user_id`);
+  ADD KEY `idx_user_created` (`user_id`,`created_at`),
+  ADD KEY `idx_user_product` (`user_id`,`product_name`),
+  ADD KEY `idx_user_image` (`user_id`,`image_hash`);
 
 --
 -- AUTO_INCREMENT for dumped tables
