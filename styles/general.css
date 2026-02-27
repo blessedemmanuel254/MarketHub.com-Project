@@ -553,6 +553,8 @@ html body {
 .containerAdmin .admin-tab-panel .table-wrapper .filter-bar {
   background-color: #0f0f0f;
   margin: 10px 0;
+  display: flex;
+  gap: 10px;
 }
 
 #toggleMarketSourceTab, #toggleMarketTypeTabAgent {
@@ -897,12 +899,14 @@ html body {
   font-size: 12px;
 }
 
-.table-wrapper table tbody tr td .paid, .cards .order-card .card-row .paid { background:#e7f6ec; color:#088000; }
+.table-wrapper table tbody tr td .paid, .table-wrapper table tbody tr td .active, .cards .order-card .card-row .paid { background:#e7f6ec; color:#088000; }
 .table-wrapper table tbody tr td .pending, .cards .order-card .card-row .pending { background:#fff3cd; color:#856404; }
 .table-wrapper table tbody tr td .delivered, .cards .order-card .card-row .delivered { background:#e7f6ec; color:#088000; }
 .table-wrapper table tbody tr td .shipped, .cards .order-card .card-row .shipped { background:#e8f0fe; color:#1a4fd8; }
 .table-wrapper table tbody tr td .processing, .cards .order-card .card-row .processing { background:#eee; }
-
+.table-wrapper table tbody tr td .verified {background-color: #3c9636; color: #ffffff; border-radius: 15px;}
+.table-wrapper table tbody tr td .unverified {background-color: #ff3b3b; color: #ffffff; border-radius: 15px;}
+.table-wrapper table tbody tr td .suspended {background-color: #89888834; color: #898888;}
 .table-wrapper table tbody tr td.actions div {
   display: flex;
   gap: 6px;
@@ -925,6 +929,18 @@ html body {
 .table-wrapper table tbody tr td.actions button.btn-view, .cards .order-card .card-actions button.btn-view { background:#000; color:#ffffff; }
 .table-wrapper table tbody tr td.actions button.btn-track, .cards .order-card .card-actions button.btn-track { background:#ddd; }
 .table-wrapper table tbody tr td.actions button.btn-cancel, .cards .order-card .card-actions button.btn-cancel { background:#fdecea; color:#ff3b3b;
+}
+.table-wrapper table tbody tr td.actions button.btn-edit {
+  background-color: #088000;
+  color: #ffffff;
+}
+.table-wrapper table tbody tr td.actions button.btn-susped {
+  background-color: #898888;
+  color: #0f0f0f;
+}
+.table-wrapper table tbody tr td.actions button.btn-delete {
+  background-color: #ff3b3b;
+  color: #ffffff;
 }
 .table-wrapper table tbody tr td.actions button.btn-ship, .container main.buyerMain .cards .order-card .card-actions button.btn-ship {
   background-color: #088000;
@@ -3237,6 +3253,17 @@ body#adminBody {
   color: #0f0f0f;
   transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
 
+}
+
+.admin-tab-content .cards .card.sub-card {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.admin-tab-content .cards .card.sub-card i {
+  color: #898888;
+  font-size: 30px;
 }
 
 .admin-tab-content .cards .card h3 {

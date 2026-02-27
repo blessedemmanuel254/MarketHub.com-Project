@@ -215,16 +215,16 @@ $sellerId = (int)$_GET['seller'];
 /* ---------- FETCH SELLER PROFILE ---------- */
 $sellerStmt = $conn->prepare("
     SELECT 
-        user_id,
-        business_name,
-        business_type,
-        market_scope,
-        address,
-        ward,
-        profile_image,
-        total_sales,
-        rating_average,
-        rating_count
+      user_id,
+      business_name,
+      business_type,
+      market_scope,
+      address,
+      ward,
+      profile_image,
+      total_sales,
+      rating_average,
+      rating_count
     FROM users
     WHERE user_id = ? AND account_type = 'seller'
     LIMIT 1
