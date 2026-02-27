@@ -114,6 +114,9 @@ if ($accountType !== $allowedRole) { */
         <a href="sellerPage.php" class="nav-link"  data-tab="sellers"><i class="fa-solid fa-store"></i>Sellers</a>
         <a href="buyerPage.php" class="nav-link"><i class="fa-solid fa-cart-shopping"></i>Buyers</a>
         <a href="propertyOwnerPage.php" class="nav-link"><i class="fa-solid fa-building"></i>Property Owners</a>
+        <a href="#" class="nav-link">
+          <i class="fa-solid fa-money-bill-transfer"></i>Withdrawals
+        </a>
         <a href="#" class="nav-link" data-tab="transactions">
           <i class="fa-solid fa-money-bill-transfer"></i>Transactions
         </a>
@@ -128,7 +131,7 @@ if ($accountType !== $allowedRole) { */
           <p>Dashboard</p>
           <ul>
             <a href="">Home ~ </a> 
-            <a href="" class="active">Dashboard</a><!-- 
+            <a href="#" class="active">Dashboard</a><!-- 
             <a href="">Orders</a>
             <a href="">Users</a> -->
           </ul>
@@ -377,12 +380,12 @@ if ($accountType !== $allowedRole) { */
           <p>Sellers</p>
           <ul>
             <a href="">Admin ~ </a> 
-            <a href="" class="active">Seller</a><!-- 
+            <a href="" class="active">Sellers</a><!-- 
             <a href="">Orders</a>
             <a href="">Users</a> -->
           </ul>
         </nav>
-        <h2>Seller Management</h2>
+        <h2>Sellers Management</h2>
         <div class="admin-tab-content">
           <div class="cards">
             <div class="card sub-card">
@@ -451,7 +454,7 @@ if ($accountType !== $allowedRole) { */
                 <th>Status</th>
                 <th>Actions</th>
                 <th>Created&nbsp;On:</th>
-                <th>Updated&nbsp;On</th>
+                <th>Updated&nbsp;On:</th>
               </tr>
             </thead>
             <tbody>

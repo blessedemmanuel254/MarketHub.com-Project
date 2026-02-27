@@ -200,10 +200,10 @@ if ($accountType !== $allowedRole) { */
             <thead>
               <tr>
                 <th>#</th>
-                <th>Seller</th>
-                <th>Products</th>
+                <th>Agent</th>
+                <th>Phone</th>
+                <th>Sub&nbsp;Agents</th>
                 <th>Wallet</th>
-                <th>KYC</th>
                 <th>Status</th>
                 <th>Actions</th>
                 <th>Created&nbsp;On:</th>

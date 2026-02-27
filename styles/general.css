@@ -859,7 +859,7 @@ html body {
 }
 
 .containerAdmin .table-wrapper {
-  padding: 10px;
+  padding: 10px 0;
 }
 
 .table-wrapper table {
@@ -3222,13 +3222,13 @@ body#adminBody {
   color: #ffffff;
 }
 
+.containerAdmin main.adminMain .admin-tab-panel h2 {
+  padding: 10px 0;
+}
+
 .containerAdmin main.adminMain .admin-tab-panel .table-wrapper h3 {
   font-size: 16px;
   padding: 10px 0 0 0;
-}
-
-.containerAdmin main.adminMain .admin-tab-panel .admin-tab-content {
-  padding: 0 10px;
 }
 
 @media screen and (max-width: 440px) {

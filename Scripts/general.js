@@ -338,7 +338,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Show only 5
   allRows.forEach((row, index) => {
-    if (index >= 5) row.style.display = "none";
+    if (index >= 15) row.style.display = "none";
   });
 
   if (filter) {
