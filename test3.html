@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Market Hub Admin – Sellers</title>
+<title>Market Hub Admin – Sales Agents</title>
 
 <!-- FONT AWESOME -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
@@ -95,10 +95,7 @@ body{background:var(--bg);color:var(--text);height:100vh;display:flex}
  gap:15px;
  align-items:center;
 }
-.stat i{
- font-size:30px;
- color:var(--accent);
-}
+.stat i{font-size:30px;color:var(--accent)}
 .stat h2{font-size:26px}
 .stat p{color:var(--muted);font-size:14px}
 
@@ -124,10 +121,7 @@ body{background:var(--bg);color:var(--text);height:100vh;display:flex}
  border-radius:12px;
  overflow:hidden;
 }
-table{
- width:100%;
- border-collapse:collapse;
-}
+table{width:100%;border-collapse:collapse}
 th,td{
  padding:14px;
  border-bottom:1px solid var(--border);
@@ -143,9 +137,8 @@ tr:hover{background:var(--hover)}
  font-size:12px;
 }
 .active{background:var(--accent);color:#000}
-.pending{background:var(--warning);color:#000}
 .suspended{background:var(--danger)}
-.verified{background:var(--info);color:#000}
+.pending{background:var(--warning);color:#000}
 
 /* ACTIONS */
 .actions{
@@ -164,8 +157,8 @@ tr:hover{background:var(--hover)}
 }
 .view{background:var(--info);color:#000}
 .edit{background:var(--warning);color:#000}
-.suspend{background:var(--danger)}
 .login{background:var(--accent);color:#000}
+.suspend{background:var(--danger)}
 
 /* MODAL */
 .modal{
@@ -185,11 +178,7 @@ tr:hover{background:var(--hover)}
  border:1px solid var(--border);
 }
 .modal h3{margin-bottom:15px}
-.close{
- float:right;
- cursor:pointer;
- color:var(--danger);
-}
+.close{float:right;cursor:pointer;color:var(--danger)}
 </style>
 </head>
 
@@ -198,10 +187,10 @@ tr:hover{background:var(--hover)}
 <!-- SIDEBAR -->
 <div class="sidebar">
 <h2>🛒 Market Hub</h2>
-<a href="#" class="active"><i class="fa-solid fa-store"></i> Sellers</a>
-<a href="#"><i class="fa-solid fa-box"></i> Products</a>
-<a href="#"><i class="fa-solid fa-money-bill-transfer"></i> Withdrawals</a>
-<a href="#"><i class="fa-solid fa-receipt"></i> Transactions</a>
+<a href="#"><i class="fa-solid fa-store"></i> Sellers</a>
+<a href="#" class="active"><i class="fa-solid fa-user-tie"></i> Sales Agents</a>
+<a href="#"><i class="fa-solid fa-money-bill-wave"></i> Commissions</a>
+<a href="#"><i class="fa-solid fa-hand-holding-dollar"></i> Withdrawals</a>
 <a href="#"><i class="fa-solid fa-chart-line"></i> Reports</a>
 <a href="#"><i class="fa-solid fa-gear"></i> Settings</a>
 </div>
@@ -210,16 +199,16 @@ tr:hover{background:var(--hover)}
 <div class="main">
 
 <div class="topbar">
-<input placeholder="🔍 Search seller...">
+<input placeholder="🔍 Search agent...">
 <div>👑 Admin ▾</div>
 </div>
 
 <div class="content">
 
 <div class="header">
-<h1>🏪 Sellers Management</h1>
+<h1>🧑‍💼 Sales Agents Management</h1>
 <button class="btn view" onclick="openModal()">
-<i class="fa-solid fa-user-plus"></i> Add Seller
+<i class="fa-solid fa-user-plus"></i> Add Agent
 </button>
 </div>
 
@@ -227,43 +216,44 @@ tr:hover{background:var(--hover)}
 <div class="stats">
 <div class="stat">
 <i class="fa-solid fa-users"></i>
-<div><h2>1,248</h2><p>Total Sellers</p></div>
+<div><h2>184</h2><p>Total Agents</p></div>
 </div>
 
 <div class="stat">
-<i class="fa-solid fa-shield-check"></i>
-<div><h2>1,102</h2><p>Verified Sellers</p></div>
+<i class="fa-solid fa-user-check"></i>
+<div><h2>162</h2><p>Active Agents</p></div>
 </div>
 
 <div class="stat">
 <i class="fa-solid fa-wallet"></i>
-<div><h2>KES 4.8M</h2><p>Total Seller Wallets</p></div>
+<div><h2>KES 1.3M</h2><p>Total Commissions</p></div>
 </div>
 
 <div class="stat">
-<i class="fa-solid fa-hand-holding-dollar"></i>
-<div><h2>218</h2><p>Pending Withdrawals</p></div>
+<i class="fa-solid fa-chart-simple"></i>
+<div><h2>4,582</h2><p>Total Referrals</p></div>
 </div>
 </div>
 
 <!-- FILTERS -->
 <div class="filters">
-<input placeholder="🔍 Name / Email">
+<input placeholder="🔍 Name / Phone">
 <select>
 <option>📌 Status</option>
 <option>Active</option>
 <option>Suspended</option>
-<option>Pending</option>
 </select>
 <select>
-<option>🛡 KYC</option>
-<option>Verified</option>
-<option>Unverified</option>
+<option>🌍 Region</option>
+<option>Nairobi</option>
+<option>Coast</option>
+<option>Western</option>
 </select>
 <select>
-<option>📦 Has Products</option>
-<option>Yes</option>
-<option>No</option>
+<option>📈 Performance</option>
+<option>High</option>
+<option>Medium</option>
+<option>Low</option>
 </select>
 </div>
 
@@ -272,22 +262,29 @@ tr:hover{background:var(--hover)}
 <table>
 <thead>
 <tr>
-<th>🏪 Seller</th>
-<th>📧 Email</th>
-<th>📦 Products</th>
+<th>👤 Agent</th>
+<th>📞 Phone</th>
+<th>🌍 Region</th>
+<th>🏪 Sellers</th>
+<th>👥 Buyers</th>
 <th>💰 Wallet</th>
-<th>🛡 KYC</th>
 <th>⚡ Status</th>
 <th>⚙ Actions</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>GreenFarm Ltd</td>
-<td>seller@greenfarm.com</td>
-<td>45</td>
-<td>KES 120,450</td>
-<td><span class="badge verified">Verified</span></td>
+<td>
+<div style="display:flex;align-items:center;gap:10px">
+<img src="https://i.pravatar.cc/40" style="border-radius:50%">
+John Mwangi
+</div>
+</td>
+<td>+254 712 345 678</td>
+<td>Coast</td>
+<td>38</td>
+<td>412</td>
+<td>KES 84,200</td>
 <td><span class="badge active">Active</span></td>
 <td class="actions">
 <button class="btn view"><i class="fa-solid fa-eye"></i></button>
@@ -307,15 +304,21 @@ tr:hover{background:var(--hover)}
 <div class="modal" id="modal">
 <div class="modal-content">
 <span class="close" onclick="closeModal()">✖</span>
-<h3>👤 Add / Edit Seller</h3>
-<input style="width:100%;margin-bottom:10px" placeholder="Seller Name">
-<input style="width:100%;margin-bottom:10px" placeholder="Email">
+<h3>🧑‍💼 Add / Edit Sales Agent</h3>
+<input style="width:100%;margin-bottom:10px" placeholder="Full Name">
+<input style="width:100%;margin-bottom:10px" placeholder="Phone Number">
+<select style="width:100%;margin-bottom:10px">
+<option>Assigned Region</option>
+<option>Nairobi</option>
+<option>Coast</option>
+<option>Western</option>
+</select>
 <select style="width:100%;margin-bottom:10px">
 <option>Status</option>
 <option>Active</option>
 <option>Suspended</option>
 </select>
-<button class="btn view"><i class="fa-solid fa-save"></i> Save</button>
+<button class="btn view"><i class="fa-solid fa-save"></i> Save Agent</button>
 </div>
 </div>
 

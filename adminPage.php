@@ -416,7 +416,7 @@ if ($accountType !== $allowedRole) { */
               <i class="fa-solid fa-hand-holding-dollar"></i>
               <div>
                 <h3>Pending Withdrawals</h3>
-                <div class="value">KES 2,450,000</div>
+                <div class="value">4</div>
               </div>
             </div>
           </div>

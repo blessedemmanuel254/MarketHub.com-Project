@@ -114,6 +114,9 @@ if ($accountType !== $allowedRole) { */
         <a href="sellerPage.php" class="nav-link"><i class="fa-solid fa-store"></i>Sellers</a>
         <a href="buyerPage.php" class="nav-link"><i class="fa-solid fa-cart-shopping"></i>Buyers</a>
         <a href="propertyOwnerPage.php" class="nav-link"><i class="fa-solid fa-building"></i>Property Owners</a>
+        <a href="#" class="nav-link">
+          <i class="fa-solid fa-money-bill-transfer"></i>Withdrawals
+        </a>
         <a href="#" class="nav-link" data-tab="transactions">
           <i class="fa-solid fa-money-bill-transfer"></i>Transactions
         </a>
@@ -125,31 +128,31 @@ if ($accountType !== $allowedRole) { */
     <main class="adminMain">
       <div class="admin-tab-panel active" data-tab="dashboard">
         <nav>
-          <p>Seller</p>
+          <p>Sales Agents</p>
           <ul>
             <a href="">Admin ~ </a> 
-            <a href="" class="active">Seller</a><!-- 
+            <a href="" class="active">Sales Agents</a><!-- 
             <a href="">Orders</a>
             <a href="">Users</a> -->
           </ul>
         </nav>
-        <h2>Seller Management</h2>
+        <h2>Sales Agents Management</h2>
         <div class="admin-tab-content">
           <div class="cards">
             <div class="card sub-card">
               <i class="fa-solid fa-users"></i>
               <div>
-                <h3>Total Sellers</h3>
-                <div class="value">385</div>
+                <h3>Total Agents</h3>
+                <div class="value">188</div>
               </div>
             </div>
 
             <div class="card sub-card">
-              <i class="fa-solid">🛡</i>
+              <i class="fa-solid fa-user-check"></i>
               <div>
-                <h3>Verified Sellers</h3>
+                <h3>Active Agents</h3>
 
-                <div class="value">126</div>
+                <div class="value">88</div>
 
                 <small>↑ 12% productivity growth this month</small>
               </div>
@@ -158,16 +161,16 @@ if ($accountType !== $allowedRole) { */
             <div class="card sub-card">
               <i class="fa-solid fa-wallet"></i>
               <div>
-                <h3>Total Seller Wallets</h3>
-                <div class="value">KES 245,000</div>
+                <h3>Total Commissions</h3>
+                <div class="value">KES 1.3M</div>
               </div>
             </div>
 
             <div class="card sub-card">
-              <i class="fa-solid fa-hand-holding-dollar"></i>
+              <i class="fa-solid fa-chart-simple"></i>
               <div>
-                <h3>Pending Withdrawals</h3>
-                <div class="value">KES 2,450,000</div>
+                <h3>Total Referrals</h3>
+                <div class="value">587</div>
               </div>
             </div>
           </div>
@@ -176,19 +179,21 @@ if ($accountType !== $allowedRole) { */
           <div class="filter-bar">
             <select id="statusFilter">
               <option value="all">📌&nbsp;Status</option>
-              <option value="Active">Active</option>
-              <option value="Pending">Pending</option>
+              <option value="Verified">Verified</option>
+              <option value="Unverified">Unverified</option>
               <option value="Suspended">Suspended</option>
             </select>
             <select id="statusFilter">
-              <option value="all">🛡&nbsp;KYC</option>
-              <option value="Verified">Verified</option>
-              <option value="Unverified">Unverified</option>
+              <option value="all">🌍&nbsp;Region</option>
+              <option value="Nairobi">Nairobi</option>
+              <option value="Coast">Coast</option>
+              <option value="Western">Western</option>
             </select>
             <select id="statusFilter">
-              <option value="all">📦&nbsp;Has&nbsp;Products</option>
-              <option value="Yes">Yes</option>
-              <option value="No">No</option>
+              <option value="all">📈&nbsp;Performance</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
             </select>
           </div>
           <table id="transactionsTable">
