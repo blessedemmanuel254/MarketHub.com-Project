@@ -886,6 +886,12 @@ html body {
   text-align: left;
 }
 
+.table-wrapper table tbody tr td .adm-user-profile {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
 .table-wrapper table tbody tr td img.product-img {
   width: 55px;
   height: 55px;
@@ -906,6 +912,7 @@ html body {
 .table-wrapper table tbody tr td .processing, .cards .order-card .card-row .processing { background:#eee; }
 .table-wrapper table tbody tr td .verified {background-color: #3c9636; color: #ffffff; border-radius: 15px;}
 .table-wrapper table tbody tr td .unverified {background-color: #ff3b3b; color: #ffffff; border-radius: 15px;}
+.table-wrapper table tbody tr td span.suspendedSpan {background-color: #89888834; color: #898888; border-radius: 15px;}
 .table-wrapper table tbody tr td .suspended {background-color: #89888834; color: #898888;}
 .table-wrapper table tbody tr td.actions div {
   display: flex;

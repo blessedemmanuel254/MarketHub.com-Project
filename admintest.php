@@ -126,51 +126,51 @@ if ($accountType !== $allowedRole) { */
 
     </div>
     <main class="adminMain">
-      <div class="admin-tab-panel active" data-tab="dashboard">
+      <div class="admin-tab-panel" data-tab="dashboard">
         <nav>
-          <p>Sales Agents</p>
+          <p>Buyers</p>
           <ul>
-            <a href="">Admin ~ </a> 
-            <a href="" class="active">Sales Agents</a><!-- 
+            <a href="#">Admin ~ </a>
+            <a href="#" class="active">Buyers</a><!-- 
             <a href="">Orders</a>
             <a href="">Users</a> -->
           </ul>
         </nav>
-        <h2>Sales Agents Management</h2>
+        <h2>Buyers Management</h2>
         <div class="admin-tab-content">
           <div class="cards">
             <div class="card sub-card">
               <i class="fa-solid fa-users"></i>
               <div>
-                <h3>Total Agents</h3>
-                <div class="value">188</div>
+                <h3>Total Buyers</h3>
+                <div class="value">5,687</div>
               </div>
             </div>
 
             <div class="card sub-card">
               <i class="fa-solid fa-user-check"></i>
               <div>
-                <h3>Active Agents</h3>
+                <h3>Active Buyers</h3>
 
-                <div class="value">88</div>
+                <div class="value">5,123</div>
 
                 <small>↑ 12% productivity growth this month</small>
               </div>
             </div>
 
             <div class="card sub-card">
-              <i class="fa-solid fa-wallet"></i>
+              <i class="fa-solid fa-cart-shopping"></i>
               <div>
-                <h3>Total Commissions</h3>
-                <div class="value">KES 1.3M</div>
+                <h3>Total Orders</h3>
+                <div class="value">7,890</div>
               </div>
             </div>
 
             <div class="card sub-card">
-              <i class="fa-solid fa-chart-simple"></i>
+              <i class="fa-solid fa-wallet"></i>
               <div>
-                <h3>Total Referrals</h3>
-                <div class="value">587</div>
+                <h3>Total Spend</h3>
+                <div class="value">Ksh 7.3M</div>
               </div>
             </div>
           </div>
@@ -179,41 +179,41 @@ if ($accountType !== $allowedRole) { */
           <div class="filter-bar">
             <select id="statusFilter">
               <option value="all">📌&nbsp;Status</option>
-              <option value="Verified">Verified</option>
-              <option value="Unverified">Unverified</option>
+              <option value="Active">Active</option>
+              <option value="pending">Pending</option>
               <option value="Suspended">Suspended</option>
-            </select>
-            <select id="statusFilter">
-              <option value="all">🌍&nbsp;Region</option>
-              <option value="Nairobi">Nairobi</option>
-              <option value="Coast">Coast</option>
-              <option value="Western">Western</option>
             </select>
           </div>
           <table id="transactionsTable">
             <thead>
               <tr>
                 <th>#</th>
-                <th>Agent</th>
+                <th>Buyer</th>
+                <th>Email</th>
                 <th>Phone</th>
-                <th>Sub&nbsp;Agents</th>
-                <th>Wallet</th>
                 <th>Region</th>
+                <th>Orders</th>
+                <th>Total&nbsp;Spend</th>
                 <th>Status</th>
                 <th>Actions</th>
                 <th>Created&nbsp;On:</th>
-                <th>Updated&nbsp;On</th>
+                <th>Updated&nbsp;On:</th>
               </tr>
             </thead>
             <tbody>
               <tr data-status="Paid">
                 <td>1.</td>
-                <td>Blessed Emmanuel</td>
+                <td>
+                  <div class="adm-user-profile">
+                    <img src="https://i.pravatar.cc/40?img=12" style="border-radius:50%">Blessed Emmanuel
+                  </div>
+                </td>
+                <td>emmanueltindi23@gmail.com</td>
                 <td>+254759578630</td>
-                <td>67</td>
-                <td>KES 45,000</td>
                 <td>Coast</td>
-                <td><span class="badge verified">Verified</span></td>
+                <td>35</td>
+                <td>KES 33,489</td>
+                <td><span class="badge active">Active</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -227,450 +227,576 @@ if ($accountType !== $allowedRole) { */
               </tr>
               <tr data-status="Paid">
                 <td>2.</td>
-                <td>Samuel Kiptoo</td>
-                <td>+254711223344</td>
-                <td>72</td>
-                <td>KES 88,400</td>
-                <td>Rift Valley</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
-                <td>2025-01-16</td>
+                <td>
+                  <div class="adm-user-profile">
+                    <img src="https://i.pravatar.cc/40?img=13" style="border-radius:50%">Mary Wanjiku
+                  </div>
+                </td>
+                <td>marywanjiku@gmail.com</td>
+                <td>+254701223344</td>
+                <td>Nairobi</td>
+                <td>28</td>
+                <td>KES 21,340</td>
+                <td><span class="badge active">Active</span></td>
+                <td class="actions">
+                  <div>
+                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
                 <td>2025-01-18</td>
-              </tr>
-
-              <tr data-status="Paid">
-                <td>3.</td>
-                <td>Grace Njeri</td>
-                <td>+254700123456</td>
-                <td>29</td>
-                <td>KES 21,600</td>
-                <td>Central</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
-                <td>2025-01-17</td>
                 <td>2025-01-20</td>
               </tr>
 
               <tr data-status="Paid">
-                <td>4.</td>
-                <td>Daniel Ochieng</td>
-                <td>+254712667788</td>
-                <td>40</td>
-                <td>KES 39,500</td>
-                <td>Nyanza</td>
-                <td><span class="badge unverified">Unverified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
-                <td>2025-01-18</td>
-                <td>2025-01-22</td>
-              </tr>
-
-              <tr data-status="Paid">
-                <td>5.</td>
-                <td>Faith Mutua</td>
-                <td>+254723334455</td>
-                <td>18</td>
-                <td>KES 14,800</td>
-                <td>Eastern</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
+                <td>3.</td>
+                <td>
+                  <div class="adm-user-profile">
+                    <img src="https://i.pravatar.cc/40?img=14" style="border-radius:50%">Daniel Otieno
+                  </div>
+                </td>
+                <td>danotieno@gmail.com</td>
+                <td>+254712998771</td>
+                <td>Western</td>
+                <td>41</td>
+                <td>KES 52,880</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td class="actions">
+                  <div>
+                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
                 <td>2025-01-19</td>
                 <td>2025-01-23</td>
               </tr>
 
               <tr data-status="Paid">
-                <td>6.</td>
-                <td>Kevin Odhiambo</td>
-                <td>+254734556677</td>
-                <td>63</td>
-                <td>KES 72,100</td>
-                <td>Western</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
+                <td>4.</td>
+                <td>
+                  <div class="adm-user-profile">
+                    <img src="https://i.pravatar.cc/40?img=15" style="border-radius:50%">Fatma Ali
+                  </div>
+                </td>
+                <td>fatmaali@yahoo.com</td>
+                <td>+254734556889</td>
+                <td>Coast</td>
+                <td>19</td>
+                <td>KES 14,560</td>
+                <td><span class="badge active">Active</span></td>
+                <td class="actions">
+                  <div>
+                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
                 <td>2025-01-20</td>
-                <td>2025-01-24</td>
-              </tr>
-
-              <tr data-status="Paid">
-                <td>7.</td>
-                <td>Mercy Atieno</td>
-                <td>+254700987654</td>
-                <td>26</td>
-                <td>KES 19,450</td>
-                <td>Nairobi</td>
-                <td><span class="badge unverified">Unverified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
-                <td>2025-01-21</td>
                 <td>2025-01-25</td>
               </tr>
 
               <tr data-status="Paid">
-                <td>8.</td>
-                <td>Brian Kiplagat</td>
-                <td>+254711556677</td>
-                <td>54</td>
-                <td>KES 65,900</td>
-                <td>North Eastern</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
+                <td>5.</td>
+                <td>
+                  <div class="adm-user-profile">
+                    <img src="https://i.pravatar.cc/40?img=16" style="border-radius:50%">James Mwangi
+                  </div>
+                </td>
+                <td>jamesmwangi@gmail.com</td>
+                <td>+254722334455</td>
+                <td>Rift Valley</td>
+                <td>50</td>
+                <td>KES 61,200</td>
+                <td><span class="badge suspended">Suspended</span></td>
+                <td class="actions">
+                  <div>
+                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
                 <td>2025-01-22</td>
-                <td>2025-01-26</td>
-              </tr>
-              <tr data-status="Paid">
-                <td>9.</td>
-                <td>Lucy Wairimu</td>
-                <td>+254722445566</td>
-                <td>31</td>
-                <td>KES 25,000</td>
-                <td>Central</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
-                <td>2025-01-23</td>
-                <td>2025-01-27</td>
-              </tr>
-
-              <tr data-status="Paid">
-                <td>10.</td>
-                <td>Isaac Kamau</td>
-                <td>+254733112244</td>
-                <td>47</td>
-                <td>KES 44,200</td>
-                <td>Eastern</td>
-                <td><span class="badge unverified">Unverified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
-                <td>2025-01-24</td>
                 <td>2025-01-28</td>
               </tr>
-
               <tr data-status="Paid">
-                <td>11.</td>
-                <td>Janet Chebet</td>
-                <td>+254712889900</td>
-                <td>39</td>
-                <td>KES 36,700</td>
-                <td>Rift Valley</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
-                <td>2025-01-25</td>
-                <td>2025-01-29</td>
-              </tr>
-
-              <tr data-status="Paid">
-                <td>12.</td>
-                <td>Anthony Kariuki</td>
-                <td>+254701998877</td>
+                <td>6.</td>
+                <td>
+                  <div class="adm-user-profile">
+                    <img src="https://i.pravatar.cc/40?img=17" style="border-radius:50%">Agnes Nduta
+                  </div>
+                </td>
+                <td>agnesnduta@gmail.com</td>
+                <td>+254711445566</td>
+                <td>Central</td>
                 <td>22</td>
-                <td>KES 17,300</td>
-                <td>Nairobi</td>
-                <td><span class="badge unverified">Unverified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
-                <td>2025-01-26</td>
+                <td>KES 18,950</td>
+                <td><span class="badge active">Active</span></td>
+                <td class="actions">
+                  <div>
+                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
+                <td>2025-01-24</td>
                 <td>2025-01-30</td>
               </tr>
 
               <tr data-status="Paid">
-                <td>13.</td>
-                <td>Rose Anyango</td>
-                <td>+254734223344</td>
-                <td>48</td>
-                <td>KES 52,400</td>
+                <td>7.</td>
+                <td>
+                  <div class="adm-user-profile">
+                    <img src="https://i.pravatar.cc/40?img=18" style="border-radius:50%">Brian Kiplagat
+                  </div>
+                </td>
+                <td>briankip@gmail.com</td>
+                <td>+254711556677</td>
+                <td>North Eastern</td>
+                <td>54</td>
+                <td>KES 65,900</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td class="actions">
+                  <div>
+                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
+                <td>2025-01-26</td>
+                <td>2025-02-02</td>
+              </tr>
+
+              <tr data-status="Paid">
+                <td>8.</td>
+                <td>
+                  <div class="adm-user-profile">
+                    <img src="https://i.pravatar.cc/40?img=19" style="border-radius:50%">Lucy Achieng
+                  </div>
+                </td>
+                <td>lucyachieng@gmail.com</td>
+                <td>+254700889911</td>
                 <td>Nyanza</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
-                <td>2025-02-01</td>
+                <td>31</td>
+                <td>KES 27,340</td>
+                <td><span class="badge active">Active</span></td>
+                <td class="actions">
+                  <div>
+                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
+                <td>2025-01-27</td>
+                <td>2025-02-04</td>
+              </tr>
+
+              <tr data-status="Paid">
+                <td>9.</td>
+                <td>
+                  <div class="adm-user-profile">
+                    <img src="https://i.pravatar.cc/40?img=20" style="border-radius:50%">Kevin Mutua
+                  </div>
+                </td>
+                <td>kevinmutua@gmail.com</td>
+                <td>+254733221144</td>
+                <td>Eastern</td>
+                <td>15</td>
+                <td>KES 12,780</td>
+                <td><span class="badge active">Active</span></td>
+                <td class="actions">
+                  <div>
+                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
+                <td>2025-01-29</td>
                 <td>2025-02-05</td>
+              </tr>
+
+              <tr data-status="Paid">
+                <td>10.</td>
+                <td>
+                  <div class="adm-user-profile">
+                    <img src="https://i.pravatar.cc/40?img=21" style="border-radius:50%">Mercy Chebet
+                  </div>
+                </td>
+                <td>mercychebet@gmail.com</td>
+                <td>+254721334455</td>
+                <td>Rift Valley</td>
+                <td>38</td>
+                <td>KES 44,120</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td class="actions">
+                  <div>
+                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
+                <td>2025-01-30</td>
+                <td>2025-02-06</td>
+              </tr>
+
+              <tr data-status="Paid">
+                <td>11.</td>
+                <td>
+                  <div class="adm-user-profile">
+                    <img src="https://i.pravatar.cc/40?img=22" style="border-radius:50%">Samuel Kariuki
+                  </div>
+                </td>
+                <td>samkariuki@gmail.com</td>
+                <td>+254710112233</td>
+                <td>Central</td>
+                <td>26</td>
+                <td>KES 23,470</td>
+                <td><span class="badge active">Active</span></td>
+                <td class="actions">
+                  <div>
+                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
+                <td>2025-02-01</td>
+                <td>2025-02-08</td>
+              </tr>
+
+              <tr data-status="Paid">
+                <td>12.</td>
+                <td>
+                  <div class="adm-user-profile">
+                    <img src="https://i.pravatar.cc/40?img=23" style="border-radius:50%">Janet Njeri
+                  </div>
+                </td>
+                <td>janetnjeri@gmail.com</td>
+                <td>+254734778899</td>
+                <td>Nairobi</td>
+                <td>47</td>
+                <td>KES 58,340</td>
+                <td><span class="badge active">Active</span></td>
+                <td class="actions">
+                  <div>
+                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
+                <td>2025-02-02</td>
+                <td>2025-02-09</td>
+              </tr>
+
+              <tr data-status="Paid">
+                <td>13.</td>
+                <td>
+                  <div class="adm-user-profile">
+                    <img src="https://i.pravatar.cc/40?img=24" style="border-radius:50%">Hassan Omar
+                  </div>
+                </td>
+                <td>hassanomar@gmail.com</td>
+                <td>+254729556677</td>
+                <td>North Eastern</td>
+                <td>17</td>
+                <td>KES 16,890</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td class="actions">
+                  <div>
+                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
+                <td>2025-02-03</td>
+                <td>2025-02-10</td>
               </tr>
 
               <tr data-status="Paid">
                 <td>14.</td>
-                <td>Victor Maina</td>
-                <td>+254722334411</td>
-                <td>37</td>
-                <td>KES 29,900</td>
-                <td>Western</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
-                <td>2025-02-02</td>
-                <td>2025-02-06</td>
+                <td>
+                  <div class="adm-user-profile">
+                    <img src="https://i.pravatar.cc/40?img=25" style="border-radius:50%">Esther Atieno
+                  </div>
+                </td>
+                <td>estheratieno@gmail.com</td>
+                <td>+254708334455</td>
+                <td>Nyanza</td>
+                <td>29</td>
+                <td>KES 25,640</td>
+                <td><span class="badge active">Active</span></td>
+                <td class="actions">
+                  <div>
+                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
+                <td>2025-02-04</td>
+                <td>2025-02-11</td>
               </tr>
 
               <tr data-status="Paid">
                 <td>15.</td>
-                <td>Agnes Nduta</td>
-                <td>+254711445566</td>
-                <td>33</td>
-                <td>KES 24,300</td>
-                <td>Coast</td>
-                <td><span class="badge unverified">Unverified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
-                <td>2025-02-03</td>
-                <td>2025-02-07</td>
+                <td>
+                  <div class="adm-user-profile">
+                    <img src="https://i.pravatar.cc/40?img=26" style="border-radius:50%">Peter Mworia
+                  </div>
+                </td>
+                <td>petermworia@gmail.com</td>
+                <td>+254720667788</td>
+                <td>Eastern</td>
+                <td>21</td>
+                <td>KES 19,300</td>
+                <td><span class="badge suspended">Suspended</span></td>
+                <td class="actions">
+                  <div>
+                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
+                <td>2025-02-05</td>
+                <td>2025-02-12</td>
               </tr>
+
               <tr data-status="Paid">
                 <td>16.</td>
-                <td>George Otieno</td>
-                <td>+254733556600</td>
-                <td>59</td>
-                <td>KES 74,800</td>
-                <td>Nyanza</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
-                <td>2025-02-04</td>
-                <td>2025-02-08</td>
+                <td>
+                  <div class="adm-user-profile">
+                    <img src="https://i.pravatar.cc/40?img=27" style="border-radius:50%">Grace Wairimu
+                  </div>
+                </td>
+                <td>gracewairimu@gmail.com</td>
+                <td>+254712334455</td>
+                <td>Central</td>
+                <td>34</td>
+                <td>KES 31,780</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td class="actions">
+                  <div>
+                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
+                <td>2025-02-06</td>
+                <td>2025-02-13</td>
               </tr>
 
               <tr data-status="Paid">
                 <td>17.</td>
-                <td>Peter Mwangi</td>
-                <td>+254722998877</td>
-                <td>45</td>
-                <td>KES 48,500</td>
-                <td>Central</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
-                <td>2025-02-05</td>
-                <td>2025-02-09</td>
+                <td>
+                  <div class="adm-user-profile">
+                    <img src="https://i.pravatar.cc/40?img=28" style="border-radius:50%">David Kimani
+                  </div>
+                </td>
+                <td>davidkimani@gmail.com</td>
+                <td>+254723889900</td>
+                <td>Rift Valley</td>
+                <td>44</td>
+                <td>KES 49,560</td>
+                <td><span class="badge active">Active</span></td>
+                <td class="actions">
+                  <div>
+                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
+                <td>2025-02-07</td>
+                <td>2025-02-14</td>
               </tr>
 
               <tr data-status="Paid">
                 <td>18.</td>
-                <td>Esther Wanjiku</td>
-                <td>+254711223300</td>
-                <td>27</td>
-                <td>KES 22,800</td>
-                <td>Eastern</td>
-                <td><span class="badge unverified">Unverified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
-                <td>2025-02-06</td>
-                <td>2025-02-10</td>
-              </tr>
-
-              <tr data-status="Paid">
-                <td>19.</td>
-                <td>Michael Korir</td>
-                <td>+254734112233</td>
-                <td>61</td>
-                <td>KES 80,000</td>
+                <td>
+                  <div class="adm-user-profile">
+                    <img src="https://i.pravatar.cc/40?img=29" style="border-radius:50%">Irene Jepkoech
+                  </div>
+                </td>
+                <td>irenejep@gmail.com</td>
+                <td>+254709112233</td>
                 <td>Rift Valley</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
-                <td>2025-02-07</td>
-                <td>2025-02-11</td>
-              </tr>
-
-              <tr data-status="Paid">
-                <td>20.</td>
-                <td>Joyce Akinyi</td>
-                <td>+254723009988</td>
-                <td>30</td>
-                <td>KES 28,600</td>
-                <td>Nairobi</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
+                <td>23</td>
+                <td>KES 20,880</td>
+                <td><span class="badge active">Active</span></td>
+                <td class="actions">
+                  <div>
+                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
                 <td>2025-02-08</td>
-                <td>2025-02-12</td>
-              </tr>
-
-              <tr data-status="Paid">
-                <td>21.</td>
-                <td>Collins Mutiso</td>
-                <td>+254712334455</td>
-                <td>34</td>
-                <td>KES 32,000</td>
-                <td>Eastern</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
-                <td>2025-02-09</td>
-                <td>2025-02-13</td>
-              </tr>
-
-              <tr data-status="Paid">
-                <td>22.</td>
-                <td>Mary Chepkemoi</td>
-                <td>+254701223344</td>
-                <td>24</td>
-                <td>KES 18,900</td>
-                <td>Rift Valley</td>
-                <td><span class="badge unverified">Unverified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
-                <td>2025-02-10</td>
-                <td>2025-02-14</td>
-              </tr>
-
-              <tr data-status="Paid">
-                <td>23.</td>
-                <td>Patrick Wekesa</td>
-                <td>+254722110099</td>
-                <td>50</td>
-                <td>KES 60,200</td>
-                <td>Western</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
-                <td>2025-02-11</td>
                 <td>2025-02-15</td>
               </tr>
 
               <tr data-status="Paid">
-                <td>24.</td>
-                <td>Hannah Mwikali</td>
-                <td>+254733221144</td>
-                <td>28</td>
-                <td>KES 26,400</td>
-                <td>Coast</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
-                <td>2025-02-12</td>
+                <td>19.</td>
+                <td>
+                  <div class="adm-user-profile">
+                    <img src="https://i.pravatar.cc/40?img=30" style="border-radius:50%">Anthony Ochieng
+                  </div>
+                </td>
+                <td>anthonyoch@gmail.com</td>
+                <td>+254731556677</td>
+                <td>Nyanza</td>
+                <td>27</td>
+                <td>KES 24,110</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td class="actions">
+                  <div>
+                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
+                <td>2025-02-09</td>
                 <td>2025-02-16</td>
               </tr>
 
               <tr data-status="Paid">
-                <td>25.</td>
-                <td>Eric Njuguna</td>
-                <td>+254711778899</td>
-                <td>42</td>
-                <td>KES 41,300</td>
-                <td>Central</td>
-                <td><span class="badge unverified">Unverified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
-                <td>2025-02-13</td>
+                <td>20.</td>
+                <td>
+                  <div class="adm-user-profile">
+                    <img src="https://i.pravatar.cc/40?img=31" style="border-radius:50%">Cynthia Auma
+                  </div>
+                </td>
+                <td>cynthumaa@gmail.com</td>
+                <td>+254722998877</td>
+                <td>Western</td>
+                <td>32</td>
+                <td>KES 29,430</td>
+                <td><span class="badge active">Active</span></td>
+                <td class="actions">
+                  <div>
+                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
+                <td>2025-02-10</td>
                 <td>2025-02-17</td>
               </tr>
 
               <tr data-status="Paid">
-                <td>26.</td>
-                <td>Naomi Wambui</td>
-                <td>+254722556677</td>
-                <td>36</td>
-                <td>KES 34,900</td>
-                <td>Nairobi</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions"><div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div></td>
-                <td>2025-02-14</td>
+                <td>21.</td>
+                <td>
+                  <div class="adm-user-profile">
+                    <img src="https://i.pravatar.cc/40?img=32" style="border-radius:50%">Victor Mutiso
+                  </div>
+                </td>
+                <td>victormutiso@gmail.com</td>
+                <td>+254700334455</td>
+                <td>Eastern</td>
+                <td>18</td>
+                <td>KES 17,290</td>
+                <td><span class="badge active">Active</span></td>
+                <td class="actions">
+                  <div>
+                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
+                <td>2025-02-11</td>
                 <td>2025-02-18</td>
+              </tr>
+
+              <tr data-status="Paid">
+                <td>22.</td>
+                <td>
+                  <div class="adm-user-profile">
+                    <img src="https://i.pravatar.cc/40?img=33" style="border-radius:50%">Naomi Wambui
+                  </div>
+                </td>
+                <td>naomiwambui@gmail.com</td>
+                <td>+254719556677</td>
+                <td>Nairobi</td>
+                <td>40</td>
+                <td>KES 53,770</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td class="actions">
+                  <div>
+                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
+                <td>2025-02-12</td>
+                <td>2025-02-19</td>
+              </tr>
+
+              <tr data-status="Paid">
+                <td>23.</td>
+                <td>
+                  <div class="adm-user-profile">
+                    <img src="https://i.pravatar.cc/40?img=34" style="border-radius:50%">Mohamed Abdi
+                  </div>
+                </td>
+                <td>mohamedabdi@gmail.com</td>
+                <td>+254713223344</td>
+                <td>North Eastern</td>
+                <td>24</td>
+                <td>KES 22,150</td>
+                <td><span class="badge active">Active</span></td>
+                <td class="actions">
+                  <div>
+                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
+                <td>2025-02-13</td>
+                <td>2025-02-20</td>
+              </tr>
+
+              <tr data-status="Paid">
+                <td>24.</td>
+                <td>
+                  <div class="adm-user-profile">
+                    <img src="https://i.pravatar.cc/40?img=35" style="border-radius:50%">Rebecca Akinyi
+                  </div>
+                </td>
+                <td>rebeccaakinyi@gmail.com</td>
+                <td>+254725667788</td>
+                <td>Nyanza</td>
+                <td>30</td>
+                <td>KES 28,990</td>
+                <td><span class="badge active">Active</span></td>
+                <td class="actions">
+                  <div>
+                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
+                <td>2025-02-14</td>
+                <td>2025-02-21</td>
               </tr>
 
             </tbody>
