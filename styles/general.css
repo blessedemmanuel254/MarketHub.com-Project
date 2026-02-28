@@ -934,9 +934,9 @@ html body {
   background-color: #088000;
   color: #ffffff;
 }
-.table-wrapper table tbody tr td.actions button.btn-susped {
-  background-color: #898888;
-  color: #0f0f0f;
+.table-wrapper table tbody tr td.actions button.btn-suspend {
+  background-color: #c9a327b9;
+  color: #ff3b3b;
 }
 .table-wrapper table tbody tr td.actions button.btn-delete {
   background-color: #ff3b3b;
@@ -3243,7 +3243,7 @@ body#adminBody {
  display: grid;
  grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
  gap: 20px;
- margin-bottom: 30px;
+ margin-bottom: 20px;
 }
 
 .admin-tab-content .cards .card {

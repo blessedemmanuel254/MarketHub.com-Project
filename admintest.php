@@ -189,12 +189,6 @@ if ($accountType !== $allowedRole) { */
               <option value="Coast">Coast</option>
               <option value="Western">Western</option>
             </select>
-            <select id="statusFilter">
-              <option value="all">📈&nbsp;Performance</option>
-              <option value="High">High</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Low</option>
-            </select>
           </div>
           <table id="transactionsTable">
             <thead>
@@ -204,6 +198,7 @@ if ($accountType !== $allowedRole) { */
                 <th>Phone</th>
                 <th>Sub&nbsp;Agents</th>
                 <th>Wallet</th>
+                <th>Region</th>
                 <th>Status</th>
                 <th>Actions</th>
                 <th>Created&nbsp;On:</th>
@@ -213,11 +208,12 @@ if ($accountType !== $allowedRole) { */
             <tbody>
               <tr data-status="Paid">
                 <td>1.</td>
-                <td>GreenFarm Ltd</td>
-                <td>45</td>
+                <td>Blessed Emmanuel</td>
+                <td>+254759578630</td>
+                <td>67</td>
                 <td>KES 45,000</td>
+                <td>Coast</td>
                 <td><span class="badge verified">Verified</span></td>
-                <td><span class="badge active">Active</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -231,385 +227,452 @@ if ($accountType !== $allowedRole) { */
               </tr>
               <tr data-status="Paid">
                 <td>2.</td>
-                <td>Sunrise Traders</td>
-                <td>38</td>
-                <td>KES 38,000</td>
-                <td><span class="badge unverified">Unverified</span></td>
-                <td><span class="badge active">Active</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td>2025-01-18</td>
-                <td>2025-01-18</td>
-              </tr>
-
-              <tr data-status="Pending">
-                <td>3.</td>
-                <td>Lakeview Supplies</td>
-                <td>22</td>
-                <td>KES 22,000</td>
+                <td>Samuel Kiptoo</td>
+                <td>+254711223344</td>
+                <td>72</td>
+                <td>KES 88,400</td>
+                <td>Rift Valley</td>
                 <td><span class="badge verified">Verified</span></td>
-                <td><span class="badge pending">Pending</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td>2025-01-20</td>
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-01-16</td>
+                <td>2025-01-18</td>
+              </tr>
+
+              <tr data-status="Paid">
+                <td>3.</td>
+                <td>Grace Njeri</td>
+                <td>+254700123456</td>
+                <td>29</td>
+                <td>KES 21,600</td>
+                <td>Central</td>
+                <td><span class="badge verified">Verified</span></td>
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-01-17</td>
                 <td>2025-01-20</td>
               </tr>
 
-              <tr data-status="Suspended">
+              <tr data-status="Paid">
                 <td>4.</td>
-                <td>Elite Distributors</td>
-                <td>15</td>
-                <td>KES 15,000</td>
+                <td>Daniel Ochieng</td>
+                <td>+254712667788</td>
+                <td>40</td>
+                <td>KES 39,500</td>
+                <td>Nyanza</td>
                 <td><span class="badge unverified">Unverified</span></td>
-                <td><span class="badge suspended">Suspended</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td>2025-01-22</td>
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-01-18</td>
                 <td>2025-01-22</td>
               </tr>
 
               <tr data-status="Paid">
                 <td>5.</td>
-                <td>Prime Agro</td>
-                <td>60</td>
-                <td>KES 60,000</td>
+                <td>Faith Mutua</td>
+                <td>+254723334455</td>
+                <td>18</td>
+                <td>KES 14,800</td>
+                <td>Eastern</td>
                 <td><span class="badge verified">Verified</span></td>
-                <td><span class="badge active">Active</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td>2025-01-25</td>
-                <td>2025-01-25</td>
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-01-19</td>
+                <td>2025-01-23</td>
               </tr>
 
-              <tr data-status="Pending">
+              <tr data-status="Paid">
                 <td>6.</td>
-                <td>BlueSky Ventures</td>
-                <td>18</td>
-                <td>KES 18,000</td>
-                <td><span class="badge unverified">Unverified</span></td>
-                <td><span class="badge pending">Pending</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td>2025-01-28</td>
-                <td>2025-01-28</td>
+                <td>Kevin Odhiambo</td>
+                <td>+254734556677</td>
+                <td>63</td>
+                <td>KES 72,100</td>
+                <td>Western</td>
+                <td><span class="badge verified">Verified</span></td>
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-01-20</td>
+                <td>2025-01-24</td>
               </tr>
 
               <tr data-status="Paid">
                 <td>7.</td>
-                <td>Highland Wholesalers</td>
-                <td>75</td>
-                <td>KES 75,000</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td><span class="badge active">Active</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td>2025-02-01</td>
-                <td>2025-02-01</td>
-              </tr>
-
-              <tr data-status="Suspended">
-                <td>8.</td>
-                <td>Urban Mart</td>
-                <td>12</td>
-                <td>KES 12,000</td>
+                <td>Mercy Atieno</td>
+                <td>+254700987654</td>
+                <td>26</td>
+                <td>KES 19,450</td>
+                <td>Nairobi</td>
                 <td><span class="badge unverified">Unverified</span></td>
-                <td><span class="badge suspended">Suspended</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td>2025-02-03</td>
-                <td>2025-02-03</td>
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-01-21</td>
+                <td>2025-01-25</td>
               </tr>
 
               <tr data-status="Paid">
+                <td>8.</td>
+                <td>Brian Kiplagat</td>
+                <td>+254711556677</td>
+                <td>54</td>
+                <td>KES 65,900</td>
+                <td>North Eastern</td>
+                <td><span class="badge verified">Verified</span></td>
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-01-22</td>
+                <td>2025-01-26</td>
+              </tr>
+              <tr data-status="Paid">
                 <td>9.</td>
-                <td>Harvest Hub</td>
-                <td>41</td>
-                <td>KES 41,000</td>
-                <td><span class="badge unverified">Unverified</span></td>
-                <td><span class="badge active">Active</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td>2025-02-05</td>
-                <td>2025-02-05</td>
+                <td>Lucy Wairimu</td>
+                <td>+254722445566</td>
+                <td>31</td>
+                <td>KES 25,000</td>
+                <td>Central</td>
+                <td><span class="badge verified">Verified</span></td>
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-01-23</td>
+                <td>2025-01-27</td>
               </tr>
 
-              <tr data-status="Pending">
+              <tr data-status="Paid">
                 <td>10.</td>
-                <td>Metro Supplies</td>
-                <td>29</td>
-                <td>KES 29,000</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td><span class="badge pending">Pending</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td>2025-02-08</td>
-                <td>2025-02-08</td>
+                <td>Isaac Kamau</td>
+                <td>+254733112244</td>
+                <td>47</td>
+                <td>KES 44,200</td>
+                <td>Eastern</td>
+                <td><span class="badge unverified">Unverified</span></td>
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-01-24</td>
+                <td>2025-01-28</td>
               </tr>
 
               <tr data-status="Paid">
                 <td>11.</td>
-                <td>Golden Fields</td>
-                <td>53</td>
-                <td>KES 53,000</td>
-                <td><span class="badge unverified">Unverified</span></td>
-                <td><span class="badge active">Active</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td>2025-02-10</td>
-                <td>2025-02-10</td>
+                <td>Janet Chebet</td>
+                <td>+254712889900</td>
+                <td>39</td>
+                <td>KES 36,700</td>
+                <td>Rift Valley</td>
+                <td><span class="badge verified">Verified</span></td>
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-01-25</td>
+                <td>2025-01-29</td>
               </tr>
-
-              <!-- 12–21 -->
 
               <tr data-status="Paid">
                 <td>12.</td>
-                <td>FreshLine Ltd</td>
-                <td>34</td>
-                <td>KES 34,000</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td><span class="badge active">Active</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td>2025-02-12</td>
-                <td>2025-02-12</td>
+                <td>Anthony Kariuki</td>
+                <td>+254701998877</td>
+                <td>22</td>
+                <td>KES 17,300</td>
+                <td>Nairobi</td>
+                <td><span class="badge unverified">Unverified</span></td>
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-01-26</td>
+                <td>2025-01-30</td>
               </tr>
 
-              <tr data-status="Pending">
+              <tr data-status="Paid">
                 <td>13.</td>
-                <td>AgroLink</td>
-                <td>27</td>
-                <td>KES 27,000</td>
+                <td>Rose Anyango</td>
+                <td>+254734223344</td>
+                <td>48</td>
+                <td>KES 52,400</td>
+                <td>Nyanza</td>
                 <td><span class="badge verified">Verified</span></td>
-                <td><span class="badge pending">Pending</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td>2025-02-14</td>
-                <td>2025-02-14</td>
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-02-01</td>
+                <td>2025-02-05</td>
               </tr>
 
               <tr data-status="Paid">
                 <td>14.</td>
-                <td>Capital Grocers</td>
-                <td>49</td>
-                <td>KES 49,000</td>
+                <td>Victor Maina</td>
+                <td>+254722334411</td>
+                <td>37</td>
+                <td>KES 29,900</td>
+                <td>Western</td>
                 <td><span class="badge verified">Verified</span></td>
-                <td><span class="badge active">Active</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td>2025-02-16</td>
-                <td>2025-02-16</td>
-              </tr>
-
-              <tr data-status="Suspended">
-                <td>15.</td>
-                <td>FarmPro Kenya</td>
-                <td>19</td>
-                <td>KES 19,000</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td><span class="badge suspended">Suspended</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td>2025-02-18</td>
-                <td>2025-02-18</td>
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-02-02</td>
+                <td>2025-02-06</td>
               </tr>
 
               <tr data-status="Paid">
+                <td>15.</td>
+                <td>Agnes Nduta</td>
+                <td>+254711445566</td>
+                <td>33</td>
+                <td>KES 24,300</td>
+                <td>Coast</td>
+                <td><span class="badge unverified">Unverified</span></td>
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-02-03</td>
+                <td>2025-02-07</td>
+              </tr>
+              <tr data-status="Paid">
                 <td>16.</td>
-                <td>Swift Traders</td>
-                <td>44</td>
-                <td>KES 44,000</td>
+                <td>George Otieno</td>
+                <td>+254733556600</td>
+                <td>59</td>
+                <td>KES 74,800</td>
+                <td>Nyanza</td>
                 <td><span class="badge verified">Verified</span></td>
-                <td><span class="badge active">Active</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td>2025-02-20</td>
-                <td>2025-02-20</td>
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-02-04</td>
+                <td>2025-02-08</td>
               </tr>
 
-              <tr data-status="Pending">
+              <tr data-status="Paid">
                 <td>17.</td>
-                <td>NorthPoint Ltd</td>
-                <td>31</td>
-                <td>KES 31,000</td>
+                <td>Peter Mwangi</td>
+                <td>+254722998877</td>
+                <td>45</td>
+                <td>KES 48,500</td>
+                <td>Central</td>
                 <td><span class="badge verified">Verified</span></td>
-                <td><span class="badge pending">Pending</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td>2025-02-22</td>
-                <td>2025-02-22</td>
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-02-05</td>
+                <td>2025-02-09</td>
               </tr>
 
               <tr data-status="Paid">
                 <td>18.</td>
-                <td>EcoFarm Supplies</td>
-                <td>58</td>
-                <td>KES 58,000</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td><span class="badge active">Active</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td>2025-02-24</td>
-                <td>2025-02-24</td>
+                <td>Esther Wanjiku</td>
+                <td>+254711223300</td>
+                <td>27</td>
+                <td>KES 22,800</td>
+                <td>Eastern</td>
+                <td><span class="badge unverified">Unverified</span></td>
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-02-06</td>
+                <td>2025-02-10</td>
               </tr>
 
-              <tr data-status="Suspended">
+              <tr data-status="Paid">
                 <td>19.</td>
-                <td>MarketLine Africa</td>
-                <td>21</td>
-                <td>KES 21,000</td>
+                <td>Michael Korir</td>
+                <td>+254734112233</td>
+                <td>61</td>
+                <td>KES 80,000</td>
+                <td>Rift Valley</td>
                 <td><span class="badge verified">Verified</span></td>
-                <td><span class="badge suspended">Suspended</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td>2025-02-26</td>
-                <td>2025-02-26</td>
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-02-07</td>
+                <td>2025-02-11</td>
               </tr>
 
               <tr data-status="Paid">
                 <td>20.</td>
-                <td>AgriPlus Ltd</td>
-                <td>67</td>
-                <td>KES 67,000</td>
+                <td>Joyce Akinyi</td>
+                <td>+254723009988</td>
+                <td>30</td>
+                <td>KES 28,600</td>
+                <td>Nairobi</td>
                 <td><span class="badge verified">Verified</span></td>
-                <td><span class="badge active">Active</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td>2025-02-28</td>
-                <td>2025-02-28</td>
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-02-08</td>
+                <td>2025-02-12</td>
               </tr>
 
-              <tr data-status="Pending">
+              <tr data-status="Paid">
                 <td>21.</td>
-                <td>Vertex Traders</td>
-                <td>26</td>
-                <td>KES 26,000</td>
+                <td>Collins Mutiso</td>
+                <td>+254712334455</td>
+                <td>34</td>
+                <td>KES 32,000</td>
+                <td>Eastern</td>
                 <td><span class="badge verified">Verified</span></td>
-                <td><span class="badge pending">Pending</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td>2025-03-01</td>
-                <td>2025-03-01</td>
-              </tr>              
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-02-09</td>
+                <td>2025-02-13</td>
+              </tr>
+
+              <tr data-status="Paid">
+                <td>22.</td>
+                <td>Mary Chepkemoi</td>
+                <td>+254701223344</td>
+                <td>24</td>
+                <td>KES 18,900</td>
+                <td>Rift Valley</td>
+                <td><span class="badge unverified">Unverified</span></td>
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-02-10</td>
+                <td>2025-02-14</td>
+              </tr>
+
+              <tr data-status="Paid">
+                <td>23.</td>
+                <td>Patrick Wekesa</td>
+                <td>+254722110099</td>
+                <td>50</td>
+                <td>KES 60,200</td>
+                <td>Western</td>
+                <td><span class="badge verified">Verified</span></td>
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-02-11</td>
+                <td>2025-02-15</td>
+              </tr>
+
+              <tr data-status="Paid">
+                <td>24.</td>
+                <td>Hannah Mwikali</td>
+                <td>+254733221144</td>
+                <td>28</td>
+                <td>KES 26,400</td>
+                <td>Coast</td>
+                <td><span class="badge verified">Verified</span></td>
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-02-12</td>
+                <td>2025-02-16</td>
+              </tr>
+
+              <tr data-status="Paid">
+                <td>25.</td>
+                <td>Eric Njuguna</td>
+                <td>+254711778899</td>
+                <td>42</td>
+                <td>KES 41,300</td>
+                <td>Central</td>
+                <td><span class="badge unverified">Unverified</span></td>
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-02-13</td>
+                <td>2025-02-17</td>
+              </tr>
+
+              <tr data-status="Paid">
+                <td>26.</td>
+                <td>Naomi Wambui</td>
+                <td>+254722556677</td>
+                <td>36</td>
+                <td>KES 34,900</td>
+                <td>Nairobi</td>
+                <td><span class="badge verified">Verified</span></td>
+                <td class="actions"><div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div></td>
+                <td>2025-02-14</td>
+                <td>2025-02-18</td>
+              </tr>
+
             </tbody>
           </table>
         </div>

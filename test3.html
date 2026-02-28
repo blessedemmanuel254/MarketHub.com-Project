@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Market Hub Admin – Sales Agents</title>
+<title>Market Hub Admin – Buyers</title>
 
 <!-- FONT AWESOME -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
@@ -139,6 +139,7 @@ tr:hover{background:var(--hover)}
 .active{background:var(--accent);color:#000}
 .suspended{background:var(--danger)}
 .pending{background:var(--warning);color:#000}
+.verified{background:var(--info);color:#000}
 
 /* ACTIONS */
 .actions{
@@ -188,9 +189,9 @@ tr:hover{background:var(--hover)}
 <div class="sidebar">
 <h2>🛒 Market Hub</h2>
 <a href="#"><i class="fa-solid fa-store"></i> Sellers</a>
-<a href="#" class="active"><i class="fa-solid fa-user-tie"></i> Sales Agents</a>
-<a href="#"><i class="fa-solid fa-money-bill-wave"></i> Commissions</a>
-<a href="#"><i class="fa-solid fa-hand-holding-dollar"></i> Withdrawals</a>
+<a href="#"><i class="fa-solid fa-user-tie"></i> Sales Agents</a>
+<a href="#" class="active"><i class="fa-solid fa-users"></i> Buyers</a>
+<a href="#"><i class="fa-solid fa-money-bill-transfer"></i> Transactions</a>
 <a href="#"><i class="fa-solid fa-chart-line"></i> Reports</a>
 <a href="#"><i class="fa-solid fa-gear"></i> Settings</a>
 </div>
@@ -199,16 +200,16 @@ tr:hover{background:var(--hover)}
 <div class="main">
 
 <div class="topbar">
-<input placeholder="🔍 Search agent...">
+<input placeholder="🔍 Search buyer...">
 <div>👑 Admin ▾</div>
 </div>
 
 <div class="content">
 
 <div class="header">
-<h1>🧑‍💼 Sales Agents Management</h1>
+<h1>🛍 Buyers Management</h1>
 <button class="btn view" onclick="openModal()">
-<i class="fa-solid fa-user-plus"></i> Add Agent
+<i class="fa-solid fa-user-plus"></i> Add Buyer
 </button>
 </div>
 
@@ -216,28 +217,28 @@ tr:hover{background:var(--hover)}
 <div class="stats">
 <div class="stat">
 <i class="fa-solid fa-users"></i>
-<div><h2>184</h2><p>Total Agents</p></div>
+<div><h2>3,482</h2><p>Total Buyers</p></div>
 </div>
 
 <div class="stat">
 <i class="fa-solid fa-user-check"></i>
-<div><h2>162</h2><p>Active Agents</p></div>
+<div><h2>3,125</h2><p>Active Buyers</p></div>
+</div>
+
+<div class="stat">
+<i class="fa-solid fa-cart-shopping"></i>
+<div><h2>12,940</h2><p>Total Orders</p></div>
 </div>
 
 <div class="stat">
 <i class="fa-solid fa-wallet"></i>
-<div><h2>KES 1.3M</h2><p>Total Commissions</p></div>
-</div>
-
-<div class="stat">
-<i class="fa-solid fa-chart-simple"></i>
-<div><h2>4,582</h2><p>Total Referrals</p></div>
+<div><h2>KES 6.9M</h2><p>Total Spend</p></div>
 </div>
 </div>
 
 <!-- FILTERS -->
 <div class="filters">
-<input placeholder="🔍 Name / Phone">
+<input placeholder="🔍 Name / Phone / Email">
 <select>
 <option>📌 Status</option>
 <option>Active</option>
@@ -248,9 +249,10 @@ tr:hover{background:var(--hover)}
 <option>Nairobi</option>
 <option>Coast</option>
 <option>Western</option>
+<option>Rift Valley</option>
 </select>
 <select>
-<option>📈 Performance</option>
+<option>🛒 Activity</option>
 <option>High</option>
 <option>Medium</option>
 <option>Low</option>
@@ -262,29 +264,30 @@ tr:hover{background:var(--hover)}
 <table>
 <thead>
 <tr>
-<th>👤 Agent</th>
+<th>👤 Buyer</th>
+<th>📧 Email</th>
 <th>📞 Phone</th>
 <th>🌍 Region</th>
-<th>🏪 Sellers</th>
-<th>👥 Buyers</th>
-<th>💰 Wallet</th>
+<th>🛒 Orders</th>
+<th>💰 Total Spend</th>
 <th>⚡ Status</th>
 <th>⚙ Actions</th>
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <div style="display:flex;align-items:center;gap:10px">
-<img src="https://i.pravatar.cc/40" style="border-radius:50%">
-John Mwangi
+<img src="https://i.pravatar.cc/40?img=12" style="border-radius:50%">
+Mary Wanjiku
 </div>
 </td>
-<td>+254 712 345 678</td>
-<td>Coast</td>
-<td>38</td>
-<td>412</td>
-<td>KES 84,200</td>
+<td>mary@gmail.com</td>
+<td>+254 701 223 344</td>
+<td>Nairobi</td>
+<td>54</td>
+<td>KES 124,300</td>
 <td><span class="badge active">Active</span></td>
 <td class="actions">
 <button class="btn view"><i class="fa-solid fa-eye"></i></button>
@@ -293,6 +296,49 @@ John Mwangi
 <button class="btn suspend"><i class="fa-solid fa-ban"></i></button>
 </td>
 </tr>
+
+<tr>
+<td>
+<div style="display:flex;align-items:center;gap:10px">
+<img src="https://i.pravatar.cc/40?img=22" style="border-radius:50%">
+Daniel Otieno
+</div>
+</td>
+<td>daniel@outlook.com</td>
+<td>+254 712 998 771</td>
+<td>Western</td>
+<td>18</td>
+<td>KES 42,600</td>
+<td><span class="badge pending">Pending</span></td>
+<td class="actions">
+<button class="btn view"><i class="fa-solid fa-eye"></i></button>
+<button class="btn edit"><i class="fa-solid fa-pen"></i></button>
+<button class="btn login"><i class="fa-solid fa-right-to-bracket"></i></button>
+<button class="btn suspend"><i class="fa-solid fa-ban"></i></button>
+</td>
+</tr>
+
+<tr>
+<td>
+<div style="display:flex;align-items:center;gap:10px">
+<img src="https://i.pravatar.cc/40?img=32" style="border-radius:50%">
+Fatma Ali
+</div>
+</td>
+<td>fatma@yahoo.com</td>
+<td>+254 734 556 889</td>
+<td>Coast</td>
+<td>7</td>
+<td>KES 15,200</td>
+<td><span class="badge suspended">Suspended</span></td>
+<td class="actions">
+<button class="btn view"><i class="fa-solid fa-eye"></i></button>
+<button class="btn edit"><i class="fa-solid fa-pen"></i></button>
+<button class="btn login"><i class="fa-solid fa-right-to-bracket"></i></button>
+<button class="btn suspend"><i class="fa-solid fa-ban"></i></button>
+</td>
+</tr>
+
 </tbody>
 </table>
 </div>
@@ -304,21 +350,23 @@ John Mwangi
 <div class="modal" id="modal">
 <div class="modal-content">
 <span class="close" onclick="closeModal()">✖</span>
-<h3>🧑‍💼 Add / Edit Sales Agent</h3>
+<h3>🛍 Add / Edit Buyer</h3>
 <input style="width:100%;margin-bottom:10px" placeholder="Full Name">
+<input style="width:100%;margin-bottom:10px" placeholder="Email">
 <input style="width:100%;margin-bottom:10px" placeholder="Phone Number">
 <select style="width:100%;margin-bottom:10px">
-<option>Assigned Region</option>
+<option>Region</option>
 <option>Nairobi</option>
 <option>Coast</option>
 <option>Western</option>
+<option>Rift Valley</option>
 </select>
 <select style="width:100%;margin-bottom:10px">
 <option>Status</option>
 <option>Active</option>
 <option>Suspended</option>
 </select>
-<button class="btn view"><i class="fa-solid fa-save"></i> Save Agent</button>
+<button class="btn view"><i class="fa-solid fa-save"></i> Save Buyer</button>
 </div>
 </div>
 
