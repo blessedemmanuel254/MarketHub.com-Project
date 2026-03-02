@@ -37,6 +37,41 @@ if ($accountType !== $allowedRole) {
 /* ---------- FETCH USER DATA ---------- */
 $user_id = $_SESSION['user_id'];
 
+function smartTitleCase(string $text): string
+{
+  // Normalize spacing & lowercase
+  $text = strtolower(trim(preg_replace('/\s+/', ' ', $text)));
+
+  // Capitalize words & hyphenated parts
+  $text = preg_replace_callback('/\b[\w-]+\b/u', function ($match) {
+      return implode('-', array_map(function ($part) {
+          // Keep acronyms uppercase
+          if (strlen($part) <= 3 && ctype_alpha($part)) {
+              return strtoupper($part);
+          }
+
+          // Handle special brand casing
+          $special = [
+              'iphone' => 'iPhone',
+              'ipad'   => 'iPad',
+              'ipod'   => 'iPod',
+              'macbook'=> 'MacBook',
+              'airpods'=> 'AirPods',
+              'ebay'   => 'eBay',
+              'wifi'   => 'Wi-Fi'
+          ];
+
+          if (isset($special[$part])) {
+              return $special[$part];
+          }
+
+          return ucfirst($part);
+      }, explode('-', $match[0])));
+  }, $text);
+
+  return $text;
+}
+
 $query = "SELECT username, profile_image FROM users WHERE user_id = ? LIMIT 1";
 $stmt = $conn->prepare($query);
 
@@ -151,7 +186,7 @@ $stock       = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_product_id'])) {
     // ---------- FORM INPUTS ----------
-    $productName = trim($_POST['name'] ?? '');
+    $productName = smartTitleCase($_POST['name'] ?? '');
     $category    = trim($_POST['category'] ?? '');
     $price       = floatval($_POST['price'] ?? 0);
     $stock       = intval($_POST['stock'] ?? 0);

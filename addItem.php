@@ -534,7 +534,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         <td><span class="badge delivered">Delivered</span></td>
         <td class="actions">
           <div>
-            <button class="btn-view">View</button>
+            <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
             <button class="btn-track">Track</button>
           </div>
         </td>
@@ -552,7 +552,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         <td><span class="badge processing">Processing</span></td>
         <td class="actions">
           <div>
-            <button class="btn-view">View</button>
+            <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
             <button class="btn-cancel">Cancel</button>
           </div>
         </td>
@@ -570,7 +570,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         <td><span class="badge processing">Processing</span></td>
         <td class="actions">
           <div>
-            <button class="btn-view">View</button>
+            <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
             <button class="btn-cancel">Cancel</button>
           </div>
         </td>
@@ -588,7 +588,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         <td><span class="badge processing">Processing</span></td>
         <td class="actions">
           <div>
-            <button class="btn-view">View</button>
+            <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
             <button class="btn-cancel">Cancel</button>
           </div>
         </td>
@@ -606,7 +606,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         <td><span class="badge processing">Processing</span></td>
         <td class="actions">
           <div>
-            <button class="btn-view">View</button>
+            <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
             <button class="btn-cancel">Cancel</button>
           </div>
         </td>
@@ -624,7 +624,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         <td><span class="badge processing">Processing</span></td>
         <td class="actions">
           <div>
-            <button class="btn-view">View</button>
+            <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
             <button class="btn-cancel">Cancel</button>
           </div>
         </td>
@@ -642,7 +642,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         <td><span class="badge processing">Processing</span></td>
         <td class="actions">
           <div>
-            <button class="btn-view">View</button>
+            <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
             <button class="btn-cancel">Cancel</button>
           </div>
         </td>
@@ -676,7 +676,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
         <div class="card-actions">
           <div></div>
-          <button class="btn-view">View</button>
+          <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
           <button class="btn-track">Track</button>
         </div>
       </div>
@@ -701,7 +701,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         </div>
 
         <div class="card-actions">
-          <button class="btn-view">View</button>
+          <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
           <button class="btn-cancel">Cancel</button>
         </div>
       </div>
@@ -726,7 +726,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         </div>
 
         <div class="card-actions">
-          <button class="btn-view">View</button>
+          <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
           <button class="btn-cancel">Cancel</button>
         </div>
       </div>
@@ -752,7 +752,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
         <div class="card-actions">
           <div></div>
-          <button class="btn-view">View</button>
+          <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
           <button class="btn-track">Track</button>
         </div>
       </div>
@@ -779,7 +779,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
         <div class="card-actions">
           <div></div>
-          <button class="btn-view">View</button>
+          <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
           <button class="btn-track">Track</button>
         </div>
       </div>
@@ -805,7 +805,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         </div>
 
         <div class="card-actions">
-          <button class="btn-view">View</button>
+          <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
           <button class="btn-cancel">Cancel</button>
         </div>
       </div>
@@ -830,7 +830,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         </div>
 
         <div class="card-actions">
-          <button class="btn-view">View</button>
+          <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
           <button class="btn-cancel">Cancel</button>
         </div>
       </div>

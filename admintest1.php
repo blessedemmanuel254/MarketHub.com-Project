@@ -291,8 +291,12 @@ $productStmt->execute();
 $result = $productStmt->get_result();
 
 while ($row = $result->fetch_assoc()) {
-  $category = $row['category'] ?? 'Uncategorized';
-  $productsByCategory[$category][] = $row;
+    $category = $row['category'] ?? 'Uncategorized';
+    $productsByCategory[$category][] = $row;
+}
+
+function formatProductName($name) {
+  return ucwords(strtolower($name));
 }
 
 $productStmt->close();
@@ -329,7 +333,7 @@ $productStmt->close();
         <span class="cart-icon">📦</span>
         <span class="cart-count">0</span>
       </div>
-      <button onclick="goBackHandler()">
+      <button onclick="window.history.back()">
         <i class="fa-solid fa-circle-arrow-left"></i><span>Go&nbsp;Back</span>
       </button>
 
@@ -373,7 +377,7 @@ $productStmt->close();
             <span id="total">KES 0</span>
           </div>
 
-          <button class="checkout-btn" onclick="toggleMarketDisplayVSOrder()">Proceed&nbsp;to&nbsp;Payment</button>
+          <button class="checkout-btn" onclick="togglePaymentOption()">Proceed&nbsp;to&nbsp;Payment</button>
         </div>
       </div>
     </div>
@@ -435,300 +439,124 @@ $productStmt->close();
       </div>
     </div>
     <main class="sellerMain" id="marketMain">
-      <div class="sellerProfileContainer">
-        <div class="seller mDisplay">
-          <div class="seller-left">
-            <div class="avatar">
-              <?php echo strtoupper(substr($seller['business_name'], 0, 2)); ?>
-            </div><!-- 
-            <img src="" alt="Seller Logo"> -->
-            <div>
-              <div class="name">
-                <?php echo htmlspecialchars(ucwords(strtolower($seller['business_name']))); ?>
-              </div>
-
-              <div class="rating">
-                ★★★★★ (<?php echo (int)$seller['rating_count']; ?>)
-              </div>
-
-              <div class="meta">
-                <h2 class="following-count" data-seller="<?php echo $sellerId; ?>">
-                  <?php echo $followingCount; ?>&nbsp;<span>following</span>
-                </h2>
-                <h2 
-                  class="<?php echo $isFollowing  ? 'followingBtn' : 'followBtn'; ?>" 
-                  data-seller="<?php echo $seller['user_id']; ?>"
-                >
-                  <?php echo $isFollowing ? 'Following' : 'Follow'; ?>
-                </h2>
-              </div>
-
-              <div class="meta">
-                <h2 class="followers-count" data-seller="<?php echo $sellerId; ?>">
-                  <?php echo $followersCount; ?>&nbsp;<span>followers</span>
-                </h2>
-              </div>
-
-              <div class="bsInfo">
-                <strong>Location :</strong>
-                <?php echo htmlspecialchars(ucwords(strtolower($seller['address']))); ?>
-              </div>
-            </div>
-          </div>
-            <a href="" class="seller-right">
-            <?php
-            $totalSales = (int)$seller['total_sales'];
-
-            if ($totalSales < 100) {
-                $badgeClass = 'promoBadgeDefault';
-            } elseif ($totalSales >= 100 && $totalSales < 200) {
-                $badgeClass = 'promoBadgeGoGold';
-            } else { // >= 200
-                $badgeClass = 'promoBadgeGoPro';
-            }
-            ?>
-
-            <div class="<?php echo $badgeClass; ?>">
-                <?php echo $totalSales; ?>+
-            </div>
-
-            <div class="bsType">
-              Business Type :
-              <i><?php echo ucwords(strtolower($seller['business_type'])); ?></i>
-            </div>
-
-            <div class="action">
-              <h2><?php echo strtoupper($seller['market_scope']); ?> MARKET</h2>
-            </div>
-          </a>
-        </div>
-      </div>
-      <div class="tabs-container">
-        <?php if (empty($productsByCategory)): ?>
-            <p>No products available.</p>
-        <?php endif; ?>
-        <div class="tabs">
-          <?php 
-          $first = true;
-          foreach ($productsByCategory as $category => $items): 
-              $safeId = preg_replace('/[^a-zA-Z0-9]/', '_', strtolower($category));
-          ?>
-              <button 
-                  class="tab-btn <?= $first ? 'active' : '' ?>" 
-                  data-tab="<?= $safeId ?>"
-              >
-                  <?= htmlspecialchars($category) ?>
-              </button>
-          <?php 
-              $first = false;
-          endforeach; 
-          ?>
-        </div>
-        <div class="tab-content">
-          <div class="tab-top">
-            <p>You order we deliver.</p>
-          </div>
-        <?php 
-        $first = true;
-        foreach ($productsByCategory as $category => $items): 
-            $safeId = preg_replace('/[^a-zA-Z0-9]/', '_', strtolower($category));
-        ?>
-            <div id="<?= $safeId ?>" class="tab-panel <?= $first ? 'active' : '' ?>">
-                
-                <div class="variables-grid">
-                    <?php foreach ($items as $product): ?>
-                        <div class="variable-card"
-                            data-id="<?= $product['product_id']; ?>"
-                            data-name="<?= htmlspecialchars($product['product_name']); ?>"
-                            data-price="<?= $product['price']; ?>"
-                            data-image="<?= $product['image_path']; ?>">
-
-                            <button class="add-to-cart-btn">Add&nbsp;to&nbsp;cart</button>
-
-                            <img class="variableAndSnacksImage"
-                                src="<?= htmlspecialchars($product['image_path']); ?>"
-                                alt="Product Image">
-
-                            <div class="variable-content">
-                              <div class="variable-title">
-                                <?= htmlspecialchars($product['product_name']); ?>
-                              </div>
-
-                              <div class="stock 
-                                <?= ($product['stock_quantity'] > 5) ? 'in-stock' : 
-                                    (($product['stock_quantity'] > 0) ? 'low-stock' : 'out-stock') ?>">
-                                <?= ($product['stock_quantity'] > 0) 
-                                    ? "In stock ({$product['stock_quantity']})" 
-                                    : "Out of stock" ?>
-                              </div>
-
-                              <div class="price-row">
-                                  <div class="price">
-                                      KES <?= number_format($product['price'], 2); ?>
-                                  </div>
-                                  <button class="buy-btn" onclick="toggleMarketDisplayVSOrder()">
-                                      Order
-                                  </button>
-                              </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-
-            </div>
-        <?php 
-            $first = false;
-        endforeach; 
-        ?>
-        </div>
-      </div>
       <div class="order-container">
 
-        <!-- LEFT COLUMN -->
-        <div>
+          <!-- LEFT COLUMN -->
+          <div>
 
-            <!-- Shipping -->
-            <div class="card">
-              <div class="card-title">
-                Delivery Details
-                <a href="userProfile.php" class="update-btn"><i class="fa-solid fa-cloud-arrow-up"></i>Update</a>
+              <!-- Shipping -->
+              <div class="card">
+                  <div class="card-title">
+                      Delivery Details
+                      <span class="update-btn"><i class="fa-solid fa-cloud-arrow-up"></i>Update</span>
+                  </div>
+
+                  <div class="address-name">Blessed Emmanuel · +254 712 345 987</div>
+                  <div class="address-text">
+                      Nairobi County, Embakasi East, Pipeline area near Highway Mall,
+                      third floor opposite Petro Station.<br>
+                      Contact: 254712345987
+                  </div>
               </div>
 
-              <div class="address-name">Blessed Emmanuel · +254 712 345 987</div>
-              <div class="address-text">
-                Nairobi County, Embakasi East, Pipeline area near Highway Mall,
-                third floor opposite Petrol Station.<br>
-                Contact: 254712345987
-                </div>
-            </div>
+              <br>
+              
+              <br>
 
-            <br>
-            
-            <br>
+              <!-- PRODUCTS BY SELLER -->
+              <div class="card">
+                  <div class="card-title"><p>Order Summary<br><span>Item(s) : <strong>4</strong></span></p></div>
 
-            <!-- PRODUCTS BY SELLER -->
-            <div class="card">
-                <div class="card-title"><p>Order Summary<br><span>Item(s) : <strong>4</strong></span></p></div>
-
-                <!-- Seller 1 -->
-                <div class="seller-box">
-                    <div class="seller-header">Seller: Techline Electronics</div>
-                    <div class="seller-meta">
-                        Ships from Westlands · Estimated delivery: 3–5 business days
-                    </div>
-
-                    <div class="product">
-                      <div class="product-left">
-                        <img src="https://i.pravatar.cc/300?img=12">
-                        <div class="product-info">
-                            Smart Bluetooth Over-Ear Headphones with Noise Reduction
-                            <div class="product-price">KSh 8,450 × <strong>1</strong></div>
-                        </div>
+                  <!-- Seller 1 -->
+                  <div class="seller-box">
+                      <div class="seller-header">Sold by: Techline Electronics</div>
+                      <div class="seller-meta">
+                          Ships from Westlands · Estimated delivery: 3–5 business days
                       </div>
-                      
 
-                      <div class="quantity-control">
-                        <button class="qty-btn minus">-</button>
-                        <div class="qty-number">1</div>
-                        <button class="qty-btn plus">+</button>
+                      <div class="product">
+                          <img src="https://i.pravatar.cc/300?img=12">
+                          <div class="product-info">
+                              Smart Bluetooth Over-Ear Headphones with Noise Reduction
+                              <div class="product-price">KSh 8,450 × <strong>1</strong></div>
+                          </div>
                       </div>
-                    </div>
-                    <div class="product">
-                      <div class="product-left">
-                        <img src="https://i.pravatar.cc/300?img=12">
-                        <div class="product-info">
-                            Smart Bluetooth Over-Ear Headphones with Noise Reduction
-                            <div class="product-price">KSh 8,450 × <strong>1</strong></div>
-                        </div>
+                      <div class="product">
+                          <img src="https://i.pravatar.cc/300?img=12">
+                          <div class="product-info">
+                              Smart Bluetooth Over-Ear Headphones with Noise Reduction
+                              <div class="product-price">KSh 8,450 × <strong>1</strong></div>
+                          </div>
                       </div>
-                      
-
-                      <div class="quantity-control">
-                        <button class="qty-btn minus">-</button>
-                        <div class="qty-number">1</div>
-                        <button class="qty-btn plus">+</button>
+                      <div class="product">
+                          <img src="https://i.pravatar.cc/300?img=12">
+                          <div class="product-info">
+                              Smart Bluetooth Over-Ear Headphones with Noise Reduction
+                              <div class="product-price">KSh 8,450 × <strong>1</strong></div>
+                          </div>
                       </div>
-                    </div>
-                    <div class="product">
-                      <div class="product-left">
-                        <img src="https://i.pravatar.cc/300?img=12">
-                        <div class="product-info">
-                            Smart Bluetooth Over-Ear Headphones with Noise Reduction
-                            <div class="product-price">KSh 8,450 × <strong>1</strong></div>
-                        </div>
+                      <div class="product">
+                          <img src="https://i.pravatar.cc/300?img=12">
+                          <div class="product-info">
+                              Smart Bluetooth Over-Ear Headphones with Noise Reduction
+                              <div class="product-price">KSh 8,450 × <strong>1</strong></div>
+                          </div>
                       </div>
-                      
-
-                      <div class="quantity-control">
-                        <button class="qty-btn minus">-</button>
-                        <div class="qty-number">1</div>
-                        <button class="qty-btn plus">+</button>
-                      </div>
-                    </div>
-                </div>
-
-                <!-- Seller 2 -->
-                <div class="seller-box">
-                  <div class="seller-header">Seller: HomePro Essentials</div>
-                  <div class="seller-meta">
-                    Ships from Ruiru · Estimated delivery: 2–4 business days
                   </div>
 
-                  <div class="product">
-                    <div class="product-left">
-                      <img src="https://i.pravatar.cc/300?img=32">
-                      <div class="product-info">
-                        Stainless Steel Electric Kettle with Auto Shut-Off
-                        <div class="product-price">KSh 3,250 × <strong>2</strong></div>
+                  <!-- Seller 2 -->
+                  <div class="seller-box">
+                      <div class="seller-header">Sold by: HomePro Essentials</div>
+                      <div class="seller-meta">
+                          Ships from Ruiru · Estimated delivery: 2–4 business days
                       </div>
-                    </div>
-                    
 
-                    <div class="quantity-control">
-                      <button class="qty-btn minus">-</button>
-                      <div class="qty-number">2</div>
-                      <button class="qty-btn plus">+</button>
-                    </div>
+                      <div class="product">
+                          <img src="https://i.pravatar.cc/300?img=32">
+                          <div class="product-info">
+                              Stainless Steel Electric Kettle with Auto Shut-Off
+                              <div class="product-price">KSh 3,250 × <strong>2</strong></div>
+                          </div>
+                      </div>
                   </div>
-                </div>
 
-                <div class="guarantee">
-                  Market Hub · your number one marketplace.
-                </div>
-            </div>
+                  <div class="guarantee">
+                    Market Hub · your number one marketplace.
+                  </div>
+              </div>
 
-        </div>
+          </div>
 
-        <!-- RIGHT COLUMN -->
-        <div>
-            <div class="card">
-                <div class="card-title">Payment Summary</div>
+          <!-- RIGHT COLUMN -->
+          <div>
+              <div class="card">
+                  <div class="card-title">Payment Summary</div>
 
-                <div class="summary-row">
-                    <span>Items Total</span>
-                    <span>KSh 14,950</span>
-                </div>
+                  <div class="summary-row">
+                      <span>Items Total</span>
+                      <span>KSh 14,950</span>
+                  </div>
 
-                <div class="summary-row">
-                    <span>Delivery Fees</span>
-                    <span>+ KSh 420</span>
-                </div>
+                  <div class="summary-row">
+                      <span>Delivery Fees</span>
+                      <span>+ KSh 420</span>
+                  </div>
 
-                <div class="summary-row">
-                    <span>Promotions</span>
-                    <span>- KSh 350</span>
-                </div>
+                  <div class="summary-row">
+                      <span>Promotions</span>
+                      <span>- KSh 350</span>
+                  </div>
 
-                <div class="summary-row total">
-                    <span>Total to Pay</span>
-                    <span>KSh 15,020</span>
-                </div>
+                  <div class="summary-row total">
+                      <span>Total to Pay</span>
+                      <span>KSh 15,020</span>
+                  </div>
 
-                <button class="place-order" onclick="togglePaymentOption()">
-                    Place&nbsp;Order
-                </button>
-            </div>
-        </div>
+                  <button class="place-order">
+                      Place&nbsp;Order
+                  </button>
+              </div>
+          </div>
 
       </div>
     </main>

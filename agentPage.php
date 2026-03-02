@@ -487,8 +487,19 @@ if (!empty($profileImage) && file_exists($profileImage)) {
             <div class="form-wrapper agency">
               <form method="POST" enctype="multipart/form-data">
                 <h1>Withdraw Funds</h1>
-                <p class="errorMessage"><i class="fa-solid fa-circle-exclamation"></i>Insufficient funds in your wallet!</p>
-                <p class="successMessage"><i class="fa-solid fa-check-circle"></i>Withdrawal request submitted successfully!</p>
+                <?php if (!empty($error)): ?>
+                  <p class="errorMessage">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <?= htmlspecialchars($error); ?>
+                  </p>
+                <?php endif; ?>
+
+                <?php if (!empty($success)): ?>
+                  <p class="successMessage">
+                    <i class="fa-solid fa-check-circle"></i>
+                    <?= $success; ?>
+                  </p>
+                <?php endif; ?>
                 <select name="" id="" class="walletChange">
                   <option value="Sales Wallet">Sales Wallet</option>
                   <option value="Agency Wallet">Agency Wallet</option>

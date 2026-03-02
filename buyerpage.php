@@ -705,7 +705,7 @@ $stmt->close();
         <td><span class="badge delivered">Delivered</span></td>
         <td class="actions">
           <div>
-            <button class="btn-view">View</button>
+            <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
             <button class="btn-track">Track</button>
           </div>
         </td>
@@ -723,7 +723,7 @@ $stmt->close();
         <td><span class="badge processing">Processing</span></td>
         <td class="actions">
           <div>
-            <button class="btn-view">View</button>
+            <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
             <button class="btn-cancel">Cancel</button>
           </div>
         </td>
@@ -741,7 +741,7 @@ $stmt->close();
         <td><span class="badge processing">Processing</span></td>
         <td class="actions">
           <div>
-            <button class="btn-view">View</button>
+            <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
             <button class="btn-cancel">Cancel</button>
           </div>
         </td>
@@ -759,7 +759,7 @@ $stmt->close();
         <td><span class="badge processing">Processing</span></td>
         <td class="actions">
           <div>
-            <button class="btn-view">View</button>
+            <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
             <button class="btn-cancel">Cancel</button>
           </div>
         </td>
@@ -777,7 +777,7 @@ $stmt->close();
         <td><span class="badge processing">Processing</span></td>
         <td class="actions">
           <div>
-            <button class="btn-view">View</button>
+            <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
             <button class="btn-cancel">Cancel</button>
           </div>
         </td>
@@ -795,7 +795,7 @@ $stmt->close();
         <td><span class="badge processing">Processing</span></td>
         <td class="actions">
           <div>
-            <button class="btn-view">View</button>
+            <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
             <button class="btn-cancel">Cancel</button>
           </div>
         </td>
@@ -813,7 +813,7 @@ $stmt->close();
         <td><span class="badge processing">Processing</span></td>
         <td class="actions">
           <div>
-            <button class="btn-view">View</button>
+            <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
             <button class="btn-cancel">Cancel</button>
           </div>
         </td>
@@ -847,7 +847,7 @@ $stmt->close();
 
         <div class="card-actions">
           <div></div>
-          <button class="btn-view">View</button>
+          <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
           <button class="btn-track">Track</button>
         </div>
       </div>
@@ -872,7 +872,7 @@ $stmt->close();
         </div>
 
         <div class="card-actions">
-          <button class="btn-view">View</button>
+          <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
           <button class="btn-cancel">Cancel</button>
         </div>
       </div>
@@ -897,7 +897,7 @@ $stmt->close();
         </div>
 
         <div class="card-actions">
-          <button class="btn-view">View</button>
+          <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
           <button class="btn-cancel">Cancel</button>
         </div>
       </div>
@@ -923,7 +923,7 @@ $stmt->close();
 
         <div class="card-actions">
           <div></div>
-          <button class="btn-view">View</button>
+          <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
           <button class="btn-track">Track</button>
         </div>
       </div>
@@ -950,7 +950,7 @@ $stmt->close();
 
         <div class="card-actions">
           <div></div>
-          <button class="btn-view">View</button>
+          <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
           <button class="btn-track">Track</button>
         </div>
       </div>
@@ -976,7 +976,7 @@ $stmt->close();
         </div>
 
         <div class="card-actions">
-          <button class="btn-view">View</button>
+          <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
           <button class="btn-cancel">Cancel</button>
         </div>
       </div>
@@ -1001,7 +1001,7 @@ $stmt->close();
         </div>
 
         <div class="card-actions">
-          <button class="btn-view">View</button>
+          <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
           <button class="btn-cancel">Cancel</button>
         </div>
       </div>

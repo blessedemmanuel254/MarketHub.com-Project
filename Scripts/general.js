@@ -1,3 +1,5 @@
+const VIEW_KEY = "marketHubCurrentView";
+
 function toggleWhatsAppChat() {
   var box = document.getElementById("whatsapp-chat-box");
   var overlay = document.getElementById("overlay");
@@ -1205,4 +1207,91 @@ document.addEventListener("click", function(e) {
 
   alert(product.name + " saved locally. Ready for posting.");
 
+});
+
+// PLACE ORDER JS
+
+function toggleMarketDisplayVSOrder() {
+
+  const sellerContainer = document.querySelector('.sellerProfileContainer');
+  const tabsContainer   = document.querySelector('.tabs-container');
+  const orderContainer  = document.querySelector('.order-container');
+
+  const cartContainer = document.getElementById('cart-container');
+  const cartOverlay   = document.getElementById('cartOverlay');
+  const payOverlay    = document.getElementById('payOverlay');
+
+  if (!sellerContainer || !tabsContainer || !orderContainer) return;
+
+  const orderVisible =
+    window.getComputedStyle(orderContainer).display !== 'none';
+
+  const cartVisible =
+    cartContainer &&
+    window.getComputedStyle(cartContainer).display !== 'none';
+
+  /* ================= IF ORDER IS OPEN → GO BACK TO MARKET ================= */
+  if (orderVisible) {
+
+    sellerContainer.style.display = 'flex';
+    tabsContainer.style.display   = 'block';
+    orderContainer.style.display  = 'none';
+
+    localStorage.setItem(VIEW_KEY, "market");
+    return;
+  }
+
+  /* ================= CART OR MARKET → GO TO ORDER ================= */
+  if (cartVisible || window.getComputedStyle(sellerContainer).display !== 'none') {
+
+    // Close cart + overlays
+    if (cartContainer) cartContainer.classList.remove('show');
+    if (cartOverlay)   cartOverlay.classList.remove('active');
+    if (payOverlay)    payOverlay.classList.remove('active');
+
+    document.body.style.overflow = '';
+
+    sellerContainer.style.display = 'none';
+    tabsContainer.style.display   = 'none';
+    orderContainer.style.display  = 'grid';
+
+    localStorage.setItem(VIEW_KEY, "order");
+  }
+}
+
+function goBackHandler() {
+
+  const orderContainer = document.querySelector('.order-container');
+
+  if (!orderContainer) return;
+
+  const orderVisible =
+      window.getComputedStyle(orderContainer).display !== 'none';
+
+  if (orderVisible) {
+      toggleMarketDisplayVSOrder();
+  } else {
+      window.history.back();
+  }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+
+  const sellerContainer = document.querySelector('.sellerProfileContainer');
+  const tabsContainer   = document.querySelector('.tabs-container');
+  const orderContainer  = document.querySelector('.order-container');
+
+  const savedView = localStorage.getItem(VIEW_KEY);
+
+  if (!sellerContainer || !tabsContainer || !orderContainer) return;
+
+  if (savedView === "order") {
+      sellerContainer.style.display = 'none';
+      tabsContainer.style.display   = 'none';
+      orderContainer.style.display  = 'grid';
+  } else {
+      sellerContainer.style.display = 'flex';
+      tabsContainer.style.display   = 'block';
+      orderContainer.style.display  = 'none';
+  }
 });

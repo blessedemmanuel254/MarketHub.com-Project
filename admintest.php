@@ -128,49 +128,49 @@ if ($accountType !== $allowedRole) { */
     <main class="adminMain">
       <div class="admin-tab-panel" data-tab="dashboard">
         <nav>
-          <p>Buyers</p>
+          <p>Property Owners</p>
           <ul>
-            <a href="#">Admin ~ </a>
-            <a href="#" class="active">Buyers</a><!-- 
+            <a href="#">Admin&nbsp;~</a>
+            <a href="#" class="active">Property Owners</a><!-- 
             <a href="">Orders</a>
             <a href="">Users</a> -->
           </ul>
         </nav>
-        <h2>Buyers Management</h2>
+        <h2>Property Owners Management</h2>
         <div class="admin-tab-content">
           <div class="cards">
             <div class="card sub-card">
               <i class="fa-solid fa-users"></i>
               <div>
-                <h3>Total Buyers</h3>
-                <div class="value">5,687</div>
+                <h3>Total Owners</h3>
+                <div class="value">267</div>
               </div>
             </div>
 
             <div class="card sub-card">
-              <i class="fa-solid fa-user-check"></i>
+              <i class="fa-solid fa-house"></i>
               <div>
-                <h3>Active Buyers</h3>
+                <h3>Total Properties</h3>
 
-                <div class="value">5,123</div>
+                <div class="value">593</div>
 
                 <small>↑ 12% productivity growth this month</small>
               </div>
             </div>
 
             <div class="card sub-card">
-              <i class="fa-solid fa-cart-shopping"></i>
+              <i class="fa-solid fa-money-bill-wave"></i>
               <div>
-                <h3>Total Orders</h3>
-                <div class="value">7,890</div>
+                <h3>Total Portfolio Value</h3>
+                <div class="value">KES 49.3M</div>
               </div>
             </div>
 
             <div class="card sub-card">
-              <i class="fa-solid fa-wallet"></i>
+              <i class="fa-solid fa-percent"></i>
               <div>
-                <h3>Total Spend</h3>
-                <div class="value">Ksh 7.3M</div>
+                <h3>Average Occupancy</h3>
+                <div class="value">83%</div>
               </div>
             </div>
           </div>
@@ -180,7 +180,7 @@ if ($accountType !== $allowedRole) { */
             <select id="statusFilter">
               <option value="all">📌&nbsp;Status</option>
               <option value="Active">Active</option>
-              <option value="pending">Pending</option>
+              <option value="Pending">Pending</option>
               <option value="Suspended">Suspended</option>
             </select>
           </div>
@@ -188,14 +188,13 @@ if ($accountType !== $allowedRole) { */
             <thead>
               <tr>
                 <th>#</th>
-                <th>Buyer</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Region</th>
-                <th>Orders</th>
-                <th>Total&nbsp;Spend</th>
-                <th>Status</th>
+                <th>Owner</th>
+                <th>Contact</th>
+                <th>Properties</th>
+                <th>Occupancy</th>
+                <th>Verification</th>
                 <th>Actions</th>
+                <th>Talk</th>
                 <th>Created&nbsp;On:</th>
                 <th>Updated&nbsp;On:</th>
               </tr>
@@ -207,13 +206,12 @@ if ($accountType !== $allowedRole) { */
                   <div class="adm-user-profile">
                     <img src="https://i.pravatar.cc/40?img=12" style="border-radius:50%">Blessed Emmanuel
                   </div>
+                  <em>ID: 40757679</em>
                 </td>
-                <td>emmanueltindi23@gmail.com</td>
-                <td>+254759578630</td>
-                <td>Coast</td>
-                <td>35</td>
-                <td>KES 33,489</td>
-                <td><span class="badge active">Active</span></td>
+                <td><p class="contactOwer">emmanueltindi23@gmail.com <br>+254759578630</p></td>
+                <td>9</td>
+                <td>95%</td>
+                <td><span class="badge verified">Verified</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -222,22 +220,33 @@ if ($accountType !== $allowedRole) { */
                     <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                   </div>
                 </td>
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
+
+                  <div class="comm-dropdown">
+                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                  </div>
+                </td>
                 <td>2025-01-15</td>
                 <td>2025-01-15</td>
               </tr>
-              <tr data-status="Paid">
+              <tr data-status="Unverified">
                 <td>2.</td>
                 <td>
                   <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=13" style="border-radius:50%">Mary Wanjiku
+                    <img src="https://i.pravatar.cc/40?img=13" style="border-radius:50%">John Mwangi
                   </div>
+                  <em>ID: 40757680</em>
                 </td>
-                <td>marywanjiku@gmail.com</td>
-                <td>+254701223344</td>
-                <td>Nairobi</td>
-                <td>28</td>
-                <td>KES 21,340</td>
-                <td><span class="badge active">Active</span></td>
+                <td><p class="contactOwer">johnmwangi@gmail.com <br>+254711000001</p></td>
+                <td>5</td>
+                <td>82%</td>
+                <td><span class="badge unverified">Unverified</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -246,23 +255,34 @@ if ($accountType !== $allowedRole) { */
                     <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                   </div>
                 </td>
-                <td>2025-01-18</td>
-                <td>2025-01-20</td>
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
+
+                  <div class="comm-dropdown">
+                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                  </div>
+                </td>
+                <td>2025-01-16</td>
+                <td>2025-01-16</td>
               </tr>
 
-              <tr data-status="Paid">
+              <tr data-status="Verified">
                 <td>3.</td>
                 <td>
                   <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=14" style="border-radius:50%">Daniel Otieno
+                    <img src="https://i.pravatar.cc/40?img=14" style="border-radius:50%">Mary Wanjiku
                   </div>
+                  <em>ID: 40757681</em>
                 </td>
-                <td>danotieno@gmail.com</td>
-                <td>+254712998771</td>
-                <td>Western</td>
-                <td>41</td>
-                <td>KES 52,880</td>
-                <td><span class="badge pending">Pending</span></td>
+                <td><p class="contactOwer">marywanjiku@gmail.com <br>+254711000002</p></td>
+                <td>12</td>
+                <td>97%</td>
+                <td><span class="badge verified">Verified</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -271,23 +291,34 @@ if ($accountType !== $allowedRole) { */
                     <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                   </div>
                 </td>
-                <td>2025-01-19</td>
-                <td>2025-01-23</td>
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
+
+                  <div class="comm-dropdown">
+                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                  </div>
+                </td>
+                <td>2025-01-17</td>
+                <td>2025-01-17</td>
               </tr>
 
-              <tr data-status="Paid">
+              <tr data-status="Unverified">
                 <td>4.</td>
                 <td>
                   <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=15" style="border-radius:50%">Fatma Ali
+                    <img src="https://i.pravatar.cc/40?img=15" style="border-radius:50%">Kevin Otieno
                   </div>
+                  <em>ID: 40757682</em>
                 </td>
-                <td>fatmaali@yahoo.com</td>
-                <td>+254734556889</td>
-                <td>Coast</td>
-                <td>19</td>
-                <td>KES 14,560</td>
-                <td><span class="badge active">Active</span></td>
+                <td><p class="contactOwer">kevinotieno@gmail.com <br>+254711000003</p></td>
+                <td>3</td>
+                <td>75%</td>
+                <td><span class="badge unverified">Unverified</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -296,23 +327,34 @@ if ($accountType !== $allowedRole) { */
                     <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                   </div>
                 </td>
-                <td>2025-01-20</td>
-                <td>2025-01-25</td>
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
+
+                  <div class="comm-dropdown">
+                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                  </div>
+                </td>
+                <td>2025-01-18</td>
+                <td>2025-01-18</td>
               </tr>
 
-              <tr data-status="Paid">
+              <tr data-status="Verified">
                 <td>5.</td>
                 <td>
                   <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=16" style="border-radius:50%">James Mwangi
+                    <img src="https://i.pravatar.cc/40?img=16" style="border-radius:50%">Faith Njeri
                   </div>
+                  <em>ID: 40757683</em>
                 </td>
-                <td>jamesmwangi@gmail.com</td>
-                <td>+254722334455</td>
-                <td>Rift Valley</td>
-                <td>50</td>
-                <td>KES 61,200</td>
-                <td><span class="badge suspended">Suspended</span></td>
+                <td><p class="contactOwer">faithnjeri@gmail.com <br>+254711000004</p></td>
+                <td>18</td>
+                <td>99%</td>
+                <td><span class="badge verified">Verified</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -321,22 +363,33 @@ if ($accountType !== $allowedRole) { */
                     <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                   </div>
                 </td>
-                <td>2025-01-22</td>
-                <td>2025-01-28</td>
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
+
+                  <div class="comm-dropdown">
+                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                  </div>
+                </td>
+                <td>2025-01-19</td>
+                <td>2025-01-19</td>
               </tr>
-              <tr data-status="Paid">
+              <tr data-status="Unverified">
                 <td>6.</td>
                 <td>
                   <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=17" style="border-radius:50%">Agnes Nduta
+                    <img src="https://i.pravatar.cc/40?img=17" style="border-radius:50%">Brian Kiptoo
                   </div>
+                  <em>ID: 40757684</em>
                 </td>
-                <td>agnesnduta@gmail.com</td>
-                <td>+254711445566</td>
-                <td>Central</td>
-                <td>22</td>
-                <td>KES 18,950</td>
-                <td><span class="badge active">Active</span></td>
+                <td><p class="contactOwer">briankiptoo@gmail.com <br>+254711000005</p></td>
+                <td>4</td>
+                <td>68%</td>
+                <td><span class="badge unverified">Unverified</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -345,23 +398,34 @@ if ($accountType !== $allowedRole) { */
                     <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                   </div>
                 </td>
-                <td>2025-01-24</td>
-                <td>2025-01-30</td>
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
+
+                  <div class="comm-dropdown">
+                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                  </div>
+                </td>
+                <td>2025-01-20</td>
+                <td>2025-01-20</td>
               </tr>
 
-              <tr data-status="Paid">
+              <tr data-status="Verified">
                 <td>7.</td>
                 <td>
                   <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=18" style="border-radius:50%">Brian Kiplagat
+                    <img src="https://i.pravatar.cc/40?img=18" style="border-radius:50%">Lucy Achieng
                   </div>
+                  <em>ID: 40757685</em>
                 </td>
-                <td>briankip@gmail.com</td>
-                <td>+254711556677</td>
-                <td>North Eastern</td>
-                <td>54</td>
-                <td>KES 65,900</td>
-                <td><span class="badge pending">Pending</span></td>
+                <td><p class="contactOwer">lucyachieng@gmail.com <br>+254711000006</p></td>
+                <td>14</td>
+                <td>96%</td>
+                <td><span class="badge verified">Verified</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -370,23 +434,34 @@ if ($accountType !== $allowedRole) { */
                     <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                   </div>
                 </td>
-                <td>2025-01-26</td>
-                <td>2025-02-02</td>
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
+
+                  <div class="comm-dropdown">
+                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                  </div>
+                </td>
+                <td>2025-01-21</td>
+                <td>2025-01-21</td>
               </tr>
 
-              <tr data-status="Paid">
+              <tr data-status="Unverified">
                 <td>8.</td>
                 <td>
                   <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=19" style="border-radius:50%">Lucy Achieng
+                    <img src="https://i.pravatar.cc/40?img=19" style="border-radius:50%">Daniel Kariuki
                   </div>
+                  <em>ID: 40757686</em>
                 </td>
-                <td>lucyachieng@gmail.com</td>
-                <td>+254700889911</td>
-                <td>Nyanza</td>
-                <td>31</td>
-                <td>KES 27,340</td>
-                <td><span class="badge active">Active</span></td>
+                <td><p class="contactOwer">danielkariuki@gmail.com <br>+254711000007</p></td>
+                <td>2</td>
+                <td>61%</td>
+                <td><span class="badge unverified">Unverified</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -395,23 +470,34 @@ if ($accountType !== $allowedRole) { */
                     <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                   </div>
                 </td>
-                <td>2025-01-27</td>
-                <td>2025-02-04</td>
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
+
+                  <div class="comm-dropdown">
+                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                  </div>
+                </td>
+                <td>2025-01-22</td>
+                <td>2025-01-22</td>
               </tr>
 
-              <tr data-status="Paid">
+              <tr data-status="Verified">
                 <td>9.</td>
                 <td>
                   <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=20" style="border-radius:50%">Kevin Mutua
+                    <img src="https://i.pravatar.cc/40?img=20" style="border-radius:50%">Susan Mutua
                   </div>
+                  <em>ID: 40757687</em>
                 </td>
-                <td>kevinmutua@gmail.com</td>
-                <td>+254733221144</td>
-                <td>Eastern</td>
-                <td>15</td>
-                <td>KES 12,780</td>
-                <td><span class="badge active">Active</span></td>
+                <td><p class="contactOwer">susanmutua@gmail.com <br>+254711000008</p></td>
+                <td>20</td>
+                <td>98%</td>
+                <td><span class="badge verified">Verified</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -420,23 +506,34 @@ if ($accountType !== $allowedRole) { */
                     <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                   </div>
                 </td>
-                <td>2025-01-29</td>
-                <td>2025-02-05</td>
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
+
+                  <div class="comm-dropdown">
+                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                  </div>
+                </td>
+                <td>2025-01-23</td>
+                <td>2025-01-23</td>
               </tr>
 
-              <tr data-status="Paid">
+              <tr data-status="Unverified">
                 <td>10.</td>
                 <td>
                   <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=21" style="border-radius:50%">Mercy Chebet
+                    <img src="https://i.pravatar.cc/40?img=21" style="border-radius:50%">Peter Ndegwa
                   </div>
+                  <em>ID: 40757688</em>
                 </td>
-                <td>mercychebet@gmail.com</td>
-                <td>+254721334455</td>
-                <td>Rift Valley</td>
-                <td>38</td>
-                <td>KES 44,120</td>
-                <td><span class="badge pending">Pending</span></td>
+                <td><p class="contactOwer">peterndegwa@gmail.com <br>+254711000009</p></td>
+                <td>6</td>
+                <td>73%</td>
+                <td><span class="badge unverified">Unverified</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -445,23 +542,34 @@ if ($accountType !== $allowedRole) { */
                     <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                   </div>
                 </td>
-                <td>2025-01-30</td>
-                <td>2025-02-06</td>
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
+
+                  <div class="comm-dropdown">
+                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                  </div>
+                </td>
+                <td>2025-01-24</td>
+                <td>2025-01-24</td>
               </tr>
 
-              <tr data-status="Paid">
+              <tr data-status="Verified">
                 <td>11.</td>
                 <td>
                   <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=22" style="border-radius:50%">Samuel Kariuki
+                    <img src="https://i.pravatar.cc/40?img=22" style="border-radius:50%">Janet Kiplagat
                   </div>
+                  <em>ID: 40757689</em>
                 </td>
-                <td>samkariuki@gmail.com</td>
-                <td>+254710112233</td>
-                <td>Central</td>
-                <td>26</td>
-                <td>KES 23,470</td>
-                <td><span class="badge active">Active</span></td>
+                <td><p class="contactOwer">janetk@gmail.com <br>+254711000010</p></td>
+                <td>16</td>
+                <td>94%</td>
+                <td><span class="badge verified">Verified</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -470,23 +578,34 @@ if ($accountType !== $allowedRole) { */
                     <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                   </div>
                 </td>
-                <td>2025-02-01</td>
-                <td>2025-02-08</td>
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
+
+                  <div class="comm-dropdown">
+                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                  </div>
+                </td>
+                <td>2025-01-25</td>
+                <td>2025-01-25</td>
               </tr>
 
-              <tr data-status="Paid">
+              <tr data-status="Unverified">
                 <td>12.</td>
                 <td>
                   <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=23" style="border-radius:50%">Janet Njeri
+                    <img src="https://i.pravatar.cc/40?img=23" style="border-radius:50%">Samuel Ouma
                   </div>
+                  <em>ID: 40757690</em>
                 </td>
-                <td>janetnjeri@gmail.com</td>
-                <td>+254734778899</td>
-                <td>Nairobi</td>
-                <td>47</td>
-                <td>KES 58,340</td>
-                <td><span class="badge active">Active</span></td>
+                <td><p class="contactOwer">samuelouma@gmail.com <br>+254711000011</p></td>
+                <td>1</td>
+                <td>55%</td>
+                <td><span class="badge unverified">Unverified</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -495,23 +614,33 @@ if ($accountType !== $allowedRole) { */
                     <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                   </div>
                 </td>
-                <td>2025-02-02</td>
-                <td>2025-02-09</td>
-              </tr>
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
 
-              <tr data-status="Paid">
+                  <div class="comm-dropdown">
+                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                  </div>
+                </td>
+                <td>2025-01-26</td>
+                <td>2025-01-26</td>
+              </tr>
+              <tr data-status="Verified">
                 <td>13.</td>
                 <td>
                   <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=24" style="border-radius:50%">Hassan Omar
+                    <img src="https://i.pravatar.cc/40?img=24" style="border-radius:50%">Grace Wambui
                   </div>
+                  <em>ID: 40757691</em>
                 </td>
-                <td>hassanomar@gmail.com</td>
-                <td>+254729556677</td>
-                <td>North Eastern</td>
-                <td>17</td>
-                <td>KES 16,890</td>
-                <td><span class="badge pending">Pending</span></td>
+                <td><p class="contactOwer">gracewambui@gmail.com <br>+254711000012</p></td>
+                <td>22</td>
+                <td>99%</td>
+                <td><span class="badge verified">Verified</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -520,23 +649,34 @@ if ($accountType !== $allowedRole) { */
                     <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                   </div>
                 </td>
-                <td>2025-02-03</td>
-                <td>2025-02-10</td>
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
+
+                  <div class="comm-dropdown">
+                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                  </div>
+                </td>
+                <td>2025-01-27</td>
+                <td>2025-01-27</td>
               </tr>
 
-              <tr data-status="Paid">
+              <tr data-status="Unverified">
                 <td>14.</td>
                 <td>
                   <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=25" style="border-radius:50%">Esther Atieno
+                    <img src="https://i.pravatar.cc/40?img=25" style="border-radius:50%">Dennis Barasa
                   </div>
+                  <em>ID: 40757692</em>
                 </td>
-                <td>estheratieno@gmail.com</td>
-                <td>+254708334455</td>
-                <td>Nyanza</td>
-                <td>29</td>
-                <td>KES 25,640</td>
-                <td><span class="badge active">Active</span></td>
+                <td><p class="contactOwer">dennisbarasa@gmail.com <br>+254711000013</p></td>
+                <td>3</td>
+                <td>70%</td>
+                <td><span class="badge unverified">Unverified</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -545,23 +685,34 @@ if ($accountType !== $allowedRole) { */
                     <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                   </div>
                 </td>
-                <td>2025-02-04</td>
-                <td>2025-02-11</td>
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
+
+                  <div class="comm-dropdown">
+                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                  </div>
+                </td>
+                <td>2025-01-28</td>
+                <td>2025-01-28</td>
               </tr>
 
-              <tr data-status="Paid">
+              <tr data-status="Verified">
                 <td>15.</td>
                 <td>
                   <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=26" style="border-radius:50%">Peter Mworia
+                    <img src="https://i.pravatar.cc/40?img=26" style="border-radius:50%">Alice Chebet
                   </div>
+                  <em>ID: 40757693</em>
                 </td>
-                <td>petermworia@gmail.com</td>
-                <td>+254720667788</td>
-                <td>Eastern</td>
-                <td>21</td>
-                <td>KES 19,300</td>
-                <td><span class="badge suspended">Suspended</span></td>
+                <td><p class="contactOwer">alicechebet@gmail.com <br>+254711000014</p></td>
+                <td>11</td>
+                <td>93%</td>
+                <td><span class="badge verified">Verified</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -570,23 +721,34 @@ if ($accountType !== $allowedRole) { */
                     <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                   </div>
                 </td>
-                <td>2025-02-05</td>
-                <td>2025-02-12</td>
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
+
+                  <div class="comm-dropdown">
+                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                  </div>
+                </td>
+                <td>2025-01-29</td>
+                <td>2025-01-29</td>
               </tr>
 
-              <tr data-status="Paid">
+              <tr data-status="Unverified">
                 <td>16.</td>
                 <td>
                   <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=27" style="border-radius:50%">Grace Wairimu
+                    <img src="https://i.pravatar.cc/40?img=27" style="border-radius:50%">Michael Kimani
                   </div>
+                  <em>ID: 40757694</em>
                 </td>
-                <td>gracewairimu@gmail.com</td>
-                <td>+254712334455</td>
-                <td>Central</td>
-                <td>34</td>
-                <td>KES 31,780</td>
-                <td><span class="badge pending">Pending</span></td>
+                <td><p class="contactOwer">michaelkimani@gmail.com <br>+254711000015</p></td>
+                <td>4</td>
+                <td>66%</td>
+                <td><span class="badge unverified">Unverified</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -595,23 +757,34 @@ if ($accountType !== $allowedRole) { */
                     <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                   </div>
                 </td>
-                <td>2025-02-06</td>
-                <td>2025-02-13</td>
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
+
+                  <div class="comm-dropdown">
+                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                  </div>
+                </td>
+                <td>2025-01-30</td>
+                <td>2025-01-30</td>
               </tr>
 
-              <tr data-status="Paid">
+              <tr data-status="Verified">
                 <td>17.</td>
                 <td>
                   <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=28" style="border-radius:50%">David Kimani
+                    <img src="https://i.pravatar.cc/40?img=28" style="border-radius:50%">Esther Waithera
                   </div>
+                  <em>ID: 40757695</em>
                 </td>
-                <td>davidkimani@gmail.com</td>
-                <td>+254723889900</td>
-                <td>Rift Valley</td>
-                <td>44</td>
-                <td>KES 49,560</td>
-                <td><span class="badge active">Active</span></td>
+                <td><p class="contactOwer">estherwaithera@gmail.com <br>+254711000016</p></td>
+                <td>19</td>
+                <td>97%</td>
+                <td><span class="badge verified">Verified</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -620,23 +793,34 @@ if ($accountType !== $allowedRole) { */
                     <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                   </div>
                 </td>
-                <td>2025-02-07</td>
-                <td>2025-02-14</td>
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
+
+                  <div class="comm-dropdown">
+                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                  </div>
+                </td>
+                <td>2025-01-31</td>
+                <td>2025-01-31</td>
               </tr>
 
-              <tr data-status="Paid">
+              <tr data-status="Unverified">
                 <td>18.</td>
                 <td>
                   <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=29" style="border-radius:50%">Irene Jepkoech
+                    <img src="https://i.pravatar.cc/40?img=29" style="border-radius:50%">Paul Onyango
                   </div>
+                  <em>ID: 40757696</em>
                 </td>
-                <td>irenejep@gmail.com</td>
-                <td>+254709112233</td>
-                <td>Rift Valley</td>
-                <td>23</td>
-                <td>KES 20,880</td>
-                <td><span class="badge active">Active</span></td>
+                <td><p class="contactOwer">paulonyango@gmail.com <br>+254711000017</p></td>
+                <td>2</td>
+                <td>59%</td>
+                <td><span class="badge unverified">Unverified</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -645,23 +829,34 @@ if ($accountType !== $allowedRole) { */
                     <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                   </div>
                 </td>
-                <td>2025-02-08</td>
-                <td>2025-02-15</td>
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
+
+                  <div class="comm-dropdown">
+                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                  </div>
+                </td>
+                <td>2025-02-01</td>
+                <td>2025-02-01</td>
               </tr>
 
-              <tr data-status="Paid">
+              <tr data-status="Verified">
                 <td>19.</td>
                 <td>
                   <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=30" style="border-radius:50%">Anthony Ochieng
+                    <img src="https://i.pravatar.cc/40?img=30" style="border-radius:50%">Naomi Cherono
                   </div>
+                  <em>ID: 40757697</em>
                 </td>
-                <td>anthonyoch@gmail.com</td>
-                <td>+254731556677</td>
-                <td>Nyanza</td>
-                <td>27</td>
-                <td>KES 24,110</td>
-                <td><span class="badge pending">Pending</span></td>
+                <td><p class="contactOwer">naomicherono@gmail.com <br>+254711000018</p></td>
+                <td>15</td>
+                <td>95%</td>
+                <td><span class="badge verified">Verified</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -670,23 +865,34 @@ if ($accountType !== $allowedRole) { */
                     <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                   </div>
                 </td>
-                <td>2025-02-09</td>
-                <td>2025-02-16</td>
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
+
+                  <div class="comm-dropdown">
+                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                  </div>
+                </td>
+                <td>2025-02-02</td>
+                <td>2025-02-02</td>
               </tr>
 
-              <tr data-status="Paid">
+              <tr data-status="Unverified">
                 <td>20.</td>
                 <td>
                   <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=31" style="border-radius:50%">Cynthia Auma
+                    <img src="https://i.pravatar.cc/40?img=31" style="border-radius:50%">Isaac Muriuki
                   </div>
+                  <em>ID: 40757698</em>
                 </td>
-                <td>cynthumaa@gmail.com</td>
-                <td>+254722998877</td>
-                <td>Western</td>
-                <td>32</td>
-                <td>KES 29,430</td>
-                <td><span class="badge active">Active</span></td>
+                <td><p class="contactOwer">isaacmuriuki@gmail.com <br>+254711000019</p></td>
+                <td>5</td>
+                <td>71%</td>
+                <td><span class="badge unverified">Unverified</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -695,23 +901,34 @@ if ($accountType !== $allowedRole) { */
                     <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                   </div>
                 </td>
-                <td>2025-02-10</td>
-                <td>2025-02-17</td>
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
+
+                  <div class="comm-dropdown">
+                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                  </div>
+                </td>
+                <td>2025-02-03</td>
+                <td>2025-02-03</td>
               </tr>
 
-              <tr data-status="Paid">
+              <tr data-status="Verified">
                 <td>21.</td>
                 <td>
                   <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=32" style="border-radius:50%">Victor Mutiso
+                    <img src="https://i.pravatar.cc/40?img=32" style="border-radius:50%">Brenda Atieno
                   </div>
+                  <em>ID: 40757699</em>
                 </td>
-                <td>victormutiso@gmail.com</td>
-                <td>+254700334455</td>
-                <td>Eastern</td>
-                <td>18</td>
-                <td>KES 17,290</td>
-                <td><span class="badge active">Active</span></td>
+                <td><p class="contactOwer">brendaatieno@gmail.com <br>+254711000020</p></td>
+                <td>17</td>
+                <td>96%</td>
+                <td><span class="badge verified">Verified</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -720,23 +937,34 @@ if ($accountType !== $allowedRole) { */
                     <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                   </div>
                 </td>
-                <td>2025-02-11</td>
-                <td>2025-02-18</td>
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
+
+                  <div class="comm-dropdown">
+                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                  </div>
+                </td>
+                <td>2025-02-04</td>
+                <td>2025-02-04</td>
               </tr>
 
-              <tr data-status="Paid">
+              <tr data-status="Unverified">
                 <td>22.</td>
                 <td>
                   <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=33" style="border-radius:50%">Naomi Wambui
+                    <img src="https://i.pravatar.cc/40?img=33" style="border-radius:50%">Joseph Karanja
                   </div>
+                  <em>ID: 40757700</em>
                 </td>
-                <td>naomiwambui@gmail.com</td>
-                <td>+254719556677</td>
-                <td>Nairobi</td>
-                <td>40</td>
-                <td>KES 53,770</td>
-                <td><span class="badge pending">Pending</span></td>
+                <td><p class="contactOwer">josephkaranja@gmail.com <br>+254711000021</p></td>
+                <td>3</td>
+                <td>64%</td>
+                <td><span class="badge unverified">Unverified</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -745,23 +973,34 @@ if ($accountType !== $allowedRole) { */
                     <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                   </div>
                 </td>
-                <td>2025-02-12</td>
-                <td>2025-02-19</td>
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
+
+                  <div class="comm-dropdown">
+                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                  </div>
+                </td>
+                <td>2025-02-05</td>
+                <td>2025-02-05</td>
               </tr>
 
-              <tr data-status="Paid">
+              <tr data-status="Verified">
                 <td>23.</td>
                 <td>
                   <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=34" style="border-radius:50%">Mohamed Abdi
+                    <img src="https://i.pravatar.cc/40?img=34" style="border-radius:50%">Ruth Jepkosgei
                   </div>
+                  <em>ID: 40757701</em>
                 </td>
-                <td>mohamedabdi@gmail.com</td>
-                <td>+254713223344</td>
-                <td>North Eastern</td>
-                <td>24</td>
-                <td>KES 22,150</td>
-                <td><span class="badge active">Active</span></td>
+                <td><p class="contactOwer">ruthj@gmail.com <br>+254711000022</p></td>
+                <td>21</td>
+                <td>98%</td>
+                <td><span class="badge verified">Verified</span></td>
                 <td class="actions">
                   <div>
                     <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -770,34 +1009,21 @@ if ($accountType !== $allowedRole) { */
                     <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                   </div>
                 </td>
-                <td>2025-02-13</td>
-                <td>2025-02-20</td>
-              </tr>
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
 
-              <tr data-status="Paid">
-                <td>24.</td>
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=35" style="border-radius:50%">Rebecca Akinyi
+                  <div class="comm-dropdown">
+                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
                   </div>
                 </td>
-                <td>rebeccaakinyi@gmail.com</td>
-                <td>+254725667788</td>
-                <td>Nyanza</td>
-                <td>30</td>
-                <td>KES 28,990</td>
-                <td><span class="badge active">Active</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td>2025-02-14</td>
-                <td>2025-02-21</td>
-              </tr>
+                <td>2025-02-06</td>
+                <td>2025-02-06</td>
+              </tr>              
 
             </tbody>
           </table>
