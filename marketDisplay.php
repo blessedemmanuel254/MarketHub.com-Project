@@ -296,6 +296,72 @@ while ($row = $result->fetch_assoc()) {
 }
 
 $productStmt->close();
+
+$action = $_POST['action'] ?? '';
+
+if ($action === 'place_order') {
+
+    $items = json_decode($_POST['items'], true);
+
+    if (empty($items)) {
+        echo json_encode(['success'=>false]);
+        exit();
+    }
+
+    $conn->begin_transaction();
+
+    try {
+
+        $grandTotal = 0;
+        foreach ($items as $item) {
+            $grandTotal += $item['price'] * $item['quantity'];
+        }
+
+        $stmt = $conn->prepare("
+            INSERT INTO orders 
+            (buyer_id,total_amount,order_status,created_at)
+            VALUES (?, ?, 'pending', NOW())
+        ");
+        $stmt->bind_param("id", $buyerId, $grandTotal);
+        $stmt->execute();
+        $orderId = $stmt->insert_id;
+        $stmt->close();
+
+        foreach ($items as $item) {
+
+            $stmt = $conn->prepare("
+                INSERT INTO order_items
+                (order_id,product_id,seller_id,quantity,price)
+                VALUES (?,?,?,?,?)
+            ");
+
+            $stmt->bind_param(
+                "iiiid",
+                $orderId,
+                $item['product_id'],
+                $item['seller_id'],
+                $item['quantity'],
+                $item['price']
+            );
+
+            $stmt->execute();
+            $stmt->close();
+        }
+
+        if ($checkoutMode !== "buy_now") {
+            $conn->query("DELETE FROM user_cart WHERE user_id = $buyerId");
+        }
+
+        $conn->commit();
+        echo json_encode(['success'=>true]);
+        exit();
+
+    } catch(Exception $e){
+        $conn->rollback();
+        echo json_encode(['success'=>false]);
+        exit();
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -566,7 +632,13 @@ $productStmt->close();
                                   <div class="price">
                                       KES <?= number_format($product['price'], 2); ?>
                                   </div>
-                                  <button class="buy-btn" onclick="toggleMarketDisplayVSOrder()">
+                                  <button class="buy-btn buy-now-btn"
+                                          data-id="<?= $product['product_id']; ?>"
+                                          data-name="<?= htmlspecialchars($product['product_name']); ?>"
+                                          data-price="<?= $product['price']; ?>"
+                                          data-image="<?= $product['image_path']; ?>"
+                                          data-seller="<?= $sellerId; ?>"
+                                          data-sellername="<?= htmlspecialchars($seller['business_name']); ?>">
                                       Order
                                   </button>
                               </div>
@@ -577,155 +649,33 @@ $productStmt->close();
 
             </div>
         <?php 
-            $first = false;
+          $first = false;
         endforeach; 
         ?>
         </div>
       </div>
-      <div class="order-container">
+      <div class="order-container" style="display:none;">
 
-        <!-- LEFT COLUMN -->
-        <div>
-
-            <!-- Shipping -->
-            <div class="card">
-              <div class="card-title">
-                Delivery Details
-                <a href="userProfile.php" class="update-btn"><i class="fa-solid fa-cloud-arrow-up"></i>Update</a>
-              </div>
-
-              <div class="address-name">Blessed Emmanuel · +254 712 345 987</div>
-              <div class="address-text">
-                Nairobi County, Embakasi East, Pipeline area near Highway Mall,
-                third floor opposite Petrol Station.<br>
-                Contact: 254712345987
-                </div>
-            </div>
-
-            <br>
-            
-            <br>
-
-            <!-- PRODUCTS BY SELLER -->
-            <div class="card">
-                <div class="card-title"><p>Order Summary<br><span>Item(s) : <strong>4</strong></span></p></div>
-
-                <!-- Seller 1 -->
-                <div class="seller-box">
-                    <div class="seller-header">Seller: Techline Electronics</div>
-                    <div class="seller-meta">
-                        Ships from Westlands · Estimated delivery: 3–5 business days
-                    </div>
-
-                    <div class="product">
-                      <div class="product-left">
-                        <img src="https://i.pravatar.cc/300?img=12">
-                        <div class="product-info">
-                            Smart Bluetooth Over-Ear Headphones with Noise Reduction
-                            <div class="product-price">KSh 8,450 × <strong>1</strong></div>
-                        </div>
-                      </div>
-                      
-
-                      <div class="quantity-control">
-                        <button class="qty-btn minus">-</button>
-                        <div class="qty-number">1</div>
-                        <button class="qty-btn plus">+</button>
-                      </div>
-                    </div>
-                    <div class="product">
-                      <div class="product-left">
-                        <img src="https://i.pravatar.cc/300?img=12">
-                        <div class="product-info">
-                            Smart Bluetooth Over-Ear Headphones with Noise Reduction
-                            <div class="product-price">KSh 8,450 × <strong>1</strong></div>
-                        </div>
-                      </div>
-                      
-
-                      <div class="quantity-control">
-                        <button class="qty-btn minus">-</button>
-                        <div class="qty-number">1</div>
-                        <button class="qty-btn plus">+</button>
-                      </div>
-                    </div>
-                    <div class="product">
-                      <div class="product-left">
-                        <img src="https://i.pravatar.cc/300?img=12">
-                        <div class="product-info">
-                            Smart Bluetooth Over-Ear Headphones with Noise Reduction
-                            <div class="product-price">KSh 8,450 × <strong>1</strong></div>
-                        </div>
-                      </div>
-                      
-
-                      <div class="quantity-control">
-                        <button class="qty-btn minus">-</button>
-                        <div class="qty-number">1</div>
-                        <button class="qty-btn plus">+</button>
-                      </div>
-                    </div>
-                </div>
-
-                <!-- Seller 2 -->
-                <div class="seller-box">
-                  <div class="seller-header">Seller: HomePro Essentials</div>
-                  <div class="seller-meta">
-                    Ships from Ruiru · Estimated delivery: 2–4 business days
-                  </div>
-
-                  <div class="product">
-                    <div class="product-left">
-                      <img src="https://i.pravatar.cc/300?img=32">
-                      <div class="product-info">
-                        Stainless Steel Electric Kettle with Auto Shut-Off
-                        <div class="product-price">KSh 3,250 × <strong>2</strong></div>
-                      </div>
-                    </div>
-                    
-
-                    <div class="quantity-control">
-                      <button class="qty-btn minus">-</button>
-                      <div class="qty-number">2</div>
-                      <button class="qty-btn plus">+</button>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="guarantee">
-                  Market Hub · your number one marketplace.
-                </div>
-            </div>
-
+        <div class="order-left">
+            <div id="dynamicOrderContent"></div>
         </div>
 
-        <!-- RIGHT COLUMN -->
-        <div>
+        <div class="order-right">
             <div class="card">
                 <div class="card-title">Payment Summary</div>
 
                 <div class="summary-row">
                     <span>Items Total</span>
-                    <span>KSh 14,950</span>
-                </div>
-
-                <div class="summary-row">
-                    <span>Delivery Fees</span>
-                    <span>+ KSh 420</span>
-                </div>
-
-                <div class="summary-row">
-                    <span>Promotions</span>
-                    <span>- KSh 350</span>
+                    <span id="itemsTotal">KSh 0</span>
                 </div>
 
                 <div class="summary-row total">
                     <span>Total to Pay</span>
-                    <span>KSh 15,020</span>
+                    <span id="grandTotal">KSh 0</span>
                 </div>
 
-                <button class="place-order" onclick="togglePaymentOption()">
-                    Place&nbsp;Order
+                <button id="placeOrderBtn" class="place-order">
+                    Place Order
                 </button>
             </div>
         </div>

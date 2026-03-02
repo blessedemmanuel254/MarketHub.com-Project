@@ -1295,3 +1295,194 @@ document.addEventListener("DOMContentLoaded", function () {
       orderContainer.style.display  = 'none';
   }
 });
+
+/* ================= ORDER SYSTEM ================= */
+
+let checkoutItems = [];
+let checkoutMode = null; // "buy_now" or "cart"
+
+/* ================= BUY NOW ================= */
+document.addEventListener("click", function(e){
+
+    const btn = e.target.closest(".buy-now-btn");
+    if(!btn) return;
+
+    checkoutMode = "buy_now";
+
+    checkoutItems = [{
+        product_id: btn.dataset.id,
+        product_name: btn.dataset.name,
+        price: parseFloat(btn.dataset.price),
+        image_path: btn.dataset.image,
+        seller_id: btn.dataset.seller,
+        seller_name: btn.dataset.sellername,
+        quantity: 1
+    }];
+
+    renderOrderPage();
+    toggleMarketDisplayVSOrder();
+});
+
+/* ================= CART CHECKOUT ================= */
+document.querySelector(".checkout-btn")
+.addEventListener("click", function(){
+
+    checkoutMode = "cart";
+
+    fetch("marketDisplay.php",{
+        method:"POST",
+        headers:{ "Content-Type":"application/x-www-form-urlencoded" },
+        body:"action=fetch_cart"
+    })
+    .then(res=>res.json())
+    .then(data=>{
+
+        if(!data.success || data.items.length === 0){
+            alert("Cart is empty");
+            return;
+        }
+
+        checkoutItems = data.items.map(item => ({
+          product_id: item.product_id,
+          product_name: item.product_name,
+          price: parseFloat(item.price),
+          image_path: item.image_path,
+          seller_id: SELLER.id,
+          seller_name: SELLER.name,
+          quantity: parseInt(item.quantity)
+        }));
+
+        renderOrderPage();
+        toggleMarketDisplayVSOrder();
+    });
+});
+
+/* ================= RENDER ORDER PAGE ================= */
+function renderOrderPage(){
+
+    const container = document.getElementById("dynamicOrderContent");
+    container.innerHTML = "";
+
+    let grouped = {};
+    let total = 0;
+
+    checkoutItems.forEach(item=>{
+        if(!grouped[item.seller_id]){
+            grouped[item.seller_id] = {
+                seller_name: item.seller_name,
+                items:[]
+            };
+        }
+        grouped[item.seller_id].items.push(item);
+    });
+
+    for(let seller in grouped){
+
+        let sellerHTML = `
+            <div class="seller-box">
+                <div class="seller-header">
+                    Seller: ${grouped[seller].seller_name}
+                </div>
+        `;
+
+        grouped[seller].items.forEach(item=>{
+
+            total += item.price * item.quantity;
+
+            sellerHTML += `
+            <div class="product"
+                data-id="${item.product_id}"
+                data-price="${item.price}">
+                
+                <div class="product-left">
+                    <img src="${item.image_path}" width="60">
+                    <div class="product-info">
+                        ${item.product_name}
+                        <div>
+                            KSh ${item.price.toLocaleString()} × 
+                            <strong class="lineQty">${item.quantity}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quantity-control">
+                    <button class="qty-btn minus">-</button>
+                    <div class="qty-number">${item.quantity}</div>
+                    <button class="qty-btn plus">+</button>
+                </div>
+            </div>
+            `;
+        });
+
+        sellerHTML += `</div>`;
+        container.innerHTML += sellerHTML;
+    }
+
+    document.getElementById("itemsTotal").textContent =
+        "KSh " + total.toLocaleString();
+    document.getElementById("grandTotal").textContent =
+        "KSh " + total.toLocaleString();
+}
+
+/* ================= QUANTITY BUTTONS ================= */
+document.addEventListener("click", function(e){
+
+    if(!e.target.classList.contains("minus") &&
+       !e.target.classList.contains("plus")) return;
+
+    const productDiv = e.target.closest(".product");
+    const qtyDisplay = productDiv.querySelector(".qty-number");
+    const lineQty = productDiv.querySelector(".lineQty");
+
+    let qty = parseInt(qtyDisplay.textContent);
+    const productId = productDiv.dataset.id;
+
+    if(e.target.classList.contains("plus")) qty++;
+    if(e.target.classList.contains("minus") && qty > 1) qty--;
+
+    qtyDisplay.textContent = qty;
+    lineQty.textContent = qty;
+
+    checkoutItems.forEach(item=>{
+        if(item.product_id == productId){
+            item.quantity = qty;
+        }
+    });
+
+    updateTotals();
+});
+
+function updateTotals(){
+
+    let total = 0;
+
+    checkoutItems.forEach(item=>{
+        total += item.price * item.quantity;
+    });
+
+    document.getElementById("itemsTotal").textContent =
+        "KSh " + total.toLocaleString();
+    document.getElementById("grandTotal").textContent =
+        "KSh " + total.toLocaleString();
+}
+
+/* ================= PLACE ORDER ================= */
+document.getElementById("placeOrderBtn")
+.addEventListener("click", function(){
+
+    fetch("marketDisplay.php",{
+        method:"POST",
+        headers:{ "Content-Type":"application/x-www-form-urlencoded" },
+        body:"action=place_order&items="+
+             encodeURIComponent(JSON.stringify(checkoutItems))
+    })
+    .then(res=>res.json())
+    .then(data=>{
+        if(data.success){
+            alert("Order placed successfully!");
+            location.reload();
+        } else {
+            alert("Order failed.");
+        }
+    });
+});
