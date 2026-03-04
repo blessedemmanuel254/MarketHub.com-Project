@@ -1,5 +1,3 @@
-const VIEW_KEY = "marketHubCurrentView";
-
 function toggleWhatsAppChat() {
   var box = document.getElementById("whatsapp-chat-box");
   var overlay = document.getElementById("overlay");
@@ -744,11 +742,19 @@ function updateTotals() {
 /* ---------- UPDATE CART COUNT ---------- */
 function updateCartCount() {
   let count = 0;
+
   document.querySelectorAll(".cart-item").forEach(item => {
     count += Number(item.querySelector(".qty-number").textContent);
   });
 
-  if (cartCountEl) cartCountEl.textContent = count;
+  if (!cartCountEl) return;
+
+  // ✅ Show 9+ if more than 9 items
+  if (count > 9) {
+    cartCountEl.textContent = "9+";
+  } else {
+    cartCountEl.textContent = count;
+  }
 }
 
 /* ---------- ADD TO CART ---------- */
@@ -875,20 +881,6 @@ function changeQty(productId, newQty) {
 /* ---------- GLOBAL CLICK HANDLER ---------- */
 document.addEventListener("click", e => {
 
-  /* Increase quantity */
-  if (e.target.classList.contains("plus")) {
-    const qty = e.target.parentElement.querySelector(".qty-number");
-    qty.textContent = Number(qty.textContent) + 1;
-  }
-
-  /* Decrease quantity */
-  if (e.target.classList.contains("minus")) {
-    const qty = e.target.parentElement.querySelector(".qty-number");
-    if (Number(qty.textContent) > 1) {
-      qty.textContent = Number(qty.textContent) - 1;
-    }
-  }
-
   /* Remove item */
   if (e.target.classList.contains("remove-btn")) {
     e.target.closest(".cart-item")?.remove();
@@ -896,23 +888,6 @@ document.addEventListener("click", e => {
 
   updateTotals();
   updateCartCount();
-});
-
-/* ---------- ADD-TO-CART BUTTONS ---------- */
-document.querySelectorAll(".add-to-cart-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const card = btn.closest(".variable-card");
-
-    if (!card) return;
-
-    const product = {
-      name: card.dataset.name,
-      price: Number(card.dataset.price),
-      image: card.dataset.image
-    };
-
-    addToCart(product);
-  });
 });
 
 /* ---------- INIT ---------- */
@@ -1158,25 +1133,31 @@ const dailyProducts = [
 // RENDER PRODUCTS
 // ==============================
 
-const container = document.getElementById("productsContainer");
-const today = new Date().getDay(); // 0 = Sunday
+document.addEventListener("DOMContentLoaded", () => {
 
-dailyProducts.forEach(product => {
+  const container = document.getElementById("productsContainer");
+  if (!container) return;   // ✅ HARD GUARD – prevents crash
 
-  const card = document.createElement("div");
-  card.className = "product-card";
+  const today = new Date().getDay();
 
-  card.innerHTML = `
-    <img src="${product.image}" alt="${product.name}">
-    <div class="product-name">${product.name}</div>
-    <div class="product-price">${product.price}</div>
-    <div class="product-description">${product.description}</div>
-    <button class="download-btn" data-id="${product.id}">
-      Download for Posting
-    </button>
-  `;
+  dailyProducts.forEach(product => {
 
-  container.appendChild(card);
+    const card = document.createElement("div");
+    card.className = "product-card";
+
+    card.innerHTML = `
+      <img src="${product.image}" alt="${product.name}">
+      <div class="product-name">${product.name}</div>
+      <div class="product-price">${product.price}</div>
+      <div class="product-description">${product.description}</div>
+      <button class="download-btn" data-id="${product.id}">
+        Download for Posting
+      </button>
+    `;
+
+    container.appendChild(card);
+  });
+
 });
 
 // ==============================
@@ -1210,279 +1191,398 @@ document.addEventListener("click", function(e) {
 });
 
 // PLACE ORDER JS
-
 function toggleMarketDisplayVSOrder() {
-
   const sellerContainer = document.querySelector('.sellerProfileContainer');
   const tabsContainer   = document.querySelector('.tabs-container');
   const orderContainer  = document.querySelector('.order-container');
 
-  const cartContainer = document.getElementById('cart-container');
-  const cartOverlay   = document.getElementById('cartOverlay');
-  const payOverlay    = document.getElementById('payOverlay');
+  // Cart + overlays
+  const cartContainer   = document.getElementById('cart-container');
+  const cartOverlay     = document.getElementById('cartOverlay');
+  const payOverlay      = document.getElementById('payOverlay');
 
   if (!sellerContainer || !tabsContainer || !orderContainer) return;
 
-  const orderVisible =
-    window.getComputedStyle(orderContainer).display !== 'none';
+  const isMarketVisible =
+      window.getComputedStyle(sellerContainer).display !== 'none';
 
-  const cartVisible =
-    cartContainer &&
-    window.getComputedStyle(cartContainer).display !== 'none';
+  /* ================= SWITCH TO ORDER VIEW ================= */
+  if (isMarketVisible) {
 
-  /* ================= IF ORDER IS OPEN → GO BACK TO MARKET ================= */
-  if (orderVisible) {
+      // 🔴 Close cart if open
+      if (cartContainer) cartContainer.classList.remove('show');
+      if (cartOverlay)   cartOverlay.classList.remove('active');
+      if (payOverlay)    payOverlay.classList.remove('active');
 
-    sellerContainer.style.display = 'flex';
-    tabsContainer.style.display   = 'block';
-    orderContainer.style.display  = 'none';
+      // 🔴 Restore scroll
+      document.body.style.overflow = '';
 
-    localStorage.setItem(VIEW_KEY, "market");
-    return;
+      // 🔴 Toggle main sections
+      sellerContainer.style.display = 'none';
+      tabsContainer.style.display   = 'none';
+      orderContainer.style.display  = 'grid';
+
   }
+  /* ================= SWITCH BACK TO MARKET VIEW ================= */
+  else {
 
-  /* ================= CART OR MARKET → GO TO ORDER ================= */
-  if (cartVisible || window.getComputedStyle(sellerContainer).display !== 'none') {
-
-    // Close cart + overlays
-    if (cartContainer) cartContainer.classList.remove('show');
-    if (cartOverlay)   cartOverlay.classList.remove('active');
-    if (payOverlay)    payOverlay.classList.remove('active');
-
-    document.body.style.overflow = '';
-
-    sellerContainer.style.display = 'none';
-    tabsContainer.style.display   = 'none';
-    orderContainer.style.display  = 'grid';
-
-    localStorage.setItem(VIEW_KEY, "order");
+      sellerContainer.style.display = 'flex';
+      tabsContainer.style.display   = 'block';
+      orderContainer.style.display  = 'none';
   }
 }
 
 function goBackHandler() {
 
-  const orderContainer = document.querySelector('.order-container');
-
-  if (!orderContainer) return;
-
-  const orderVisible =
-      window.getComputedStyle(orderContainer).display !== 'none';
-
-  if (orderVisible) {
-      toggleMarketDisplayVSOrder();
-  } else {
-      window.history.back();
-  }
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-
   const sellerContainer = document.querySelector('.sellerProfileContainer');
-  const tabsContainer   = document.querySelector('.tabs-container');
   const orderContainer  = document.querySelector('.order-container');
 
-  const savedView = localStorage.getItem(VIEW_KEY);
+  if (!sellerContainer || !orderContainer) return;
 
-  if (!sellerContainer || !tabsContainer || !orderContainer) return;
+  // If order page is visible → toggle back to seller view
+  const orderVisible = window.getComputedStyle(orderContainer).display !== 'none';
 
-  if (savedView === "order") {
-      sellerContainer.style.display = 'none';
-      tabsContainer.style.display   = 'none';
-      orderContainer.style.display  = 'grid';
-  } else {
-      sellerContainer.style.display = 'flex';
-      tabsContainer.style.display   = 'block';
-      orderContainer.style.display  = 'none';
-  }
-});
-
-/* ================= ORDER SYSTEM ================= */
-
-let checkoutItems = [];
-let checkoutMode = null; // "buy_now" or "cart"
-
-/* ================= BUY NOW ================= */
-document.addEventListener("click", function(e){
-
-    const btn = e.target.closest(".buy-now-btn");
-    if(!btn) return;
-
-    checkoutMode = "buy_now";
-
-    checkoutItems = [{
-        product_id: btn.dataset.id,
-        product_name: btn.dataset.name,
-        price: parseFloat(btn.dataset.price),
-        image_path: btn.dataset.image,
-        seller_id: btn.dataset.seller,
-        seller_name: btn.dataset.sellername,
-        quantity: 1
-    }];
-
-    renderOrderPage();
+  if (orderVisible) {
     toggleMarketDisplayVSOrder();
-});
+  } else {
+    window.history.back();
+  }
+}
 
-/* ================= CART CHECKOUT ================= */
-document.querySelector(".checkout-btn")
-.addEventListener("click", function(){
+function buyNow(button) {
+  const productId   = button.dataset.id;
+  const name        = button.dataset.name;
+  const price       = parseFloat(button.dataset.price);
+  const image       = button.dataset.image;
+  const sellerId    = button.dataset.seller;
+  const sellerName  = button.dataset.sellerName;
 
-    checkoutMode = "cart";
+  toggleMarketDisplayVSOrder();
 
-    fetch("marketDisplay.php",{
-        method:"POST",
-        headers:{ "Content-Type":"application/x-www-form-urlencoded" },
-        body:"action=fetch_cart"
-    })
-    .then(res=>res.json())
-    .then(data=>{
+  const card = document.querySelectorAll(".card")[1];
+  if (!card) return;
 
-        if(!data.success || data.items.length === 0){
-            alert("Cart is empty");
-            return;
-        }
+  // Individual product with remove button
+  const sellerContent = `
+    <div class="seller-box">
+      <div class="seller-header">Seller: ${sellerName}</div>
+      
+      <div class="seller-meta">Estimated delivery: 3 hours</div>
 
-        checkoutItems = data.items.map(item => ({
-          product_id: item.product_id,
-          product_name: item.product_name,
-          price: parseFloat(item.price),
-          image_path: item.image_path,
-          seller_id: SELLER.id,
-          seller_name: SELLER.name,
-          quantity: parseInt(item.quantity)
-        }));
-
-        renderOrderPage();
-        toggleMarketDisplayVSOrder();
-    });
-});
-
-/* ================= RENDER ORDER PAGE ================= */
-function renderOrderPage(){
-
-    const container = document.getElementById("dynamicOrderContent");
-    container.innerHTML = "";
-
-    let grouped = {};
-    let total = 0;
-
-    checkoutItems.forEach(item=>{
-        if(!grouped[item.seller_id]){
-            grouped[item.seller_id] = {
-                seller_name: item.seller_name,
-                items:[]
-            };
-        }
-        grouped[item.seller_id].items.push(item);
-    });
-
-    for(let seller in grouped){
-
-        let sellerHTML = `
-            <div class="seller-box">
-                <div class="seller-header">
-                    Seller: ${grouped[seller].seller_name}
-                </div>
-        `;
-
-        grouped[seller].items.forEach(item=>{
-
-            total += item.price * item.quantity;
-
-            sellerHTML += `
-            <div class="product"
-                data-id="${item.product_id}"
-                data-price="${item.price}">
-                
-                <div class="product-left">
-                    <img src="${item.image_path}" width="60">
-                    <div class="product-info">
-                        ${item.product_name}
-                        <div>
-                            KSh ${item.price.toLocaleString()} × 
-                            <strong class="lineQty">${item.quantity}</strong>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="quantity-control">
-                    <button class="qty-btn minus">-</button>
-                    <div class="qty-number">${item.quantity}</div>
-                    <button class="qty-btn plus">+</button>
-                </div>
+      <div class="product" data-price="${price}" data-product="${productId}" data-seller="${sellerId}">
+        <div class="product-left">
+          <img src="${image}" width="60">
+          <div class="product-info">
+            ${name}
+            <div class="product-price">
+              KSh <span class="item-subtotal">${price.toFixed(2)}</span>
             </div>
-            `;
-        });
+          </div>
+        </div>
+        <div class="qty-and-delete">
+          <div class="quantity-control">
+            <button class="qty-btn minus">-</button>
+            <div class="qty-number">1</div>
+            <button class="qty-btn plus">+</button>
+          </div>
 
-        sellerHTML += `</div>`;
-        container.innerHTML += sellerHTML;
+          <button class="remove-product" data-product="${productId}"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  card.innerHTML = `
+    <div class="card-title">
+      <p>
+        Order Summary<br>
+        <span>Item(s): <strong id="orderItemCount">1</strong></span>
+      </p>
+    </div>
+
+    ${sellerContent}
+
+    <div class="guarantee">
+      Market Hub · your number one marketplace.
+    </div>
+  `;
+
+  // Store selected order globally
+  window.selectedOrder = {
+    product_id: productId,
+    seller_id: sellerId,
+    quantity: 1,
+    price: price
+  };
+
+  const itemsTotalEl = document.getElementById("itemsTotal");
+  const finalTotalEl = document.getElementById("finalTotal");
+  if (itemsTotalEl) itemsTotalEl.textContent = `KSh ${price.toFixed(2)}`;
+  if (finalTotalEl) finalTotalEl.textContent = `KSh ${price.toFixed(2)}`;
+
+  // ✅ Remove individual product
+  const removeBtn = card.querySelector(".remove-product");
+  removeBtn.addEventListener("click", () => {
+    const productDiv = removeBtn.closest(".product");
+    if (productDiv) productDiv.remove();
+
+    // Clear the selected order
+    window.selectedOrder = null;
+
+    // Update totals
+    if (itemsTotalEl) itemsTotalEl.textContent = "KSh 0.00";
+    if (finalTotalEl) finalTotalEl.textContent = "KSh 0.00";
+
+    // Update item count
+    const orderCountEl = document.getElementById("orderItemCount");
+    if (orderCountEl) orderCountEl.textContent = "0";
+
+    // Optionally show message
+    if (!card.querySelector(".product")) {
+      card.innerHTML = `<p>Your order has been removed.</p>`;
+    }
+  });
+
+  requestAnimationFrame(() => {
+      updateOrderSummary();
+  });
+}
+
+function placeOrder() {
+  if (window.selectedOrder) {
+      const { product_id, seller_id, quantity, price } = window.selectedOrder;
+
+      const formData = new URLSearchParams();
+      formData.append('action', 'place_order');
+      formData.append('product_id', product_id);
+      formData.append('seller_id', seller_id);
+      formData.append('quantity', quantity);
+      formData.append('price', price);
+
+      fetch("marketDisplay.php", {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/x-www-form-urlencoded"
+          },
+          body: formData.toString()
+      })
+      .then(res => res.json())
+      .then(data => {
+          if (data.success) {
+              alert("Order placed successfully!");
+              location.reload();
+          } else {
+              alert(data.error || "Order failed");
+          }
+      });
+  } else {
+      // Cart checkout remains the same
+      fetch("marketDisplay.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: "action=checkout_cart"
+      })
+      .then(res => res.json())
+      .then(data => {
+          if (data.success) {
+              alert("Order placed successfully!");
+              location.reload();
+          } else {
+              alert("Order failed");
+          }
+      });
+  }
+}
+
+document.addEventListener("click", function(e) {
+
+    const btn = e.target.closest(".minus, .plus");
+    if (!btn) return;
+
+    const productEl = btn.closest(".product");
+    if (!productEl) return;
+
+    const qtyEl = productEl.querySelector(".qty-number");
+
+    let quantity = parseInt(qtyEl.textContent);
+    const price = parseFloat(productEl.dataset.price);
+
+    if (btn.classList.contains("plus")) {
+        quantity++;
     }
 
-    document.getElementById("itemsTotal").textContent =
-        "KSh " + total.toLocaleString();
-    document.getElementById("grandTotal").textContent =
-        "KSh " + total.toLocaleString();
-}
+    if (btn.classList.contains("minus") && quantity > 1) {
+        quantity--;
+    }
 
-/* ================= QUANTITY BUTTONS ================= */
-document.addEventListener("click", function(e){
+    qtyEl.textContent = quantity;
 
-    if(!e.target.classList.contains("minus") &&
-       !e.target.classList.contains("plus")) return;
+    /* ===== BUY NOW MODE ===== */
+    if (window.selectedOrder) {
+        window.selectedOrder.quantity = quantity;
+        updateOrderSummary();
+        return;
+    }
 
-    const productDiv = e.target.closest(".product");
-    const qtyDisplay = productDiv.querySelector(".qty-number");
-    const lineQty = productDiv.querySelector(".lineQty");
-
-    let qty = parseInt(qtyDisplay.textContent);
-    const productId = productDiv.dataset.id;
-
-    if(e.target.classList.contains("plus")) qty++;
-    if(e.target.classList.contains("minus") && qty > 1) qty--;
-
-    qtyDisplay.textContent = qty;
-    lineQty.textContent = qty;
-
-    checkoutItems.forEach(item=>{
-        if(item.product_id == productId){
-            item.quantity = qty;
-        }
-    });
-
-    updateTotals();
+    /* ===== CART CHECKOUT MODE ===== */
+    updateCheckoutSummary();
 });
 
-function updateTotals(){
+function updateOrderSummary() {
+  if (!window.selectedOrder) return;
 
-    let total = 0;
+  const itemsTotalEl = document.getElementById("itemsTotal");
+  const finalTotalEl = document.getElementById("finalTotal");
+  if (!itemsTotalEl || !finalTotalEl) return;
 
-    checkoutItems.forEach(item=>{
-        total += item.price * item.quantity;
-    });
+  const price = parseFloat(window.selectedOrder.price) || 0;
+  const quantity = parseInt(window.selectedOrder.quantity) || 1;
 
-    document.getElementById("itemsTotal").textContent =
-        "KSh " + total.toLocaleString();
-    document.getElementById("grandTotal").textContent =
-        "KSh " + total.toLocaleString();
+  const itemsTotal = price * quantity;
+  const delivery = 0;
+  const promotions = 0;
+  const finalTotal = itemsTotal + delivery - promotions;
+  const itemCountEl = document.getElementById("orderItemCount");
+  if (itemCountEl) {
+      itemCountEl.textContent = quantity;
+  }
+
+  itemsTotalEl.textContent = `KSh ${itemsTotal.toFixed(2)}`;
+  finalTotalEl.textContent = `KSh ${finalTotal.toFixed(2)}`;
 }
 
-/* ================= PLACE ORDER ================= */
-document.getElementById("placeOrderBtn")
-.addEventListener("click", function(){
+function updateCheckoutSummary() {
 
-    fetch("marketDisplay.php",{
-        method:"POST",
-        headers:{ "Content-Type":"application/x-www-form-urlencoded" },
-        body:"action=place_order&items="+
-             encodeURIComponent(JSON.stringify(checkoutItems))
-    })
-    .then(res=>res.json())
-    .then(data=>{
-        if(data.success){
-            alert("Order placed successfully!");
-            location.reload();
-        } else {
-            alert("Order failed.");
-        }
+  const products = document.querySelectorAll("#dynamicOrderBox .product");
+
+  let grandTotal = 0;
+  let totalItems = 0;
+
+  products.forEach(product => {
+
+    const price = parseFloat(product.dataset.price);
+    const qtyEl = product.querySelector(".qty-number");
+    const quantity = parseInt(qtyEl.textContent);
+
+    // ✅ Only calculate internally
+    grandTotal += price * quantity;
+    totalItems += quantity;
+  });
+
+  // ✅ Update summary only
+  const itemsTotalEl = document.getElementById("itemsTotal");
+  const finalTotalEl = document.getElementById("finalTotal");
+  const itemCountEl  = document.getElementById("orderItemCount");
+
+  if (itemsTotalEl) itemsTotalEl.textContent = `KSh ${grandTotal.toFixed(2)}`;
+  if (finalTotalEl) finalTotalEl.textContent = `KSh ${grandTotal.toFixed(2)}`;
+  if (itemCountEl)  itemCountEl.textContent  = totalItems;
+}
+
+function proceedFromCart() {
+  window.selectedOrder = null;
+
+  fetch("marketDisplay.php", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: "action=fetch_cart"
+  })
+  .then(res => res.json())
+  .then(data => {
+
+    if (!data.success || data.items.length === 0) {
+      alert("Cart is empty");
+      return;
+    }
+
+    toggleMarketDisplayVSOrder();
+
+    const grouped = {};
+    data.items.forEach(item => {
+      if (!grouped[item.seller_id]) {
+        grouped[item.seller_id] = {
+          seller_name: item.business_name,
+          items: []
+        };
+      }
+      grouped[item.seller_id].items.push(item);
     });
-});
+
+    let grandTotal = 0;
+    let totalItems = 0;
+    let sellerContent = "";
+
+    for (let sellerId in grouped) {
+      const sellerGroup = grouped[sellerId];
+
+      sellerContent += `<div class="seller-header">Seller: ${sellerGroup.seller_name}</div>`;
+
+      sellerGroup.items.forEach(product => {
+        const subtotal = product.price * product.quantity;
+        grandTotal += subtotal;
+        totalItems += product.quantity;
+
+        sellerContent += `
+          <div class="product" data-price="${product.price}" data-product="${product.product_id}" data-seller="${sellerId}">
+            <div class="product-left">
+              <img src="${product.image_path}" width="60">
+              <div class="product-info">
+                ${product.product_name}
+                <div class="product-price">KSh ${(subtotal).toFixed(2)}</div>
+              </div>
+            </div>
+            <div class="quantity-control">
+              <button class="qty-btn minus">-</button>
+              <div class="qty-number">${product.quantity}</div>
+              <button class="qty-btn plus">+</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    // 🔥 Update the card content while keeping the outer card intact
+    const card = document.querySelectorAll(".card")[1];
+    if (card) {
+      card.innerHTML = `
+        <div class="card-title">
+          <p>
+            Order Summary<br>
+            <span>Item(s): <strong id="orderItemCount">${totalItems}</strong></span>
+          </p>
+        </div>
+
+        <div class="seller-box" id="dynamicOrderBox">
+          ${sellerContent}
+        </div>
+
+        <div class="guarantee">
+          Market Hub · your number one marketplace.
+        </div>
+      `;
+    }
+
+    // Update totals if these elements exist
+    if (document.getElementById("itemsTotal"))
+      document.getElementById("itemsTotal").textContent = `KSh ${grandTotal.toFixed(2)}`;
+    if (document.getElementById("finalTotal"))
+      document.getElementById("finalTotal").textContent = `KSh ${grandTotal.toFixed(2)}`;
+  });
+}
+
+function updateQuantity(productId, newQty) {
+
+  fetch("orders.php", {
+    method: "POST",
+    headers: {"Content-Type": "application/x-www-form-urlencoded"},
+    body: `action=update_quantity&product_id=${productId}&quantity=${newQty}`
+  })
+  .then(res => res.json())
+  .then(data => {
+    if(data.success){
+        updateCheckoutSummary(); // recalc totals
+    }
+  });
+}

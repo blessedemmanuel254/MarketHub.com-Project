@@ -1901,21 +1901,17 @@ label.account-type input:checked + .radio-dot::after {
   border-color:#0f0f0f;
 }
 
-.container main.profile-main .profile-container .profile-form .save-btn {
-  margin-top:30px;
-  text-align:right;
-}
-
-.container main.profile-main .profile-container .profile-form .save-btn button {
+.container main.profile-main .profile-container .profile-form button {
   background:#0f0f0f;
   color:#fff;
   border:none;
   padding:12px 24px;
   border-radius:4px;
   cursor:pointer;
+  width: 100%;
 }
 
-.container main.profile-main .profile-container .profile-form .save-btn button:hover {
+.container main.profile-main .profile-container .profile-form button:hover {
   opacity:.875;
 }
 /* HELP CENTER */
@@ -2527,10 +2523,13 @@ a.seller-right {
   background: #0f0f0f;
   color: #fff;
   border: none;
-  padding: 8px 16px;
+  padding: 8px 12px;
   border-radius: 4px;
-  font-weight: bold;
   cursor: pointer;
+}
+
+.buy-btn:hover {
+  opacity: .875;
 }
 
 /* =====================
@@ -2582,11 +2581,11 @@ a.seller-right {
 }
 
 .container section.topSection .cart-wrapper:hover, .containerAdmin section .admin-rhs .notfy-wrapper:hover {
-  transform: scale(1.21);
+  transform: scale(1.24);
 }
 
 .container section.topSection .cart-wrapper .cart-icon, .containerAdmin section .admin-rhs .notfy-wrapper i {
-  font-size: 35px;
+  font-size: 33px;
 }
 
 .container section.topSection .cart-wrapper .cart-count,
@@ -2606,7 +2605,7 @@ a.seller-right {
 
   min-width: 22px;
   height: 22px;
-  padding: 0 6px;
+  padding: 10px 3px;
 
   border-radius: 999px;
   line-height: 1;
@@ -4134,8 +4133,31 @@ AGENTS' PRODUCTS CSS
 }
 
 /* ===== Responsive ===== */
-@media (max-width: 830px) {
+@media (max-width: 900px) {
   .order-container {
     grid-template-columns: 1fr;
   }
+}
+
+.qty-and-delete {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+
+}
+
+.remove-product {
+    color: #ffffff;
+    border: none;
+    padding: 4px 8px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-left: 10px;
+    border-radius: 4px;
+    background-color: #0f0f0f;
+    
+}
+
+.remove-product:hover {
+  opacity: .875;
 }

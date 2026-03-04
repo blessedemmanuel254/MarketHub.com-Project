@@ -472,6 +472,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                       <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
                     </select>
                   </div>
+                  <div></div>
                   <button type="submit">
                     Submit Details
                   </button>

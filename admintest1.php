@@ -268,38 +268,6 @@ $checkFollow->execute();
 $checkFollow->store_result();
 $isFollowing = $checkFollow->num_rows > 0;
 $checkFollow->close();
-
-/* ---------- FETCH SELLER PRODUCTS ---------- */
-
-
-$productsByCategory = [];
-
-$productStmt = $conn->prepare("
-    SELECT 
-        product_id,
-        product_name,
-        category,
-        stock_quantity,
-        price,
-        image_path
-    FROM productservicesrentals
-    WHERE user_id = ? AND status = 'active'
-    ORDER BY created_at DESC
-");
-$productStmt->bind_param("i", $sellerId);
-$productStmt->execute();
-$result = $productStmt->get_result();
-
-while ($row = $result->fetch_assoc()) {
-    $category = $row['category'] ?? 'Uncategorized';
-    $productsByCategory[$category][] = $row;
-}
-
-function formatProductName($name) {
-  return ucwords(strtolower($name));
-}
-
-$productStmt->close();
 ?>
 
 <!DOCTYPE html>

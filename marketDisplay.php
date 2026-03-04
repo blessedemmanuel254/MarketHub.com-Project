@@ -1,19 +1,44 @@
 <?php
 session_start();
 require_once 'connection.php';
-
+ini_set('display_errors', 0); // prevent HTML error output
+error_reporting(E_ALL);
 /* ---------- SESSION SECURITY ---------- */
 if (!isset($_SESSION['user_id'])) {
     header("Location: index.php");
     exit();
 } 
 
+$userId = $_SESSION['user_id'];
+
+/* ---------- FETCH BUYER DELIVERY DETAILS ---------- */
+$stmt = $conn->prepare("
+    SELECT full_name, phone, county, ward, address
+    FROM users
+    WHERE user_id = ?
+    LIMIT 1
+");
+$stmt->bind_param("i", $userId);
+$stmt->execute();
+$result = $stmt->get_result();
+$user = $result->fetch_assoc();
+$stmt->close();
+
+// Format full name (First letter capital, rest small)
+$formattedName = isset($user['full_name']) 
+    ? ucwords(strtolower($user['full_name'])) 
+    : 'Not Provided';
+
+// Decode phone from Base64
+$decodedPhone = isset($user['phone']) 
+    ? base64_decode($user['phone']) 
+    : 'No Phone';
+
 /* Optional: regenerate session ID periodically */
 if (!isset($_SESSION['created'])) {
     session_regenerate_id(true);
     $_SESSION['created'] = time();
 }
-
 
 /* ---------- HANDLE FOLLOW / UNFOLLOW AJAX ---------- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'toggle_follow') {
@@ -87,9 +112,92 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
       echo json_encode(['success' => false, 'error' => 'Not logged in']);
       exit();
   }
-
-  $userId = $_SESSION['user_id'];
   $action = $_POST['action'];
+
+  
+
+  $stmt = $conn->prepare("
+    SELECT full_name, phone, county, ward, address
+    FROM users
+    WHERE user_id = ?
+    LIMIT 1
+  ");
+  $stmt->bind_param("i", $userId);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  $user = $result->fetch_assoc();
+  $stmt->close();
+
+  /* ================= PLACE ORDER ================= */
+  if ($action === 'place_order') {
+
+    $productId = (int)($_POST['product_id'] ?? 0);
+    $sellerId  = (int)($_POST['seller_id'] ?? 0);
+    $quantity  = (int)($_POST['quantity'] ?? 1);
+    // Fetch real price from database
+    $priceStmt = $conn->prepare("
+        SELECT price FROM productservicesrentals
+        WHERE product_id = ? LIMIT 1
+    ");
+    $priceStmt->bind_param("i", $productId);
+    $priceStmt->execute();
+    $priceStmt->bind_result($realPrice);
+    $priceStmt->fetch();
+    $priceStmt->close();
+
+    if (!$realPrice) {
+        echo json_encode(['success' => false, 'error' => 'Product not found']);
+        exit();
+    }
+
+    $totalAmount = $realPrice * $quantity;
+
+    if ($productId <= 0 || $sellerId <= 0 || $price <= 0) {
+        echo json_encode(['success' => false, 'error' => 'Invalid order']);
+        exit();
+    }
+
+    $conn->begin_transaction();
+
+    try {
+
+        $totalAmount = $price * $quantity;
+
+        // 1️⃣ Generate unique order code with 5 random digits
+        $dateStr = date('Ymd'); // e.g., 20260303
+        $randomDigits = str_pad(rand(0, 99999), 5, '0', STR_PAD_LEFT); // 5 random digits
+        $orderCode = "ORD-" . $dateStr . "-" . $randomDigits;
+
+        // 2️⃣ Insert order
+        $orderStmt = $conn->prepare("
+            INSERT INTO orders (buyer_id, total_amount, order_status, created_at, order_code)
+            VALUES (?, ?, 'pending', NOW(), ?)
+        ");
+        $orderStmt->bind_param("ids", $userId, $totalAmount, $orderCode);
+        $orderStmt->execute();
+        $orderId = $orderStmt->insert_id;
+        $orderStmt->close();
+
+        // 3️⃣ Insert order item
+        $itemStmt = $conn->prepare("
+            INSERT INTO order_items (order_id, product_id, seller_id, quantity, price)
+            VALUES (?, ?, ?, ?, ?)
+        ");
+        $itemStmt->bind_param("iiiid", $orderId, $productId, $sellerId, $quantity, $realPrice);
+        $itemStmt->execute();
+        $itemStmt->close();
+
+        $conn->commit();
+
+        echo json_encode(['success' => true, 'order_code' => $orderCode]);
+
+    } catch (Exception $e) {
+        $conn->rollback();
+        echo json_encode(['success' => false, 'error' => 'Database error']);
+    }
+
+    exit();
+  }
 
   /* ================= ADD TO CART ================= */
   if ($action === 'add_to_cart') {
@@ -147,10 +255,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
               uc.quantity,
               p.product_name,
               p.price,
-              p.image_path
+              p.image_path,
+              p.user_id AS seller_id,
+              u.business_name
           FROM user_cart uc
           JOIN productservicesrentals p 
               ON uc.product_id = p.product_id
+          JOIN users u
+              ON p.user_id = u.user_id
           WHERE uc.user_id = ?
       ");
       $stmt->bind_param("i", $userId);
@@ -203,10 +315,102 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
       echo json_encode(['success' => true]);
       exit();
   }
+
+  if ($action === 'checkout_cart') {
+
+    $conn->begin_transaction();
+
+    try {
+
+        // Fetch cart items
+        $cartStmt = $conn->prepare("
+            SELECT 
+            uc.product_id, 
+            uc.quantity, 
+            p.price, 
+            p.stock_quantity,
+            p.user_id AS seller_id
+            FROM user_cart uc
+            JOIN productservicesrentals p ON uc.product_id = p.product_id
+            WHERE uc.user_id = ?
+        ");
+        $cartStmt->bind_param("i", $userId);
+        $cartStmt->execute();
+        $result = $cartStmt->get_result();
+
+        $grouped = [];
+        while ($row = $result->fetch_assoc()) {
+          $grouped[$row['seller_id']][] = $row;
+          if ($item['quantity'] > $item['stock_quantity']) {
+              throw new Exception("Stock exceeded");
+          }
+        }
+
+        foreach ($grouped as $sellerId => $items) {
+
+            $totalAmount = 0;
+            foreach ($items as $item) {
+                $totalAmount += $item['price'] * $item['quantity'];
+            }
+
+            // Generate unique order code with 5 random digits for each seller
+            $dateStr = date('Ymd'); // e.g., 20260303
+            $randomDigits = str_pad(rand(0, 99999), 5, '0', STR_PAD_LEFT); // 5 random digits
+            $orderCode = "ORD-" . $dateStr . "-" . $randomDigits;
+
+            // Insert order
+            $orderStmt = $conn->prepare("
+                INSERT INTO orders (buyer_id, total_amount, order_status, created_at, order_code)
+                VALUES (?, ?, 'pending', NOW(), ?)
+            ");
+            $orderStmt->bind_param("ids", $userId, $totalAmount, $orderCode);
+            $orderStmt->execute();
+            $orderId = $orderStmt->insert_id;
+            $orderStmt->close();
+
+            // Insert order items
+            foreach ($items as $item) {
+                $itemStmt = $conn->prepare("
+                    INSERT INTO order_items (order_id, product_id, seller_id, quantity, price)
+                    VALUES (?, ?, ?, ?, ?)
+                ");
+                $itemStmt->bind_param(
+                    "iiiid",
+                    $orderId,
+                    $item['product_id'],
+                    $sellerId,
+                    $item['quantity'],
+                    $item['price']
+                );
+                $itemStmt->execute();
+                $itemStmt->close();
+            }
+        }
+
+        // Clear cart
+        $clear = $conn->prepare("DELETE FROM user_cart WHERE user_id = ?");
+        $clear->bind_param("i", $userId);
+        $clear->execute();
+        $clear->close();
+
+        $conn->commit();
+        echo json_encode(['success' => true]);
+
+    } catch (Exception $e) {
+        $conn->rollback();
+        echo json_encode(['success' => false]);
+    }
+
+    exit();
+  }
 }
 
-if (!isset($_GET['seller']) || !is_numeric($_GET['seller'])) {
-    die("Invalid seller");
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+
+    if (!isset($_GET['seller']) || !is_numeric($_GET['seller'])) {
+        die("Invalid seller");
+    }
+
 }
 
 $buyerId  = $_SESSION['user_id'];
@@ -235,7 +439,11 @@ $seller = $sellerStmt->get_result()->fetch_assoc();
 $sellerStmt->close();
 
 if (!$seller) {
-    die("Seller not found");
+  echo json_encode([
+      "success" => false,
+      "error" => "Seller not found"
+  ]);
+  exit;
 }
 
 /* ---------- FOLLOWERS COUNT ---------- */
@@ -269,6 +477,39 @@ $checkFollow->store_result();
 $isFollowing = $checkFollow->num_rows > 0;
 $checkFollow->close();
 
+// Fetch seller orders
+$sellerOrders = [];
+$stmt = $conn->prepare("
+    SELECT 
+        o.order_id,
+        o.order_code,
+        o.total_amount,
+        o.order_status,
+        o.created_at,
+        u.username AS buyer_name,
+        oi.quantity,
+        oi.price,
+        p.product_name
+    FROM orders o
+    JOIN order_items oi ON o.order_id = oi.order_id
+    JOIN users u ON o.buyer_id = u.user_id
+    JOIN productservicesrentals p ON oi.product_id = p.product_id
+    WHERE oi.seller_id = ?
+    ORDER BY o.created_at DESC
+");
+$stmt->bind_param("i", $sellerId);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $sellerOrders[] = $row;
+    }
+}
+$stmt->close();
+
+
+
 /* ---------- FETCH SELLER PRODUCTS ---------- */
 
 
@@ -291,77 +532,15 @@ $productStmt->execute();
 $result = $productStmt->get_result();
 
 while ($row = $result->fetch_assoc()) {
-  $category = $row['category'] ?? 'Uncategorized';
-  $productsByCategory[$category][] = $row;
+    $category = $row['category'] ?? 'Uncategorized';
+    $productsByCategory[$category][] = $row;
+}
+
+function formatProductName($name) {
+  return ucwords(strtolower($name));
 }
 
 $productStmt->close();
-
-$action = $_POST['action'] ?? '';
-
-if ($action === 'place_order') {
-
-    $items = json_decode($_POST['items'], true);
-
-    if (empty($items)) {
-        echo json_encode(['success'=>false]);
-        exit();
-    }
-
-    $conn->begin_transaction();
-
-    try {
-
-        $grandTotal = 0;
-        foreach ($items as $item) {
-            $grandTotal += $item['price'] * $item['quantity'];
-        }
-
-        $stmt = $conn->prepare("
-            INSERT INTO orders 
-            (buyer_id,total_amount,order_status,created_at)
-            VALUES (?, ?, 'pending', NOW())
-        ");
-        $stmt->bind_param("id", $buyerId, $grandTotal);
-        $stmt->execute();
-        $orderId = $stmt->insert_id;
-        $stmt->close();
-
-        foreach ($items as $item) {
-
-            $stmt = $conn->prepare("
-                INSERT INTO order_items
-                (order_id,product_id,seller_id,quantity,price)
-                VALUES (?,?,?,?,?)
-            ");
-
-            $stmt->bind_param(
-                "iiiid",
-                $orderId,
-                $item['product_id'],
-                $item['seller_id'],
-                $item['quantity'],
-                $item['price']
-            );
-
-            $stmt->execute();
-            $stmt->close();
-        }
-
-        if ($checkoutMode !== "buy_now") {
-            $conn->query("DELETE FROM user_cart WHERE user_id = $buyerId");
-        }
-
-        $conn->commit();
-        echo json_encode(['success'=>true]);
-        exit();
-
-    } catch(Exception $e){
-        $conn->rollback();
-        echo json_encode(['success'=>false]);
-        exit();
-    }
-}
 ?>
 
 <!DOCTYPE html>
@@ -439,7 +618,7 @@ if ($action === 'place_order') {
             <span id="total">KES 0</span>
           </div>
 
-          <button class="checkout-btn" onclick="toggleMarketDisplayVSOrder()">Proceed&nbsp;to&nbsp;Payment</button>
+          <button class="checkout-btn" onclick="proceedFromCart()">Proceed&nbsp;to&nbsp;Payment</button>
         </div>
       </div>
     </div>
@@ -450,7 +629,7 @@ if ($action === 'place_order') {
       <label class="radio-container">
         <div class="rightDiv">
           <img src="Images/M-PESA_LOGO-01.svg.png" alt="Mpesa Logo" width="60">
-          <p>MPESA<br><span>254759578630</span></p>
+          <p>MPESA<br><span>+254759578630</span></p>
         </div>
         <input type="radio" name="payment" value="mpesa">
         <span class="checkmark"></span>
@@ -632,14 +811,17 @@ if ($action === 'place_order') {
                                   <div class="price">
                                       KES <?= number_format($product['price'], 2); ?>
                                   </div>
-                                  <button class="buy-btn buy-now-btn"
-                                          data-id="<?= $product['product_id']; ?>"
-                                          data-name="<?= htmlspecialchars($product['product_name']); ?>"
-                                          data-price="<?= $product['price']; ?>"
-                                          data-image="<?= $product['image_path']; ?>"
-                                          data-seller="<?= $sellerId; ?>"
-                                          data-sellername="<?= htmlspecialchars($seller['business_name']); ?>">
-                                      Order
+                                  <button 
+                                    class="buy-btn"
+                                    onclick="buyNow(this)"
+                                    data-id="<?= $product['product_id']; ?>"
+                                    data-name="<?= htmlspecialchars($product['product_name']); ?>"
+                                    data-price="<?= $product['price']; ?>"
+                                    data-image="<?= $product['image_path']; ?>"
+                                    data-seller="<?= $sellerId; ?>"
+                                    data-seller-name="<?= htmlspecialchars($seller['business_name']); ?>"
+                                  >
+                                    Buy Now
                                   </button>
                               </div>
                             </div>
@@ -654,30 +836,71 @@ if ($action === 'place_order') {
         ?>
         </div>
       </div>
-      <div class="order-container" style="display:none;">
+      <div class="order-container">
 
-        <div class="order-left">
-            <div id="dynamicOrderContent"></div>
+        <!-- LEFT COLUMN -->
+        <div>
+          <!-- Shipping -->
+          <div class="card">
+            <div class="card-title">
+              Delivery Details
+              <a href="userProfile.php" class="update-btn">
+                <i class="fa-solid fa-cloud-arrow-up"></i>Update
+              </a>
+            </div>
+
+            <div class="address-name">
+              <?= htmlspecialchars($formattedName) ?> · 
+              <?= htmlspecialchars($decodedPhone) ?>
+            </div>
+
+            <div class="address-text">
+              <?= htmlspecialchars($user['county'] ?? '') ?>,
+              <?= htmlspecialchars($user['ward'] ?? '') ?>,
+              <?= htmlspecialchars($user['address'] ?? '') ?><br>
+              Contact: <?= htmlspecialchars($decodedPhone) ?>
+            </div>
+          </div>                  
+
+            <br>
+            
+            <br>
+
+            <!-- PRODUCTS BY SELLER -->
+            <div class="card">
+            </div>
+
         </div>
 
-        <div class="order-right">
+        <!-- RIGHT COLUMN -->
+        <div>
             <div class="card">
-                <div class="card-title">Payment Summary</div>
+              <div class="card-title">Payment Summary</div>
 
-                <div class="summary-row">
-                    <span>Items Total</span>
-                    <span id="itemsTotal">KSh 0</span>
-                </div>
+              <div class="summary-row">
+                <span>Items Total</span>
+                <span id="itemsTotal">KSh 0.00</span>
+              </div>
 
-                <div class="summary-row total">
-                    <span>Total to Pay</span>
-                    <span id="grandTotal">KSh 0</span>
-                </div>
+              <div class="summary-row">
+                  <span>Delivery Fees</span>
+                  <span>0</span>
+              </div>
 
-                <button id="placeOrderBtn" class="place-order">
-                    Place Order
-                </button>
-            </div>
+              <div class="summary-row">
+                  <span>Promotions</span>
+                  <span>0</span>
+              </div>
+
+              <div class="summary-row total">
+                <span>Total to Pay</span>
+                <span id="finalTotal">KSh 0.00</span>
+              </div>
+
+              <button class="place-order" onclick="placeOrder()">
+                Place Order
+              </button>
+          </div>
         </div>
 
       </div>

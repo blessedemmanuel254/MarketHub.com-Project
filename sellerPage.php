@@ -375,6 +375,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_product_id'])
         }
     }
 }
+
+// Fetch seller orders
+$sellerOrders = [];
+$stmt = $conn->prepare("
+    SELECT 
+        o.order_id,
+        o.order_code,
+        o.total_amount,
+        o.order_status,
+        o.created_at,
+        u.username AS buyer_name,
+        oi.quantity,
+        oi.price,
+        p.product_name
+    FROM orders o
+    JOIN order_items oi ON o.order_id = oi.order_id
+    JOIN users u ON o.buyer_id = u.user_id
+    JOIN productservicesrentals p ON oi.product_id = p.product_id
+    WHERE oi.seller_id = ?
+    ORDER BY o.created_at DESC
+");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $sellerOrders[] = $row;
+    }
+}
+$stmt->close();
+
 ?>
 
 <!DOCTYPE html>
@@ -753,8 +785,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_product_id'])
         <table id="ordersTable">
           <thead>
             <tr>
+              <th>#</th>
               <th>Order ID</th>
               <th>Buyer</th>
+              <th>Product</th>
               <th>Qty</th>
               <th>Total</th>
               <th>Payment</th>
@@ -764,112 +798,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_product_id'])
             </tr>
           </thead>
           <tbody>
-            <tr data-status="Delivered">
-              <td>ORD-10021</td>
-              <td>John Doe</td>
-              <td>2</td>
-              <td>KES 7,000</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td><span class="badge delivered">Delivered</span></td>
-              <td>12 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
-            </tr>
-
-            <tr data-status="Processing">
-              <td>ORD-10022</td>
-              <td>Jane Smith</td>
-              <td>1</td>
-              <td>KES 6,800</td>
-              <td><span class="badge pending">Pending</span></td>
-              <td><span class="badge processing">Processing</span></td>
-              <td>13 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
-            </tr>
-
-            <tr data-status="Shipped">
-              <td>ORD-10023</td>
-              <td>Mary Johnson</td>
-              <td>3</td>
-              <td>KES 12,000</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td><span class="badge shipped">Shipped</span></td>
-              <td>14 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
-            </tr>
-
-            <tr data-status="Processing">
-              <td>ORD-10022</td>
-              <td>Jane Smith</td>
-              <td>1</td>
-              <td>KES 6,800</td>
-              <td><span class="badge pending">Pending</span></td>
-              <td><span class="badge processing">Processing</span></td>
-              <td>13 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
-            </tr>
-
-            <tr data-status="Shipped">
-              <td>ORD-10023</td>
-              <td>Mary Johnson</td>
-              <td>3</td>
-              <td>KES 12,000</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td><span class="badge shipped">Shipped</span></td>
-              <td>14 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
-            </tr>
-
-            <tr data-status="Processing">
-              <td>ORD-10022</td>
-              <td>Jane Smith</td>
-              <td>1</td>
-              <td>KES 6,800</td>
-              <td><span class="badge pending">Pending</span></td>
-              <td><span class="badge processing">Processing</span></td>
-              <td>13 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
-            </tr>
-
-            <tr data-status="Shipped">
-              <td>ORD-10023</td>
-              <td>Mary Johnson</td>
-              <td>3</td>
-              <td>KES 12,000</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td><span class="badge shipped">Shipped</span></td>
-              <td>14 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
-            </tr>
-
-            <!-- Add more rows here as needed -->
+          <?php
+          if (!empty($sellerOrders)) {
+              $count = 1;
+              foreach ($sellerOrders as $order) {
+                  $statusClass = strtolower($order['order_status']); // e.g., "processing"
+                  $total = number_format($order['total_amount'], 2);
+                  $date = date("d M Y", strtotime($order['created_at']));
+                  echo "<tr data-status=\"{$order['order_status']}\">
+                          <td>{$count}.</td>
+                          <td>{$order['order_code']}</td>
+                          <td>".htmlspecialchars($order['buyer_name'])."</td>
+                          <td>".htmlspecialchars($order['product_name'])."</td>
+                          <td>{$order['quantity']}</td>
+                          <td>KES {$total}</td>
+                          <td><span class='badge ".($statusClass === 'pending' ? 'pending' : 'paid')."'>".($statusClass === 'pending' ? 'Pending' : 'Paid')."</span></td>
+                          <td><span class='badge {$statusClass}'>".ucfirst($order['order_status'])."</span></td>
+                          <td>{$date}</td>
+                          <td class='actions'>
+                              <div>
+                                  <button class='btn-ship'>Mark&nbsp;as&nbsp;Shipped</button>
+                              </div>
+                          </td>
+                        </tr>";
+                  $count++;
+              }
+          } else {
+              echo "<tr><td colspan='10'>No orders yet.</td></tr>";
+          }
+          ?>
           </tbody>
         </table>
       </div>
@@ -1042,6 +999,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_product_id'])
               <th>#</th>
               <th>Order ID</th>
               <th>Buyer</th>
+              <th>Product</th>
               <th>Qty</th>
               <th>Total</th>
               <th>Payment</th>
@@ -1051,119 +1009,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_product_id'])
             </tr>
           </thead>
           <tbody>
-            <tr data-status="Delivered">
-              <td>1.</td>
-              <td>ORD-10021</td>
-              <td>John Doe</td>
-              <td>2</td>
-              <td>KES 7,000</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td><span class="badge delivered">Delivered</span></td>
-              <td>12 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
-            </tr>
-
-            <tr data-status="Processing">
-              <td>2.</td>
-              <td>ORD-10022</td>
-              <td>Jane Smith</td>
-              <td>1</td>
-              <td>KES 6,800</td>
-              <td><span class="badge pending">Pending</span></td>
-              <td><span class="badge processing">Processing</span></td>
-              <td>13 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
-            </tr>
-
-            <tr data-status="Shipped">
-              <td>3.</td>
-              <td>ORD-10023</td>
-              <td>Mary Johnson</td>
-              <td>3</td>
-              <td>KES 12,000</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td><span class="badge shipped">Shipped</span></td>
-              <td>14 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
-            </tr>
-
-            <tr data-status="Processing">
-              <td>4.</td>
-              <td>ORD-10022</td>
-              <td>Jane Smith</td>
-              <td>1</td>
-              <td>KES 6,800</td>
-              <td><span class="badge pending">Pending</span></td>
-              <td><span class="badge processing">Processing</span></td>
-              <td>13 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
-            </tr>
-
-            <tr data-status="Shipped">
-              <td>5.</td>
-              <td>ORD-10023</td>
-              <td>Mary Johnson</td>
-              <td>3</td>
-              <td>KES 12,000</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td><span class="badge shipped">Shipped</span></td>
-              <td>14 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
-            </tr>
-
-            <tr data-status="Processing">
-              <td>6.</td>
-              <td>ORD-10022</td>
-              <td>Jane Smith</td>
-              <td>1</td>
-              <td>KES 6,800</td>
-              <td><span class="badge pending">Pending</span></td>
-              <td><span class="badge processing">Processing</span></td>
-              <td>13 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
-            </tr>
-
-            <tr data-status="Shipped">
-              <td>7.</td>
-              <td>ORD-10023</td>
-              <td>Mary Johnson</td>
-              <td>3</td>
-              <td>KES 12,000</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td><span class="badge shipped">Shipped</span></td>
-              <td>14 Feb 2026</td>
-              <td class="actions">
-                <div>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-                </div>
-              </td>
-            </tr>
-
-            <!-- Add more rows here as needed -->
+          <?php
+          if (!empty($sellerOrders)) {
+              $count = 1;
+              foreach ($sellerOrders as $order) {
+                  $statusClass = strtolower($order['order_status']); // e.g., "processing"
+                  $total = number_format($order['total_amount'], 2);
+                  $date = date("d M Y", strtotime($order['created_at']));
+                  echo "<tr data-status=\"{$order['order_status']}\">
+                          <td>{$count}.</td>
+                          <td>{$order['order_code']}</td>
+                          <td>".htmlspecialchars($order['buyer_name'])."</td>
+                          <td>".htmlspecialchars($order['product_name'])."</td>
+                          <td>{$order['quantity']}</td>
+                          <td>KES {$total}</td>
+                          <td><span class='badge ".($statusClass === 'pending' ? 'pending' : 'paid')."'>".($statusClass === 'pending' ? 'Pending' : 'Paid')."</span></td>
+                          <td><span class='badge {$statusClass}'>".ucfirst($order['order_status'])."</span></td>
+                          <td>{$date}</td>
+                          <td class='actions'>
+                              <div>
+                                  <button class='btn-ship'>Mark&nbsp;as&nbsp;Shipped</button>
+                              </div>
+                          </td>
+                        </tr>";
+                  $count++;
+              }
+          } else {
+              echo "<tr><td colspan='10'>No orders yet.</td></tr>";
+          }
+          ?>
           </tbody>
         </table>
       </div>
