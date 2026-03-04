@@ -546,7 +546,6 @@ $sellerStmt = $conn->prepare("
       address,
       ward,
       profile_image,
-      total_sales,
       rating_average,
       rating_count
     FROM users
@@ -713,6 +712,7 @@ $productStmt->close();
         </div>
 
         <div class="cart-summary">
+          <h1>Cart Summary</h1>
           <div class="summary-row">
             <span>Subtotal</span>
             <span id="subtotal">KES 0</span>
@@ -840,21 +840,32 @@ $productStmt->close();
               </div>
             </div>
           </div>
-            <a href="" class="seller-right">
+          <a href="" class="seller-right">
             <?php
-            $totalSales = (int)$seller['total_sales'];
+              /* ---------- FETCH SELLER TOTAL DISTINCT ORDERS ---------- */
+              $orderCountStmt = $conn->prepare("
+                  SELECT COUNT(DISTINCT order_id) AS total_orders
+                  FROM order_items
+                  WHERE seller_id = ?
+              ");
+              $orderCountStmt->bind_param("i", $sellerId);
+              $orderCountStmt->execute();
+              $orderCountStmt->bind_result($totalOrders);
+              $orderCountStmt->fetch();
+              $orderCountStmt->close();
 
-            if ($totalSales < 100) {
+              $totalOrders = (int)$totalOrders;
+              if ($totalOrders < 100) {
                 $badgeClass = 'promoBadgeDefault';
-            } elseif ($totalSales >= 100 && $totalSales < 200) {
+              } elseif ($totalOrders >= 100 && $totalOrders < 200) {
                 $badgeClass = 'promoBadgeGoGold';
-            } else { // >= 200
+              } else {
                 $badgeClass = 'promoBadgeGoPro';
-            }
+              }
             ?>
 
             <div class="<?php echo $badgeClass; ?>">
-                <?php echo $totalSales; ?>+
+              <?php echo $totalOrders; ?>+
             </div>
 
             <div class="bsType">

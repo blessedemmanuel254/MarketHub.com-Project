@@ -175,13 +175,40 @@ $currentUserId = $_SESSION['user_id'];
 
 $sellerQuery = "
     SELECT 
-        u.user_id, u.username, u.business_name, u.business_type, u.market_scope, u.ward, u.profile_image, u.address, u.total_sales,
-        (SELECT COUNT(*) FROM user_followers uf WHERE uf.follower_id = u.user_id) AS following_count,
-        (SELECT COUNT(*) FROM user_followers uf WHERE uf.followed_id = u.user_id) AS followers_count,
-        (SELECT COUNT(*) FROM user_followers uf WHERE uf.follower_id = ? AND uf.followed_id = u.user_id) AS is_following
+        u.user_id,
+        u.username,
+        u.business_name,
+        u.business_type,
+        u.market_scope,
+        u.ward,
+        u.profile_image,
+        u.address,
+        (
+            SELECT COUNT(DISTINCT oi.order_id)
+            FROM order_items oi
+            WHERE oi.seller_id = u.user_id
+        ) AS total_orders,
+        (
+            SELECT COUNT(*)
+            FROM user_followers uf
+            WHERE uf.follower_id = u.user_id
+        ) AS following_count,
+        (
+            SELECT COUNT(*)
+            FROM user_followers uf
+            WHERE uf.followed_id = u.user_id
+        ) AS followers_count,
+        (
+            SELECT COUNT(*)
+            FROM user_followers uf
+            WHERE uf.follower_id = ?
+            AND uf.followed_id = u.user_id
+        ) AS is_following
+
     FROM users u
     WHERE u.account_type = 'seller'
-    ORDER BY u.total_sales DESC
+
+    ORDER BY total_orders DESC
     LIMIT 50
 ";
 
@@ -190,13 +217,23 @@ $stmt->bind_param("i", $currentUserId);
 $stmt->execute();
 $result = $stmt->get_result();
 
-$sellers = [];
+$shops = [];
+$supermarkets = [];
+
 while ($row = $result->fetch_assoc()) {
-    // Capitalize names and types
-    $row['business_name'] = ucwords(strtolower($row['business_name']));
-    $row['business_type'] = ucwords(strtolower($row['business_type']));
-    $row['address'] = ucwords(strtolower($row['address']));
-    $sellers[] = $row;
+
+  $row['business_name'] = ucwords(strtolower($row['business_name']));
+  $row['business_type'] = ucwords(strtolower($row['business_type']));
+  $row['address'] = ucwords(strtolower($row['address']));
+
+  // Normalize type for comparison
+  $type = strtolower(trim($row['business_type']));
+
+  if (in_array($type, ['shop', 'kiosk', 'canteen', 'kibanda'])) {
+      $shops[] = $row;
+  } elseif (in_array($type, ['supermarket', 'wholesale'])) {
+      $supermarkets[] = $row;
+  }
 }
 $stmt->close();
 ?>
@@ -480,12 +517,12 @@ $stmt->close();
             </div>
 
             <div class="sellers">
-            <?php if (empty($sellers)): ?>
-              <div class="no-market-message">
-                No markets available.
-              </div>
-            <?php else: ?>
-                <?php foreach ($sellers as $seller): ?>
+              <?php if (empty($shops)): ?>
+                <div class="no-market-message">
+                  No markets available.
+                </div>
+              <?php else: ?>
+                <?php foreach ($shops as $seller): ?>
                     <?php
                         // Safe outputs
                         $bName = htmlspecialchars($seller['business_name'], ENT_QUOTES, 'UTF-8');
@@ -524,7 +561,20 @@ $stmt->close();
                             </div>
                         </div>
                         <a href="marketDisplay.php?seller=<?php echo $seller['user_id']; ?>" class="seller-right">
-                            <div class="promoBadgeDefault"><?php echo $seller['total_sales']; ?>+</div>
+                          <?php
+                          $totalOrders = (int)$seller['total_orders'];
+
+                          if ($totalOrders < 100) {
+                              $badgeClass = 'promoBadgeDefault';
+                          } elseif ($totalOrders < 500) {
+                              $badgeClass = 'promoBadgeGoGold';
+                          } else {
+                              $badgeClass = 'promoBadgeGoPro';
+                          }
+                          ?>
+                            <div class="<?php echo $badgeClass; ?>">
+                              <?php echo $totalOrders; ?>+
+                            </div>
                             <div class="bsType">Business Type : <i><?php echo $bType; ?></i></div>
                             <div class="action">
                                 <button>View&nbsp;seller</button>
@@ -604,67 +654,72 @@ $stmt->close();
 
             <!-- SELLERS LIST -->
             <div class="sellers">
-
-              <div class="seller">
-                <div class="seller-left">
-                  <div class="avatar">NS</div>
-                  <div>
-                    <div class="name">Naivas Supermaket</div>
-                    <div class="rating">★★★★★ (41)</div>
-                    <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
-                    <div class="meta"><h2>23k&nbsp;<span>followers</span></h2></div>
-                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
-                  </div>
+              <?php if (empty($supermarkets)): ?>
+                <div class="no-market-message">
+                  No markets available.
                 </div>
-                <a href="marketDisplay.php" class="seller-right">
-                  <div class="promoBadgeGoGold">1000+</div>
-                  <div class="bsType">Business Type : <i>Kiosk</i></div>
-                  <div class="action">
-                    <button>View&nbsp;seller</button>
-                  </div>
-                </a>
-              </div>
+              <?php else: ?>
+                <?php foreach ($supermarkets as $seller): ?>
+                    <?php
+                        // Safe outputs
+                        $bName = htmlspecialchars($seller['business_name'], ENT_QUOTES, 'UTF-8');
+                        $bType = htmlspecialchars($seller['business_type'], ENT_QUOTES, 'UTF-8');
+                        $address = htmlspecialchars($seller['address'], ENT_QUOTES, 'UTF-8');
+                        $avatar = !empty($seller['profile_image']) && file_exists($seller['profile_image']) 
+                                  ? htmlspecialchars($seller['profile_image'], ENT_QUOTES, 'UTF-8') 
+                                  : $defaultAvatar;
+                        $initials = strtoupper(substr($bName, 0, 1)) . (isset($seller['business_name'][1]) ? strtoupper(substr($bName, 1, 1)) : '');
+                    ?>
+                    <div class="seller">
+                        <div class="seller-left">
+                            <div class="avatar"><?php echo $initials; ?></div>
+                            <div>
+                                <div class="name"><?php echo $bName; ?></div>
+                                <div class="rating">★★★★★ (<?php echo rand(5, 200); ?>)</div>
+                                <div class="meta">
+                                  <h2 class="following-count" data-seller="<?php echo $seller['user_id']; ?>">
+                                      <?php echo $seller['following_count']; ?>&nbsp;<span>following</span>
+                                  </h2>
 
-              <div class="seller">
-                <div class="seller-left">
-                  <div class="avatar">CM</div>
-                  <div>
-                    <div class="name">Cherowamaye Minimarket</div>
-                    <div class="rating">★★★★★ (165)</div>
-                    <div class="meta"><h2>3&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
-                    <div class="meta"><h2>4&nbsp;<span>followers</span></h2></div>
-                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
-                  </div>
-                </div>
-                <a href="marketDisplay.php" class="seller-right">
-                  <div class="promoBadgeDefault">287</div>
-                  <div class="bsType">Business Type : <i>Canteen</i></div>
-                  <div class="action">
-                    <button>View&nbsp;seller</button>
-                  </div>
-                </a>
-              </div>
+                                  <h2 
+                                    class="<?php echo $seller['is_following'] ? 'followingBtn' : 'followBtn'; ?>" 
+                                    data-seller="<?php echo $seller['user_id']; ?>"
+                                  >
+                                    <?php echo $seller['is_following'] ? 'Following' : 'Follow'; ?>
+                                  </h2>
+                                </div>
 
-              <div class="seller">
-                <div class="seller-left">
-                  <div class="avatar">AW</div>
-                  <div>
-                    <div class="name">Abul Wholesale</div>
-                    <div class="rating">★★★★★ (11)</div>
-                    <div class="meta"><h2>2&nbsp;<span>following</span></h2> <h2 class="followBtn">Follow</h2></div>
-                    <div class="meta"><h2>2&nbsp;<span>followers</span></h2></div>
-                    <div class="bsInfo"><strong>Location :</strong> Pwani University Area</div>
-                  </div>
-                </div>
-                <a href="marketDisplay.php" class="seller-right">
-                  <div class="promoBadgeGoPro">500+</div>
-                  <div class="bsType">Business Type : <i>Kibanda</i></div>
-                  <div class="action">
-                    <button>View&nbsp;seller</button>
-                  </div>
-                </a>
-              </div>
+                                <div class="meta">
+                                    <h2 class="followers-count" data-seller="<?php echo $seller['user_id']; ?>">
+                                        <?php echo $seller['followers_count']; ?>&nbsp;<span>followers</span>
+                                    </h2>
+                                </div>
+                                <div class="bsInfo"><strong>Location :</strong> <?php echo $address; ?></div>
+                            </div>
+                        </div>
+                        <a href="marketDisplay.php?seller=<?php echo $seller['user_id']; ?>" class="seller-right">
+                          <?php
+                          $totalOrders = (int)$seller['total_orders'];
 
+                          if ($totalOrders < 100) {
+                              $badgeClass = 'promoBadgeDefault';
+                          } elseif ($totalOrders < 500) {
+                              $badgeClass = 'promoBadgeGoGold';
+                          } else {
+                              $badgeClass = 'promoBadgeGoPro';
+                          }
+                          ?>
+                            <div class="<?php echo $badgeClass; ?>">
+                              <?php echo $totalOrders; ?>+
+                            </div>
+                            <div class="bsType">Business Type : <i><?php echo $bType; ?></i></div>
+                            <div class="action">
+                                <button>View&nbsp;seller</button>
+                            </div>
+                        </a>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
             </div>
           </div>
         </div>

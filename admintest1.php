@@ -222,7 +222,6 @@ $sellerStmt = $conn->prepare("
       address,
       ward,
       profile_image,
-      total_sales,
       rating_average,
       rating_count
     FROM users

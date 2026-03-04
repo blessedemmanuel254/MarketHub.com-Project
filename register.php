@@ -141,8 +141,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           // Insert into database
           $stmt = $conn->prepare("
               INSERT INTO users 
-              (account_type, full_name, username, email, phone, password, country, county, ward, address, business_name, business_model, business_type, market_scope, total_sales, rating_average, rating_count, created_at, updated_at)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, NOW(), NOW())
+              (account_type, full_name, username, email, phone, password, country, county, ward, address, business_name, business_model, business_type, market_scope, rating_average, rating_count, created_at, updated_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, NOW(), NOW())
           ");
 
           $stmt->bind_param(

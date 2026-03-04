@@ -2777,10 +2777,16 @@ a.seller-right {
 
 .container .cart-container .inner-cart-container .cart-summary {
   flex: 1;
-  border: 1px solid #eee;
+  border: 1px solid #dedede;
   border-radius: 4px;
   padding: 20px;
   height: fit-content;
+}
+
+.container .cart-container .inner-cart-container .cart-summary h1 {
+  text-align: left;
+  font-size: 18px;
+  margin-bottom: 10px;
 }
 
 .container .cart-container .inner-cart-container .cart-summary .summary-row {

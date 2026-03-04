@@ -721,8 +721,8 @@ function updateTotals() {
 
   if (items.length === 0) {
     if (emptyMsg) emptyMsg.style.display = "block";
-    subtotalEl.textContent = "KES 0";
-    totalEl.textContent = "KES 0";
+    subtotalEl.textContent = "KES 0.00";
+    totalEl.textContent = "KES 0.00";
     updateCartCount();
     return;
   }
@@ -735,8 +735,12 @@ function updateTotals() {
     subtotal += price * qty;
   });
 
-  subtotalEl.textContent = `KES ${subtotal}`;
-  totalEl.textContent = `KES ${subtotal + deliveryFee}`;
+  // Format subtotal and total with commas and 2 decimals
+  const formattedSubtotal = subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const formattedTotal = (subtotal + deliveryFee).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  subtotalEl.textContent = `KES ${formattedSubtotal}`;
+  totalEl.textContent = `KES ${formattedTotal}`;
 }
 
 /* ---------- UPDATE CART COUNT ---------- */
@@ -815,14 +819,22 @@ function loadCart() {
 
       const div = document.createElement("div");
       div.className = "cart-item";
-      div.dataset.price = item.price;
+
+      // Keep numeric price in dataset for calculations
+      div.dataset.price = parseFloat(item.price);
+
+      // Format price for display
+      const formattedPrice = parseFloat(item.price).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
 
       div.innerHTML = `
         <div class="cart-left">
           <img src="${item.image_path}">
           <div class="cart-info">
             <h4>${item.product_name}</h4>
-            <p>KES ${item.price}</p>
+            <p>KES ${formattedPrice}</p>
             <div class="remove-btn" onclick="removeItem(${item.product_id})">
               Remove
             </div>
@@ -1233,18 +1245,24 @@ function toggleMarketDisplayVSOrder() {
 }
 
 function goBackHandler() {
-
   const sellerContainer = document.querySelector('.sellerProfileContainer');
   const orderContainer  = document.querySelector('.order-container');
 
   if (!sellerContainer || !orderContainer) return;
 
-  // If order page is visible → toggle back to seller view
+  // Check if order page is currently visible
   const orderVisible = window.getComputedStyle(orderContainer).display !== 'none';
 
   if (orderVisible) {
+    // Toggle back to market display
     toggleMarketDisplayVSOrder();
+
+    // Reload market page after toggling to update cart
+    setTimeout(() => {
+      location.reload();
+    }, 50); // small delay to ensure toggle finishes
   } else {
+    // Normal back behavior if not coming from order page
     window.history.back();
   }
 }
@@ -1262,6 +1280,12 @@ function buyNow(button) {
   const card = document.querySelectorAll(".card")[1];
   if (!card) return;
 
+  // Format price with commas and 2 decimals
+  const formattedPrice = price.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
   // Individual product with remove button
   const sellerContent = `
     <div class="seller-box">
@@ -1273,7 +1297,7 @@ function buyNow(button) {
           <div class="product-info">
             ${name}
             <div class="product-price">
-              KSh <span class="item-subtotal">${price.toFixed(2)}</span>
+              KSh <span class="item-subtotal">${formattedPrice}</span>
             </div>
           </div>
         </div>
@@ -1318,7 +1342,6 @@ function buyNow(button) {
     headers: {"Content-Type":"application/x-www-form-urlencoded"},
     body: `action=add_to_cart&product_id=${productId}`
   });
-
 }
 
 function placeOrder() {
@@ -1427,8 +1450,14 @@ function updateOrderSummary() {
   const finalTotalEl = document.getElementById("finalTotal");
   const orderCountEl = document.getElementById("orderItemCount");
 
-  if (itemsTotalEl) itemsTotalEl.textContent = `KSh ${itemsTotal.toFixed(2)}`;
-  if (finalTotalEl) finalTotalEl.textContent = `KSh ${itemsTotal.toFixed(2)}`;
+  // Format number with commas and 2 decimals
+  const formattedTotal = itemsTotal.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  if (itemsTotalEl) itemsTotalEl.textContent = `KSh ${formattedTotal}`;
+  if (finalTotalEl) finalTotalEl.textContent = `KSh ${formattedTotal}`;
   if (orderCountEl) orderCountEl.textContent = quantity;
 }
 
@@ -1448,8 +1477,14 @@ function updateCheckoutSummary() {
   const finalTotalEl = document.getElementById("finalTotal");
   const orderCountEl = document.getElementById("orderItemCount");
 
-  if (itemsTotalEl) itemsTotalEl.textContent = `KSh ${grandTotal.toFixed(2)}`;
-  if (finalTotalEl) finalTotalEl.textContent = `KSh ${grandTotal.toFixed(2)}`;
+  // Format grand total with commas and 2 decimals
+  const formattedTotal = grandTotal.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  if (itemsTotalEl) itemsTotalEl.textContent = `KSh ${formattedTotal}`;
+  if (finalTotalEl) finalTotalEl.textContent = `KSh ${formattedTotal}`;
   if (orderCountEl) orderCountEl.textContent = totalItems;
 }
 
@@ -1491,9 +1526,15 @@ function proceedFromCart() {
 
       let sellerProductsContent = "";
       sellerGroup.items.forEach(product => {
-        const price = parseFloat(product.price) || 0; // ✅ convert to number
+        const price = parseFloat(product.price) || 0; // convert to number
         grandTotal += price * product.quantity;
         totalItems += product.quantity;
+
+        // Format price with commas and 2 decimals
+        const formattedPrice = price.toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
 
         sellerProductsContent += `
           <div class="product" data-price="${price}" data-product="${product.product_id}" data-seller="${sellerId}">
@@ -1501,7 +1542,7 @@ function proceedFromCart() {
               <img src="${product.image_path}" width="60">
               <div class="product-info">
                 ${product.product_name}
-                <div class="product-price">KSh ${price.toFixed(2)}</div>
+                <div class="product-price">KSh ${formattedPrice}</div>
               </div>
             </div>
             <div class="qty-and-delete">
@@ -1549,11 +1590,16 @@ function proceedFromCart() {
       `;
     }
 
-    // Update totals if these elements exist
+    // Format grand total for display
+    const formattedGrandTotal = grandTotal.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+
     if (document.getElementById("itemsTotal"))
-      document.getElementById("itemsTotal").textContent = `KSh ${grandTotal.toFixed(2)}`;
+      document.getElementById("itemsTotal").textContent = `KSh ${formattedGrandTotal}`;
     if (document.getElementById("finalTotal"))
-      document.getElementById("finalTotal").textContent = `KSh ${grandTotal.toFixed(2)}`;
+      document.getElementById("finalTotal").textContent = `KSh ${formattedGrandTotal}`;
   });
 }
 

@@ -1,353 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Market Hub | Checkout</title>
-
-<style>
-:root {
-    --black: #000000;
-    --white: #ffffff;
-    --border: #dedede;
-    --muted: #898888;
-}
-
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-    background: #ffffff;
-    color: #0f0f0f;
-}
-
-/* ===== Header ===== */
-.header {
-    padding: 18px 40px;
-    border-bottom: 1px solid #dedede;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.logo {
-    font-weight: 700;
-    letter-spacing: 1px;
-}
-
-.secure {
-    font-size: 13px;
-    color: #898888;
-}
-
-/* ===== Layout ===== */
-.order-container {
-    max-width: 1299px;
-    margin: 10px auto;
-    padding: 0 20px;
-    display: grid;
-    grid-template-columns: 2.3fr 1fr;
-    gap: 20px;
-}
-
-/* ===== Cards ===== */
-.order-container .card {
-  padding: 20px;
-  border: 1px solid #dedede;
-  border-radius: 4px;
-
-}
-
-.order-container .card .card-title {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.order-container .card .card-title p {
-    font-size: 16px;
-    font-weight: normal;
-}
-
-.order-container .card .card-title p span {
-    color: #898888;
-}
-
-.order-container .card .card-title p span strong {
-  color: #088000;
-
-}
-
-.order-container .card .card-title .update-btn {
-  font-size: 13px;
-  color: #898888;
-  cursor: pointer;
-  font-weight: normal;
-  border-radius: 4px;
-  padding: 4px;
-  border: 1px solid #0980002c;
-  color:#088000;
-  display: flex;
-  gap: 5px;
-  align-items: center;
-}
-
-.order-container .card .card-title .update-btn:hover {
-  opacity: .875;
-}
-
-/* ===== Shipping ===== */
-.order-container .card .address-name {
-    font-weight: bold;
-    margin-bottom: 6px;
-}
-
-.order-container .card .address-text {
-    font-size: 14px;
-    line-height: 1.6;
-}
-
-/* ===== Seller Section ===== */
-.order-container .card .seller-box {
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 4px;
-    background-color: #8988883a;
-}
-
-.order-container .card .seller-box .seller-header {
-    font-weight: bold;
-    margin-bottom: 6px;
-}
-
-.order-container .card .seller-box .seller-meta {
-    font-size: 13px;
-    color: #898888;
-    margin-bottom: 15px;
-}
-
-/* ===== Product Item ===== */
-.order-container .card .seller-box .product {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #dedede;
-    border-radius: 4px;
-    padding: 10px;
-    background-color: #ffffff;
-}
-
-.order-container .card .seller-box .product img {
-  width: 50px;
-  height: 50px;
-  object-fit: cover;
-  border-radius: 4px;
-}
-
-.order-container .card .seller-box .product .product-info {
-    font-size: 14px;
-    flex: 1;
-}
-
-.order-container .card .seller-box .product .product-price {
-    margin-top: 6px;
-    font-weight: bold;
-}
-
-.order-container .card .seller-box .product .product-price strong {
-  color: #856404;
-}
-
-/* ===== Guarantee ===== */
-.order-container .card .guarantee {
-    margin-top: 15px;
-    font-size: 13px;
-    font-weight: bold;
-    color: #898888;
-}
-
-/* ===== Summary ===== */
-.order-container .card .summary-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
-  margin-bottom: 12px;
-}
-
-.order-container .card .summary-row.total {
-    font-weight: 700;
-    font-size: 16px;
-    border-top: 1px solid #dedede;
-    padding-top: 15px;
-    margin-top: 20px;
-}
-
-/* ===== Button ===== */
-.order-container .card .place-order {
-    width: 100%;
-    margin-top: 10px;
-    padding: 8px 16px;
-    background: #0f0f0f;
-    color: #ffffff;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: bold;
-}
-
-.order-container .card .place-order:hover {
-    opacity: 0.875;
-}
-
-/* ===== Responsive ===== */
-@media (max-width: 900px) {
-    .order-container {
-        grid-template-columns: 1fr;
-    }
-}
-
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notification Example</title>
   <!-- Font Awesome CDN -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    /* Container for notifications (top-right) */
+    #notification-container {
+      position: fixed;
+      top: 20px;
+      right: 20px; /* changed from left to right */
+      z-index: 9999;
+    }
 
-  <link href="https://fonts.googleapis.com/css2?family=Chewy&display=swap" rel="stylesheet">
+    /* Individual notification */
+    .notification {
+      background-color: #ffffff;
+      color: #088000;
+      padding: 15px 20px;
+      border-radius: 8px;
+      min-width: 250px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 10px;
+      overflow: hidden;
+      position: relative;
+      font-family: Arial, sans-serif;
+      opacity: 0;
+      transform: translateX(50px); /* slide in from right */
+      animation: slideIn 0.3s forwards;
+    }
+
+    /* Slide-in animation from right */
+    /* Slide-in animation */
+    @keyframes slideIn {
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* Sliding out wiggling animation */
+    @keyframes slideOutWiggle {
+      0% { opacity: 1; transform: translateX(0) translateY(0) rotate(0deg); }
+      25% { transform: translateX(20px) translateY(-5px) rotate(-5deg); }
+      50% { transform: translateX(-20px) translateY(5px) rotate(5deg); }
+      75% { transform: translateX(20px) translateY(-5px) rotate(-5deg); }
+      100% { opacity: 0; transform: translateX(-50px) translateY(0) rotate(0deg); }
+    }
+
+    /* Message inside notification */
+    .notification .message {
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+
+    /* Progress bar */
+    .notification .progress-bar {
+      height: 6px;
+      background-color: #088000;
+      width: 100%;
+      transition: width 0.1s linear;
+      border-radius: 6px;
+    }
+
+    /* Stack notifications nicely */
+    .notification + .notification {
+      margin-top: 5px;
+    }
+
+    /* Example button styling */
+    .btn {
+      padding: 10px 20px;
+      background-color: #088000;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn:hover {
+      background-color: #066000;
+    }
+  </style>
 </head>
 <body>
+  <h1>Notification Demo</h1>
+  <button class="btn" onclick="showNotification(`<i class='fa-solid fa-check-circle'></i> Order placed successfully!`, 3000)">
+    Place Order
+  </button>
 
-<!-- Header -->
-<div class="header">
-    <div class="logo">MARKET HUB</div>
-    <div class="secure">Protected Checkout</div>
-</div>
+  <!-- Notification container -->
+  <div id="notification-container"></div>
 
-<div class="order-container">
+  <script>
+    function showNotification(message, duration = 3000) {
+      const notification = document.createElement('div');
+      notification.classList.add('notification');
+      notification.innerHTML = `
+        <div class="message">${message}</div>
+        <div class="progress-bar"></div>
+      `;
+      document.getElementById('notification-container').appendChild(notification);
 
-    <!-- LEFT COLUMN -->
-    <div>
+      const progressBar = notification.querySelector('.progress-bar');
+      let startTime = null;
 
-        <!-- Shipping -->
-        <div class="card">
-            <div class="card-title">
-                Delivery Details
-                <span class="update-btn"><i class="fa-solid fa-cloud-arrow-up"></i>Update</span>
-            </div>
+      function animateProgress(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+        const progress = Math.max(0, 1 - elapsed / duration);
+        progressBar.style.width = `${progress * 100}%`;
 
-            <div class="address-name">Blessed Emmanuel · +254 712 345 987</div>
-            <div class="address-text">
-                Nairobi County, Embakasi East, Pipeline area near Highway Mall,
-                third floor opposite Petro Station.<br>
-                Contact: 254712345987
-            </div>
-        </div>
+        if (elapsed < duration) {
+          requestAnimationFrame(animateProgress);
+        } else {
+          // Trigger slide-out wiggle animation
+          notification.style.animation = 'slideOutWiggle 0.8s forwards';
+          setTimeout(() => notification.remove(), 800);
+        }
+      }
 
-        <br>
-        
-        <br>
-
-        <!-- PRODUCTS BY SELLER -->
-        <div class="card">
-            <div class="card-title"><p>Order Summary<br><span>Item(s) : <strong>4</strong></span></p></div>
-
-            <!-- Seller 1 -->
-            <div class="seller-box">
-                <div class="seller-header">Sold by: Techline Electronics</div>
-                <div class="seller-meta">
-                    Ships from Westlands · Estimated delivery: 3–5 business days
-                </div>
-
-                <div class="product">
-                    <img src="https://i.pravatar.cc/300?img=12">
-                    <div class="product-info">
-                        Smart Bluetooth Over-Ear Headphones with Noise Reduction
-                        <div class="product-price">KSh 8,450 × <strong>1</strong></div>
-                    </div>
-                </div>
-                <div class="product">
-                    <img src="https://i.pravatar.cc/300?img=12">
-                    <div class="product-info">
-                        Smart Bluetooth Over-Ear Headphones with Noise Reduction
-                        <div class="product-price">KSh 8,450 × <strong>1</strong></div>
-                    </div>
-                </div>
-                <div class="product">
-                    <img src="https://i.pravatar.cc/300?img=12">
-                    <div class="product-info">
-                        Smart Bluetooth Over-Ear Headphones with Noise Reduction
-                        <div class="product-price">KSh 8,450 × <strong>1</strong></div>
-                    </div>
-                </div>
-                <div class="product">
-                    <img src="https://i.pravatar.cc/300?img=12">
-                    <div class="product-info">
-                        Smart Bluetooth Over-Ear Headphones with Noise Reduction
-                        <div class="product-price">KSh 8,450 × <strong>1</strong></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Seller 2 -->
-            <div class="seller-box">
-                <div class="seller-header">Sold by: HomePro Essentials</div>
-                <div class="seller-meta">
-                    Ships from Ruiru · Estimated delivery: 2–4 business days
-                </div>
-
-                <div class="product">
-                    <img src="https://i.pravatar.cc/300?img=32">
-                    <div class="product-info">
-                        Stainless Steel Electric Kettle with Auto Shut-Off
-                        <div class="product-price">KSh 3,250 × <strong>2</strong></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="guarantee">
-              Market Hub · your number one marketplace.
-            </div>
-        </div>
-
-    </div>
-
-    <!-- RIGHT COLUMN -->
-    <div>
-        <div class="card">
-            <div class="card-title">Payment Summary</div>
-
-            <div class="summary-row">
-                <span>Items Total</span>
-                <span>KSh 14,950</span>
-            </div>
-
-            <div class="summary-row">
-                <span>Delivery Fees</span>
-                <span>+ KSh 420</span>
-            </div>
-
-            <div class="summary-row">
-                <span>Promotions</span>
-                <span>- KSh 350</span>
-            </div>
-
-            <div class="summary-row total">
-                <span>Total to Pay</span>
-                <span>KSh 15,020</span>
-            </div>
-
-            <button class="place-order">
-                Place&nbsp;Order
-            </button>
-        </div>
-    </div>
-
-</div>
-
+      requestAnimationFrame(animateProgress);
+    }
+  </script>
 </body>
 </html>
