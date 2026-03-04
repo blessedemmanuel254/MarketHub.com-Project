@@ -97,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="radio" name="accountType" value="property_owner">
             <div class="account-icon">🏠</div>
             <div class="account-label">Property Owner</div>
-            <div class="account-desc">List properties for rent or sale.</div>
+            <div class="account-desc">Put your houses, land, apartments, rentals, cars or other items online and reach local and national tenants and buyers with ease.</div>
           </label>
           <label class="account-card">
             <input type="radio" name="accountType" value="service_provider">

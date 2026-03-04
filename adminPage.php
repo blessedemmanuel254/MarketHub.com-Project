@@ -121,7 +121,7 @@ if ($accountType !== $allowedRole) { */
           <i class="fa-solid fa-money-bill-transfer"></i>Transactions
         </a>
         <a href="settingsPage.php" class="nav-link"><i class="fa-solid fa-gear"></i>Settings</a>
-        <a href="logout.php" class="nav-link"><i class="fa-solid fa-arrow-right-from-bracket"></i>Logout</a>
+        <a href="logout.php" class="nav-link-admin-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i>Logout</a>
       </nav>
 
     </div>

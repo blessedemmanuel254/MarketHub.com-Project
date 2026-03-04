@@ -1,3 +1,20 @@
+<?php
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);   // TEMPORARY
+    ini_set('log_errors', 1);
+    ini_set('error_log', __DIR__ . '/php_errors.log');
+  $servername = "sql107.infinityfree.com";
+  $username = "if0_41020500";
+  $password = "1745Sjm1";
+  $dbname = "if0_41020500_db_markethub";
+  
+  $conn = new mysqli($servername, $username, $password, $dbname);
+  
+  if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+  }
+?>
+
 1. Customers can buy products and services from their local markets.
   LANDING PAGE
   ~ index.php

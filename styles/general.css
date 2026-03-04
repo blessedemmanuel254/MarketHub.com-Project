@@ -1708,7 +1708,7 @@ label.account-type input:checked + .radio-dot::after {
   font-size: 25px;
   color: #0f0f0f;
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 }
 
 .container main form.actpContainer p.errorMessage {
@@ -3495,7 +3495,7 @@ body#adminBody {
   width: 100%;
 }
 
-.containerAdmin .navigation-bar nav a.nav-link {
+.containerAdmin .navigation-bar nav a.nav-link, .containerAdmin .navigation-bar nav a.nav-link-admin-logout {
   text-decoration: none;
   font-size: 12px;
   color: #ffffff;
@@ -3519,17 +3519,21 @@ body#adminBody {
     background 0.3s ease;
 }
 
-.containerAdmin .navigation-bar nav a.nav-link.active, .containerAdmin .navigation-bar nav a.nav-link.active i {
+.containerAdmin .navigation-bar nav a.nav-link.active, .containerAdmin .navigation-bar nav a.nav-link-admin-logout.active, .containerAdmin .navigation-bar nav a.nav-link.active i, .containerAdmin .navigation-bar nav a.nav-link-admin-logout.active i {
   color: #088000;
 }
 
-.containerAdmin .navigation-bar nav a.nav-link:hover {
+.containerAdmin .navigation-bar nav a.nav-link:hover, .containerAdmin .navigation-bar nav a.nav-link-admin-logout:hover {
   transform: translateY(-6px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.4);
   box-shadow: 0 4px 8px hsla(0, 0%, 54%, 0.376);
 }
 
-.containerAdmin .navigation-bar nav a.nav-link i {
+.containerAdmin .navigation-bar nav a.nav-link.active:hover, .containerAdmin .navigation-bar nav a.nav-link-admin-logout.active:hover {
+  box-shadow: 0 4px 8px rgba(8, 128, 0, 0.35);
+
+}
+
+.containerAdmin .navigation-bar nav a.nav-link i, .containerAdmin .navigation-bar nav a.nav-link-admin-logout i {
   font-size: 20px;
   color: #898888;
 }

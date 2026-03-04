@@ -130,10 +130,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
   /* ================= PLACE ORDER ================= */
   if ($action === 'place_order') {
+    // Fetch current stock before committing
+    $stockStmt = $conn->prepare("SELECT stock_quantity FROM productservicesrentals WHERE product_id = ? LIMIT 1");
+
+    foreach ($items as $item) {
+      $productId = (int)$item['product_id'];
+      $quantity = (int)$item['quantity'];
+
+      $stockStmt->bind_param("i", $productId);
+      $stockStmt->execute();
+      $stockStmt->bind_result($currentStock);
+      $stockStmt->fetch();
+
+      if ($quantity > $currentStock) {
+          throw new Exception("Product ID {$productId} does not have enough stock.");
+      }
+    }
+    $stockStmt->close();
 
     $productId = (int)($_POST['product_id'] ?? 0);
     $sellerId  = (int)($_POST['seller_id'] ?? 0);
     $quantity  = (int)($_POST['quantity'] ?? 1);
+
     // Fetch real price from database
     $priceStmt = $conn->prepare("
         SELECT price FROM productservicesrentals
@@ -150,22 +168,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         exit();
     }
 
-    $totalAmount = $realPrice * $quantity;
-
-    if ($productId <= 0 || $sellerId <= 0 || $price <= 0) {
+    // ✅ Validate
+    if ($productId <= 0 || $sellerId <= 0 || $quantity <= 0 || $realPrice <= 0) {
         echo json_encode(['success' => false, 'error' => 'Invalid order']);
         exit();
     }
 
+    $totalAmount = $realPrice * $quantity;
+
     $conn->begin_transaction();
 
     try {
-
-        $totalAmount = $price * $quantity;
-
-        // 1️⃣ Generate unique order code with 5 random digits
-        $dateStr = date('Ymd'); // e.g., 20260303
-        $randomDigits = str_pad(rand(0, 99999), 5, '0', STR_PAD_LEFT); // 5 random digits
+        // 1️⃣ Generate unique order code
+        $dateStr = date('Ymd');
+        $randomDigits = str_pad(rand(0, 99999), 5, '0', STR_PAD_LEFT);
         $orderCode = "ORD-" . $dateStr . "-" . $randomDigits;
 
         // 2️⃣ Insert order
@@ -187,6 +203,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $itemStmt->execute();
         $itemStmt->close();
 
+        $updateStock = $conn->prepare("
+            UPDATE productservicesrentals
+            SET stock_quantity = stock_quantity - ?
+            WHERE product_id = ? AND stock_quantity >= ?
+        ");
+        $updateStock->bind_param("iii", $quantity, $productId, $quantity);
+        $updateStock->execute();
+        $updateStock->close();
+
         $conn->commit();
 
         echo json_encode(['success' => true, 'order_code' => $orderCode]);
@@ -194,6 +219,101 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     } catch (Exception $e) {
         $conn->rollback();
         echo json_encode(['success' => false, 'error' => 'Database error']);
+    }
+
+    exit();
+  }
+
+  if ($action === 'place_order_multi') {
+    $items = json_decode($_POST['items'] ?? '[]', true);
+    $totalAmount = floatval($_POST['total_amount'] ?? 0);
+
+    if (!$items || $totalAmount <= 0) {
+        echo json_encode(['success' => false, 'error' => 'Invalid order']);
+        exit();
+    }
+
+    $conn->begin_transaction();
+    try {
+        // Generate unique order code for this whole order
+        $dateStr = date('Ymd');
+        $randomDigits = str_pad(rand(0, 99999), 5, '0', STR_PAD_LEFT);
+        $orderCode = "ORD-" . $dateStr . "-" . $randomDigits;
+
+        // Insert order
+        $orderStmt = $conn->prepare("
+            INSERT INTO orders (buyer_id, total_amount, order_status, created_at, order_code)
+            VALUES (?, ?, 'pending', NOW(), ?)
+        ");
+        $orderStmt->bind_param("ids", $userId, $totalAmount, $orderCode);
+        $orderStmt->execute();
+        $orderId = $orderStmt->insert_id;
+        $orderStmt->close();
+
+        foreach ($items as $item) {
+            $productId = (int)$item['product_id'];
+            $sellerId  = (int)$item['seller_id'];
+            $quantity  = (int)$item['quantity'];
+            $price     = floatval($item['price']);
+
+            // Fetch product name from DB
+            $nameStmt = $conn->prepare("SELECT product_name FROM productservicesrentals WHERE product_id = ? LIMIT 1");
+            $nameStmt->bind_param("i", $productId);
+            $nameStmt->execute();
+            $nameStmt->bind_result($productName);
+            if (!$nameStmt->fetch()) {
+                $productName = "Unknown Product";
+            }
+            $nameStmt->close();
+
+            // --- Check stock for this product ---
+            $stockStmt = $conn->prepare("SELECT stock_quantity FROM productservicesrentals WHERE product_id = ? LIMIT 1");
+            $stockStmt->bind_param("i", $productId);
+            $stockStmt->execute();
+            $stockStmt->bind_result($currentStock);
+            $stockStmt->fetch();
+            $stockStmt->close();
+
+            if ($quantity > $currentStock) {
+              if ($currentStock <= 0) {
+                  throw new Exception("Oops! {$productName} is out of stock.");
+              } else {
+                  throw new Exception("Sorry, we only have {$currentStock} of {$productName} left.");
+              }
+            }
+
+            // --- Insert order item ---
+            $itemStmt = $conn->prepare("
+                INSERT INTO order_items (order_id, product_id, seller_id, quantity, price)
+                VALUES (?, ?, ?, ?, ?)
+            ");
+            $itemStmt->bind_param("iiiid", $orderId, $productId, $sellerId, $quantity, $price);
+            $itemStmt->execute();
+            $itemStmt->close();
+
+            // --- Reduce stock ---
+            $updateStock = $conn->prepare("
+                UPDATE productservicesrentals
+                SET stock_quantity = stock_quantity - ?
+                WHERE product_id = ? AND stock_quantity >= ?
+            ");
+            $updateStock->bind_param("iii", $quantity, $productId, $quantity);
+            $updateStock->execute();
+            $updateStock->close();
+
+            // --- Remove from cart ---
+            $removeStmt = $conn->prepare("DELETE FROM user_cart WHERE user_id = ? AND product_id = ?");
+            $removeStmt->bind_param("ii", $userId, $productId);
+            $removeStmt->execute();
+            $removeStmt->close();
+        }
+
+        $conn->commit();
+        echo json_encode(['success' => true, 'order_code' => $orderCode]);
+
+    } catch (Exception $e) {
+        $conn->rollback();
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
     }
 
     exit();

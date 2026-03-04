@@ -1266,9 +1266,7 @@ function buyNow(button) {
   const sellerContent = `
     <div class="seller-box">
       <div class="seller-header">Seller: ${sellerName}</div>
-      
       <div class="seller-meta">Estimated delivery: 3 hours</div>
-
       <div class="product" data-price="${price}" data-product="${productId}" data-seller="${sellerId}">
         <div class="product-left">
           <img src="${image}" width="60">
@@ -1285,7 +1283,6 @@ function buyNow(button) {
             <div class="qty-number">1</div>
             <button class="qty-btn plus">+</button>
           </div>
-
           <button class="remove-product" data-product="${productId}"><i class="fa-solid fa-trash-can"></i></button>
         </div>
       </div>
@@ -1299,9 +1296,7 @@ function buyNow(button) {
         <span>Item(s): <strong id="orderItemCount">1</strong></span>
       </p>
     </div>
-
     ${sellerContent}
-
     <div class="guarantee">
       Market Hub · your number one marketplace.
     </div>
@@ -1315,168 +1310,147 @@ function buyNow(button) {
     price: price
   };
 
-  const itemsTotalEl = document.getElementById("itemsTotal");
-  const finalTotalEl = document.getElementById("finalTotal");
-  if (itemsTotalEl) itemsTotalEl.textContent = `KSh ${price.toFixed(2)}`;
-  if (finalTotalEl) finalTotalEl.textContent = `KSh ${price.toFixed(2)}`;
+  updateOrderSummary();
 
-  // ✅ Remove individual product
-  const removeBtn = card.querySelector(".remove-product");
-  removeBtn.addEventListener("click", () => {
-    const productDiv = removeBtn.closest(".product");
-    if (productDiv) productDiv.remove();
-
-    // Clear the selected order
-    window.selectedOrder = null;
-
-    // Update totals
-    if (itemsTotalEl) itemsTotalEl.textContent = "KSh 0.00";
-    if (finalTotalEl) finalTotalEl.textContent = "KSh 0.00";
-
-    // Update item count
-    const orderCountEl = document.getElementById("orderItemCount");
-    if (orderCountEl) orderCountEl.textContent = "0";
-
-    // Optionally show message
-    if (!card.querySelector(".product")) {
-      card.innerHTML = `<p>Your order has been removed.</p>`;
-    }
+  // Add product to backend cart
+  fetch("marketDisplay.php", {
+    method: "POST",
+    headers: {"Content-Type":"application/x-www-form-urlencoded"},
+    body: `action=add_to_cart&product_id=${productId}`
   });
 
-  requestAnimationFrame(() => {
-      updateOrderSummary();
-  });
 }
 
 function placeOrder() {
-  if (window.selectedOrder) {
-      const { product_id, seller_id, quantity, price } = window.selectedOrder;
+  const products = document.querySelectorAll(".order-container .product");
 
-      const formData = new URLSearchParams();
-      formData.append('action', 'place_order');
-      formData.append('product_id', product_id);
-      formData.append('seller_id', seller_id);
-      formData.append('quantity', quantity);
-      formData.append('price', price);
-
-      fetch("marketDisplay.php", {
-          method: "POST",
-          headers: {
-              "Content-Type": "application/x-www-form-urlencoded"
-          },
-          body: formData.toString()
-      })
-      .then(res => res.json())
-      .then(data => {
-          if (data.success) {
-              alert("Order placed successfully!");
-              location.reload();
-          } else {
-              alert(data.error || "Order failed");
-          }
-      });
-  } else {
-      // Cart checkout remains the same
-      fetch("marketDisplay.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: "action=checkout_cart"
-      })
-      .then(res => res.json())
-      .then(data => {
-          if (data.success) {
-              alert("Order placed successfully!");
-              location.reload();
-          } else {
-              alert("Order failed");
-          }
-      });
+  if (products.length === 0) {
+      alert("No products selected");
+      return;
   }
+
+  // Gather all products into an array
+  const orderItems = [];
+  let totalAmount = 0;
+
+  products.forEach(productEl => {
+      const product_id = productEl.dataset.product;
+      const seller_id  = productEl.dataset.seller;
+      const quantity   = parseInt(productEl.querySelector(".qty-number").textContent);
+      const price      = parseFloat(productEl.dataset.price);
+
+      if (!product_id || !seller_id || quantity < 1) {
+          alert("Invalid product in order");
+          return;
+      }
+
+      totalAmount += price * quantity;
+
+      orderItems.push({
+          product_id,
+          seller_id,
+          quantity,
+          price
+      });
+  });
+
+  const formData = new URLSearchParams();
+  formData.append("action", "place_order_multi");
+  formData.append("total_amount", totalAmount);
+
+  formData.append("items", JSON.stringify(orderItems));
+
+  fetch("marketDisplay.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: formData.toString()
+  })
+  .then(res => res.json())
+  .then(data => {
+      if (data.success) {
+          alert("Order placed successfully! Code: " + data.order_code);
+          location.reload();
+      } else {
+          alert(data.error || "Order failed");
+      }
+  });
 }
 
-document.addEventListener("click", function(e) {
+// ===== Quantity change handler (Buy Now + Cart) =====
+document.addEventListener("click", function(e){
+  const btn = e.target.closest(".minus, .plus");
+  if (!btn) return;
 
-    const btn = e.target.closest(".minus, .plus");
-    if (!btn) return;
+  const productEl = btn.closest(".product");
+  if (!productEl) return;
 
-    const productEl = btn.closest(".product");
-    if (!productEl) return;
+  const qtyEl = productEl.querySelector(".qty-number");
+  let quantity = parseInt(qtyEl.textContent);
+  const productId = productEl.dataset.product;
 
-    const qtyEl = productEl.querySelector(".qty-number");
+  if (btn.classList.contains("plus")) quantity++;
+  if (btn.classList.contains("minus") && quantity > 1) quantity--;
 
-    let quantity = parseInt(qtyEl.textContent);
-    const price = parseFloat(productEl.dataset.price);
+  qtyEl.textContent = quantity;
 
-    if (btn.classList.contains("plus")) {
-        quantity++;
-    }
+  // ===== Update Buy Now =====
+  if (window.selectedOrder && productId == window.selectedOrder.product_id) {
+    window.selectedOrder.quantity = quantity;
+    updateOrderSummary();
 
-    if (btn.classList.contains("minus") && quantity > 1) {
-        quantity--;
-    }
+    // Update backend
+    fetch("marketDisplay.php", {
+      method: "POST",
+      headers: {"Content-Type":"application/x-www-form-urlencoded"},
+      body: `action=update_quantity&product_id=${productId}&quantity=${quantity}`
+    });
+    return;
+  }
 
-    qtyEl.textContent = quantity;
-
-    /* ===== BUY NOW MODE ===== */
-    if (window.selectedOrder) {
-        window.selectedOrder.quantity = quantity;
-        updateOrderSummary();
-        return;
-    }
-
-    /* ===== CART CHECKOUT MODE ===== */
-    updateCheckoutSummary();
+  // ===== Update Cart checkout =====
+  updateCheckoutSummary();
+  fetch("marketDisplay.php", {
+    method: "POST",
+    headers: {"Content-Type":"application/x-www-form-urlencoded"},
+    body: `action=update_quantity&product_id=${productId}&quantity=${quantity}`
+  });
 });
 
+// ===== Update Buy Now summary =====
 function updateOrderSummary() {
   if (!window.selectedOrder) return;
 
+  const { quantity, price } = window.selectedOrder;
+  const itemsTotal = price * quantity;
+
   const itemsTotalEl = document.getElementById("itemsTotal");
   const finalTotalEl = document.getElementById("finalTotal");
-  if (!itemsTotalEl || !finalTotalEl) return;
+  const orderCountEl = document.getElementById("orderItemCount");
 
-  const price = parseFloat(window.selectedOrder.price) || 0;
-  const quantity = parseInt(window.selectedOrder.quantity) || 1;
-
-  const itemsTotal = price * quantity;
-  const delivery = 0;
-  const promotions = 0;
-  const finalTotal = itemsTotal + delivery - promotions;
-  const itemCountEl = document.getElementById("orderItemCount");
-  if (itemCountEl) {
-      itemCountEl.textContent = quantity;
-  }
-
-  itemsTotalEl.textContent = `KSh ${itemsTotal.toFixed(2)}`;
-  finalTotalEl.textContent = `KSh ${finalTotal.toFixed(2)}`;
+  if (itemsTotalEl) itemsTotalEl.textContent = `KSh ${itemsTotal.toFixed(2)}`;
+  if (finalTotalEl) finalTotalEl.textContent = `KSh ${itemsTotal.toFixed(2)}`;
+  if (orderCountEl) orderCountEl.textContent = quantity;
 }
 
+// ===== Update Cart summary =====
 function updateCheckoutSummary() {
-
   const products = document.querySelectorAll("#dynamicOrderBox .product");
-
-  let grandTotal = 0;
-  let totalItems = 0;
+  let grandTotal = 0, totalItems = 0;
 
   products.forEach(product => {
-
     const price = parseFloat(product.dataset.price);
-    const qtyEl = product.querySelector(".qty-number");
-    const quantity = parseInt(qtyEl.textContent);
-
-    // ✅ Only calculate internally
-    grandTotal += price * quantity;
-    totalItems += quantity;
+    const qty = parseInt(product.querySelector(".qty-number").textContent);
+    grandTotal += price * qty;
+    totalItems += qty;
   });
 
-  // ✅ Update summary only
   const itemsTotalEl = document.getElementById("itemsTotal");
   const finalTotalEl = document.getElementById("finalTotal");
-  const itemCountEl  = document.getElementById("orderItemCount");
+  const orderCountEl = document.getElementById("orderItemCount");
 
   if (itemsTotalEl) itemsTotalEl.textContent = `KSh ${grandTotal.toFixed(2)}`;
   if (finalTotalEl) finalTotalEl.textContent = `KSh ${grandTotal.toFixed(2)}`;
-  if (itemCountEl)  itemCountEl.textContent  = totalItems;
+  if (orderCountEl) orderCountEl.textContent = totalItems;
 }
 
 function proceedFromCart() {
@@ -1484,14 +1458,11 @@ function proceedFromCart() {
 
   fetch("marketDisplay.php", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: "action=fetch_cart"
   })
   .then(res => res.json())
   .then(data => {
-
     if (!data.success || data.items.length === 0) {
       alert("Cart is empty");
       return;
@@ -1512,38 +1483,52 @@ function proceedFromCart() {
 
     let grandTotal = 0;
     let totalItems = 0;
-    let sellerContent = "";
+    let allSellersContent = "";
 
+    // Loop over each seller
     for (let sellerId in grouped) {
       const sellerGroup = grouped[sellerId];
 
-      sellerContent += `<div class="seller-header">Seller: ${sellerGroup.seller_name}</div>`;
-
+      let sellerProductsContent = "";
       sellerGroup.items.forEach(product => {
-        const subtotal = product.price * product.quantity;
-        grandTotal += subtotal;
+        const price = parseFloat(product.price) || 0; // ✅ convert to number
+        grandTotal += price * product.quantity;
         totalItems += product.quantity;
 
-        sellerContent += `
-          <div class="product" data-price="${product.price}" data-product="${product.product_id}" data-seller="${sellerId}">
+        sellerProductsContent += `
+          <div class="product" data-price="${price}" data-product="${product.product_id}" data-seller="${sellerId}">
             <div class="product-left">
               <img src="${product.image_path}" width="60">
               <div class="product-info">
                 ${product.product_name}
-                <div class="product-price">KSh ${(subtotal).toFixed(2)}</div>
+                <div class="product-price">KSh ${price.toFixed(2)}</div>
               </div>
             </div>
-            <div class="quantity-control">
-              <button class="qty-btn minus">-</button>
-              <div class="qty-number">${product.quantity}</div>
-              <button class="qty-btn plus">+</button>
+            <div class="qty-and-delete">
+              <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <div class="qty-number">${product.quantity}</div>
+                <button class="qty-btn plus">+</button>
+              </div>
+              <button class="remove-product" data-product="${product.product_id}">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
             </div>
           </div>
         `;
       });
+      
+      // Wrap this seller's products inside its own seller-box
+      allSellersContent += `
+        <div class="seller-box">
+          <div class="seller-header">Seller: ${sellerGroup.seller_name.toUpperCase()}</div>
+          <div class="seller-meta">Estimated delivery: 3 hours</div>
+          ${sellerProductsContent}
+        </div>
+      `;
     }
 
-    // 🔥 Update the card content while keeping the outer card intact
+    // Update the card content
     const card = document.querySelectorAll(".card")[1];
     if (card) {
       card.innerHTML = `
@@ -1554,8 +1539,8 @@ function proceedFromCart() {
           </p>
         </div>
 
-        <div class="seller-box" id="dynamicOrderBox">
-          ${sellerContent}
+        <div id="dynamicOrderBox">
+          ${allSellersContent}
         </div>
 
         <div class="guarantee">
@@ -1586,3 +1571,33 @@ function updateQuantity(productId, newQty) {
     }
   });
 }
+
+// ===== Remove product handler =====
+document.addEventListener("click", function(e){
+  const removeBtn = e.target.closest(".remove-product");
+  if (!removeBtn) return;
+
+  const productEl = removeBtn.closest(".product");
+  if (!productEl) return;
+
+  const productId = productEl.dataset.product;
+
+  // Remove visually
+  productEl.remove();
+
+  // Clear Buy Now order if matches
+  if (window.selectedOrder && productId == window.selectedOrder.product_id) {
+    window.selectedOrder = null;
+    updateOrderSummary();
+  }
+
+  // Remove from backend
+  fetch("marketDisplay.php", {
+    method: "POST",
+    headers: {"Content-Type":"application/x-www-form-urlencoded"},
+    body: `action=remove_from_cart&product_id=${productId}`
+  });
+
+  // Update Cart summary
+  updateCheckoutSummary();
+});
