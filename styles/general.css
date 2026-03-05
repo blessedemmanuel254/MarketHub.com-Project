@@ -3009,7 +3009,7 @@ a.seller-right {
   grid-template-columns: 1fr 1fr;
 }
 
-.products-grid .card .card-actions button {
+.products-grid .card .card-actions button, .products-grid .card .card-actions a.edit {
   flex: 1;
   padding: 10px 16px;
   border: none;
@@ -3018,11 +3018,16 @@ a.seller-right {
   font-size: 14px;
 }
 
-.products-grid .card .card-actions button:hover{
+.products-grid .card .card-actions a.edit {
+  text-decoration: none;
+  text-align: center;
+}
+
+.products-grid .card .card-actions button:hover, .products-grid .card .card-actions a.edit:hover {
   background:#f5f5f5;
 }
 
-.products-grid .card .card-actions button.edit{
+.products-grid .card .card-actions a.edit{
   color:#088000;
   width: 100%;
 }

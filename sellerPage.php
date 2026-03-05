@@ -203,7 +203,210 @@ $category    = '';
 $price       = '';
 $stock       = '';
 
+$editMode = false;
+$editProductId = null;
+
+if (isset($_GET['edit_product_id'])) {
+
+  $editProductId = intval($_GET['edit_product_id']);
+
+  $stmt = $conn->prepare("
+    SELECT product_name, category, price, stock_quantity, image_path
+    FROM productservicesrentals
+    WHERE product_id = ? AND user_id = ?
+    LIMIT 1
+  ");
+
+  $stmt->bind_param("ii", $editProductId, $user_id);
+  $stmt->execute();
+  $result = $stmt->get_result();
+
+  if ($result && $result->num_rows === 1) {
+
+    $product = $result->fetch_assoc();
+
+    $productName = $product['product_name'];
+    $category    = $product['category'];
+    $price       = $product['price'];
+    $stock       = $product['stock_quantity'];
+    $currentImagePath = $product['image_path'];
+
+    $editMode = true;
+  }
+
+  $stmt->close();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_product_id'])) {
+    if (isset($_POST['edit_product_id'])) {
+        $editProductId = intval($_POST['edit_product_id']);
+
+        // ---------- FORM INPUTS ----------
+        $productName = smartTitleCase($_POST['name'] ?? '');
+        $category    = trim($_POST['category'] ?? '');
+        $price       = floatval($_POST['price'] ?? 0);
+        $stock       = intval($_POST['stock'] ?? 0);
+
+        // ---------- VALIDATION ----------
+        if ($productName === '') {
+            $error = "Product name is required.";
+        } elseif ($category === '') {
+            $error = "Please select a category.";
+        } elseif ($price <= 0) {
+            $error = "Price must be greater than zero.";
+        } elseif ($stock < 0) {
+            $error = "Stock cannot be negative.";
+        }
+
+        // ---------- FETCH CURRENT IMAGE & HASH ----------
+        $stmt = $conn->prepare("SELECT image_path, image_hash FROM productservicesrentals WHERE product_id=? AND user_id=? LIMIT 1");
+        $stmt->bind_param("ii", $editProductId, $user_id);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        $row = ($res && $res->num_rows === 1) ? $res->fetch_assoc() : null;
+        $currentImage = $row['image_path'] ?? null;
+        $currentHash  = $row['image_hash'] ?? null;
+        $stmt->close();
+
+        $imageToSave = $currentImage;
+        $imgHash     = $currentHash;
+
+        // ---------- IMAGE UPLOAD (OPTIONAL) ----------
+        if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
+            $fileTmp  = $_FILES['photo']['tmp_name'];
+            $fileSize = $_FILES['photo']['size'];
+            $mime     = mime_content_type($fileTmp);
+            $allowed  = ['image/jpeg', 'image/png', 'image/webp'];
+
+            if (!in_array($mime, $allowed)) {
+                $error = "Invalid image format. Use JPG, PNG or WebP.";
+            } elseif ($fileSize > 5 * 1024 * 1024) {
+                $error = "Image too large. Max size is 5MB.";
+            } elseif (!getimagesize($fileTmp)) {
+                $error = "Uploaded file is not a valid image.";
+            }
+
+            if (empty($error)) {
+                // Compute hash for duplicate check
+                imagewebp($canvas, $filePath, 75);
+                $imgHash = md5_file($filePath);
+
+                // ---------- CHECK DUPLICATE IMAGE FOR THIS SELLER ----------
+                $dupStmt = $conn->prepare("
+                    SELECT product_id 
+                    FROM productservicesrentals 
+                    WHERE user_id = ? AND image_hash = ? AND product_id <> ? 
+                    LIMIT 1
+                ");
+                $dupStmt->bind_param("isi", $user_id, $imgHash, $editProductId);
+                $dupStmt->execute();
+                $dupStmt->store_result();
+
+                if ($dupStmt->num_rows > 0) {
+                    $error = "This image already exists for another product.";
+                }
+
+                $dupStmt->close();
+            }
+
+            if (empty($error)) {
+                // ---------- IMAGE RESIZE & SAVE ----------
+                [$width, $height] = getimagesize($fileTmp);
+
+                if ($width < 600 || $height < 600) {
+                    $error = "Image too small. Minimum size is 600×600 px.";
+                } else {
+                    $maxSize = 700;
+                    $ratio = min($maxSize / $width, $maxSize / $height, 1);
+                    $newWidth  = (int)($width * $ratio);
+                    $newHeight = (int)($height * $ratio);
+                    $canvas = imagecreatetruecolor($newWidth, $newHeight);
+
+                    switch ($mime) {
+                        case 'image/jpeg':
+                            $source = imagecreatefromjpeg($fileTmp);
+                            if (function_exists('exif_read_data')) {
+                                $exif = @exif_read_data($fileTmp);
+                                if (!empty($exif['Orientation'])) {
+                                    switch ($exif['Orientation']) {
+                                        case 3: $source = imagerotate($source, 180, 0); break;
+                                        case 6: $source = imagerotate($source, -90, 0); break;
+                                        case 8: $source = imagerotate($source, 90, 0); break;
+                                    }
+                                }
+                            }
+                            break;
+                        case 'image/png':
+                            $source = imagecreatefrompng($fileTmp);
+                            imagealphablending($canvas, false);
+                            imagesavealpha($canvas, true);
+                            break;
+                        case 'image/webp':
+                            $source = imagecreatefromwebp($fileTmp);
+                            break;
+                    }
+
+                    imagecopyresampled($canvas, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+                    $uploadDir = 'uploads/products/';
+                    if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+                    $fileName = uniqid('product_', true) . '.webp';
+                    $filePath = $uploadDir . $fileName;
+
+                    imagewebp($canvas, $filePath, 75);
+                    imagedestroy($canvas);
+                    imagedestroy($source);
+
+                    // Delete old image
+                    if ($currentImage && file_exists($currentImage)) unlink($currentImage);
+
+                    $imageToSave = $filePath; // new image path
+                }
+            }
+        }
+
+        // ---------- NO NEW IMAGE: CHECK DUPLICATE ----------
+        if (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== 0) {
+            if (!empty($currentHash)) {
+                $dupStmt = $conn->prepare("
+                    SELECT product_id 
+                    FROM productservicesrentals 
+                    WHERE user_id = ? AND image_hash = ? AND product_id <> ? 
+                    LIMIT 1
+                ");
+                $dupStmt->bind_param("isi", $user_id, $currentHash, $editProductId);
+                $dupStmt->execute();
+                $dupStmt->store_result();
+                if ($dupStmt->num_rows > 0) {
+                    $error = "Another product already uses this image.";
+                }
+                $dupStmt->close();
+            }
+        }
+
+        // ---------- UPDATE PRODUCT IN DB ----------
+        if (empty($error)) {
+            $stmt = $conn->prepare("
+                UPDATE productservicesrentals 
+                SET product_name=?, category=?, price=?, stock_quantity=?, image_path=?, image_hash=?
+                WHERE product_id=? AND user_id=?
+            ");
+            $stmt->bind_param("ssdssiii", $productName, $category, $price, $stock, $imageToSave, $imgHash, $editProductId, $user_id);
+            if ($stmt->execute()) {
+              $success = "Product updated successfully! <span id='count'>3</span>…";
+              // ✅ Reset the form variables
+              $productName = '';
+              $category    = '';
+              $price       = '';
+              $stock       = '';
+
+            } else {
+              $error = "Failed to update product.";
+              $stmt->close();
+            }
+        }
+    } else {
     // ---------- FORM INPUTS ----------
     $productName = smartTitleCase($_POST['name'] ?? '');
     $category    = trim($_POST['category'] ?? '');
@@ -393,7 +596,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_product_id'])
             $stmt->close();
         }
     }
-}
+}}
 
 // Fetch seller orders
 $sellerOrders = [];
@@ -736,7 +939,9 @@ $deliveredOrders  = $row['delivered_orders'];
                         </div>
                       </div>
                       <div class="card-actions">
-                          <button href="editProduct.php?id=<?= $product['product_id'] ?>" class="edit"><i class="fa fa-pen"></i> Edit</button>
+                          <a href="?edit_product_id=<?= $product['product_id'] ?>" class="edit">
+                            <i class="fa fa-pen"></i> Edit
+                          </a>
                           <form method="POST" onsubmit="return confirm('Are you sure you want to delete this product?')">
                             <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
                             <button type="submit" class="delete">
@@ -761,65 +966,102 @@ $deliveredOrders  = $row['delivered_orders'];
 
             </div>
             <div class="form-wrapper">
-              <form method="POST" enctype="multipart/form-data">
-                <h1>Add Product</h1>
+            <form method="POST" enctype="multipart/form-data">
+
+                <?php if ($editMode): ?>
+                    <input type="hidden" name="edit_product_id" value="<?= $editProductId ?>">
+                <?php endif; ?>
+
+                <h1><?= $editMode ? 'Edit Product' : 'Add Product' ?></h1>
+
                 <?php if (!empty($error)): ?>
-                  <p class="errorMessage">
-                    <i class="fa-solid fa-circle-exclamation"></i>
-                    <?= htmlspecialchars($error); ?>
-                  </p>
+                    <p class="errorMessage">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <?= htmlspecialchars($error); ?>
+                    </p>
                 <?php endif; ?>
 
                 <?php if (!empty($success)): ?>
-                  <p class="successMessage">
-                    <i class="fa-solid fa-check-circle"></i>
-                    <?= $success; ?>
-                  </p>
+                    <p class="successMessage">
+                        <i class="fa-solid fa-check-circle"></i>
+                        <?= $success; ?>
+                    </p>
                 <?php endif; ?>
+
                 <div class="formBody">
-                  <div class="inp-box">
-                    <label>Product Name</label>
-                    <input type="text" name="name" placeholder="Enter name" value="<?= htmlspecialchars($productName, ENT_QUOTES) ?>" required>
-                  </div>
-
-                  <div class="inp-box">
-                      <label>Category</label>
-                      <select name="category" required>
-                          <option value="">--Select category--</option>
-                          <option <?= ($category === 'Beauty') ? 'selected' : '' ?>>Beauty</option>
-                          <option <?= ($category === 'Electronics') ? 'selected' : '' ?>>Electronics</option>
-                          <option <?= ($category === 'Fashions') ? 'selected' : '' ?>>Fashions</option>
-                          <option <?= ($category === 'Food & Snacks') ? 'selected' : '' ?>>Food & Snacks</option>
-                          <option <?= ($category === 'Home Items') ? 'selected' : '' ?>>Home Items</option>
-                          <option <?= ($category === 'Stationery') ? 'selected' : '' ?>>Stationery</option>
-                      </select>
-                  </div>
-
-                  <div class="inp-box">
-                      <label>Price (KES)</label>
-                      <input type="number" name="price" step="1" placeholder="Enter price" value="<?= htmlspecialchars($price, ENT_QUOTES) ?>" oninput="this.value = this.value.replace(/[^0-9]/g, '')" min="0" required>
-                  </div>
-
-                  <div class="inp-box">
-                      <label>Stock Quantity</label>
-                      <input type="number" name="stock" placeholder="e.g 24" value="<?= htmlspecialchars($stock, ENT_QUOTES) ?>" oninput="this.value = this.value.replace(/[^0-9]/g, '')" min="0" step="1" required>
-                  </div>
-                  <div class="inp-box">
-                    <label>Product Image</label>
-                    <input type="file" name="photo" accept="image/png,image/jpeg,image/webp" required>
-                    
-                    <div class="note">
-                      600×600 – 1600×1600 px • Max 5MB<br>
-                      Automatically optimized for buyers
+                    <div class="inp-box">
+                        <label>Product Name</label>
+                        <input type="text" name="name" placeholder="Enter name" 
+                            value="<?= htmlspecialchars($productName, ENT_QUOTES) ?>" required>
                     </div>
-                  </div>
-                  <div></div>
-                  <button type="submit">
-                    Add Product
-                  </button>
+
+                    <div class="inp-box">
+                        <label>Category</label>
+                        <select name="category" required>
+                            <option value="">--Select category--</option>
+                            <option <?= ($category === 'Beauty') ? 'selected' : '' ?>>Beauty</option>
+                            <option <?= ($category === 'Electronics') ? 'selected' : '' ?>>Electronics</option>
+                            <option <?= ($category === 'Fashions') ? 'selected' : '' ?>>Fashions</option>
+                            <option <?= ($category === 'Food & Snacks') ? 'selected' : '' ?>>Food & Snacks</option>
+                            <option <?= ($category === 'Home Items') ? 'selected' : '' ?>>Home Items</option>
+                            <option <?= ($category === 'Stationery') ? 'selected' : '' ?>>Stationery</option>
+                        </select>
+                    </div>
+
+                    <div class="inp-box">
+                        <label>Price (KES)</label>
+                        <input type="number" name="price" step="1" placeholder="Enter price" 
+                            value="<?= htmlspecialchars($price, ENT_QUOTES) ?>" 
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '')" min="0" required>
+                    </div>
+
+                    <div class="inp-box">
+                        <label>Stock Quantity</label>
+                        <input type="number" name="stock" placeholder="e.g 24" 
+                            value="<?= htmlspecialchars($stock, ENT_QUOTES) ?>" 
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '')" min="0" step="1" required>
+                    </div>
+
+                    <?php if ($editMode): ?>
+                        <!-- IMAGE PREVIEW ONLY IN EDIT MODE -->
+                        <div class="inp-box">
+                            <label>Product Image</label>
+                            <?php if (!empty($currentImagePath) && file_exists($currentImagePath)): ?>
+                                <div class="edit-preview">
+                                    <img src="<?= htmlspecialchars($currentImagePath) ?>" 
+                                        style="width:80px;height:80px;object-fit:cover;border-radius:6px;">
+                                    <p style="font-size:12px;">Current Image</p>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="inp-box">
+                            <label>Change Product Image (optional)</label>
+                            <input type="file" name="photo" accept="image/png,image/jpeg,image/webp">
+                            <div class="note">
+                                600×600 – 1600×1600 px • Max 5MB<br>
+                                Automatically optimized for buyers
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <!-- ONLY FOR ADD MODE -->
+                        <div class="inp-box">
+                            <label>Upload Product Image</label>
+                            <input type="file" name="photo" accept="image/png,image/jpeg,image/webp" required>
+                            <div class="note">
+                                600×600 – 1600×1600 px • Max 5MB<br>
+                                Automatically optimized for buyers
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                    <div></div>
+
+                    <button type="submit">
+                        <?= $editMode ? 'Update Product' : 'Add Product' ?>
+                    </button>
                 </div>
 
-              </form>
+            </form>
             </div>
           </div>
           
@@ -847,10 +1089,16 @@ $deliveredOrders  = $row['delivered_orders'];
                   <div class="card">
                     <i class="fa fa-wallet icon"></i>
                     <h3>Wallet Health</h3>
-                    <div class="stat">KES 12,450</div>
+
+                    <div class="stat">KES <?= number_format($walletBalance, 2) ?></div>
+
                     <p class="meta">Available for withdrawal</p>
-                    <div class="progress"><span style="width:75%"></span></div>
-                    <p class="small">KES 3,200 pending clearance</p>
+
+                    <div class="progress">
+                      <span style="width:<?= min(($walletBalance/20000)*100,100) ?>%"></span>
+                    </div>
+
+                    <p class="small">KES 0 pending clearance</p>
                   </div>
                   <div>
                     <div class="inp-box">
@@ -1105,5 +1353,12 @@ $deliveredOrders  = $row['delivered_orders'];
       }
     }, 1000);
   </script>
+  <?php if ($editMode): ?>
+  <script>
+  document.addEventListener("DOMContentLoaded", function() {
+      toggleProductsAdd(true);
+  });
+  </script>
+  <?php endif; ?>
 </body>
 </html>
