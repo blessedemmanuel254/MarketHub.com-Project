@@ -15,7 +15,7 @@ if (!isset($_SESSION['created'])) {
 }
 
 /* ---------- ROLE ACCESS CONTROL ---------- */
-/* $allowedRole = 'agent';
+$allowedRole = 'sales_agent';
 
 $roleStmt = $conn->prepare(
     "SELECT account_type FROM users WHERE user_id = ? LIMIT 1"
@@ -26,13 +26,13 @@ $roleStmt->bind_result($accountType);
 $roleStmt->fetch();
 $roleStmt->close();
 
-if ($accountType !== $allowedRole) { */
+if ($accountType !== $allowedRole) {
     // Optional: destroy session for safety
     // session_destroy();
-/* 
+
     header("Location: index.php");
     exit();
-} */
+}
 
 $country = "";
 $county = "";

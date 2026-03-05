@@ -325,51 +325,71 @@ function toggleProfileOption() {
   overlay.classList.toggle("active");
 }
 
-/* Recent Order Js */
+/* Recent Orders - Desktop + Mobile Sync */
 
-// Show only the 5 most recent orders
 document.addEventListener("DOMContentLoaded", () => {
-  const tableBody = document.querySelector("#ordersTable tbody");
+
   const filter = document.getElementById("statusFilter");
 
-  if (!tableBody) return; // 🔑 PREVENT CRASH
+  const tableRows = document.querySelectorAll("#ordersTable tbody tr");
+  const cards     = document.querySelectorAll("#orderCards .order-card");
 
-  const allRows = Array.from(tableBody.querySelectorAll("tr"));
+  const MAX_ITEMS = 5;
 
-  // Show only 5
-  allRows.forEach((row, index) => {
-    if (index >= 15) row.style.display = "none";
-  });
+  function applyFilter() {
 
-  if (filter) {
-    filter.addEventListener("change", () => {
-      const value = filter.value;
-      let visibleCount = 0;
+    const value = filter ? filter.value : "all";
 
-      allRows.forEach(el => {
-        if (value === "all" || el.dataset.status === value) {
-          el.style.display = visibleCount < 5 ? "" : "none";
-          visibleCount++;
+    let visibleCountTable = 0;
+    let visibleCountCards = 0;
+
+    // ===== Desktop Table =====
+    tableRows.forEach(row => {
+
+      if (value === "all" || row.dataset.status === value) {
+
+        if (visibleCountTable < MAX_ITEMS) {
+          row.style.display = "";
+          visibleCountTable++;
         } else {
-          el.style.display = "none";
+          row.style.display = "none";
         }
-      });
+
+      } else {
+        row.style.display = "none";
+      }
+
     });
+
+    // ===== Mobile Cards =====
+    cards.forEach(card => {
+
+      if (value === "all" || card.dataset.status === value) {
+
+        if (visibleCountCards < MAX_ITEMS) {
+          card.style.display = "block";
+          visibleCountCards++;
+        } else {
+          card.style.display = "none";
+        }
+
+      } else {
+        card.style.display = "none";
+      }
+
+    });
+
   }
+
+  // Run on page load
+  applyFilter();
+
+  // Run on filter change
+  if (filter) {
+    filter.addEventListener("change", applyFilter);
+  }
+
 });
-
-/* Limit Mobile Order Cards Js */
-document.addEventListener("DOMContentLoaded", () => {
-  limitMobileOrderCards();
-});
-
-function limitMobileOrderCards(max = 5) {
-  const cards = document.querySelectorAll("#orderCards .order-card");
-
-  cards.forEach((card, index) => {
-    card.style.display = index < max ? "block" : "none";
-  });
-}
 
 /* Order Details Toggle Js */
 document.querySelectorAll(".toggleOrd").forEach(btn => {

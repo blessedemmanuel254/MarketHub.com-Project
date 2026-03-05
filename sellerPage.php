@@ -37,6 +37,25 @@ if ($accountType !== $allowedRole) {
 /* ---------- FETCH USER DATA ---------- */
 $user_id = $_SESSION['user_id'];
 
+function formatToK($number) {
+
+  if ($number >= 9950) {
+    $k = $number / 1000;
+
+    // round to nearest 0.1
+    $k = round($k, 1);
+
+    // remove .0
+    if (floor($k) == $k) {
+        return $k . "k";
+    }
+
+    return $k . "k";
+  }
+
+  return number_format($number);
+}
+
 function smartTitleCase(string $text): string
 {
   // Normalize spacing & lowercase
@@ -382,13 +401,13 @@ $stmt = $conn->prepare("
     SELECT 
         o.order_id,
         o.order_code,
-        o.total_amount,
         o.order_status,
         o.created_at,
-        u.username AS buyer_name,
+        u.full_name AS buyer_name,
         oi.quantity,
         oi.price,
-        p.product_name
+        p.product_name,
+        (oi.quantity * oi.price) AS seller_total
     FROM orders o
     JOIN order_items oi ON o.order_id = oi.order_id
     JOIN users u ON o.buyer_id = u.user_id
@@ -407,6 +426,60 @@ if ($result) {
 }
 $stmt->close();
 
+$stmt = $conn->prepare("
+SELECT 
+SUM(quantity * price) AS wallet_balance
+FROM order_items
+WHERE seller_id = ?
+");
+
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$data = $result->fetch_assoc();
+
+$walletBalance = $data['wallet_balance'] ?? 0;
+$stmt->close();
+
+$minWithdrawal = 500;
+
+$isEligible = $walletBalance >= $minWithdrawal;
+$withdrawStatus = $isEligible ? "Eligible" : "Not Eligible";
+$withdrawClass = $isEligible ? "green" : "red";
+
+$stmt = $conn->prepare("
+SELECT 
+COUNT(DISTINCT o.order_id) AS total_orders,
+
+COUNT(DISTINCT CASE 
+    WHEN o.order_status = 'Pending' 
+    THEN o.order_id 
+END) AS processing_orders,
+
+COUNT(DISTINCT CASE 
+    WHEN o.order_status = 'Shipped' 
+    THEN o.order_id 
+END) AS shipped_orders,
+
+COUNT(DISTINCT CASE 
+    WHEN o.order_status = 'Delivered' 
+    THEN o.order_id 
+END) AS delivered_orders
+
+FROM orders o
+JOIN order_items oi ON o.order_id = oi.order_id
+WHERE oi.seller_id = ?
+");
+
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$row = $result->fetch_assoc();
+
+$totalOrders      = $row['total_orders'];
+$processingOrders = $row['processing_orders'];
+$shippedOrders    = $row['shipped_orders'];
+$deliveredOrders  = $row['delivered_orders'];
 ?>
 
 <!DOCTYPE html>
@@ -559,34 +632,59 @@ $stmt->close();
                 <div class="card">
                   <i class="fa fa-wallet icon"></i>
                   <h3>Wallet Health</h3>
-                  <div class="stat">KES 12,450</div>
+
+                  <div class="stat">KES <?= number_format($walletBalance, 2) ?></div>
+
                   <p class="meta">Available for withdrawal</p>
-                  <div class="progress"><span style="width:75%"></span></div>
-                  <p class="small">KES 3,200 pending clearance</p>
+
+                  <div class="progress">
+                    <span style="width:<?= min(($walletBalance/20000)*100,100) ?>%"></span>
+                  </div>
+
+                  <p class="small">KES 0 pending clearance</p>
                 </div>
 
-                <!-- WITHDRAWAL READINESS -->
+
+
+                <!-- WITHDRAWAL STATUS -->
                 <div class="card">
                   <i class="fa fa-money-bill-wave icon"></i>
                   <h3>Withdrawal Status</h3>
-                  <span class="badge green">Eligible</span>
-                  <p class="meta">Minimum threshold met</p>
-                  <div class="actions">
-                    <button onclick="togglePaymentOption()">Withdraw</button>
-                  </div>
-                  <p class="small">Last withdrawal: KES 5,000 • 10 Feb</p>
-                </div>
 
+                  <span class="badge <?= $withdrawClass ?>">
+                    <?= $withdrawStatus ?>
+                  </span>
+
+                  <p class="meta">
+                    Minimum withdrawal KES 500
+                  </p>
+
+                  <div class="actions">
+                    <button 
+                      onclick="togglePaymentOption()"
+                      <?= !$isEligible ? 'disabled' : '' ?>
+                    >
+                      Withdraw
+                    </button>
+                  </div>
+
+                  <p class="small">
+                    Available: KES <?= number_format($walletBalance) ?>
+                  </p>
+                </div>
                 <!-- ORDERS SUMMARY -->
                 <div class="card">
                   <i class="fa fa-box icon"></i>
                   <h3>Orders Summary</h3>
-                  <div class="stat">18 Orders</div>
+
+                  <div class="stat"><?= formatToK($totalOrders) ?> Orders</div>
+
                   <p class="meta">
-                    <span class="badge yellow">5&nbsp;Processing</span>
-                    <span class="badge blue">3&nbsp;Shipped</span>
-                    <span class="badge green">10&nbsp;Delivered</span>
+                    <span class="badge yellow"><?= $processingOrders ?>&nbsp;Processing</span>
+                    <span class="badge blue"><?= $shippedOrders ?>&nbsp;Shipped</span>
+                    <span class="badge green"><?= $deliveredOrders ?>&nbsp;Delivered</span>
                   </p>
+
                 </div>
 
                 <!-- CUSTOMER TRUST -->
@@ -776,7 +874,7 @@ $stmt->close();
           <option value="all">All Orders</option>
           <option value="Delivered">Delivered</option>
           <option value="Shipped">Shipped</option>
-          <option value="Processing">Processing</option>
+          <option value="Pending">Processing</option>
         </select>
       </div>
 
@@ -803,12 +901,12 @@ $stmt->close();
               $count = 1;
               foreach ($sellerOrders as $order) {
                   $statusClass = strtolower($order['order_status']); // e.g., "processing"
-                  $total = number_format($order['total_amount'], 2);
+                  $total = number_format($order['seller_total'], 2);
                   $date = date("d M Y", strtotime($order['created_at']));
                   echo "<tr data-status=\"{$order['order_status']}\">
                           <td>{$count}.</td>
                           <td>{$order['order_code']}</td>
-                          <td>".htmlspecialchars($order['buyer_name'])."</td>
+                          <td>".mb_strtoupper(htmlspecialchars($order['buyer_name']), 'UTF-8')."</td>
                           <td>".htmlspecialchars($order['product_name'])."</td>
                           <td>{$order['quantity']}</td>
                           <td>KES {$total}</td>
@@ -834,151 +932,76 @@ $stmt->close();
       <!-- MOBILE CARDS -->
       <div class="cards" id="orderCards">
 
-        <div class="order-card" data-status="Processing">
+      <?php
+      if (!empty($sellerOrders)) {
+
+        foreach ($sellerOrders as $order) {
+
+          $statusClass = strtolower($order['order_status']);
+          $total = number_format($order['seller_total'], 2);
+          $date = date("d M Y", strtotime($order['created_at']));
+
+          // Default image (since your query doesn't fetch product image yet)
+          $image = "Images/Market Hub Logo.avif";
+      ?>
+
+      <div class="order-card" data-status="<?= htmlspecialchars($order['order_status']) ?>">
+
           <div class="card-header">
-            <img src="Images/Market Hub Logo.avif" class="product-img">
+            <img src="<?= $image ?>" class="product-img">
             <div>
-              <div class="card-title">Smart Watch</div>
-              <div class="card-meta">Order: MH-10702 • Global</div>
+                <div class="card-title">
+                  <?= htmlspecialchars($order['product_name']) ?>
+                </div>
+
+                <div class="card-meta">
+                  Order: <?= htmlspecialchars($order['order_code']) ?>
+                  • <?= $date ?>
+                </div>
             </div>
           </div>
 
           <div class="card-row">
-            <span>Price</span>
-            <strong>KES 6,800</strong>
+            <span>Buyer</span>
+            <strong>
+                <?= mb_strtoupper(htmlspecialchars($order['buyer_name']), 'UTF-8') ?>
+            </strong>
+          </div>
+
+          <div class="card-row">
+            <span>Quantity</span>
+            <strong><?= $order['quantity'] ?></strong>
+          </div>
+
+          <div class="card-row">
+            <span>Total</span>
+            <strong>KES <?= $total ?></strong>
           </div>
 
           <div class="card-row">
             <span>Status</span>
-            <span class="badge processing">Processing</span>
+            <span class="badge <?= $statusClass ?>">
+                <?= ucfirst($order['order_status']) ?>
+            </span>
           </div>
 
           <div class="card-actions">
-            <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-          </div>
-        </div>
-
-        <div class="order-card" data-status="Processing">
-          <div class="card-header">
-            <img src="Images/Market Hub Logo.avif" class="product-img">
-            <div>
-              <div class="card-title">Smart Watch</div>
-              <div class="card-meta">Order: MH-10702 • Global</div>
-            </div>
+              <?php if ($order['order_status'] === 'Pending'): ?>
+                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
+              <?php elseif ($order['order_status'] === 'Shipped'): ?>
+                <button class="btn-ship">Mark&nbsp;as&nbsp;Delivered</button>
+              <?php endif; ?>
           </div>
 
-          <div class="card-row">
-            <span>Price</span>
-            <strong>KES 6,800</strong>
-          </div>
+      </div>
 
-          <div class="card-row">
-            <span>Status</span>
-            <span class="badge processing">Processing</span>
-          </div>
+      <?php
+          }
+      } else {
+          echo "<p>No orders yet.</p>";
+      }
+      ?>
 
-          <div class="card-actions">
-            <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-          </div>
-        </div>
-
-        <div class="order-card" data-status="Delivered">
-          <div class="card-header">
-            <img src="Images/Market Hub Logo.avif" class="product-img">
-            <div>
-              <div class="card-title">Wireless Headphones</div>
-              <div class="card-meta">Order: MH-10231 • National</div>
-            </div>
-          </div>
-
-          <div class="card-row">
-            <span>Price</span>
-            <strong>KES 3,500</strong>
-          </div>
-
-          <div class="card-row">
-            <span>Status</span>
-            <span class="badge delivered">Delivered</span>
-          </div>
-
-          <div class="card-actions">
-            <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-          </div>
-        </div>
-
-
-        <div class="order-card" data-status="Delivered">
-          <div class="card-header">
-            <img src="Images/Market Hub Logo.avif" class="product-img">
-            <div>
-              <div class="card-title">Wireless Headphones</div>
-              <div class="card-meta">Order: MH-10231 • National</div>
-            </div>
-          </div>
-
-          <div class="card-row">
-            <span>Price</span>
-            <strong>KES 3,500</strong>
-          </div>
-
-          <div class="card-row">
-            <span>Status</span>
-            <span class="badge delivered">Delivered</span>
-          </div>
-
-          <div class="card-actions">
-            <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-          </div>
-        </div>
-
-
-        <div class="order-card" data-status="Processing">
-          <div class="card-header">
-            <img src="Images/Market Hub Logo.avif" class="product-img">
-            <div>
-              <div class="card-title">Smart Watch</div>
-              <div class="card-meta">Order: MH-10702 • Global</div>
-            </div>
-          </div>
-
-          <div class="card-row">
-            <span>Price</span>
-            <strong>KES 6,800</strong>
-          </div>
-
-          <div class="card-row">
-            <span>Status</span>
-            <span class="badge processing">Processing</span>
-          </div>
-
-          <div class="card-actions">
-            <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-          </div>
-        </div>
-
-        <div class="order-card" data-status="Processing">
-          <div class="card-header">
-            <img src="Images/Market Hub Logo.avif" class="product-img">
-            <div>
-              <div class="card-title">Smart Watch</div>
-              <div class="card-meta">Order: MH-10702 • Global</div>
-            </div>
-          </div>
-
-          <div class="card-row">
-            <span>Price</span>
-            <strong>KES 6,800</strong>
-          </div>
-
-          <div class="card-row">
-            <span>Status</span>
-            <span class="badge processing">Processing</span>
-          </div>
-
-          <div class="card-actions">
-            <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-          </div>
-        </div>
       </div>
       
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleSellerOrdersTrack()">View&nbsp;All&nbsp;Orders</button> to access all your orders.</p>
@@ -1014,7 +1037,7 @@ $stmt->close();
               $count = 1;
               foreach ($sellerOrders as $order) {
                   $statusClass = strtolower($order['order_status']); // e.g., "processing"
-                  $total = number_format($order['total_amount'], 2);
+                  $total = number_format($order['seller_total'], 2);
                   $date = date("d M Y", strtotime($order['created_at']));
                   echo "<tr data-status=\"{$order['order_status']}\">
                           <td>{$count}.</td>

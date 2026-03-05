@@ -896,6 +896,13 @@ html body {
   align-items: center;
 }
 
+.table-wrapper table tbody tr td .adm-user-profile img {
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 
 .table-wrapper table tbody tr td em {
   color: #898888;
@@ -1065,6 +1072,8 @@ html body {
   justify-content: space-between;
   margin-top: 8px;
   font-size: 13px;
+  padding-bottom: 5px;
+  border-bottom: 1px dashed #dedede;
 }
 
 .container main.buyerMain .cards .order-card .card-actions {
@@ -2859,6 +2868,10 @@ a.seller-right {
 .containerInner .card h3, .form-wrapper .formBody .card h3 {
   margin:0 0 10px;
   font-size:16px;
+}
+
+.containerInner .card h3 {
+  font-weight: normal;
 }
 
 .containerInner .card .icon, .form-wrapper .formBody .card .icon {

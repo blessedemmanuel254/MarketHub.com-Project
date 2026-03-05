@@ -16,8 +16,8 @@ if (isset($_SESSION['user_id'], $_SESSION['account_type'])) {
   switch (strtolower($_SESSION['account_type'])) {
     case 'seller': header("Location: sellerPage.php"); exit;
     case 'buyer':  header("Location: buyerPage.php");  exit;
-    case 'agent':  header("Location: agentPage.php");  exit;
-    case 'admin':  header("Location: adminPage.php");  exit;
+    case 'sales_agent':  header("Location: agentPage.php");  exit;
+    case 'administrator':  header("Location: adminPage.php");  exit;
   }
 }
 
@@ -108,11 +108,31 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             setcookie("account_type", $user['account_type'], $cookieTime, "/");
         }
 
-        // Redirect based on account type
-        $redirectPage = strtolower($user['account_type']) === 'seller' ? 'sellerPage.php' : 'buyerPage.php';
+        // Determine redirect page based on account type
+        $accountType = strtolower($user['account_type']);
+
+        switch ($accountType) {
+          case 'seller':
+              $redirectPage = 'sellerPage.php';
+              break;
+          case 'buyer':
+              $redirectPage = 'buyerPage.php';
+              break;
+          case 'administrator':
+              $redirectPage = 'adminPage.php';  // adjust page as needed
+              break;
+          case 'agent':
+              $redirectPage = 'agentPage.php';  // adjust page as needed
+              break;
+          default:
+              $redirectPage = 'index.php'; // fallback if something unexpected
+              break;
+        }
+
         echo "<script>
-                setTimeout(() => window.location.href = '$redirectPage', 3500);
-              </script>";
+              setTimeout(() => window.location.href = '$redirectPage', 3500);
+            </script>";
+
       } else {
         $error = "One of the credentials is invalid.";
       }
@@ -213,7 +233,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 </label>
 
                 <label class="account-type">
-                  <input type="radio" name="login_type" value="admin" required>
+                  <input type="radio" name="login_type" value="property_owner" required>
+                  <div class="radio-dot"></div>
+                  Property&nbsp;Owner
+                </label>
+
+                <label class="account-type">
+                  <input type="radio" name="login_type" value="administrator" required>
                   <div class="radio-dot"></div>
                   Administrator
                 </label>

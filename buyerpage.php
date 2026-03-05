@@ -236,6 +236,43 @@ while ($row = $result->fetch_assoc()) {
   }
 }
 $stmt->close();
+
+$buyerId = $_SESSION['user_id'];
+
+$orders = [];
+
+$query = $conn->query("
+    SELECT 
+        o.order_id,
+        o.order_code,
+        o.order_status,
+        o.total_amount,
+        o.created_at,
+
+        oi.quantity,
+        oi.price,
+        oi.seller_id,
+
+        p.product_name,
+        p.image_path,
+
+        s.business_name AS seller_name,
+        s.market_scope
+
+    FROM orders o
+    JOIN order_items oi ON o.order_id = oi.order_id
+    JOIN productservicesrentals p ON oi.product_id = p.product_id
+    JOIN users s ON oi.seller_id = s.user_id
+
+    WHERE o.buyer_id = '$buyerId'
+
+    ORDER BY o.created_at DESC
+    LIMIT 10
+");
+
+while ($row = $query->fetch_assoc()) {
+    $orders[] = $row;
+}
 ?>
 
 <!DOCTYPE html>
@@ -732,7 +769,7 @@ $stmt->close();
           <option value="all">All Orders</option>
           <option value="Delivered">Delivered</option>
           <option value="Shipped">Shipped</option>
-          <option value="Processing">Processing</option>
+          <option value="Pending">Processing</option>
         </select>
       </div>
 
@@ -742,138 +779,59 @@ $stmt->close();
       <thead>
       <tr>
         <th>Image</th><th>Order</th><th>Product</th><th>Seller</th>
-        <th>Market</th><th>Qty</th><th>Price</th>
+        <th>Market</th><th>Quantity</th><th>Price</th>
         <th>Payment</th><th>Status</th><th>Actions</th>
       </tr>
       </thead>
       <tbody>
+      <?php foreach ($orders as $order): ?>
+      <tr data-status="<?= htmlspecialchars($order['order_status']) ?>">
+        <td>
+            <img src="<?= !empty($order['image_path']) && file_exists($order['image_path']) 
+                ? htmlspecialchars($order['image_path']) 
+                : 'Images/Market Hub Logo.avif'; ?>" 
+                class="product-img">
+        </td>
 
-      <tr data-status="Delivered">
-        <td><img src="Images/Market Hub Logo.avif" class="product-img"></td>
-        <td>MH-10231</td>
-        <td>Wireless Headphones</td>
-        <td>SoundTech</td>
-        <td>National</td>
-        <td>1</td>
-        <td>KES&nbsp;3,500</td>
+        <td><?= htmlspecialchars($order['order_code']) ?></td>
+
+        <td><?= htmlspecialchars($order['product_name']) ?></td>
+
+        <td>
+            <?= mb_strtoupper(htmlspecialchars(
+                !empty($order['seller_name']) 
+                ? $order['seller_name'] 
+                : 'Seller #' . $order['seller_id']
+            ), 'UTF-8') ?>
+        </td>
+
+        <td><?= htmlspecialchars($order['market_scope'] ?? 'National') ?></td>
+
+        <td><?= $order['quantity'] ?></td>
+
+        <td>KES&nbsp;<?= number_format($order['price']) ?></td>
+
         <td><span class="badge paid">Paid</span></td>
-        <td><span class="badge delivered">Delivered</span></td>
+
+        <td>
+            <span class="badge <?= strtolower($order['order_status']) ?>">
+                <?= htmlspecialchars($order['order_status']) ?>
+            </span>
+        </td>
+
         <td class="actions">
-          <div>
-            <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-            <button class="btn-track">Track</button>
-          </div>
+            <div>
+                <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+
+                <?php if ($order['order_status'] == 'Processing'): ?>
+                    <button class="btn-cancel">Cancel</button>
+                <?php elseif ($order['order_status'] == 'Shipped'): ?>
+                    <button class="btn-track">Track</button>
+                <?php endif; ?>
+            </div>
         </td>
       </tr>
-
-      <tr data-status="Processing">
-        <td><img src="Images/Market Hub Logo.avif" class="product-img"></td>
-        <td>MH-10702</td>
-        <td>Smart Watch</td>
-        <td>Global Gadgets</td>
-        <td>Global</td>
-        <td>1</td>
-        <td>KES&nbsp;6,800</td>
-        <td><span class="badge pending">Pending</span></td>
-        <td><span class="badge processing">Processing</span></td>
-        <td class="actions">
-          <div>
-            <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-            <button class="btn-cancel">Cancel</button>
-          </div>
-        </td>
-      </tr>
-
-      <tr data-status="Processing">
-        <td><img src="Images/Market Hub Logo.avif" class="product-img"></td>
-        <td>MH-10702</td>
-        <td>Smart Watch</td>
-        <td>Global Gadgets</td>
-        <td>Global</td>
-        <td>1</td>
-        <td>KES&nbsp;6,800</td>
-        <td><span class="badge pending">Pending</span></td>
-        <td><span class="badge processing">Processing</span></td>
-        <td class="actions">
-          <div>
-            <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-            <button class="btn-cancel">Cancel</button>
-          </div>
-        </td>
-      </tr>
-
-      <tr data-status="Processing">
-        <td><img src="Images/Market Hub Logo.avif" class="product-img"></td>
-        <td>MH-10702</td>
-        <td>Smart Watch</td>
-        <td>Global Gadgets</td>
-        <td>Global</td>
-        <td>1</td>
-        <td>KES&nbsp;6,800</td>
-        <td><span class="badge pending">Pending</span></td>
-        <td><span class="badge processing">Processing</span></td>
-        <td class="actions">
-          <div>
-            <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-            <button class="btn-cancel">Cancel</button>
-          </div>
-        </td>
-      </tr>
-
-      <tr data-status="Processing">
-        <td><img src="Images/Market Hub Logo.avif" class="product-img"></td>
-        <td>MH-10702</td>
-        <td>Smart Watch</td>
-        <td>Global Gadgets</td>
-        <td>Global</td>
-        <td>1</td>
-        <td>KES&nbsp;6,800</td>
-        <td><span class="badge pending">Pending</span></td>
-        <td><span class="badge processing">Processing</span></td>
-        <td class="actions">
-          <div>
-            <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-            <button class="btn-cancel">Cancel</button>
-          </div>
-        </td>
-      </tr>
-
-      <tr data-status="Processing">
-        <td><img src="Images/Market Hub Logo.avif" class="product-img"></td>
-        <td>MH-10702</td>
-        <td>Smart Watch</td>
-        <td>Global Gadgets</td>
-        <td>Global</td>
-        <td>1</td>
-        <td>KES&nbsp;6,800</td>
-        <td><span class="badge pending">Pending</span></td>
-        <td><span class="badge processing">Processing</span></td>
-        <td class="actions">
-          <div>
-            <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-            <button class="btn-cancel">Cancel</button>
-          </div>
-        </td>
-      </tr>
-
-      <tr data-status="Processing">
-        <td><img src="Images/Market Hub Logo.avif" class="product-img"></td>
-        <td>MH-10702</td>
-        <td>Smart Watch</td>
-        <td>Global Gadgets</td>
-        <td>Global</td>
-        <td>1</td>
-        <td>KES&nbsp;6,800</td>
-        <td><span class="badge pending">Pending</span></td>
-        <td><span class="badge processing">Processing</span></td>
-        <td class="actions">
-          <div>
-            <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-            <button class="btn-cancel">Cancel</button>
-          </div>
-        </td>
-      </tr>
-
+      <?php endforeach; ?>
       </tbody>
       </table>
       </div>
@@ -881,185 +839,60 @@ $stmt->close();
       <!-- MOBILE CARDS -->
       <div class="cards" id="orderCards">
 
-      <div class="order-card" data-status="Delivered">
-        <div class="card-header">
-          <img src="Images/Market Hub Logo.avif" class="product-img">
-          <div>
-            <div class="card-title">Wireless Headphones</div>
-            <div class="card-meta">Order: MH-10231 • National</div>
+      <?php foreach ($orders as $order): ?>
+
+      <?php
+      $image = (!empty($order['image_path']) && file_exists($order['image_path']))
+          ? $order['image_path']
+          : "Images/Market Hub Logo.avif";
+      ?>
+
+      <div class="order-card" data-status="<?= htmlspecialchars($order['order_status']) ?>">
+
+          <div class="card-header">
+              <img src="<?= htmlspecialchars($image) ?>" class="product-img">
+              <div>
+                  <div class="card-title">
+                      <?= htmlspecialchars($order['product_name']) ?>
+                  </div>
+
+                  <div class="card-meta">
+                      Order: <?= htmlspecialchars($order['order_code']) ?>
+                      • <?= htmlspecialchars($order['market_scope'] ?? 'National') ?>
+                  </div>
+                  <div class="card-meta">
+                      Quantity: <?= htmlspecialchars($order['quantity'])?>
+                  </div>
+              </div>
           </div>
-        </div>
 
-        <div class="card-row">
-          <span>Price</span>
-          <strong>KES 3,500</strong>
-        </div>
+          <div class="card-row">
+              <span>Price</span>
+              <strong>KES <?= number_format($order['price']) ?></strong>
+          </div>
 
-        <div class="card-row">
-          <span>Status</span>
-          <span class="badge delivered">Delivered</span>
-        </div>
+          <div class="card-row">
+              <span>Status</span>
+              <span class="badge <?= strtolower($order['order_status']) ?>">
+                  <?= htmlspecialchars($order['order_status']) ?>
+              </span>
+          </div>
 
-        <div class="card-actions">
-          <div></div>
-          <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-          <button class="btn-track">Track</button>
-        </div>
+          <div class="card-actions">
+              <button class="btn-view">
+                  <i class="fa-solid fa-eye"></i>
+              </button>
+
+              <?php if ($order['order_status'] == 'Processing'): ?>
+                  <button class="btn-cancel">Cancel</button>
+              <?php elseif ($order['order_status'] == 'Shipped'): ?>
+                  <button class="btn-track">Track</button>
+              <?php endif; ?>
+          </div>
+
       </div>
 
-      <div class="order-card" data-status="Processing">
-        <div class="card-header">
-          <img src="Images/Market Hub Logo.avif" class="product-img">
-          <div>
-            <div class="card-title">Smart Watch</div>
-            <div class="card-meta">Order: MH-10702 • Global</div>
-          </div>
-        </div>
-
-        <div class="card-row">
-          <span>Price</span>
-          <strong>KES 6,800</strong>
-        </div>
-
-        <div class="card-row">
-          <span>Status</span>
-          <span class="badge processing">Processing</span>
-        </div>
-
-        <div class="card-actions">
-          <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-          <button class="btn-cancel">Cancel</button>
-        </div>
-      </div>
-
-      <div class="order-card" data-status="Processing">
-        <div class="card-header">
-          <img src="Images/Market Hub Logo.avif" class="product-img">
-          <div>
-            <div class="card-title">Smart Watch</div>
-            <div class="card-meta">Order: MH-10702 • Global</div>
-          </div>
-        </div>
-
-        <div class="card-row">
-          <span>Price</span>
-          <strong>KES 6,800</strong>
-        </div>
-
-        <div class="card-row">
-          <span>Status</span>
-          <span class="badge processing">Processing</span>
-        </div>
-
-        <div class="card-actions">
-          <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-          <button class="btn-cancel">Cancel</button>
-        </div>
-      </div>
-
-      <div class="order-card" data-status="Delivered">
-        <div class="card-header">
-          <img src="Images/Market Hub Logo.avif" class="product-img">
-          <div>
-            <div class="card-title">Wireless Headphones</div>
-            <div class="card-meta">Order: MH-10231 • National</div>
-          </div>
-        </div>
-
-        <div class="card-row">
-          <span>Price</span>
-          <strong>KES 3,500</strong>
-        </div>
-
-        <div class="card-row">
-          <span>Status</span>
-          <span class="badge delivered">Delivered</span>
-        </div>
-
-        <div class="card-actions">
-          <div></div>
-          <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-          <button class="btn-track">Track</button>
-        </div>
-      </div>
-
-
-      <div class="order-card" data-status="Delivered">
-        <div class="card-header">
-          <img src="Images/Market Hub Logo.avif" class="product-img">
-          <div>
-            <div class="card-title">Wireless Headphones</div>
-            <div class="card-meta">Order: MH-10231 • National</div>
-          </div>
-        </div>
-
-        <div class="card-row">
-          <span>Price</span>
-          <strong>KES 3,500</strong>
-        </div>
-
-        <div class="card-row">
-          <span>Status</span>
-          <span class="badge delivered">Delivered</span>
-        </div>
-
-        <div class="card-actions">
-          <div></div>
-          <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-          <button class="btn-track">Track</button>
-        </div>
-      </div>
-
-
-      <div class="order-card" data-status="Processing">
-        <div class="card-header">
-          <img src="Images/Market Hub Logo.avif" class="product-img">
-          <div>
-            <div class="card-title">Smart Watch</div>
-            <div class="card-meta">Order: MH-10702 • Global</div>
-          </div>
-        </div>
-
-        <div class="card-row">
-          <span>Price</span>
-          <strong>KES 6,800</strong>
-        </div>
-
-        <div class="card-row">
-          <span>Status</span>
-          <span class="badge processing">Processing</span>
-        </div>
-
-        <div class="card-actions">
-          <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-          <button class="btn-cancel">Cancel</button>
-        </div>
-      </div>
-
-      <div class="order-card" data-status="Processing">
-        <div class="card-header">
-          <img src="Images/Market Hub Logo.avif" class="product-img">
-          <div>
-            <div class="card-title">Smart Watch</div>
-            <div class="card-meta">Order: MH-10702 • Global</div>
-          </div>
-        </div>
-
-        <div class="card-row">
-          <span>Price</span>
-          <strong>KES 6,800</strong>
-        </div>
-
-        <div class="card-row">
-          <span>Status</span>
-          <span class="badge processing">Processing</span>
-        </div>
-
-        <div class="card-actions">
-          <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-          <button class="btn-cancel">Cancel</button>
-        </div>
-      </div>
+      <?php endforeach; ?>
 
       </div>
       
