@@ -288,8 +288,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_product_id'])
 
             if (empty($error)) {
                 // Compute hash for duplicate check
-                imagewebp($canvas, $filePath, 75);
-                $imgHash = md5_file($filePath);
+                $imgHash = md5_file($fileTmp);
 
                 // ---------- CHECK DUPLICATE IMAGE FOR THIS SELLER ----------
                 $dupStmt = $conn->prepare("
