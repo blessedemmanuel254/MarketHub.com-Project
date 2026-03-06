@@ -128,905 +128,405 @@ if ($accountType !== $allowedRole) { */
     <main class="adminMain">
       <div class="admin-tab-panel" data-tab="dashboard">
         <nav>
-          <p>Property Owners</p>
+          <p>Edit-Manage Sales Agents</p>
           <ul>
             <a href="#">Admin&nbsp;~</a>
-            <a href="#" class="active">Property Owners</a><!-- 
+            <a href="#" class="active">Agents</a><!-- 
             <a href="">Orders</a>
             <a href="">Users</a> -->
           </ul>
         </nav>
-        <h2>Property Owners Management</h2>
-        <div class="admin-tab-content">
-          <div class="cards">
-            <div class="card sub-card">
-              <i class="fa-solid fa-users"></i>
-              <div>
-                <h3>Total Owners</h3>
-                <div class="value">267</div>
-              </div>
-            </div>
+        <h2>Agents Manual Management</h2>
+        <div id="add-products" class="tab-panel-admin">
+          <div class="tab-top">
+            <p>Manually manage agents</em> <br><strong>Oversee existing agents individual data <i class="fa-regular fa-circle-check"></i></strong></p>
+            <button>
+              <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
+            </button>
 
-            <div class="card sub-card">
-              <i class="fa-solid fa-house"></i>
-              <div>
-                <h3>Total Properties</h3>
-
-                <div class="value">593</div>
-
-                <small>↑ 12% productivity growth this month</small>
-              </div>
-            </div>
-
-            <div class="card sub-card">
-              <i class="fa-solid fa-money-bill-wave"></i>
-              <div>
-                <h3>Total Portfolio Value</h3>
-                <div class="value">KES 49.3M</div>
-              </div>
-            </div>
-
-            <div class="card sub-card">
-              <i class="fa-solid fa-percent"></i>
-              <div>
-                <h3>Average Occupancy</h3>
-                <div class="value">83%</div>
-              </div>
-            </div>
           </div>
-        </div>
-        <div class="table-wrapper">
-          <div class="filter-bar">
-            <select id="statusFilter">
-              <option value="all">📌&nbsp;Status</option>
-              <option value="Active">Active</option>
-              <option value="Pending">Pending</option>
-              <option value="Suspended">Suspended</option>
-            </select>
+          <div class="form-wrapper">
+            <form method="POST" enctype="multipart/form-data">
+              <h1>Update Agent Details</h1>
+              <?php if (!empty($errors)): ?>
+                <p class="errorMessage">
+                  <i class="fa-solid fa-circle-exclamation"></i>
+                  <?= implode("<br>", $errors); ?>
+                </p>
+              <?php endif; ?>
+
+              <?php if (!empty($success)): ?>
+                <p class="successMessage">
+                  <i class="fa-solid fa-check-circle"></i>
+                  <?= $success; ?>
+                </p>
+              <?php endif; ?>
+              <div class="formBody">
+                <div class="inp-box">
+                  <label>Agent's Full Name</label>
+                  <input type="text" name="full-name" placeholder="Full Name">
+                </div>
+                <div class="inp-box">
+                  <label>Agent's Username</label>
+                  <input type="text" name="username" placeholder="e.g blessedemmanuel254">
+                </div>
+                <div class="inp-box">
+                  <label>Agent's Email ID</label>
+                  <input type="text" name="email" placeholder="john@example.com">
+                </div>
+                <div class="inp-box">
+                  <label>Agent's Phone</label>
+                  <input type="text" name="phone" placeholder="075***630">
+                </div>
+                <div class="inp-box">
+
+                  <label>Country</label>
+                  <select name="country">
+                    <option value=""><p>-- Select Country --</p></option>
+                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
+                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  </select>
+                </div>
+                <div class="inp-box">
+
+                  <label>County</label>
+                  <select name="county">
+                    <option value=""><p>-- Select County --</p></option>
+                    <option value="Kilifi" <?php echo ($county === 'Kilifi') ? 'selected' : ''; ?>>Kilifi</option><!-- 
+                    <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  </select>
+                </div>
+                <div class="inp-box">
+                  <label>Agent's Address</label>
+                  <input type="text" name="address" placeholder="eg. Kilifi town">
+                </div>
+                <div class="inp-box">
+
+                  <label>Ward</label>
+                  <select name="ward">
+                    <option value=""><p>-- Select Ward --</p></option>
+                    <option value="Sokoni Ward" <?php echo ($ward === 'Sokoni Ward') ? 'selected' : ''; ?>>Sokoni Ward</option><!-- 
+                    <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  </select>
+                </div>
+                <div></div>
+                <div class="inp-box">
+                  <label>Referral Code (read-only)</label>
+                  <input type="text" name="referral_code" placeholder="A56D3847" disabled>
+                </div>
+                <div></div>
+                <button type="submit">
+                  Submit Details
+                </button>
+              </div>
+
+            </form>
           </div>
-          <table id="transactionsTable">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Owner</th>
-                <th>Contact</th>
-                <th>Properties</th>
-                <th>Occupancy</th>
-                <th>Verification</th>
-                <th>Actions</th>
-                <th>Talk</th>
-                <th>Created&nbsp;On:</th>
-                <th>Updated&nbsp;On:</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr data-status="Paid">
-                <td>1.</td>
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=12" style="border-radius:50%">Blessed Emmanuel
-                  </div>
-                  <em>ID: 40757679</em>
-                </td>
-                <td><p class="contactOwer">emmanueltindi23@gmail.com <br>+254759578630</p></td>
-                <td>9</td>
-                <td>95%</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
+          <div class="form-wrapper">
+            <form method="POST" enctype="multipart/form-data">
+              <h1>Update Seller Details</h1>
+              <?php if (!empty($errors)): ?>
+                <p class="errorMessage">
+                  <i class="fa-solid fa-circle-exclamation"></i>
+                  <?= implode("<br>", $errors); ?>
+                </p>
+              <?php endif; ?>
 
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-15</td>
-                <td>2025-01-15</td>
-              </tr>
-              <tr data-status="Unverified">
-                <td>2.</td>
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=13" style="border-radius:50%">John Mwangi
-                  </div>
-                  <em>ID: 40757680</em>
-                </td>
-                <td><p class="contactOwer">johnmwangi@gmail.com <br>+254711000001</p></td>
-                <td>5</td>
-                <td>82%</td>
-                <td><span class="badge unverified">Unverified</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
+              <?php if (!empty($success)): ?>
+                <p class="successMessage">
+                  <i class="fa-solid fa-check-circle"></i>
+                  <?= $success; ?>
+                </p>
+              <?php endif; ?>
+              <div class="formBody">
+                <div class="inp-box">
+                  <label>Seller's Full Name</label>
+                  <input type="text" name="full-name" placeholder="Full Name">
+                </div>
+                <div class="inp-box">
+                  <label>Seller's Username</label>
+                  <input type="text" name="username" placeholder="e.g blessedemmanuel254">
+                </div>
+                <div class="inp-box">
+                  <label>Seller's Email ID</label>
+                  <input type="text" name="email" placeholder="john@example.com">
+                </div>
+                <div class="inp-box">
+                  <label>Sellers's Phone</label>
+                  <input type="text" name="phone" placeholder="075***630">
+                </div>
+                <div class="inp-box">
+                  <label>Business Name</label>
+                  <input type="text" name="phone" placeholder="Main Cateen">
+                </div>
+                <div class="inp-box">
 
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-16</td>
-                <td>2025-01-16</td>
-              </tr>
+                  <label>Business Model</label>
+                  <select name="busmodel">
+                    <option value=""><p>-- Select Business Model --</p></option>
+                    <option value="products" <?php echo ($busmodel === 'products') ? 'selected' : ''; ?>>Products</option>
+                    <option value="services" <?php echo ($busmodel === 'services') ? 'selected' : ''; ?>>Services</option>
+                    <option value="rental" <?php echo ($busmodel === 'rental') ? 'selected' : ''; ?>>Rental</option>
+                  </select>
+                </div>
+                <div class="inp-box">
 
-              <tr data-status="Verified">
-                <td>3.</td>
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=14" style="border-radius:50%">Mary Wanjiku
-                  </div>
-                  <em>ID: 40757681</em>
-                </td>
-                <td><p class="contactOwer">marywanjiku@gmail.com <br>+254711000002</p></td>
-                <td>12</td>
-                <td>97%</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
+                  <label>Business type</label>
+                  <select name="bustype">
+                    <option value=""><p>-- Select Type --</p></option>
+                    <option value="shop" <?php echo ($bustype === 'shop') ? 'selected' : ''; ?>>Shop</option>
+                    <option value="supermarket" <?php echo ($bustype === 'supermarket') ? 'selected' : ''; ?>>Supermarket</option>
+                    <option value="kiosk" <?php echo ($bustype === 'kiosk') ? 'selected' : ''; ?>>Kiosk</option>
+                    <option value="kibanda" <?php echo ($bustype === 'kibanda') ? 'selected' : ''; ?>>Kibanda</option>
+                    <option value="canteen" <?php echo ($bustype === 'canteen') ? 'selected' : ''; ?>>Canteen</option>
+                    <option value="service_provider" <?php echo ($bustype === 'service_provider') ? 'selected' : ''; ?>>Service_provider</option>
+                    <option value="rental" <?php echo ($bustype === 'rental') ? 'selected' : ''; ?>>Rental</option>
+                  </select>
+                </div>
+                <div class="inp-box">
+                  <label>Seller's Address</label>
+                  <input type="text" name="address" placeholder="eg. Kilifi town">
+                </div>
+                <div class="inp-box">
 
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-17</td>
-                <td>2025-01-17</td>
-              </tr>
+                  <label>Country</label>
+                  <select name="country">
+                    <option value=""><p>-- Select Country --</p></option>
+                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
+                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  </select>
+                </div>
+                <div class="inp-box">
 
-              <tr data-status="Unverified">
-                <td>4.</td>
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=15" style="border-radius:50%">Kevin Otieno
-                  </div>
-                  <em>ID: 40757682</em>
-                </td>
-                <td><p class="contactOwer">kevinotieno@gmail.com <br>+254711000003</p></td>
-                <td>3</td>
-                <td>75%</td>
-                <td><span class="badge unverified">Unverified</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
+                  <label>Market Type</label>
+                  <select name="market">
+                    <option value=""><p>-- Select Market Type --</p></option>
+                    <option value="local" <?php echo ($market === 'local') ? 'selected' : ''; ?>>Local</option>
+                    <option value="national" <?php echo ($market === 'national') ? 'selected' : ''; ?>>National</option>
+                    <option value="global" <?php echo ($market === 'global') ? 'selected' : ''; ?>>Global</option>
+                  </select>
+                </div>
+                <div class="inp-box">
 
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-18</td>
-                <td>2025-01-18</td>
-              </tr>
+                  <label>County</label>
+                  <select name="county">
+                    <option value=""><p>-- Select County --</p></option>
+                    <option value="Kilifi" <?php echo ($county === 'Kilifi') ? 'selected' : ''; ?>>Kilifi</option><!-- 
+                    <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  </select>
+                </div>
+                <div class="inp-box">
 
-              <tr data-status="Verified">
-                <td>5.</td>
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=16" style="border-radius:50%">Faith Njeri
-                  </div>
-                  <em>ID: 40757683</em>
-                </td>
-                <td><p class="contactOwer">faithnjeri@gmail.com <br>+254711000004</p></td>
-                <td>18</td>
-                <td>99%</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
+                  <label>Ward</label>
+                  <select name="ward">
+                    <option value=""><p>-- Select Ward --</p></option>
+                    <option value="Sokoni Ward" <?php echo ($ward === 'Sokoni Ward') ? 'selected' : ''; ?>>Sokoni Ward</option><!-- 
+                    <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  </select>
+                </div>
+                <div></div>
+                <div></div><!-- 
+                <div class="inp-box">
+                  <label>Referral Code (read-only)</label>
+                  <input type="text" name="referral_code" placeholder="A56D3847" disabled>
+                </div> -->
+                <div></div>
+                <button type="submit">
+                  Submit Details
+                </button>
+              </div>
 
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-19</td>
-                <td>2025-01-19</td>
-              </tr>
-              <tr data-status="Unverified">
-                <td>6.</td>
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=17" style="border-radius:50%">Brian Kiptoo
-                  </div>
-                  <em>ID: 40757684</em>
-                </td>
-                <td><p class="contactOwer">briankiptoo@gmail.com <br>+254711000005</p></td>
-                <td>4</td>
-                <td>68%</td>
-                <td><span class="badge unverified">Unverified</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
+            </form>
+          </div>
+          <div class="form-wrapper">
+            <form method="POST" enctype="multipart/form-data">
+              <h1>Update Buyer Details</h1>
+              <?php if (!empty($errors)): ?>
+                <p class="errorMessage">
+                  <i class="fa-solid fa-circle-exclamation"></i>
+                  <?= implode("<br>", $errors); ?>
+                </p>
+              <?php endif; ?>
 
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-20</td>
-                <td>2025-01-20</td>
-              </tr>
+              <?php if (!empty($success)): ?>
+                <p class="successMessage">
+                  <i class="fa-solid fa-check-circle"></i>
+                  <?= $success; ?>
+                </p>
+              <?php endif; ?>
+              <div class="formBody">
+                <div class="inp-box">
+                  <label>Buyer's Full Name</label>
+                  <input type="text" name="full-name" placeholder="Full Name">
+                </div>
+                <div class="inp-box">
+                  <label>Buyer's Username</label>
+                  <input type="text" name="username" placeholder="e.g blessedemmanuel254">
+                </div>
+                <div class="inp-box">
+                  <label>Buyer's Email ID</label>
+                  <input type="text" name="email" placeholder="john@example.com">
+                </div>
+                <div class="inp-box">
+                  <label>Buyer's Phone</label>
+                  <input type="text" name="phone" placeholder="075***630">
+                </div>
+                <div class="inp-box">
 
-              <tr data-status="Verified">
-                <td>7.</td>
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=18" style="border-radius:50%">Lucy Achieng
-                  </div>
-                  <em>ID: 40757685</em>
-                </td>
-                <td><p class="contactOwer">lucyachieng@gmail.com <br>+254711000006</p></td>
-                <td>14</td>
-                <td>96%</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
+                  <label>Country</label>
+                  <select name="country">
+                    <option value=""><p>-- Select Country --</p></option>
+                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
+                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  </select>
+                </div>
+                <div class="inp-box">
+                  <label>Buyer's Address</label>
+                  <input type="text" name="address" placeholder="eg. Kilifi town">
+                </div>
+                <div class="inp-box">
 
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-21</td>
-                <td>2025-01-21</td>
-              </tr>
+                  <label>County</label>
+                  <select name="county">
+                    <option value=""><p>-- Select County --</p></option>
+                    <option value="Kilifi" <?php echo ($county === 'Kilifi') ? 'selected' : ''; ?>>Kilifi</option><!-- 
+                    <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  </select>
+                </div>
+                <div class="inp-box">
 
-              <tr data-status="Unverified">
-                <td>8.</td>
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=19" style="border-radius:50%">Daniel Kariuki
-                  </div>
-                  <em>ID: 40757686</em>
-                </td>
-                <td><p class="contactOwer">danielkariuki@gmail.com <br>+254711000007</p></td>
-                <td>2</td>
-                <td>61%</td>
-                <td><span class="badge unverified">Unverified</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
+                  <label>Ward</label>
+                  <select name="ward">
+                    <option value=""><p>-- Select Ward --</p></option>
+                    <option value="Sokoni Ward" <?php echo ($ward === 'Sokoni Ward') ? 'selected' : ''; ?>>Sokoni Ward</option><!-- 
+                    <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  </select>
+                </div>
+                <div></div>
+                <button type="submit">
+                  Submit Details
+                </button>
+              </div>
 
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-22</td>
-                <td>2025-01-22</td>
-              </tr>
+            </form>
+          </div>
+          <div class="form-wrapper">
+            <form method="POST" enctype="multipart/form-data">
+              <h1>Update Owner Details</h1>
+              <?php if (!empty($errors)): ?>
+                <p class="errorMessage">
+                  <i class="fa-solid fa-circle-exclamation"></i>
+                  <?= implode("<br>", $errors); ?>
+                </p>
+              <?php endif; ?>
 
-              <tr data-status="Verified">
-                <td>9.</td>
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=20" style="border-radius:50%">Susan Mutua
-                  </div>
-                  <em>ID: 40757687</em>
-                </td>
-                <td><p class="contactOwer">susanmutua@gmail.com <br>+254711000008</p></td>
-                <td>20</td>
-                <td>98%</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
+              <?php if (!empty($success)): ?>
+                <p class="successMessage">
+                  <i class="fa-solid fa-check-circle"></i>
+                  <?= $success; ?>
+                </p>
+              <?php endif; ?>
+              <div class="formBody">
+                <div class="inp-box">
+                  <label>Owner's Full Name</label>
+                  <input type="text" name="full-name" placeholder="Full Name">
+                </div>
+                <div class="inp-box">
+                  <label>Owner's Username</label>
+                  <input type="text" name="username" placeholder="e.g blessedemmanuel254">
+                </div>
+                <div class="inp-box">
+                  <label>Owner's Email ID</label>
+                  <input type="text" name="email" placeholder="john@example.com">
+                </div>
+                <div class="inp-box">
+                  <label>Owner's Phone</label>
+                  <input type="text" name="phone" placeholder="075***630">
+                </div><!-- 
+                <div class="account-type-box">
+                  <p class="account-title">Property Type</p>
 
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-23</td>
-                <td>2025-01-23</td>
-              </tr>
+                  <label class="account-type">
+                    <input type="radio" name="property_type" value="cars" required>
+                    <div class="radio-dot"></div>
+                    <span>Cars</span>
+                  </label>
 
-              <tr data-status="Unverified">
-                <td>10.</td>
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=21" style="border-radius:50%">Peter Ndegwa
-                  </div>
-                  <em>ID: 40757688</em>
-                </td>
-                <td><p class="contactOwer">peterndegwa@gmail.com <br>+254711000009</p></td>
-                <td>6</td>
-                <td>73%</td>
-                <td><span class="badge unverified">Unverified</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
+                  <label class="account-type">
+                    <input type="radio" name="property_type" value="rental_houses" required>
+                    <div class="radio-dot"></div>
+                    Rental Houses
+                  </label>
 
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-24</td>
-                <td>2025-01-24</td>
-              </tr>
+                  <label class="account-type">
+                    <input type="radio" name="property_type" value="lands" required>
+                    <div class="radio-dot"></div>
+                    Lands
+                  </label>
 
-              <tr data-status="Verified">
-                <td>11.</td>
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=22" style="border-radius:50%">Janet Kiplagat
-                  </div>
-                  <em>ID: 40757689</em>
-                </td>
-                <td><p class="contactOwer">janetk@gmail.com <br>+254711000010</p></td>
-                <td>16</td>
-                <td>94%</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
+                  <label class="account-type">
+                    <input type="radio" name="property_type" value="Tents" required>
+                    <div class="radio-dot"></div>
+                    Tents
+                  </label>
 
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-25</td>
-                <td>2025-01-25</td>
-              </tr>
+                  <label class="account-type">
+                    <input type="radio" name="property_type" value="air_bnbs" required>
+                    <div class="radio-dot"></div>
+                    Air BNBs
+                  </label>
+                </div> -->
+                <div class="inp-box">
 
-              <tr data-status="Unverified">
-                <td>12.</td>
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=23" style="border-radius:50%">Samuel Ouma
-                  </div>
-                  <em>ID: 40757690</em>
-                </td>
-                <td><p class="contactOwer">samuelouma@gmail.com <br>+254711000011</p></td>
-                <td>1</td>
-                <td>55%</td>
-                <td><span class="badge unverified">Unverified</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
+                  <label>Country</label>
+                  <select name="country">
+                    <option value=""><p>-- Select Country --</p></option>
+                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
+                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  </select>
+                </div>
+                <div class="inp-box">
 
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-26</td>
-                <td>2025-01-26</td>
-              </tr>
-              <tr data-status="Verified">
-                <td>13.</td>
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=24" style="border-radius:50%">Grace Wambui
-                  </div>
-                  <em>ID: 40757691</em>
-                </td>
-                <td><p class="contactOwer">gracewambui@gmail.com <br>+254711000012</p></td>
-                <td>22</td>
-                <td>99%</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
+                  <label>County</label>
+                  <select name="county">
+                    <option value=""><p>-- Select County --</p></option>
+                    <option value="Kilifi" <?php echo ($county === 'Kilifi') ? 'selected' : ''; ?>>Kilifi</option><!-- 
+                    <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  </select>
+                </div>
+                <div class="inp-box">
+                  <label>Owner's Address</label>
+                  <input type="text" name="address" placeholder="eg. Kilifi town">
+                </div>
+                <div class="inp-box">
 
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-27</td>
-                <td>2025-01-27</td>
-              </tr>
+                  <label>Ward</label>
+                  <select name="ward">
+                    <option value=""><p>-- Select Ward --</p></option>
+                    <option value="Sokoni Ward" <?php echo ($ward === 'Sokoni Ward') ? 'selected' : ''; ?>>Sokoni Ward</option><!-- 
+                    <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  </select>
+                </div>
+                <div></div>
+                <button type="submit">
+                  Submit Details
+                </button>
+              </div>
 
-              <tr data-status="Unverified">
-                <td>14.</td>
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=25" style="border-radius:50%">Dennis Barasa
-                  </div>
-                  <em>ID: 40757692</em>
-                </td>
-                <td><p class="contactOwer">dennisbarasa@gmail.com <br>+254711000013</p></td>
-                <td>3</td>
-                <td>70%</td>
-                <td><span class="badge unverified">Unverified</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-28</td>
-                <td>2025-01-28</td>
-              </tr>
-
-              <tr data-status="Verified">
-                <td>15.</td>
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=26" style="border-radius:50%">Alice Chebet
-                  </div>
-                  <em>ID: 40757693</em>
-                </td>
-                <td><p class="contactOwer">alicechebet@gmail.com <br>+254711000014</p></td>
-                <td>11</td>
-                <td>93%</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-29</td>
-                <td>2025-01-29</td>
-              </tr>
-
-              <tr data-status="Unverified">
-                <td>16.</td>
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=27" style="border-radius:50%">Michael Kimani
-                  </div>
-                  <em>ID: 40757694</em>
-                </td>
-                <td><p class="contactOwer">michaelkimani@gmail.com <br>+254711000015</p></td>
-                <td>4</td>
-                <td>66%</td>
-                <td><span class="badge unverified">Unverified</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-30</td>
-                <td>2025-01-30</td>
-              </tr>
-
-              <tr data-status="Verified">
-                <td>17.</td>
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=28" style="border-radius:50%">Esther Waithera
-                  </div>
-                  <em>ID: 40757695</em>
-                </td>
-                <td><p class="contactOwer">estherwaithera@gmail.com <br>+254711000016</p></td>
-                <td>19</td>
-                <td>97%</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-31</td>
-                <td>2025-01-31</td>
-              </tr>
-
-              <tr data-status="Unverified">
-                <td>18.</td>
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=29" style="border-radius:50%">Paul Onyango
-                  </div>
-                  <em>ID: 40757696</em>
-                </td>
-                <td><p class="contactOwer">paulonyango@gmail.com <br>+254711000017</p></td>
-                <td>2</td>
-                <td>59%</td>
-                <td><span class="badge unverified">Unverified</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-02-01</td>
-                <td>2025-02-01</td>
-              </tr>
-
-              <tr data-status="Verified">
-                <td>19.</td>
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=30" style="border-radius:50%">Naomi Cherono
-                  </div>
-                  <em>ID: 40757697</em>
-                </td>
-                <td><p class="contactOwer">naomicherono@gmail.com <br>+254711000018</p></td>
-                <td>15</td>
-                <td>95%</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-02-02</td>
-                <td>2025-02-02</td>
-              </tr>
-
-              <tr data-status="Unverified">
-                <td>20.</td>
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=31" style="border-radius:50%">Isaac Muriuki
-                  </div>
-                  <em>ID: 40757698</em>
-                </td>
-                <td><p class="contactOwer">isaacmuriuki@gmail.com <br>+254711000019</p></td>
-                <td>5</td>
-                <td>71%</td>
-                <td><span class="badge unverified">Unverified</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-02-03</td>
-                <td>2025-02-03</td>
-              </tr>
-
-              <tr data-status="Verified">
-                <td>21.</td>
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=32" style="border-radius:50%">Brenda Atieno
-                  </div>
-                  <em>ID: 40757699</em>
-                </td>
-                <td><p class="contactOwer">brendaatieno@gmail.com <br>+254711000020</p></td>
-                <td>17</td>
-                <td>96%</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-02-04</td>
-                <td>2025-02-04</td>
-              </tr>
-
-              <tr data-status="Unverified">
-                <td>22.</td>
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=33" style="border-radius:50%">Joseph Karanja
-                  </div>
-                  <em>ID: 40757700</em>
-                </td>
-                <td><p class="contactOwer">josephkaranja@gmail.com <br>+254711000021</p></td>
-                <td>3</td>
-                <td>64%</td>
-                <td><span class="badge unverified">Unverified</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-02-05</td>
-                <td>2025-02-05</td>
-              </tr>
-
-              <tr data-status="Verified">
-                <td>23.</td>
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=34" style="border-radius:50%">Ruth Jepkosgei
-                  </div>
-                  <em>ID: 40757701</em>
-                </td>
-                <td><p class="contactOwer">ruthj@gmail.com <br>+254711000022</p></td>
-                <td>21</td>
-                <td>98%</td>
-                <td><span class="badge verified">Verified</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-02-06</td>
-                <td>2025-02-06</td>
-              </tr>              
-
-            </tbody>
-          </table>
+            </form>
+          </div>
         </div>
       </div>
 

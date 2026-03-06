@@ -669,13 +669,13 @@ html body {
   gap: 20px;
 }
 
-.tabs-container .tab-content .tab-panel p,  .tabs-container .tab-content .tab-panel-msource p, .container main .tab-top p, .tabs-container .tab-content .tab-panel-mtype p {
+.tabs-container .tab-content .tab-panel p,  .tabs-container .tab-content .tab-panel-msource p, .container main .tab-top p, .tabs-container .tab-content .tab-panel-mtype p, .tab-panel-admin .tab-top p {
   font-size: 14px;
   color: #898888;
   line-height: 30px;
 }
 
-.tabs-container .tab-content .tab-panel p i,  .tabs-container .tab-content .tab-panel-msource p i, .container main .tab-top p i, .tabs-container .tab-content .tab-panel-msource p i {
+.tabs-container .tab-content .tab-panel p i,  .tabs-container .tab-content .tab-panel-msource p i, .container main .tab-top p i, .tabs-container .tab-content .tab-panel-msource p i, .tab-panel-admin .tab-top i {
   font-size: 14px;
   line-height: 30px;
 }
@@ -684,7 +684,11 @@ html body {
   color: #0f0f0f;
 }
 
-.tabs-container .tab-content .tab-panel p strong, .tabs-container .tab-content .tab-panel-msource p strong, .container main .tab-top p strong, .tabs-container .tab-content .tab-panel-mtype p strong, #toggleMarketSourceTab .tab-content .tab-panel p strong, #toggleMarketSourceTab .tab-content .tab-panel-msource p strong {
+.tab-panel-admin .tab-top p em {
+  color: #ffffff;
+}
+
+.tabs-container .tab-content .tab-panel p strong, .tabs-container .tab-content .tab-panel-msource p strong, .container main .tab-top p strong, .tabs-container .tab-content .tab-panel-mtype p strong, #toggleMarketSourceTab .tab-content .tab-panel p strong, #toggleMarketSourceTab .tab-content .tab-panel-msource p strong, .tab-panel-admin .tab-top p strong {
   font-size: 15px;
   font-weight: normal;
   color: #088000;
@@ -701,18 +705,18 @@ html body {
   pointer-events: auto;
 }
 
-.tabs-container .tab-content .tab-top, .tabs-container .tab-content .tab-top button, .container main .tab-top {
+.tabs-container .tab-content .tab-top, .tabs-container .tab-content .tab-top button, .container main .tab-top, .tab-panel-admin .tab-top button, .tab-panel-admin .tab-top {
   display: flex;
   gap: 10px;
   align-items: center;
   justify-content: space-between;
 }
 
-.tabs-container .tab-content .tab-top button {
+.tabs-container .tab-content .tab-top button, .tab-panel-admin .tab-top button {
   gap: 5px;
 }
 
-.container main#ordersTrackMain .tab-top, .container main#earningsTrackMain .tab-top,  .container main#agentWithdrawalH .tab-top  {
+.container main#ordersTrackMain .tab-top, .container main#earningsTrackMain .tab-top,  .container main#agentWithdrawalH .tab-top {
   width: 100%;
   margin: 10px auto;
 }
@@ -721,7 +725,7 @@ html body {
   width: 100%;
 }
 
-.tabs-container .tab-content .tab-top button, .container main .tab-top button {
+.tabs-container .tab-content .tab-top button, .container main .tab-top button, .tab-panel-admin .tab-top button {
   background-color: #0f0f0f;
   padding: 8px 16px;
   color: #ffffff;
@@ -732,7 +736,12 @@ html body {
   cursor: pointer;
 }
 
-.tabs-container .tab-content .tab-top button:hover, .container main .tab-top button:hover {
+.tab-panel-admin .tab-top button {
+  color: #0f0f0f;
+  background-color: #ffffff;
+}
+
+.tabs-container .tab-content .tab-top button:hover, .container main .tab-top button:hover, .tab-panel-admin .tab-top button:hover {
   opacity: .875;
 }
 
@@ -1437,7 +1446,7 @@ html body {
   opacity: 0.875;
 }
 
-.container main .tab-top {
+.container main .tab-top, .tab-panel-admin .tab-top {
   margin: 10px 0;
   width: 100%;
   align-items: center;
@@ -1479,21 +1488,21 @@ html body {
     width: 100%;
   }
 
-  .container main .tab-top, main.agentWithdrawalH {
+  .container main .tab-top, main.agentWithdrawalH, .tab-panel-admin .tab-top {
     margin: 10px 0;
     width: 100%;
     align-items: center;
     flex-shrink: 0;
   }
 
-  .container main .tab-top button {
+  .container main .tab-top button, .tab-panel-admin .tab-top button {
     display: flex;
     gap: 3px;
     align-items: center;
     justify-content: center;
   }
 
-  .container main#ordersTrackMain .tab-top, .container main.buyerMain#earningsTrackMain, .container main#earningsTrackMain .tab-top, .container main#agentWithdrawalH .tab-top {
+  .container main#ordersTrackMain .tab-top, .container main.buyerMain#earningsTrackMain, .container main#earningsTrackMain .tab-top, .container main#agentWithdrawalH .tab-top, .tab-panel-admin .tab-top {
     margin: 10px 0;
     width: 100%;
   }
@@ -3052,7 +3061,7 @@ a.seller-right {
 
 
 /* ADD ITEM CSS */
-.tab-content .tab-panel .form-wrapper {
+.tab-content .tab-panel .form-wrapper, .tab-panel-admin .form-wrapper {
   padding: 35px 10px;
   display: flex;
   align-items: center;
@@ -3060,13 +3069,13 @@ a.seller-right {
   background-color: #dedede48;
 }
 
-.tab-content .tab-panel .form-wrapper h1 {
+.tab-content .tab-panel .form-wrapper h1, .tab-panel-admin .form-wrapper h1 {
   font-size: 18px;
   text-align: left;
   margin: 0;
 }
 
-.tab-content .tab-panel .form-wrapper form {
+.tab-content .tab-panel .form-wrapper form, .tab-panel-admin .form-wrapper form {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -3077,7 +3086,7 @@ a.seller-right {
   width: 80%;
 }
 
-.tab-content .tab-panel .form-wrapper.agency form select {
+.tab-content .tab-panel .form-wrapper.agency form select, .tab-panel-admin .form-wrapper form select {
   padding: 8px 16px;
   outline: none;
   border: 1px solid #dedede;
@@ -3089,7 +3098,7 @@ a.seller-right {
 
 }
 
-.tab-content .tab-panel .form-wrapper form .formBody { 
+.tab-content .tab-panel .form-wrapper form .formBody, .tab-panel-admin .form-wrapper form .formBody { 
   width: 100%;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -3105,7 +3114,7 @@ a.seller-right {
   display: grid !important;
 }
 
-.tab-content .tab-panel .form-wrapper form .inp-box {
+.tab-content .tab-panel .form-wrapper form .inp-box, .tab-panel-admin .form-wrapper form .inp-box {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -3116,12 +3125,12 @@ a.seller-right {
 
 }
 
-.tab-content .tab-panel .form-wrapper form .inp-box label {
+.tab-content .tab-panel .form-wrapper form .inp-box label, .tab-panel-admin .form-wrapper form .inp-box label {
   font-size: 14px;
   color: #0f0f0f;
 }
 
-.tab-content .tab-panel .form-wrapper form .inp-box input, .tab-content .tab-panel .form-wrapper form .inp-box select {
+.tab-content .tab-panel .form-wrapper form .inp-box input, .tab-panel-admin .form-wrapper input, .tab-content .tab-panel .form-wrapper form .inp-box select, .tab-panel-admin .form-wrapper form .inp-box select {
   padding: 8px 16px;
   border-radius: 4px;
   width: 100%;
@@ -3129,20 +3138,20 @@ a.seller-right {
   border: 1px solid #dedede;
 }
 
-.tab-content .tab-panel .form-wrapper form .inp-box select {
+.tab-content .tab-panel .form-wrapper form .inp-box select, .tab-panel-admin .form-wrapper form .inp-box select {
   color: #0f0f0f;
 }
 
-.tab-content .tab-panel .form-wrapper form .inp-box .note {
+.tab-content .tab-panel .form-wrapper form .inp-box .note, .tab-panel-admin .form-wrapper form .inp-box .note {
   font-size: 12px;
   color: #898888;
 }
 
-.tab-content .tab-panel .form-wrapper form .inp-box button {
+.tab-content .tab-panel .form-wrapper form .inp-box button, .tab-panel-admin .form-wrapper form .inp-box button {
   width: 100%;
 }
 
-.tab-content .tab-panel .form-wrapper form .formBody button {
+.tab-content .tab-panel .form-wrapper form .formBody button, .tab-panel-admin .form-wrapper form .formBody button {
   background-color: #0f0f0f;
   color: #ffffff;
   border: none;
@@ -3153,16 +3162,16 @@ a.seller-right {
   align-self: flex-end;
 }
 
-.tab-content .tab-panel .form-wrapper form .formBody button:hover {
+.tab-content .tab-panel .form-wrapper form .formBody button:hover, .tab-panel-admin .form-wrapper form .formBody button:hover {
   opacity: .875;
 }
 
 @media(max-width: 670px) {
-  .tab-content .tab-panel .form-wrapper form .formBody { 
+  .tab-content .tab-panel .form-wrapper form .formBody, .tab-panel-admin .form-wrapper form .formBody { 
     grid-template-columns: 1fr;
   }
   
-  .tab-content .tab-panel .form-wrapper form {
+  .tab-content .tab-panel .form-wrapper form, .tab-panel-admin .form-wrapper form {
     width: 100%;
   }
 }
@@ -3562,7 +3571,16 @@ body#adminBody {
   color: #898888;
 }
 
+/* ADMIN EDIT-MANAGE FORMS */
+ .tab-panel-admin .form-wrapper {
+  border-radius: 4px;
+ }
 
+.tab-panel-admin .tab-top {
+  background-color: #0f0f0f;
+  padding: 10px 0;
+  margin: 0;
+}
 
 /* =====================
   PAGINATION SECTION
@@ -4188,4 +4206,171 @@ AGENTS' PRODUCTS CSS
 
 .remove-product:hover {
   opacity: .875;
+}
+
+/* ===============================
+AGENT ALERT VERIFICATION POPUP CSS
+================================ */
+
+/* OVERLAY */
+
+.alertPopupOverlay {
+
+  position:fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background:rgba(0, 0, 0, 0.212);
+  display: none;
+  align-items: center;
+  justify-content:center;
+  z-index: 9999;
+
+}
+
+/* ALERT POPUP */
+
+.alert-popup {
+
+  width: clamp(250px, 90%, 500px);
+  background: white;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
+
+}
+
+/* HEADER */
+
+.alert-popup-header{
+
+  background: #898888;
+  color:  white;
+  text-align: center;
+  padding: 12px;
+  font-weight: bold;
+  letter-spacing: 1px;
+
+}
+
+/* BODY */
+
+.alert-popup-body {
+
+  padding: 20px;
+  text-align: center;
+
+}
+
+/* WARNING ICON */
+
+.warning-icon {
+
+  width: 70px;
+  height: 70px;
+  margin:0 auto 20px;
+  border-radius:50%;
+  background:#dedede;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  animation:pulse 1.5s infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+
+.warning-icon i {
+  color: #afafaf;
+  font-size: 45px;
+}
+
+@keyframes pulse{
+
+0%{transform:scale(1);}
+50%{transform:scale(1.1);}
+100%{transform:scale(1);}
+
+}
+
+/* TEXT */
+
+.alert-popup-title{
+
+font-size:22px;
+margin-bottom:10px;
+font-weight:bold;
+
+}
+
+.alert-popup-text {
+font-size: 14px;
+color: #898888;
+margin-bottom: 25px;
+
+}
+
+/* BUTTONS */
+
+.buttons {
+display: flex;
+gap: 10px;
+justify-content: space-between;
+
+}
+
+.buttons a {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  color: #0f0f0f;
+
+}
+
+.buttons a.activate {
+  background:black;
+  color:white;
+
+}
+
+.buttons a.activate:hover{
+  background:#222;
+
+}
+
+.buttons a.cancel{
+  background:#e5e5e5;
+
+}
+
+.buttons a.cancel:hover{
+  background:#d5d5d5;
+
+}
+
+/* VIOLENT SHAKE */
+
+.shake{
+  animation:violentShake .6s;
+
+}
+
+@keyframes violentShake{
+  0%{transform:translateX(0)}
+  10%{transform:translateX(-5px)}
+  20%{transform:translateX(5px)}
+  30%{transform:translateX(-10px)}
+  40%{transform:translateX(10px)}
+  50%{transform:translateX(-10px)}
+  60%{transform:translateX(10px)}
+  70%{transform:translateX(-5px)}
+  80%{transform:translateX(5px)}
+  90%{transform:translateX(-5px)}
+  100%{transform:translateX(0)}
+
 }

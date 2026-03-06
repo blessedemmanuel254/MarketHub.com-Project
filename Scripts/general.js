@@ -1667,3 +1667,38 @@ document.addEventListener("click", function(e){
   // Update Cart summary
   updateCheckoutSummary();
 });
+
+/* ===============================
+AGENT ALERT VERIFICATION POPUP JS
+================================ */
+
+
+
+/* SHOW POPUP AFTER 30 SECONDS */
+
+setTimeout(()=>{
+
+  document.getElementById("alertPopupOverlay").style.display="flex"
+
+},10000)
+
+
+/* VIOLENT SHAKE IF OVERLAY CLICKED */
+
+document.getElementById("alertPopupOverlay").addEventListener("click",function(e){
+
+  if(e.target.id === "alertPopupOverlay"){
+
+  let alertPopup = document.getElementById("alert-popup")
+
+  alertPopup.classList.add("shake")
+
+  setTimeout(()=>{
+
+  alertPopup.classList.remove("shake")
+
+  },500)
+
+  }
+
+})

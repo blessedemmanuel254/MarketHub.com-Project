@@ -91,6 +91,42 @@ function smartTitleCase(string $text): string
   return $text;
 }
 
+function generateImageDHash($filePath)
+{
+    $size = 8;
+
+    $img = imagecreatefromstring(file_get_contents($filePath));
+
+    $resized = imagecreatetruecolor($size + 1, $size);
+
+    imagecopyresampled(
+        $resized,
+        $img,
+        0,0,0,0,
+        $size + 1,
+        $size,
+        imagesx($img),
+        imagesy($img)
+    );
+
+    $hash = '';
+
+    for ($y = 0; $y < $size; $y++) {
+        for ($x = 0; $x < $size; $x++) {
+
+            $left  = imagecolorat($resized, $x, $y);
+            $right = imagecolorat($resized, $x+1, $y);
+
+            $hash .= ($left > $right) ? '1' : '0';
+        }
+    }
+
+    imagedestroy($img);
+    imagedestroy($resized);
+
+    return $hash;
+}
+
 $query = "SELECT username, profile_image FROM users WHERE user_id = ? LIMIT 1";
 $stmt = $conn->prepare($query);
 
@@ -236,366 +272,571 @@ if (isset($_GET['edit_product_id'])) {
 
   $stmt->close();
 }
+// ---------- ADD PRODUCT ----------
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['edit_product_id']) && !isset($_POST['delete_product_id'])) {
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_product_id'])) {
-    if (isset($_POST['edit_product_id'])) {
-        $editProductId = intval($_POST['edit_product_id']);
-
-        // ---------- FORM INPUTS ----------
-        $productName = smartTitleCase($_POST['name'] ?? '');
-        $category    = trim($_POST['category'] ?? '');
-        $price       = floatval($_POST['price'] ?? 0);
-        $stock       = intval($_POST['stock'] ?? 0);
-
-        // ---------- VALIDATION ----------
-        if ($productName === '') {
-            $error = "Product name is required.";
-        } elseif ($category === '') {
-            $error = "Please select a category.";
-        } elseif ($price <= 0) {
-            $error = "Price must be greater than zero.";
-        } elseif ($stock < 0) {
-            $error = "Stock cannot be negative.";
-        }
-
-        // ---------- FETCH CURRENT IMAGE & HASH ----------
-        $stmt = $conn->prepare("SELECT image_path, image_hash FROM productservicesrentals WHERE product_id=? AND user_id=? LIMIT 1");
-        $stmt->bind_param("ii", $editProductId, $user_id);
-        $stmt->execute();
-        $res = $stmt->get_result();
-        $row = ($res && $res->num_rows === 1) ? $res->fetch_assoc() : null;
-        $currentImage = $row['image_path'] ?? null;
-        $currentHash  = $row['image_hash'] ?? null;
-        $stmt->close();
-
-        $imageToSave = $currentImage;
-        $imgHash     = $currentHash;
-
-        // ---------- IMAGE UPLOAD (OPTIONAL) ----------
-        if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
-            $fileTmp  = $_FILES['photo']['tmp_name'];
-            $fileSize = $_FILES['photo']['size'];
-            $mime     = mime_content_type($fileTmp);
-            $allowed  = ['image/jpeg', 'image/png', 'image/webp'];
-
-            if (!in_array($mime, $allowed)) {
-                $error = "Invalid image format. Use JPG, PNG or WebP.";
-            } elseif ($fileSize > 5 * 1024 * 1024) {
-                $error = "Image too large. Max size is 5MB.";
-            } elseif (!getimagesize($fileTmp)) {
-                $error = "Uploaded file is not a valid image.";
-            }
-
-            if (empty($error)) {
-                // Compute hash for duplicate check
-                $imgHash = md5_file($fileTmp);
-
-                // ---------- CHECK DUPLICATE IMAGE FOR THIS SELLER ----------
-                $dupStmt = $conn->prepare("
-                    SELECT product_id 
-                    FROM productservicesrentals 
-                    WHERE user_id = ? AND image_hash = ? AND product_id <> ? 
-                    LIMIT 1
-                ");
-                $dupStmt->bind_param("isi", $user_id, $imgHash, $editProductId);
-                $dupStmt->execute();
-                $dupStmt->store_result();
-
-                if ($dupStmt->num_rows > 0) {
-                    $error = "This image already exists for another product.";
-                }
-
-                $dupStmt->close();
-            }
-
-            if (empty($error)) {
-                // ---------- IMAGE RESIZE & SAVE ----------
-                [$width, $height] = getimagesize($fileTmp);
-
-                if ($width < 600 || $height < 600) {
-                    $error = "Image too small. Minimum size is 600×600 px.";
-                } else {
-                    $maxSize = 700;
-                    $ratio = min($maxSize / $width, $maxSize / $height, 1);
-                    $newWidth  = (int)($width * $ratio);
-                    $newHeight = (int)($height * $ratio);
-                    $canvas = imagecreatetruecolor($newWidth, $newHeight);
-
-                    switch ($mime) {
-                        case 'image/jpeg':
-                            $source = imagecreatefromjpeg($fileTmp);
-                            if (function_exists('exif_read_data')) {
-                                $exif = @exif_read_data($fileTmp);
-                                if (!empty($exif['Orientation'])) {
-                                    switch ($exif['Orientation']) {
-                                        case 3: $source = imagerotate($source, 180, 0); break;
-                                        case 6: $source = imagerotate($source, -90, 0); break;
-                                        case 8: $source = imagerotate($source, 90, 0); break;
-                                    }
-                                }
-                            }
-                            break;
-                        case 'image/png':
-                            $source = imagecreatefrompng($fileTmp);
-                            imagealphablending($canvas, false);
-                            imagesavealpha($canvas, true);
-                            break;
-                        case 'image/webp':
-                            $source = imagecreatefromwebp($fileTmp);
-                            break;
-                    }
-
-                    imagecopyresampled($canvas, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-
-                    $uploadDir = 'uploads/products/';
-                    if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
-
-                    $fileName = uniqid('product_', true) . '.webp';
-                    $filePath = $uploadDir . $fileName;
-
-                    imagewebp($canvas, $filePath, 75);
-                    imagedestroy($canvas);
-                    imagedestroy($source);
-
-                    // Delete old image
-                    if ($currentImage && file_exists($currentImage)) unlink($currentImage);
-
-                    $imageToSave = $filePath; // new image path
-                }
-            }
-        }
-
-        // ---------- NO NEW IMAGE: CHECK DUPLICATE ----------
-        if (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== 0) {
-            if (!empty($currentHash)) {
-                $dupStmt = $conn->prepare("
-                    SELECT product_id 
-                    FROM productservicesrentals 
-                    WHERE user_id = ? AND image_hash = ? AND product_id <> ? 
-                    LIMIT 1
-                ");
-                $dupStmt->bind_param("isi", $user_id, $currentHash, $editProductId);
-                $dupStmt->execute();
-                $dupStmt->store_result();
-                if ($dupStmt->num_rows > 0) {
-                    $error = "Another product already uses this image.";
-                }
-                $dupStmt->close();
-            }
-        }
-
-        // ---------- UPDATE PRODUCT IN DB ----------
-        if (empty($error)) {
-            $stmt = $conn->prepare("
-                UPDATE productservicesrentals 
-                SET product_name=?, category=?, price=?, stock_quantity=?, image_path=?, image_hash=?
-                WHERE product_id=? AND user_id=?
-            ");
-            $stmt->bind_param("ssdssiii", $productName, $category, $price, $stock, $imageToSave, $imgHash, $editProductId, $user_id);
-            if ($stmt->execute()) {
-              $success = "Product updated successfully! <span id='count'>3</span>…";
-              // ✅ Reset the form variables
-              $productName = '';
-              $category    = '';
-              $price       = '';
-              $stock       = '';
-
-            } else {
-              $error = "Failed to update product.";
-              $stmt->close();
-            }
-        }
-    } else {
-    // ---------- FORM INPUTS ----------
-    $productName = smartTitleCase($_POST['name'] ?? '');
-    $category    = trim($_POST['category'] ?? '');
-    $price       = floatval($_POST['price'] ?? 0);
-    $stock       = intval($_POST['stock'] ?? 0);
-
-    // ---------- VALIDATION ----------
-    if ($productName === '') {
-      $error = "Product name is required.";
-    }
-
-    elseif ($category === '') {
-      $error = "Please select a category.";
-    }
-
-    elseif ($price <= 0) {
-      $error = "Price must be greater than zero.";
-    }
-
-    elseif ($stock < 0) {
-      $error = "Stock quantity cannot be negative.";
-    }
-
-    elseif (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== 0) {
-      $error = "Please upload a product image.";
-    }
+$productName = smartTitleCase($_POST['name'] ?? '');
+$category    = trim($_POST['category'] ?? '');
+$price       = floatval($_POST['price'] ?? 0);
+$stock       = intval($_POST['stock'] ?? 0);
 
 
-    // ---------- IMAGE VALIDATION ----------
-    if (empty($error)) {
+/* ---------- BASIC VALIDATION ---------- */
 
-        $fileTmp  = $_FILES['photo']['tmp_name'];
-        $fileSize = $_FILES['photo']['size'];
-        $mime     = mime_content_type($fileTmp);
+if ($productName === '') {
+$error = "Product name is required.";
+}
+elseif ($category === '') {
+$error = "Please select a category.";
+}
+elseif ($price <= 0) {
+$error = "Price must be greater than zero.";
+}
+elseif ($stock < 0) {
+$error = "Stock cannot be negative.";
+}
+elseif (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== 0) {
+$error = "Please upload a product image.";
+}
 
-        $allowed = ['image/jpeg', 'image/png', 'image/webp'];
 
-        if (!in_array($mime, $allowed)) {
-          $error = "Invalid image format. Use JPG, PNG or WebP.";
-        }
-        elseif ($fileSize > 5 * 1024 * 1024) {
-          $error = "Image too large. Max size is 5MB.";
-        }
-        $imgInfo = getimagesize($fileTmp);
-        if (!$imgInfo) {
-          $error = "Uploaded file is not a valid image.";
-        }
-        
-        if (empty($error)) {
-        $imgHash = md5_file($fileTmp);
-    }
-    }
-    if (empty($error)) {
+/* ---------- CHECK DUPLICATE PRODUCT NAME ---------- */
 
-        $dupStmt = $conn->prepare("
-            SELECT product_name, image_hash 
-            FROM productservicesrentals 
-            WHERE user_id = ? 
-            AND (product_name = ? OR image_hash = ?) 
-            LIMIT 1
-        ");
+if (empty($error)) {
 
-        $dupStmt->bind_param("iss", $user_id, $productName, $imgHash);
-        $dupStmt->execute();
-        $dupStmt->store_result();
-        $dupStmt->bind_result($existingName, $existingHash);
+$stmt = $conn->prepare("
+SELECT product_id
+FROM productservicesrentals
+WHERE user_id = ? AND product_name = ?
+LIMIT 1
+");
 
-        if ($dupStmt->num_rows > 0) {
-            $dupStmt->fetch();
+$stmt->bind_param("is", $user_id, $productName);
+$stmt->execute();
+$stmt->store_result();
 
-            if ($existingName === $productName) {
-                $error = "Product name already exists.";
-            }
-            elseif ($existingHash === $imgHash) {
-                $error = "Image already exists.";
-            }
-        }
+if ($stmt->num_rows > 0) {
+$error = "You already added a product with this name.";
+}
 
-        $dupStmt->close();
-    }
+$stmt->close();
 
-    // ---------- IMAGE RESIZE & SAVE ----------
-    if (empty($error)) {
+}
 
-        [$width, $height] = $imgInfo;
 
-        if ($width < 600 || $height < 600) {
-            $error = "Image too small. Minimum size is 600×600 px.";
-        } else {
+/* ---------- IMAGE VALIDATION ---------- */
 
-            $maxSize = 700;
-            $ratio   = min($maxSize / $width, $maxSize / $height, 1);
+if (empty($error)) {
 
-            $newWidth  = (int)($width * $ratio);
-            $newHeight = (int)($height * $ratio);
+$fileTmp  = $_FILES['photo']['tmp_name'];
+$fileSize = $_FILES['photo']['size'];
+$mime     = mime_content_type($fileTmp);
 
-            $canvas = imagecreatetruecolor($newWidth, $newHeight);
+$allowed = ['image/jpeg','image/png','image/webp'];
 
-            switch ($mime) {
-                case 'image/jpeg':
-                    $source = imagecreatefromjpeg($fileTmp);
-                    // ----- FIX ORIENTATION -----
-                    if (function_exists('exif_read_data')) {
-                        $exif = @exif_read_data($fileTmp);
-                        if (!empty($exif['Orientation'])) {
-                            switch ($exif['Orientation']) {
-                                case 3:
-                                    $source = imagerotate($source, 180, 0);
-                                    break;
-                                case 6:
-                                    $source = imagerotate($source, -90, 0);
-                                    break;
-                                case 8:
-                                    $source = imagerotate($source, 90, 0);
-                                    break;
-                            }
-                        }
-                    }
+if (!in_array($mime,$allowed)) {
+$error = "Invalid image format.";
+}
+elseif ($fileSize > 5 * 1024 * 1024) {
+$error = "Image too large. Max 5MB.";
+}
 
-                    break;
-                case 'image/png':
-                    $source = imagecreatefrompng($fileTmp);
-                    imagealphablending($canvas, false);
-                    imagesavealpha($canvas, true);
-                    break;
-                case 'image/webp':
-                    $source = imagecreatefromwebp($fileTmp);
-                    break;
-            }
+$imgInfo = getimagesize($fileTmp);
 
-            imagecopyresampled(
-                $canvas,
-                $source,
-                0, 0, 0, 0,
-                $newWidth,
-                $newHeight,
-                $width,
-                $height
-            );
+if (!$imgInfo) {
+$error = "Invalid image.";
+}
 
-            // Upload directory
-            $uploadDir = 'uploads/products/';
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0755, true);
-            }
+if (empty($error)) {
 
-            $fileName = uniqid('product_', true) . '.webp';
-            $filePath = $uploadDir . $fileName;
+[$width,$height] = $imgInfo;
 
-            imagewebp($canvas, $filePath, 75);
+if ($width < 600 || $height < 600) {
+$error = "Image too small. Minimum size is 600×600 px.";
+}
 
-            imagedestroy($canvas);
-            imagedestroy($source);
+}
 
-            $fileSizeKB = round(filesize($filePath) / 1024);
+}
 
-            // ---------- INSERT INTO DATABASE ----------
-            $stmt = $conn->prepare("
-                INSERT INTO productservicesrentals (user_id, product_name, category, price, stock_quantity, image_path, image_width, image_height, image_size_kb, image_format, image_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'webp', ?)
-            ");
 
-            $stmt->bind_param(
-                "issdissiis",
-                $user_id,
-                $productName,
-                $category,
-                $price,
-                $stock,
-                $filePath,
-                $newWidth,
-                $newHeight,
-                $fileSizeKB,
-                $imgHash
-            );
+/* ---------- RESIZE IMAGE FIRST ---------- */
 
-            if ($stmt->execute()) {
-              $success = "Product added successfully! <span id='count'>3</span>…";
-              // ✅ Reset the form variables
-              $productName = '';
-              $category    = '';
-              $price       = '';
-              $stock       = '';
-            } else {
-              $error = "Failed to save product. Please try again.";
-            }
+if (empty($error)) {
 
-            $stmt->close();
-        }
-    }
-}}
+$maxSize = 700;
+
+$ratio = min($maxSize/$width,$maxSize/$height,1);
+
+$newWidth  = (int)($width*$ratio);
+$newHeight = (int)($height*$ratio);
+
+$canvas = imagecreatetruecolor($newWidth,$newHeight);
+
+switch ($mime) {
+
+case 'image/jpeg':
+$source = imagecreatefromjpeg($fileTmp);
+break;
+
+case 'image/png':
+$source = imagecreatefrompng($fileTmp);
+imagealphablending($canvas,false);
+imagesavealpha($canvas,true);
+break;
+
+case 'image/webp':
+$source = imagecreatefromwebp($fileTmp);
+break;
+
+}
+
+imagecopyresampled(
+$canvas,$source,
+0,0,0,0,
+$newWidth,$newHeight,
+$width,$height
+);
+
+
+/* ---------- SAVE TEMP IMAGE FOR HASHING ---------- */
+
+$tempFile = tempnam(sys_get_temp_dir(),'img_').'.webp';
+
+imagewebp($canvas,$tempFile,75);
+
+
+/* ---------- GENERATE HASHES ---------- */
+
+$imgHash  = md5_file($tempFile);
+$imgPhash = generateImageDHash($tempFile);
+
+}
+
+
+/* ---------- FAST DUPLICATE CHECK (MD5) ---------- */
+
+if (empty($error)) {
+
+$stmt = $conn->prepare("
+SELECT product_id
+FROM productservicesrentals
+WHERE user_id = ? AND image_hash = ?
+LIMIT 1
+");
+
+$stmt->bind_param("is",$user_id,$imgHash);
+$stmt->execute();
+$stmt->store_result();
+
+if ($stmt->num_rows > 0) {
+$error = "This image already exists for another product.";
+}
+
+$stmt->close();
+
+}
+
+
+/* ---------- VISUAL DUPLICATE CHECK (pHash) ---------- */
+
+if (empty($error)) {
+
+$stmt = $conn->prepare("
+SELECT image_phash
+FROM productservicesrentals
+WHERE user_id = ?
+");
+
+$stmt->bind_param("i",$user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+while ($row = $result->fetch_assoc()) {
+
+$distance = levenshtein($imgPhash,$row['image_phash']);
+
+if ($distance <= 5) {
+$error = "A visually similar image already exists.";
+break;
+}
+
+}
+
+$stmt->close();
+
+}
+
+
+/* ---------- SAVE IMAGE IF NO DUPLICATE ---------- */
+
+if (empty($error)) {
+
+$uploadDir = 'uploads/products/';
+
+if (!is_dir($uploadDir)) {
+mkdir($uploadDir,0755,true);
+}
+
+$fileName = uniqid('product_',true).'.webp';
+$filePath = $uploadDir.$fileName;
+
+rename($tempFile,$filePath);
+
+$fileSizeKB = round(filesize($filePath)/1024);
+
+
+/* ---------- CLEAN MEMORY ---------- */
+
+imagedestroy($canvas);
+imagedestroy($source);
+
+
+/* ---------- INSERT PRODUCT ---------- */
+
+$stmt = $conn->prepare("
+INSERT INTO productservicesrentals
+(
+user_id,
+product_name,
+category,
+price,
+stock_quantity,
+image_path,
+image_width,
+image_height,
+image_size_kb,
+image_format,
+image_hash,
+image_phash
+)
+VALUES (?,?,?,?,?,?,?,?,?,'webp',?,?)
+");
+
+$stmt->bind_param(
+"issdissiiss",
+$user_id,
+$productName,
+$category,
+$price,
+$stock,
+$filePath,
+$newWidth,
+$newHeight,
+$fileSizeKB,
+$imgHash,
+$imgPhash
+);
+
+if ($stmt->execute()) {
+
+$success = "Product added successfully! <span id='count'>3</span>…";
+
+$productName='';
+$category='';
+$price='';
+$stock='';
+
+} else {
+
+$error="Failed to save product.";
+
+}
+
+$stmt->close();
+
+}
+
+}
+
+// ---------- EDIT PRODUCT ----------
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_product_id'])) {
+
+$editProductId = intval($_POST['edit_product_id']);
+
+$productName = smartTitleCase($_POST['name'] ?? '');
+$category    = trim($_POST['category'] ?? '');
+$price       = floatval($_POST['price'] ?? 0);
+$stock       = intval($_POST['stock'] ?? 0);
+
+
+/* ---------- BASIC VALIDATION ---------- */
+
+if ($productName === '') {
+$error="Product name required.";
+}
+elseif ($category === '') {
+$error="Select category.";
+}
+elseif ($price<=0) {
+$error="Price must be greater than zero.";
+}
+elseif ($stock<0) {
+$error="Stock cannot be negative.";
+}
+
+
+/* ---------- CHECK DUPLICATE PRODUCT NAME ---------- */
+
+if (empty($error)) {
+
+$stmt=$conn->prepare("
+SELECT product_id
+FROM productservicesrentals
+WHERE user_id=? AND product_name=? AND product_id<>?
+LIMIT 1
+");
+
+$stmt->bind_param("isi",$user_id,$productName,$editProductId);
+$stmt->execute();
+$stmt->store_result();
+
+if ($stmt->num_rows>0){
+$error="Another product already has this name.";
+}
+
+$stmt->close();
+
+}
+
+
+/* ---------- FETCH CURRENT IMAGE ---------- */
+
+$stmt=$conn->prepare("
+SELECT image_path,image_hash,image_phash
+FROM productservicesrentals
+WHERE product_id=? AND user_id=?
+LIMIT 1
+");
+
+$stmt->bind_param("ii",$editProductId,$user_id);
+$stmt->execute();
+$res=$stmt->get_result();
+$row=$res->fetch_assoc();
+$stmt->close();
+
+$currentImage=$row['image_path'];
+$currentHash =$row['image_hash'];
+$currentPhash=$row['image_phash'];
+
+$imageToSave=$currentImage;
+$imgHash=$currentHash;
+$imgPhash=$currentPhash;
+
+
+/* ---------- IF USER UPLOADS NEW IMAGE ---------- */
+$newImageUploaded = false;
+if (isset($_FILES['photo']) && $_FILES['photo']['error']==0){
+$newImageUploaded = true;
+
+$fileTmp  = $_FILES['photo']['tmp_name'];
+$fileSize = $_FILES['photo']['size'];
+$mime     = mime_content_type($fileTmp);
+
+$allowed=['image/jpeg','image/png','image/webp'];
+
+if(!in_array($mime,$allowed)){
+$error="Invalid image format.";
+}
+elseif($fileSize>5*1024*1024){
+$error="Image too large. Max 5MB.";
+}
+
+$imgInfo=getimagesize($fileTmp);
+
+if(!$imgInfo){
+$error="Invalid image file.";
+}
+
+if(empty($error)){
+
+[$width,$height]=$imgInfo;
+
+if($width<600 || $height<600){
+$error="Image too small. Minimum size is 600×600 px.";
+}
+
+}
+
+}
+
+
+/* ---------- RESIZE IMAGE BEFORE HASH ---------- */
+
+if(empty($error) && isset($_FILES['photo']) && $_FILES['photo']['error']==0){
+
+$maxSize=700;
+
+$ratio=min($maxSize/$width,$maxSize/$height,1);
+
+$newWidth  =(int)($width*$ratio);
+$newHeight =(int)($height*$ratio);
+
+$canvas=imagecreatetruecolor($newWidth,$newHeight);
+
+switch($mime){
+
+case 'image/jpeg':
+$source=imagecreatefromjpeg($fileTmp);
+break;
+
+case 'image/png':
+$source=imagecreatefrompng($fileTmp);
+imagealphablending($canvas,false);
+imagesavealpha($canvas,true);
+break;
+
+case 'image/webp':
+$source=imagecreatefromwebp($fileTmp);
+break;
+
+}
+
+imagecopyresampled(
+$canvas,$source,
+0,0,0,0,
+$newWidth,$newHeight,
+$width,$height
+);
+
+
+/* ---------- TEMP FILE FOR HASH ---------- */
+
+$tempFile=tempnam(sys_get_temp_dir(),'img_').'.webp';
+
+imagewebp($canvas,$tempFile,75);
+
+
+/* ---------- GENERATE HASHES ---------- */
+
+$imgHash  = md5_file($tempFile);
+$imgPhash = generateImageDHash($tempFile);
+
+}
+
+
+/* ---------- EXACT DUPLICATE CHECK ---------- */
+
+if(empty($error) && $newImageUploaded) {
+
+$stmt=$conn->prepare("
+SELECT product_id
+FROM productservicesrentals
+WHERE user_id=? AND image_hash=? AND product_id<>?
+LIMIT 1
+");
+
+$stmt->bind_param("isi",$user_id,$imgHash,$editProductId);
+$stmt->execute();
+$stmt->store_result();
+
+if($stmt->num_rows>0){
+$error="This image already exists for another product.";
+}
+
+$stmt->close();
+
+}
+
+
+/* ---------- VISUAL DUPLICATE CHECK ---------- */
+
+if(empty($error) && isset($imgPhash)){
+
+$stmt=$conn->prepare("
+SELECT image_phash
+FROM productservicesrentals
+WHERE user_id=? AND product_id<>?
+");
+
+$stmt->bind_param("ii",$user_id,$editProductId);
+$stmt->execute();
+$result=$stmt->get_result();
+
+while($r=$result->fetch_assoc()){
+
+$distance=levenshtein($imgPhash,$r['image_phash']);
+
+if($distance<=5){
+$error="A visually similar image already exists.";
+break;
+}
+
+}
+
+$stmt->close();
+
+}
+
+
+/* ---------- SAVE NEW IMAGE ---------- */
+
+if(empty($error) && $newImageUploaded){
+
+$uploadDir='uploads/products/';
+
+if(!is_dir($uploadDir)){
+mkdir($uploadDir,0755,true);
+}
+
+$fileName = uniqid('product_',true).'.webp';
+$filePath = $uploadDir.$fileName;
+
+rename($tempFile,$filePath);
+
+if(file_exists($currentImage)){
+unlink($currentImage);
+}
+
+$imageToSave = $filePath;
+
+if(isset($canvas)) imagedestroy($canvas);
+if(isset($source)) imagedestroy($source);
+
+}
+
+
+/* ---------- UPDATE PRODUCT ---------- */
+
+if(empty($error)){
+
+$stmt=$conn->prepare("
+UPDATE productservicesrentals
+SET product_name=?,category=?,price=?,stock_quantity=?,image_path=?,image_hash=?,image_phash=?
+WHERE product_id=? AND user_id=?
+");
+
+$stmt->bind_param(
+"ssdsssiii",
+$productName,
+$category,
+$price,
+$stock,
+$imageToSave,
+$imgHash,
+$imgPhash,
+$editProductId,
+$user_id
+);
+
+if($stmt->execute()){
+
+$success="Product updated successfully! <span id='count'>3</span>…";
+
+$productName='';
+$category='';
+$price='';
+$stock='';
+
+}else{
+$error="Update failed.";
+}
+
+$stmt->close();
+
+}
+
+}
 
 // Fetch seller orders
 $sellerOrders = [];

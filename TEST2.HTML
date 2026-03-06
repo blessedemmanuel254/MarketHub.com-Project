@@ -1,242 +1,267 @@
-<!-- | Seller Type      | Icon |
-| ---------------- | ---- |
-| Shop             | 🏪   |
-| Supermarket      | 🛒   |
-| Service Provider | 🔧   |
-| Distributor      | 🚚   |
-| Manufacturer     | 🏭   |
-| Global Supplier  | 🌍   |
- -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="UTF-8">
-<title>Market Hub – Seller Marketplace</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>MarketHub Dashboard</title>
+<!-- Font Awesome CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
 <style>
-/* =====================
-   GLOBAL STYLES
-===================== */
-body {
-  font-family: "Poppins", sans-serif;
-  background: #fff;
-  color: #000;
-  margin: 0;
-  padding: 20px;
-}
 
-h1, h2 {
-  margin-bottom: 10px;
-}
 
-.container {
-  max-width: 1200px;
-  margin: auto;
-}
+/* OVERLAY */
 
-/* =====================
-   FILTER UI
-===================== */
-.filter-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 25px;
-}
+.alertPopupOverlay {
 
-select {
-  padding: 10px;
-  border: 1px solid #000;
-  background: #fff;
-  font-size: 14px;
-}
-
-/* =====================
-   SELLER CARDS
-===================== */
-.seller-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 16px;
-}
-
-.seller-card {
-  border: 1px solid #000;
-  padding: 15px;
-}
-
-.seller-card.hidden {
-  display: none;
-}
-
-.icon {
-  font-size: 28px;
-  margin-bottom: 10px;
-}
-
-.tag {
-  font-size: 12px;
-  border: 1px solid #000;
-  padding: 3px 6px;
-  display: inline-block;
-  margin-top: 6px;
-}
-
-/* =====================
-   ONBOARDING FORM
-===================== */
-form {
-  margin-top: 50px;
-  border-top: 2px solid #000;
-  padding-top: 30px;
-}
-
-form input, form select {
+  position:fixed;
+  top: 0;
+  left: 0;
   width: 100%;
-  margin-bottom: 12px;
+  height: 100%;
+  background:rgba(0, 0, 0, 0.212);
+  display: none;
+  align-items: center;
+  justify-content:center;
+  z-index: 9999;
+
 }
+
+/* ALERT POPUP */
+
+.alert-popup {
+
+  width: clamp(250px, 90%, 500px);
+  background: white;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
+
+}
+
+/* HEADER */
+
+.alert-popup-header{
+
+  background: #898888;
+  color:  white;
+  text-align: center;
+  padding: 12px;
+  font-weight: bold;
+  letter-spacing: 1px;
+
+}
+
+/* BODY */
+
+.alert-popup-body {
+
+  padding: 20px;
+  text-align: center;
+
+}
+
+/* WARNING ICON */
+
+.warning-icon {
+
+  width: 70px;
+  height: 70px;
+  margin:0 auto 20px;
+  border-radius:50%;
+  background:#dedede;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  animation:pulse 1.5s infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+
+.warning-icon i {
+  color: #afafaf;
+  font-size: 45px;
+}
+
+@keyframes pulse{
+
+0%{transform:scale(1);}
+50%{transform:scale(1.1);}
+100%{transform:scale(1);}
+
+}
+
+/* TEXT */
+
+.alert-popup-title{
+
+font-size:22px;
+margin-bottom:10px;
+font-weight:bold;
+
+}
+
+.alert-popup-text {
+font-size: 14px;
+color: #898888;
+margin-bottom: 25px;
+
+}
+
+/* BUTTONS */
+
+.buttons {
+display: flex;
+gap: 10px;
+justify-content: space-between;
+
+}
+
+.buttons a {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  color: #0f0f0f;
+
+}
+
+a.activate {
+  background:black;
+  color:white;
+
+}
+
+a.activate:hover{
+  background:#222;
+
+}
+
+a.cancel{
+  background:#e5e5e5;
+
+}
+
+a.cancel:hover{
+  background:#d5d5d5;
+
+}
+
+/* VIOLENT SHAKE */
+
+.shake{
+  animation:violentShake .6s;
+
+}
+
+@keyframes violentShake{
+  0%{transform:translateX(0)}
+  10%{transform:translateX(-5px)}
+  20%{transform:translateX(5px)}
+  30%{transform:translateX(-10px)}
+  40%{transform:translateX(10px)}
+  50%{transform:translateX(-10px)}
+  60%{transform:translateX(10px)}
+  70%{transform:translateX(-5px)}
+  80%{transform:translateX(5px)}
+  90%{transform:translateX(-5px)}
+  100%{transform:translateX(0)}
+
+}
+
 </style>
+
 </head>
 
 <body>
-<div class="container">
+  <!-- ALERT POPUP OVERLAY -->
+    <div class="alertPopupOverlay" id="alertPopupOverlay">
 
-<h1>Market Hub Marketplace</h1>
-<p>Select your market and seller type to view available sellers.</p>
+    <div class="alert-popup" id="alert-popup">
 
-<!-- =====================
-     BUYER FILTER UI
-===================== -->
-<div class="filter-bar">
-  <select id="marketFilter">
-    <option value="">All Markets</option>
-    <option value="local">Local</option>
-    <option value="national">National</option>
-    <option value="global">Global</option>
-  </select>
+      <div class="alert-popup-header">
+      ACCOUNT VERIFICATION REQUIRED
+      </div>
 
-  <select id="sellerFilter">
-    <option value="">All Seller Types</option>
-    <option value="shop">Shop</option>
-    <option value="supermarket">Supermarket</option>
-    <option value="service">Service Provider</option>
-    <option value="distributor">Distributor</option>
-    <option value="manufacturer">Manufacturer</option>
-    <option value="global-supplier">Global Supplier</option>
-  </select>
+      <div class="alert-popup-body">
 
-  <select id="modelFilter">
-    <option value="">All Business Types</option>
-    <option value="product">Products</option>
-    <option value="service">Services</option>
-    <option value="rental">Rentals</option>
-  </select>
-</div>
+        <div class="warning-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
 
-<!-- =====================
-     SELLER PROFILES
-===================== -->
-<div class="seller-grid">
+        <div class="alert-popup-title">
+        Verify Your Agent Account
+        </div>
 
-  <div class="seller-card" data-market="local" data-seller="shop" data-model="product">
-    <div class="icon">🏪</div>
-    <strong>City Electronics Shop</strong>
-    <div class="tag">Local · Products</div>
+        <div class="alert-popup-text">
+          Your MarketHub agent account is currently **unverified**.
+
+          To unlock full agent privileges like:
+
+          • Full access to listed products  
+          • Receiving commissions
+          • Making withdrawal requests and
+          • Other premium agent tools  
+
+          You must activate your account.
+
+        </div>
+
+        <div class="buttons">
+
+          <a href="logout.php" class="cancel" onclick="logoutUser()">
+          Cancel
+          </a>
+
+          <a href="" class="activate" onclick="activateAccount()">
+          Verify Account
+          </a>
+
+        </div>
+
+      </div>
+
+    </div>
+
   </div>
 
-  <div class="seller-card" data-market="local" data-seller="supermarket" data-model="product">
-    <div class="icon">🛒</div>
-    <strong>FreshMart Supermarket</strong>
-    <div class="tag">Local · Products</div>
-  </div>
 
-  <div class="seller-card" data-market="national" data-seller="distributor" data-model="product">
-    <div class="icon">🚚</div>
-    <strong>Kenya Distributors Ltd</strong>
-    <div class="tag">National · Products</div>
-  </div>
-
-  <div class="seller-card" data-market="global" data-seller="global-supplier" data-model="product">
-    <div class="icon">🌍</div>
-    <strong>Global Tech Supplier</strong>
-    <div class="tag">Global · Products</div>
-  </div>
-
-  <div class="seller-card" data-market="local" data-seller="service" data-model="service">
-    <div class="icon">🔧</div>
-    <strong>Home Repair Services</strong>
-    <div class="tag">Local · Services</div>
-  </div>
-
-  <div class="seller-card" data-market="national" data-seller="manufacturer" data-model="rental">
-    <div class="icon">🏭</div>
-    <strong>Industrial Equipment Rentals</strong>
-    <div class="tag">National · Rentals</div>
-  </div>
-
-</div>
-
-<!-- =====================
-     SELLER ONBOARDING FORM
-===================== -->
-<h2>Seller Onboarding</h2>
-<p>Register your business on Market Hub.</p>
-
-<form>
-  <input type="text" placeholder="Business Name" required>
-
-  <select required>
-    <option value="">Select Market</option>
-    <option value="local">Local</option>
-    <option value="national">National</option>
-    <option value="global">Global</option>
-  </select>
-
-  <select required>
-    <option value="">Select Seller Type</option>
-    <option value="shop">Shop 🏪</option>
-    <option value="supermarket">Supermarket 🛒</option>
-    <option value="service">Service Provider 🔧</option>
-    <option value="distributor">Distributor 🚚</option>
-    <option value="manufacturer">Manufacturer 🏭</option>
-    <option value="global-supplier">Global Supplier 🌍</option>
-  </select>
-
-  <select required>
-    <option value="">Business Model</option>
-    <option value="product">Products</option>
-    <option value="service">Services</option>
-    <option value="rental">Rentals</option>
-  </select>
-
-  <button type="submit">Submit</button>
-</form>
-
-</div>
-
-<!-- =====================
-     FILTER LOGIC
-===================== -->
 <script>
-const marketFilter = document.getElementById("marketFilter");
-const sellerFilter = document.getElementById("sellerFilter");
-const modelFilter  = document.getElementById("modelFilter");
-const cards = document.querySelectorAll(".seller-card");
 
-function filterSellers() {
-  cards.forEach(card => {
-    const matchMarket = !marketFilter.value || card.dataset.market === marketFilter.value;
-    const matchSeller = !sellerFilter.value || card.dataset.seller === sellerFilter.value;
-    const matchModel  = !modelFilter.value  || card.dataset.model  === modelFilter.value;
+/* SHOW POPUP AFTER 30 SECONDS */
 
-    card.classList.toggle("hidden", !(matchMarket && matchSeller && matchModel));
-  });
+setTimeout(()=>{
+
+document.getElementById("alertPopupOverlay").style.display="flex"
+
+},10000)
+
+
+
+/* VIOLENT SHAKE IF OVERLAY CLICKED */
+
+document.getElementById("alertPopupOverlay").addEventListener("click",function(e){
+
+if(e.target.id === "alertPopupOverlay"){
+
+let alertPopup = document.getElementById("alert-popup")
+
+alertPopup.classList.add("shake")
+
+setTimeout(()=>{
+
+alertPopup.classList.remove("shake")
+
+},500)
+
 }
 
-marketFilter.addEventListener("change", filterSellers);
-sellerFilter.addEventListener("change", filterSellers);
-modelFilter.addEventListener("change", filterSellers);
+})
+
 </script>
 
 </body>

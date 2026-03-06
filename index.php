@@ -227,7 +227,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 </label>
 
                 <label class="account-type">
-                  <input type="radio" name="login_type" value="agent" required>
+                  <input type="radio" name="login_type" value="sales_agent" required>
                   <div class="radio-dot"></div>
                   Agent
                 </label>
@@ -316,9 +316,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       const percent = (score / 5) * 100;
       strengthFill.style.width = percent + "%";
 
-      if (percent < 40) strengthFill.style.background = "#dc2626";
+      if (percent < 40) strengthFill.style.background = "#ff3b3b";
       else if (percent < 80) strengthFill.style.background = "#f59e0b";
-      else strengthFill.style.background = "#16a34a";
+      else strengthFill.style.background = "#088000";
     });
   </script>
 </body>

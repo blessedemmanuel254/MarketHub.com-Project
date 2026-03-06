@@ -125,6 +125,54 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 </head>
 <body>
   <div class="container">
+    <!-- ALERT POPUP OVERLAY -->
+      <div class="alertPopupOverlay" id="alertPopupOverlay">
+
+      <div class="alert-popup" id="alert-popup">
+
+        <div class="alert-popup-header">
+        ACCOUNT VERIFICATION REQUIRED
+        </div>
+
+        <div class="alert-popup-body">
+
+          <div class="warning-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+
+          <div class="alert-popup-title">
+          Verify Your Agent Account
+          </div>
+
+          <div class="alert-popup-text">
+            Your MarketHub agent account is currently **unverified**.
+
+            To unlock full agent privileges like:
+
+            • Full access to listed products  
+            • Receiving commissions
+            • Making withdrawal requests and
+            • Other premium agent tools  
+
+            You must activate your account.
+
+          </div>
+
+          <div class="buttons">
+
+            <a href="logout.php" class="cancel">
+            Cancel
+            </a>
+
+            <a href="agentregister.php" class="activate">
+            Verify Account
+            </a>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
     <header class="pgHeader">
       <section>
         <div class="sContainer">
@@ -424,7 +472,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                 <div class="formBody">
                   <div class="inp-box">
                     <label>Agent's Full Name</label>
-                    <input type="text" name="agent-full-name" placeholder="Full Name">
+                    <input type="text" name="full-name" placeholder="Full Name">
                   </div>
                   <div class="inp-box">
                     <label>Agent's Username</label>
@@ -432,16 +480,16 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                   </div>
                   <div class="inp-box">
                     <label>Agent's Email ID</label>
-                    <input type="text" name="agent-email" placeholder="john@example.com">
+                    <input type="text" name="email" placeholder="john@example.com">
                   </div>
                   <div class="inp-box">
                     <label>Agent's Phone</label>
-                    <input type="agent-phone" name="agent-email" placeholder="075***630">
+                    <input type="text" name="phone" placeholder="075***630">
                   </div>
                   <div class="inp-box">
 
                     <label>Country</label>
-                    <select name="category">
+                    <select name="country">
                       <option value=""><p>-- Select Country --</p></option>
                       <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
                       <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
@@ -449,13 +497,9 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                     </select>
                   </div>
                   <div class="inp-box">
-                    <label>Agent's Address</label>
-                    <input type="text" name="agent-address" placeholder="eg. Kilifi town">
-                  </div>
-                  <div class="inp-box">
 
                     <label>County</label>
-                    <select name="category">
+                    <select name="county">
                       <option value=""><p>-- Select County --</p></option>
                       <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kilifi</option><!-- 
                       <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
@@ -463,9 +507,13 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                     </select>
                   </div>
                   <div class="inp-box">
+                    <label>Agent's Address</label>
+                    <input type="text" name="address" placeholder="eg. Kilifi town">
+                  </div>
+                  <div class="inp-box">
 
                     <label>Ward</label>
-                    <select name="category">
+                    <select name="ward">
                       <option value=""><p>-- Select Ward --</p></option>
                       <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kilifi</option><!-- 
                       <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
