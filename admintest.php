@@ -619,7 +619,6 @@ if ($accountType !== $allowedRole) { */
                         </div>
                       </div>
                   <?php endif; ?>
-                  <div></div>
 
                   <button type="submit">
                     <?= $editMode ? 'Update Product' : 'Add Product' ?>
