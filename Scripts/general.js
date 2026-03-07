@@ -1676,11 +1676,12 @@ AGENT ALERT VERIFICATION POPUP JS
 
 /* SHOW POPUP AFTER 30 SECONDS */
 
-setTimeout(()=>{
+/* setTimeout(()=>{
 
   document.getElementById("alertPopupOverlay").style.display="flex"
+  document.body.classList.add("no-scroll");
 
-},10000)
+},10000) */
 
 
 /* VIOLENT SHAKE IF OVERLAY CLICKED */

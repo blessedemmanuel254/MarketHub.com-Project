@@ -10,11 +10,11 @@ $accountType = $_SESSION['accountType'];
 CAPTURE REFERRAL FROM LINK
 ----------------------------- */
 if (isset($_GET['ref']) && !empty($_GET['ref'])) {
-    $_SESSION['referral_code'] = trim($_GET['ref']); // store in session
+    $_SESSION['agency_code'] = trim($_GET['ref']); // store in session
 }
 
 // Use session value globally
-$refFromLink = $_SESSION['referral_code'] ?? '';
+$refFromLink = $_SESSION['agency_code'] ?? '';
 
 $error = "";
 $success = "";
@@ -30,6 +30,7 @@ $busname = "";
 $busmodel = "";
 $bustype = "";
 $market = "";
+$referralToCheck = "";
 
 function normalizePhoneNumber($rawPhone) {
   // Remove all characters except numbers and plus sign
@@ -79,7 +80,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $ward = trim($_POST['ward'] ?? '');
   $address = trim($_POST['address'] ?? '');
 
-  $referral_input = trim($_POST['referral_code'] ?? '');
+  $referral_input = trim($_POST['agency_code'] ?? '');
 
   // Priority: POST (user typed) > session (from URL)
   $referralToCheck = $referral_input ?: $refFromLink;
@@ -87,7 +88,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $referrer_id = null;
 
   if (!empty($referralToCheck)) {
-    $stmt = $conn->prepare("SELECT user_id FROM users WHERE referral_code = ? LIMIT 1");
+    $stmt = $conn->prepare("SELECT user_id FROM users WHERE agency_code = ? LIMIT 1");
     $stmt->bind_param("s", $referralToCheck);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -96,7 +97,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $row = $result->fetch_assoc();
         $referrer_id = $row['user_id'];
     } else {
-        $error = "Invalid referral code!";
+        $error = "Invalid agency code!";
     }
 
     $stmt->close();
@@ -164,8 +165,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         $stmt = $conn->prepare("
             INSERT INTO users
-            (account_type, full_name, username, email, phone, password, country, county, ward, address, business_name, business_model, business_type, market_scope, rating_average, rating_count, referral_code, referred_by, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?, NOW(), NOW())
+            (account_type, full_name, username, email, phone, password, country, county, ward, address, business_name, business_model, business_type, market_scope, agency_code, referred_by, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
         ");
         $stmt->bind_param(
             "ssssssssssssssss",
@@ -207,7 +208,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $wallet->close();
 
         // Unset the referral session so it won't be reused
-        unset($_SESSION['referral_code']);
+        unset($_SESSION['agency_code']);
         $success = "Account registered successfully! <span id='redirect-msg'></span>";
 
         } else {
@@ -429,9 +430,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
               </div>
               <div></div>
               <div class="inpBox">
-                <input type="text" name="referral_code" value="<?= htmlspecialchars($refFromLink ?? '') ?>" placeholder="">
+                <input 
+                type="text" 
+                name="agency_code" 
+                value="<?= htmlspecialchars(!empty($refFromLink) ? $refFromLink : $referralToCheck) ?>" 
+                placeholder="">
                 <label>
-                  Referral Code
+                  Agency Code
                   <?php if(empty($refFromLink)): ?>
                     (Optional)
                   <?php endif; ?>

@@ -1,22 +1,23 @@
 <?php
 session_start();
 require_once 'connection.php';
+
 ini_set('display_errors', 0); // prevent HTML error output
 error_reporting(E_ALL);
 /* ---------- SESSION SECURITY ---------- */
 if (!isset($_SESSION['user_id'])) {
-    header("Location: index.php");
-    exit();
-} 
+  header("Location: index.php");
+  exit();
+}
 
 $userId = $_SESSION['user_id'];
 
 /* ---------- FETCH BUYER DELIVERY DETAILS ---------- */
 $stmt = $conn->prepare("
-    SELECT full_name, phone, county, ward, address
-    FROM users
-    WHERE user_id = ?
-    LIMIT 1
+  SELECT full_name, phone, county, ward, address
+  FROM users
+  WHERE user_id = ?
+  LIMIT 1
 ");
 $stmt->bind_param("i", $userId);
 $stmt->execute();
@@ -26,8 +27,8 @@ $stmt->close();
 
 // Format full name (First letter capital, rest small)
 $formattedName = isset($user['full_name']) 
-    ? ucwords(strtolower($user['full_name'])) 
-    : 'Not Provided';
+  ? ucwords(strtolower($user['full_name'])) 
+  : 'Not Provided';
 
 // Decode phone from Base64
 $decodedPhone = isset($user['phone']) 
@@ -545,9 +546,7 @@ $sellerStmt = $conn->prepare("
       market_scope,
       address,
       ward,
-      profile_image,
-      rating_average,
-      rating_count
+      profile_image
     FROM users
     WHERE user_id = ? AND account_type = 'seller'
     LIMIT 1
@@ -813,7 +812,7 @@ $productStmt->close();
               </div>
 
               <div class="rating">
-                ★★★★★ (<?php echo (int)$seller['rating_count']; ?>)
+                ★★★★★ 5
               </div>
 
               <div class="meta">
@@ -934,7 +933,7 @@ $productStmt->close();
                                 <?= ($product['stock_quantity'] > 5) ? 'in-stock' : 
                                     (($product['stock_quantity'] > 0) ? 'low-stock' : 'out-stock') ?>">
                                 <?= ($product['stock_quantity'] > 0) 
-                                    ? "In stock ({$product['stock_quantity']})" 
+                                    ? "In stock (<strong>{$product['stock_quantity']}</strong>)" 
                                     : "Out of stock" ?>
                               </div>
 

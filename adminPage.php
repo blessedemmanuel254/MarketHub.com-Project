@@ -354,6 +354,9 @@ $totalOwners = count($propertyOwners);
         <a href="#" class="nav-link" data-tab="transactions">
           <i class="fa-solid fa-money-bill-transfer"></i>Transactions
         </a>
+        <a href="#" class="nav-link" data-tab="products">
+          <i class="fa-solid fa-barcode"></i>Products
+        </a>
         <a href="settingsPage.php" class="nav-link"><i class="fa-solid fa-gear"></i>Settings</a>
         <a href="logout.php" class="nav-link-admin-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i>Logout</a>
       </nav>
@@ -770,9 +773,9 @@ $totalOwners = count($propertyOwners);
 
               <td class="actions">
                 <div>
-                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
                   <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
                   <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-copy-link"><i class="fa-solid fa-link"></i> Copy&nbsp;Link</button>
                   <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                 </div>
               </td>
@@ -990,7 +993,7 @@ $totalOwners = count($propertyOwners);
               <i class="fa-solid fa-wallet"></i>
               <div>
                 <h3>Total Spend</h3>
-                <div class="value">Ksh 7.3M</div>
+                <div class="value">KES 7.3M</div>
               </div>
             </div>
           </div>

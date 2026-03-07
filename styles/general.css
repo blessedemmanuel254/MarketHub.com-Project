@@ -26,6 +26,11 @@ html body {
   -ms-overflow-style: none;     /* IE 10+ */
 }
 
+html body.no-scroll {
+  overflow: hidden;
+  height: 100vh;
+}
+
 .container, .containerAdmin {
   width: 100%;
   font-size: 14px;
@@ -384,6 +389,11 @@ html body {
   z-index: 1001;
 }
 
+.container .overlay {
+  background-color: rgba(0, 0, 0, 0.199);
+
+}
+
 .container .payOverlay {
   background-color: rgba(0, 0, 0, 0.205);
   z-index: 1009;
@@ -570,7 +580,7 @@ html body {
   margin: 0 auto;
 }
 
-.container main.buyerMain .filter-bar #statusFilter, .containerAdmin .admin-tab-panel .table-wrapper .filter-bar #statusFilter {
+.container main.buyerMain .filter-bar #statusFilter, .containerAdmin .admin-tab-panel .table-wrapper .filter-bar #statusFilter, .containerAdmin .admin-tab-panel .table-wrapper .filter-bar #regionFilter, .containerAdmin .admin-tab-panel .table-wrapper .filter-bar #kycFilter, .containerAdmin .admin-tab-panel .table-wrapper .filter-bar #productsFilter {
   padding: 8px 16px;
   border-radius: 4px;
   font-size: 14px;
@@ -580,7 +590,7 @@ html body {
   cursor: pointer;
 }
 
-.containerAdmin .admin-tab-panel .table-wrapper .filter-bar #statusFilter {
+.containerAdmin .admin-tab-panel .table-wrapper .filter-bar #statusFilter, .containerAdmin .admin-tab-panel .table-wrapper .filter-bar #regionFilter, .containerAdmin .admin-tab-panel .table-wrapper .filter-bar #kycFilter, .containerAdmin .admin-tab-panel .table-wrapper .filter-bar #productsFilter {
   padding: 8px;
 }
 
@@ -661,7 +671,7 @@ html body {
 .tabs-container .tab-content .tab-panel, .tabs-container .tab-content .tab-panel-msource, .tabs-container .tab-content .tab-panel-mtype  {
   position: relative;
   width: 100%;
-  padding: 10px;
+  padding: 10px 0;
   transform: translateX(20px);
   transition: opacity 0.35s ease, transform 0.35s ease;
   display: none;
@@ -755,7 +765,7 @@ html body {
   text-emphasis: none;
   border-radius: 4px;
   padding: 8px 16px;
-  border: 1px solid #dedede;
+  border: 1px solid #8988886b;
   position: relative;
   padding: 15px;
   cursor: pointer;
@@ -776,7 +786,7 @@ html body {
   font-size: 35px;
   margin-bottom: 10px;
   display: inline-block;
-  color: #dedede;
+  color: #0f0f0f;
 }
 
 .tabs-container .tab-content .tab-panel .cards a.card i.fa-brands {
@@ -801,6 +811,7 @@ html body {
   align-items: center;
   margin-top: 10px;
   font-size: 14px;
+  color: #898888;
 }
 
 .tabs-container .tab-content .tab-panel .cards a.card .label p, .tabs-container .tab-content .tab-panel-mtype .cards a.card .label p {
@@ -818,8 +829,8 @@ html body {
   border: none;
   padding: 8px 16px;
   border-radius: 4px;
-  border: 1px solid #dedede;
-  color: #898888;
+  border: 1px solid #898888a4;
+  color: #0f0f0f;
   cursor: pointer;
 }
 
@@ -960,8 +971,15 @@ html body {
   opacity: 0.875;
 }
 
-.table-wrapper table tbody tr td.actions button.btn-view, .cards .order-card .card-actions button.btn-view { background:#000; color:#ffffff; }
+.table-wrapper table tbody tr td.actions button.btn-view, .cards .order-card .card-actions button.btn-view, .table-wrapper table tbody tr td.actions button.btn-copy-link { background:#000; color:#ffffff; }
 .table-wrapper table tbody tr td.actions button.btn-track, .cards .order-card .card-actions button.btn-track { background:#ddd; }
+.table-wrapper table tbody tr td.actions button.btn-copy-link {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+}
 .table-wrapper table tbody tr td.actions button.btn-cancel, .cards .order-card .card-actions button.btn-cancel { background:#fdecea; color:#ff3b3b;
 }
 .table-wrapper table tbody tr td.actions button.btn-edit {
@@ -1052,7 +1070,9 @@ html body {
   background: #fff;
   border-radius: 8px;
   padding: 14px;
-  box-shadow: 0 4px 10px rgba(0,0,0,.08);
+  box-shadow: 0 2px 4px rgba(0,0,0,.08);
+  background-color: #dedede18;
+  border: 1px solid #dedede;
 }
 
 .container main.buyerMain .cards .order-card .card-header {
@@ -1082,7 +1102,7 @@ html body {
   margin-top: 8px;
   font-size: 13px;
   padding-bottom: 5px;
-  border-bottom: 1px dashed #dedede;
+  border-bottom: 1px dashed #898888a4;
 }
 
 .container main.buyerMain .cards .order-card .card-actions {
@@ -2068,6 +2088,7 @@ label.account-type input:checked + .radio-dot::after {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 12px;
+  border: 1px solid #dedede;
   background-color: #dedede41;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -2516,12 +2537,12 @@ a.seller-right {
 } */
 
 .variable-content .stock {
-  font-size:12px;
+  font-size: 14px;
 }
 
-.variable-content .stock.in-stock{ color:green; }
+.variable-content .stock.in-stock{ color:#088000; }
 .variable-content .stock.low-stock{ color:orange; }
-.variable-content .stock.out-stock{ color:red; }
+.variable-content .stock.out-stock{ color:#ff3b3b; }
 
 .variable-content .price-row {
   display: flex;
@@ -3128,6 +3149,33 @@ a.seller-right {
 .tab-content .tab-panel .form-wrapper form .inp-box label, .tab-panel-admin .form-wrapper form .inp-box label {
   font-size: 14px;
   color: #0f0f0f;
+  width: 100%;
+}
+
+.tab-panel-admin .form-wrapper form .inp-box label.agency_code {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-right: 8px;
+}
+
+.tab-panel-admin .form-wrapper form .inp-box label.agency_code i {
+  color: #088000;
+  background-color: #8988887c;
+  height: 32px;
+  width: 32px;
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+
+.tab-panel-admin .form-wrapper form .inp-box label.agency_code i:hover {
+  opacity: .875;
 }
 
 .tab-content .tab-panel .form-wrapper form .inp-box input, .tab-panel-admin .form-wrapper input, .tab-content .tab-panel .form-wrapper form .inp-box select, .tab-panel-admin .form-wrapper form .inp-box select {
@@ -3140,6 +3188,13 @@ a.seller-right {
 
 .tab-content .tab-panel .form-wrapper form .inp-box select, .tab-panel-admin .form-wrapper form .inp-box select {
   color: #0f0f0f;
+}
+
+.form-wrapper form .inp-box .edit-preview {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
 }
 
 .tab-content .tab-panel .form-wrapper form .inp-box .note, .tab-panel-admin .form-wrapper form .inp-box .note {
@@ -3680,7 +3735,7 @@ body#adminBody {
 /* CARD */
 .tab-panel.agency .dashboard .grid .card, .tab-panel .formBody.agency .card {
   background: #ffffff;
-  border: 1px solid #dedede;
+  border: 1px solid #8988886b;
   border-radius: 4px;
   padding: 20px;
   transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
@@ -3776,7 +3831,7 @@ body#adminBody {
   justify-content: space-between;
   font-size: 13px;
   padding: 6px 0;
-  border-bottom: 1px dashed #dedede;
+  border-bottom: 1px dashed #898888;
 }
 
 /* ================

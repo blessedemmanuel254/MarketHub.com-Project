@@ -1175,7 +1175,7 @@ $deliveredOrders  = $row['delivered_orders'];
                         <div class="product-meta"><?= htmlspecialchars($product['category']) ?></div>
                         <div class="price">KES <?= number_format($product['price'], 2) ?></div>
                         <div class="stock <?= ($product['stock_quantity'] > 5) ? 'in-stock' : (($product['stock_quantity'] > 0) ? 'low-stock' : 'out-stock') ?>">
-                            <?= ($product['stock_quantity'] > 0) ? "In stock ({$product['stock_quantity']})" : "Out of stock" ?>
+                          <?= ($product['stock_quantity'] > 0) ? "In stock (<strong>{$product['stock_quantity']}</strong>)" : "Out of stock" ?>
                         </div>
                       </div>
                       <div class="card-actions">
@@ -1229,76 +1229,76 @@ $deliveredOrders  = $row['delivered_orders'];
                 <?php endif; ?>
 
                 <div class="formBody">
-                    <div class="inp-box">
-                        <label>Product Name</label>
-                        <input type="text" name="name" placeholder="Enter name" 
-                            value="<?= htmlspecialchars($productName, ENT_QUOTES) ?>" required>
-                    </div>
+                  <div class="inp-box">
+                      <label>Product Name</label>
+                      <input type="text" name="name" placeholder="Enter name" 
+                          value="<?= htmlspecialchars($productName, ENT_QUOTES) ?>" required>
+                  </div>
+                  <div class="inp-box">
 
-                    <div class="inp-box">
-                        <label>Category</label>
-                        <select name="category" required>
-                            <option value="">--Select category--</option>
-                            <option <?= ($category === 'Beauty') ? 'selected' : '' ?>>Beauty</option>
-                            <option <?= ($category === 'Electronics') ? 'selected' : '' ?>>Electronics</option>
-                            <option <?= ($category === 'Fashions') ? 'selected' : '' ?>>Fashions</option>
-                            <option <?= ($category === 'Food & Snacks') ? 'selected' : '' ?>>Food & Snacks</option>
-                            <option <?= ($category === 'Home Items') ? 'selected' : '' ?>>Home Items</option>
-                            <option <?= ($category === 'Stationery') ? 'selected' : '' ?>>Stationery</option>
-                        </select>
-                    </div>
+                    <label>Category</label>
+                    <select name="category">
+                      <option value=""><p>-- Select category --</p></option>
+                      <option value="Beauty" <?php echo ($category === 'Beauty') ? 'selected' : ''; ?>>Beauty</option>
+                      <option value="Electronics" <?php echo ($category === 'Electronics') ? 'selected' : ''; ?>>Electronics</option>
+                      <option value="Fashions" <?php echo ($category === 'Fashions') ? 'selected' : ''; ?>>Fashions</option>
+                      <option value="Food & Snacks" <?php echo ($category === 'Food & Snacks') ? 'selected' : ''; ?>>Food & Snacks</option>
+                      <option value="Home Items" <?php echo ($category === 'Home Items') ? 'selected' : ''; ?>>Home Items</option>
+                      <option value="Stationery" <?php echo ($category === 'Stationery') ? 'selected' : ''; ?>>Stationery</option>
+                    </select>
+                  </div>
 
-                    <div class="inp-box">
-                        <label>Price (KES)</label>
-                        <input type="number" name="price" step="1" placeholder="Enter price" 
-                            value="<?= htmlspecialchars($price, ENT_QUOTES) ?>" 
-                            oninput="this.value = this.value.replace(/[^0-9]/g, '')" min="0" required>
-                    </div>
+                  <div class="inp-box">
+                    <label>Price (KES)</label>
+                    <input type="number" name="price" step="0.01" placeholder="Enter price"
+                    value="<?= htmlspecialchars($price, ENT_QUOTES) ?>"
+                    oninput="this.value = this.value.replace(/[^0-9.]/g, '')" min="0" required>
+                  </div>
 
-                    <div class="inp-box">
-                        <label>Stock Quantity</label>
-                        <input type="number" name="stock" placeholder="e.g 24" 
-                            value="<?= htmlspecialchars($stock, ENT_QUOTES) ?>" 
-                            oninput="this.value = this.value.replace(/[^0-9]/g, '')" min="0" step="1" required>
-                    </div>
+                  <div class="inp-box">
+                      <label>Stock Quantity</label>
+                      <input type="number" name="stock" placeholder="e.g 24" 
+                          value="<?= htmlspecialchars($stock, ENT_QUOTES) ?>" 
+                          oninput="this.value = this.value.replace(/[^0-9]/g, '')" min="0" step="1" required>
+                  </div>
 
-                    <?php if ($editMode): ?>
-                        <!-- IMAGE PREVIEW ONLY IN EDIT MODE -->
-                        <div class="inp-box">
-                            <label>Product Image</label>
-                            <?php if (!empty($currentImagePath) && file_exists($currentImagePath)): ?>
-                                <div class="edit-preview">
-                                    <img src="<?= htmlspecialchars($currentImagePath) ?>" 
-                                        style="width:80px;height:80px;object-fit:cover;border-radius:6px;">
-                                    <p style="font-size:12px;">Current Image</p>
-                                </div>
-                            <?php endif; ?>
+                  <?php if ($editMode): ?>
+                      <!-- IMAGE PREVIEW ONLY IN EDIT MODE -->
+                      <div class="inp-box">
+                          <label>Product Image</label>
+                          <?php if (!empty($currentImagePath) && file_exists($currentImagePath)): ?>
+                              <div class="edit-preview">
+                                  <img src="<?= htmlspecialchars($currentImagePath) ?>" 
+                                      style="width:80px;height:80px;object-fit:cover;border-radius:6px;">
+                                  <p style="font-size:12px;">Current Image</p>
+                              </div>
+                          <?php endif; ?>
+                      </div>
+
+                      <div class="inp-box">
+                          <label>Change Product Image (optional)</label>
+                          <input type="file" name="photo" accept="image/png,image/jpeg,image/webp">
+                          <div class="note">
+                              600×600 – 1600×1600 px • Max 5MB<br>
+                              Automatically optimized for buyers
+                          </div>
+                      </div>
+                  <?php else: ?>
+                      <!-- ONLY FOR ADD MODE -->
+                      <div class="inp-box">
+                        <label>Upload Product Image</label>
+                        <input type="file" name="photo" accept="image/png,image/jpeg,image/webp" required>
+                        <div class="note">
+                          600×600 – 1600×1600 px • Max 5MB<br>
+                          Automatically optimized for buyers
                         </div>
+                      </div>
+                  <?php endif; ?>
+                  <div></div>
 
-                        <div class="inp-box">
-                            <label>Change Product Image (optional)</label>
-                            <input type="file" name="photo" accept="image/png,image/jpeg,image/webp">
-                            <div class="note">
-                                600×600 – 1600×1600 px • Max 5MB<br>
-                                Automatically optimized for buyers
-                            </div>
-                        </div>
-                    <?php else: ?>
-                        <!-- ONLY FOR ADD MODE -->
-                        <div class="inp-box">
-                            <label>Upload Product Image</label>
-                            <input type="file" name="photo" accept="image/png,image/jpeg,image/webp" required>
-                            <div class="note">
-                                600×600 – 1600×1600 px • Max 5MB<br>
-                                Automatically optimized for buyers
-                            </div>
-                        </div>
-                    <?php endif; ?>
-                    <div></div>
-
-                    <button type="submit">
-                        <?= $editMode ? 'Update Product' : 'Add Product' ?>
-                    </button>
+                  <button type="submit">
+                    <?= $editMode ? 'Update Product' : 'Add Product' ?>
+                  </button>
                 </div>
 
             </form>
@@ -1545,8 +1545,6 @@ $deliveredOrders  = $row['delivered_orders'];
                         </tr>";
                   $count++;
               }
-          } else {
-              echo "<tr><td colspan='10'>No orders yet.</td></tr>";
           }
           ?>
           </tbody>
@@ -1581,17 +1579,24 @@ $deliveredOrders  = $row['delivered_orders'];
     });
   </script>
   <script>
-    let seconds = 3;
     const counter = document.getElementById("count");
 
-    const interval = setInterval(() => {
-      seconds--;
-      counter.textContent = seconds;
-      if (seconds <= 0) {
-        clearInterval(interval);
-        window.location.href = "sellerPage.php";
-      }
-    }, 1000);
+    if (counter) {
+
+      let seconds = 3;
+
+      const interval = setInterval(() => {
+        seconds--;
+        counter.textContent = seconds;
+
+        if (seconds <= 0) {
+          clearInterval(interval);
+          window.location.href = "sellerPage.php";
+        }
+
+      }, 1000);
+
+    }
   </script>
   <?php if ($editMode): ?>
   <script>

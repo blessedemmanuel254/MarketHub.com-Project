@@ -221,9 +221,7 @@ $sellerStmt = $conn->prepare("
       market_scope,
       address,
       ward,
-      profile_image,
-      rating_average,
-      rating_count
+      profile_image
     FROM users
     WHERE user_id = ? AND account_type = 'seller'
     LIMIT 1

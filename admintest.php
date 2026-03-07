@@ -214,8 +214,8 @@ if ($accountType !== $allowedRole) { */
                 </div>
                 <div></div>
                 <div class="inp-box">
-                  <label>Referral Code (read-only)</label>
-                  <input type="text" name="referral_code" placeholder="A56D3847" disabled>
+                  <label class="agency_code">Agency Code (read-only)<i class="fa-solid fa-copy"></i></label>
+                  <input type="text" name="agency_code" placeholder="A56D3847" disabled>
                 </div>
                 <div></div>
                 <button type="submit">
@@ -333,8 +333,8 @@ if ($accountType !== $allowedRole) { */
                 <div></div>
                 <div></div><!-- 
                 <div class="inp-box">
-                  <label>Referral Code (read-only)</label>
-                  <input type="text" name="referral_code" placeholder="A56D3847" disabled>
+                  <label>Agency Code (read-only)</label>
+                  <input type="text" name="agency_code" placeholder="A56D3847" disabled>
                 </div> -->
                 <div></div>
                 <button type="submit">
@@ -523,6 +523,107 @@ if ($accountType !== $allowedRole) { */
                 <button type="submit">
                   Submit Details
                 </button>
+              </div>
+
+            </form>
+          </div>
+          
+          <div class="form-wrapper">
+            <form method="POST" enctype="multipart/form-data">
+
+              <?php if ($editMode): ?>
+                  <input type="hidden" name="edit_product_id" value="<?= $editProductId ?>">
+              <?php endif; ?>
+
+              <h1><?= $editMode ? 'Edit Product' : 'Add Product' ?></h1>
+
+              <?php if (!empty($error)): ?>
+                  <p class="errorMessage">
+                      <i class="fa-solid fa-circle-exclamation"></i>
+                      <?= htmlspecialchars($error); ?>
+                  </p>
+              <?php endif; ?>
+
+              <?php if (!empty($success)): ?>
+                  <p class="successMessage">
+                      <i class="fa-solid fa-check-circle"></i>
+                      <?= $success; ?>
+                  </p>
+              <?php endif; ?>
+
+              <div class="formBody">
+                  <div class="inp-box">
+                      <label>Product Name</label>
+                      <input type="text" name="name" placeholder="Enter name" 
+                          value="<?= htmlspecialchars($productName, ENT_QUOTES) ?>" required>
+                  </div>
+                  <div class="inp-box">
+                    <label>Price (KES)</label>
+                    <input type="number" name="price" step="0.01" placeholder="Enter price"
+                    value="<?= htmlspecialchars($price, ENT_QUOTES) ?>"
+                    oninput="this.value = this.value.replace(/[^0-9.]/g, '')" min="0" required>
+                  </div>
+                  <div class="inp-box">
+
+                    <label>Currency :</label>
+                    <select name="currency">
+                      <option value=""><p>-- Select currency --</p></option>
+                      <option value="KES" <?php echo ($currency === 'KES') ? 'selected' : ''; ?>>KES</option><!-- 
+                      <option value="USD" <?php echo ($currency === 'USD') ? 'selected' : ''; ?>>USD</option>
+                      <option value="TSH" <?php echo ($currency === 'TSH') ? 'selected' : ''; ?>>TSH</option> -->
+                    </select>
+                  </div>
+                  <div class="inp-box">
+                    <label>Description</label>
+                    <input type="text" name="description" placeholder="Enter description" 
+                    value="<?= htmlspecialchars($productDescription, ENT_QUOTES) ?>" required>
+                  </div>
+                  <div class="inp-box">
+                    <label>Is Active?</label>
+                    <select id="is_active" name="is_active">
+                      <option value=""><p>-- Select if active --</p></option>
+                      <option value="1" <?php echo ($is_active === '1') ? 'selected' : ''; ?>>Yes</option>
+                      <option value="0" <?php echo ($is_active === '0') ? 'selected' : ''; ?>>No</option>
+                    </select>
+                  </div>
+
+                  <?php if ($editMode): ?>
+                      <!-- IMAGE PREVIEW ONLY IN EDIT MODE -->
+                      <div class="inp-box">
+                          <label>Product Image</label>
+                          <?php if (!empty($currentImagePath) && file_exists($currentImagePath)): ?>
+                            <div class="edit-preview">
+                              <img src="<?= htmlspecialchars($currentImagePath) ?>" 
+                                  style="">
+                              <p style="font-size:12px;">Current Image</p>
+                            </div>
+                          <?php endif; ?>
+                      </div>
+
+                      <div class="inp-box">
+                          <label>Change Product Image (optional)</label>
+                          <input type="file" name="photo" accept="image/png,image/jpeg,image/webp">
+                          <div class="note">
+                              600×600 – 1600×1600 px • Max 5MB<br>
+                              Automatically optimized for buyers
+                          </div>
+                      </div>
+                  <?php else: ?>
+                      <!-- ONLY FOR ADD MODE -->
+                      <div class="inp-box">
+                        <label>Upload Product Image</label>
+                        <input type="file" name="photo" accept="image/png,image/jpeg,image/webp" required>
+                        <div class="note">
+                          600×600 – 1600×1600 px • Max 5MB<br>
+                          Automatically optimized for buyers
+                        </div>
+                      </div>
+                  <?php endif; ?>
+                  <div></div>
+
+                  <button type="submit">
+                    <?= $editMode ? 'Update Product' : 'Add Product' ?>
+                  </button>
               </div>
 
             </form>
