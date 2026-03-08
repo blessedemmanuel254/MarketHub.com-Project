@@ -184,25 +184,27 @@ $sellerQuery = "
         u.profile_image,
         u.address,
         (
-            SELECT COUNT(DISTINCT oi.order_id)
-            FROM order_items oi
-            WHERE oi.seller_id = u.user_id
+          SELECT COUNT(DISTINCT oi.order_id)
+          FROM order_items oi
+          JOIN orders o ON oi.order_id = o.order_id
+          WHERE oi.seller_id = u.user_id
+          AND o.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
         ) AS total_orders,
         (
-            SELECT COUNT(*)
-            FROM user_followers uf
-            WHERE uf.follower_id = u.user_id
+          SELECT COUNT(*)
+          FROM user_followers uf
+          WHERE uf.follower_id = u.user_id
         ) AS following_count,
         (
-            SELECT COUNT(*)
-            FROM user_followers uf
-            WHERE uf.followed_id = u.user_id
+          SELECT COUNT(*)
+          FROM user_followers uf
+          WHERE uf.followed_id = u.user_id
         ) AS followers_count,
         (
-            SELECT COUNT(*)
-            FROM user_followers uf
-            WHERE uf.follower_id = ?
-            AND uf.followed_id = u.user_id
+          SELECT COUNT(*)
+          FROM user_followers uf
+          WHERE uf.follower_id = ?
+          AND uf.followed_id = u.user_id
         ) AS is_following
 
     FROM users u
@@ -598,19 +600,33 @@ while ($row = $query->fetch_assoc()) {
                             </div>
                         </div>
                         <a href="marketDisplay.php?seller=<?php echo $seller['user_id']; ?>" class="seller-right">
-                          <?php
-                          $totalOrders = (int)$seller['total_orders'];
+                            <?php
+                            $totalOrders = (int)$seller['total_orders'];
 
-                          if ($totalOrders < 100) {
-                              $badgeClass = 'promoBadgeDefault';
-                          } elseif ($totalOrders < 500) {
-                              $badgeClass = 'promoBadgeGoGold';
-                          } else {
-                              $badgeClass = 'promoBadgeGoPro';
-                          }
-                          ?>
-                            <div class="<?php echo $badgeClass; ?>">
-                              <?php echo $totalOrders; ?>+
+                            /* ---------- BADGE DISPLAY VALUE ---------- */
+                            if ($totalOrders < 100) {
+                                $displayOrders = $totalOrders;
+                            } elseif ($totalOrders < 200) {
+                                $displayOrders = "100+";
+                            } elseif ($totalOrders < 250) {
+                                $displayOrders = "200+";
+                            } else {
+                                $displayOrders = "250+";
+                            }
+
+                            /* ---------- BADGE COLOR CLASS ---------- */
+                            if ($totalOrders < 100) {
+                                $badgeClass = 'promoBadgeDefault';
+                            } elseif ($totalOrders < 200) {
+                                $badgeClass = 'promoBadgeGoGold';
+                            } else {
+                                $badgeClass = 'promoBadgeGoPro';
+                            }
+                            ?>
+                            <div class="promo-badge-container">Orders : 
+                              <div class="<?php echo $badgeClass; ?>">
+                                <?php echo $displayOrders; ?>
+                              </div>
                             </div>
                             <div class="bsType">Business Type : <i><?php echo $bType; ?></i></div>
                             <div class="action">
@@ -735,19 +751,33 @@ while ($row = $query->fetch_assoc()) {
                             </div>
                         </div>
                         <a href="marketDisplay.php?seller=<?php echo $seller['user_id']; ?>" class="seller-right">
-                          <?php
-                          $totalOrders = (int)$seller['total_orders'];
+                            <?php
+                            $totalOrders = (int)$seller['total_orders'];
 
-                          if ($totalOrders < 100) {
-                              $badgeClass = 'promoBadgeDefault';
-                          } elseif ($totalOrders < 500) {
-                              $badgeClass = 'promoBadgeGoGold';
-                          } else {
-                              $badgeClass = 'promoBadgeGoPro';
-                          }
-                          ?>
-                            <div class="<?php echo $badgeClass; ?>">
-                              <?php echo $totalOrders; ?>+
+                            /* ---------- BADGE DISPLAY VALUE ---------- */
+                            if ($totalOrders < 100) {
+                                $displayOrders = $totalOrders;
+                            } elseif ($totalOrders < 200) {
+                                $displayOrders = "100+";
+                            } elseif ($totalOrders < 250) {
+                                $displayOrders = "200+";
+                            } else {
+                                $displayOrders = "250+";
+                            }
+
+                            /* ---------- BADGE COLOR CLASS ---------- */
+                            if ($totalOrders < 100) {
+                                $badgeClass = 'promoBadgeDefault';
+                            } elseif ($totalOrders < 200) {
+                                $badgeClass = 'promoBadgeGoGold';
+                            } else {
+                                $badgeClass = 'promoBadgeGoPro';
+                            }
+                            ?>
+                            <div class="promo-badge-container">Orders : 
+                              <div class="<?php echo $badgeClass; ?>">
+                                <?php echo $displayOrders; ?>
+                              </div>
                             </div>
                             <div class="bsType">Business Type : <i><?php echo $bType; ?></i></div>
                             <div class="action">

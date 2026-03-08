@@ -127,184 +127,294 @@ if ($accountType !== $allowedRole) { */
     </div>
     <main class="adminMain">
       
-      <div class="admin-tab-panel active" data-tab="salesagents">
-        <nav>
-          <p>Products</p>
-          <ul>
-            <a href="#">Admin ~ </a> 
-            <a href="#" class="active">Products</a>
-          </ul>
-        </nav>
-        <h2>Market Hub Products</h2>
-        <div class="admin-tab-content">
-          <div class="cards">
-              <div class="card sub-card">
-                <i class="fa-solid fa-box"></i>
-                <div>
-                <h3>Total Products</h3>
-                <div class="value">245</div>
-                <small>Products in system</small>
+        <div class="admin-tab-panel" data-tab="products">
+            <nav>
+            <p>Products</p>
+            <ul>
+                <a href="#">Admin ~ </a> 
+                <a href="#" class="active">Products</a>
+            </ul>
+            </nav>
+            <h2>Market Hub Products</h2>
+            <div class="admin-tab-content">
+            <div class="cards">
+                <div class="card sub-card">
+                    <i class="fa-solid fa-box"></i>
+                    <div>
+                    <h3>Total Products</h3>
+                    <div class="value">245</div>
+                    <small>Products in system</small>
+                    </div>
                 </div>
-            </div>
-            <div class="card sub-card">
+                <div class="card sub-card">
 
-                <i class="fa-solid fa-circle-check"></i>
-                <div>
-                <h3>Active Products</h3>
-                <div class="value">5</div>
-                <small>Currently available</small>
+                    <i class="fa-solid fa-circle-check"></i>
+                    <div>
+                    <h3>Active Products</h3>
+                    <div class="value">5</div>
+                    <small>Currently visible</small>
+                    </div>
                 </div>
-            </div>
 
-            <div class="card sub-card">
-                
-                <i class="fa-solid fa-ban"></i>
-                <div>
-                <h3>Inactive Products</h3>
-                <div class="value">193</div>
-                <small>Disabled or hidden</small>
+                <div class="card sub-card">
+                    
+                    <i class="fa-solid fa-ban"></i>
+                    <div>
+                    <h3>Inactive Products</h3>
+                    <div class="value">193</div>
+                    <small>Disabled or hidden</small>
+                    </div>
                 </div>
-            </div>
 
-            <div class="card sub-card">
-                <i class="fa-solid fa-coins"></i>
-                <div>
-                <h3>Total Product Value</h3>
-                <div class="value">KES 2.4M</div>
-                <small>Combined listing price</small>
+                <div class="card sub-card">
+                    <i class="fa-solid fa-coins"></i>
+                    <div>
+                    <h3>Total Product Value</h3>
+                    <div class="value">KES 2.4M</div>
+                    </div>
                 </div>
             </div>
-          </div>
+            </div>
+            <div class="tabs-container">
+                <div class="tabs">
+                <button class="tab-btn-admin active" data-tab="beauty">Beauty</button>
+                <button class="tab-btn-admin" data-tab="electronics">Electronics</button>
+                <button class="tab-btn-admin" data-tab="fashion">Fashion</button>
+                </div>
+                <div id="company-products" class="tab-panel-admin">
+                    <div class="tab-top">
+                        <p>Market Hub Store<br><strong>Your control center for Market Hub products <i class="fa-regular fa-circle-check"></i></strong></p>
+                        <button onclick="toggleProductsAdd(true)">
+                        <i class="fa fa-plus"></i>&nbsp;<span>Add&nbsp;Product</span>
+                        </button>
+
+                    </div>
+
+                    <!-- PRODUCTS GRID -->
+                    <div id="beauty" class="products-grid-admin active">
+                        <div class="product-card">
+                            <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
+                            <div class="product-name">Executive Leather Laptop Bag</div>
+                            <div class="product-price">KES 1,300.00</div>
+                            <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
+                            <div class="card-actions">
+                                <a href="#" class="edit">
+                                <i class="fa fa-pen"></i> Edit
+                                </a>
+                                <form method="POST">
+                                <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                                <button type="submit" class="delete">
+                                    <i class="fa fa-trash"></i> Delete
+                                </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="product-card">
+                            <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
+                            <div class="product-name">Executive Leather Laptop Bag</div>
+                            <div class="product-price">KES 1,300.00</div>
+                            <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
+                            <div class="card-actions">
+                                <a href="#" class="edit">
+                                <i class="fa fa-pen"></i> Edit
+                                </a>
+                                <form method="POST">
+                                <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                                <button type="submit" class="delete">
+                                    <i class="fa fa-trash"></i> Delete
+                                </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="product-card">
+                            <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
+                            <div class="product-name">Executive Leather Laptop Bag</div>
+                            <div class="product-price">KES 1,300.00</div>
+                            <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
+                            <div class="card-actions">
+                                <a href="#" class="edit">
+                                <i class="fa fa-pen"></i> Edit
+                                </a>
+                                <form method="POST">
+                                <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                                <button type="submit" class="delete">
+                                    <i class="fa fa-trash"></i> Delete
+                                </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="product-card">
+                            <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
+                            <div class="product-name">Executive Leather Laptop Bag</div>
+                            <div class="product-price">KES 1,300.00</div>
+                            <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
+                            <div class="card-actions">
+                                <a href="#" class="edit">
+                                <i class="fa fa-pen"></i> Edit
+                                </a>
+                                <form method="POST">
+                                <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                                <button type="submit" class="delete">
+                                    <i class="fa fa-trash"></i> Delete
+                                </button>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <!-- 
+                        <p class="noproducts-admin-p">No products uploaded yet. Click "Add Product" to start.</p> -->
+                    </div>
+                    <!-- PRODUCTS GRID -->
+                    <div id="electronics" class="products-grid-admin">
+                        <div class="product-card">
+                            <img src="Images/6 Litre Electric Pressure Cooker.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
+                            <div class="product-name">6 Litre Electric Pressure Cooker</div>
+                            <div class="product-price">KES 5,200.00</div>
+                            <p class="product-description">Fast cooking, energy saving, perfect for family meals.</p>
+                            <div class="card-actions">
+                                <a href="#" class="edit">
+                                <i class="fa fa-pen"></i> Edit
+                                </a>
+                                <form method="POST">
+                                <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                                <button type="submit" class="delete">
+                                    <i class="fa fa-trash"></i> Delete
+                                </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="product-card">
+                            <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
+                            <div class="product-name">Executive Leather Laptop Bag</div>
+                            <div class="product-price">KES 1,300.00</div>
+                            <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
+                            <div class="card-actions">
+                                <a href="#" class="edit">
+                                <i class="fa fa-pen"></i> Edit
+                                </a>
+                                <form method="POST">
+                                <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                                <button type="submit" class="delete">
+                                    <i class="fa fa-trash"></i> Delete
+                                </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="product-card">
+                            <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
+                            <div class="product-name">Executive Leather Laptop Bag</div>
+                            <div class="product-price">KES 1,300.00</div>
+                            <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
+                            <div class="card-actions">
+                                <a href="#" class="edit">
+                                <i class="fa fa-pen"></i> Edit
+                                </a>
+                                <form method="POST">
+                                <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                                <button type="submit" class="delete">
+                                    <i class="fa fa-trash"></i> Delete
+                                </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="product-card">
+                            <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
+                            <div class="product-name">Executive Leather Laptop Bag</div>
+                            <div class="product-price">KES 1,300.00</div>
+                            <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
+                            <div class="card-actions">
+                                <a href="#" class="edit">
+                                <i class="fa fa-pen"></i> Edit
+                                </a>
+                                <form method="POST">
+                                <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                                <button type="submit" class="delete">
+                                    <i class="fa fa-trash"></i> Delete
+                                </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- PRODUCTS GRID -->
+                    <div id="fashion" class="products-grid-admin">
+                        <div class="product-card">
+                            <img src="Images/Ipcone 16-inch standing fan.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
+                            <div class="product-name">16-inch Standing Fan</div>
+                            <div class="product-price">KES 2,350.00</div>
+                            <p class="product-description">Powerful airflow with adjustable height.</p>
+                            <div class="card-actions">
+                                <a href="#" class="edit">
+                                <i class="fa fa-pen"></i> Edit
+                                </a>
+                                <form method="POST">
+                                <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                                <button type="submit" class="delete">
+                                    <i class="fa fa-trash"></i> Delete
+                                </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="product-card">
+                            <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
+                            <div class="product-name">Executive Leather Laptop Bag</div>
+                            <div class="product-price">KES 1,300.00</div>
+                            <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
+                            <div class="card-actions">
+                                <a href="#" class="edit">
+                                <i class="fa fa-pen"></i> Edit
+                                </a>
+                                <form method="POST">
+                                <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                                <button type="submit" class="delete">
+                                    <i class="fa fa-trash"></i> Delete
+                                </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="product-card">
+                            <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
+                            <div class="product-name">Executive Leather Laptop Bag</div>
+                            <div class="product-price">KES 1,300.00</div>
+                            <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
+                            <div class="card-actions">
+                                <a href="#" class="edit">
+                                <i class="fa fa-pen"></i> Edit
+                                </a>
+                                <form method="POST">
+                                <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                                <button type="submit" class="delete">
+                                    <i class="fa fa-trash"></i> Delete
+                                </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="product-card">
+                            <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
+                            <div class="product-name">Executive Leather Laptop Bag</div>
+                            <div class="product-price">KES 1,300.00</div>
+                            <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
+                            <div class="card-actions">
+                                <a href="#" class="edit">
+                                <i class="fa fa-pen"></i> Edit
+                                </a>
+                                <form method="POST">
+                                <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                                <button type="submit" class="delete">
+                                    <i class="fa fa-trash"></i> Delete
+                                </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="table-wrapper">
-          <div class="filter-bar">
-            <select id="statusFilter">
-              <option value="all">📌&nbsp;Status</option>
-              <option value="Verified">Verified</option>
-              <option value="Unverified">Unverified</option>
-              <option value="Suspended">Suspended</option>
-            </select>
-            <select id="regionFilter">
-              <option value="all">🌍&nbsp;Region</option>
-              <option value="Nairobi">Nairobi</option>
-              <option value="Coast">Coast</option>
-              <option value="Western">Western</option>
-            </select>
-          </div>
-          <table id="transactionsTable">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Agent</th>
-                <th>Phone</th>
-                <th>Sub&nbsp;Agents</th>
-                <th>Wallet</th>
-                <th>Region</th>
-                <th>Status</th>
-                <th>Actions</th>
-                <th>Talk</th>
-                <th>Created&nbsp;On:</th>
-                <th>Updated&nbsp;On:</th>
-              </tr>
-            </thead>
-
-            <tbody>
-            <?php 
-            $count = 1;
-            while ($agent = $agentsResult->fetch_assoc()):
-              $name = ucfirst(strtolower($agent['full_name']));
-
-              // 🔐 Decode
-              $phone = decodePhone($agent['phone']);
-              $maskedPhone = maskPhone($phone);
-
-              $email = decodeEmail($agent['email']);
-              $maskedEmail = maskEmail($email);
-
-              // Profile Image
-              if (!empty($agent['profile_image']) && file_exists($agent['profile_image'])) {
-                  $profileImg = $agent['profile_image'];
-              } else {
-                  $profileImg = $defaultAvatar;
-              }
-
-              // Badge Logic
-              if ($agent['status'] === 'suspended') {
-                  $badgeClass = "suspendedSpan";
-                  $badgeText = "Suspended";
-              } elseif ($agent['is_verified'] == 1) {
-                  $badgeClass = "verified";
-                  $badgeText = "Verified";
-              } else {
-                  $badgeClass = "unverified";
-                  $badgeText = "Unverified";
-              }
-            ?>
-            <tr data-status="<?= $badgeText ?>">
-              <td><?= $count++ ?>.</td>
-
-              <td>
-                <div class="adm-user-profile">
-                  <img src="<?= htmlspecialchars($profileImg) ?>" style="border-radius:50%">
-                  <?= htmlspecialchars($name) ?>
-                </div>
-              </td>
-
-              <td><?= $maskedPhone ?></td>
-
-              <td>0</td>
-
-              <td>KES 12,000</td>
-
-              <td>Coast</td>
-
-              <td>
-                <span class="badge <?= $badgeClass ?>">
-                  <?= $badgeText ?>
-                </span>
-              </td>
-
-              <td class="actions">
-                <div>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-copy-link"><i class="fa-solid fa-link"></i> Copy&nbsp;Link</button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                </div>
-              </td>
-
-              <td class="comm-cell">
-                <button class="comm-btn">
-                  <i class="fas fa-ellipsis-vertical"></i>
-                </button>
-
-                <div class="comm-dropdown">
-                  <a href="tel:<?= htmlspecialchars($phone) ?>"><i class="fas fa-phone"></i> Call</a>
-                  <a href="https://wa.me/<?= preg_replace('/^\+/', '', $phone) ?>" target="_blank">
-                    <i class="fab fa-whatsapp"></i> WhatsApp
-                  </a>
-                  <a href="mailto:<?= htmlspecialchars($email ?? '') ?>"><i class="fas fa-envelope"></i> Email</a>
-                  <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                </div>
-              </td>
-
-              <td><?= date("Y-m-d", strtotime($agent['created_at'])) ?></td>
-              <td><?= date("Y-m-d", strtotime($agent['updated_at'])) ?></td>
-
-            </tr>
-
-            <?php endwhile; ?>
-            </tbody>
-          </table>
-        </div>
-      </div>
 
     </main>
     <footer>
       <p>&copy; 2025/2026, Market Hub.com, All Rights reserved.</p>
     </footer>
   </div>
-  <script src="Scripts/general.js" type="text/javascript" defer></script>
   <script>
 
     $(document).ready(function () {
@@ -361,6 +471,43 @@ if ($accountType !== $allowedRole) { */
         });
 
     });
+    // MARKET HUB PRODUCTS GRID SWITCH JS
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+    const tabButtons = document.querySelectorAll(".tab-btn-admin");
+    const productPanels = document.querySelectorAll(".products-grid-admin");
+
+    tabButtons.forEach((button) => {
+
+        button.addEventListener("click", function () {
+
+        const targetTab = this.dataset.tab;
+
+        // Remove active class from buttons
+        tabButtons.forEach(btn => btn.classList.remove("active"));
+
+        // Activate clicked button
+        this.classList.add("active");
+
+        // Hide all product panels
+        productPanels.forEach(panel => {
+            panel.classList.remove("active");
+        });
+
+        // Show selected panel instantly
+        const targetPanel = document.getElementById(targetTab);
+
+        if (targetPanel) {
+            targetPanel.classList.add("active");
+        }
+
+        });
+
+    });
+
+    });
   </script>
+
 </body>
 </html>

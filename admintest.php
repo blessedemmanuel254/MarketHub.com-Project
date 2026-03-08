@@ -137,7 +137,7 @@ if ($accountType !== $allowedRole) { */
           </ul>
         </nav>
         <h2>Agents Manual Management</h2>
-        <div id="add-products" class="tab-panel-admin">
+        <div id="seller-products" class="tab-panel-admin">
           <div class="tab-top">
             <p>Manually manage agents</em> <br><strong>Oversee existing agents individual data <i class="fa-regular fa-circle-check"></i></strong></p>
             <button>

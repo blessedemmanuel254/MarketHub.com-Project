@@ -638,7 +638,7 @@ html body.no-scroll {
   display: flex;
 }
 
-.tabs-container .tabs .tab-btn, .tabs-container .tabs .tab-btn-msource, .tabs-container .tabs .tab-btn-mtype  {
+.tabs-container .tabs .tab-btn, .tabs-container .tabs .tab-btn-msource, .tabs-container .tabs .tab-btn-mtype, .tabs-container .tabs .tab-btn-admin {
   flex: 1;
   padding: 8px;
   border: none;
@@ -651,16 +651,38 @@ html body.no-scroll {
   border-radius: 10px 10px 0 0;
 }
 
+.tabs-container .tabs .tab-btn-admin {
+  background-color: #0f0f0f;
+  border: 1px solid #0f0f0f;
+  color: #ffffff;
+  border-bottom: 1px solid #dedede65;
+}
+
 .tabs-container .tabs .tab-btn:hover, .tabs-container .tabs .tab-btn-msource:hover, .tabs-container .tabs .tab-btn-mtype:hover {
   background-color: #dedede42;
 }
 
-.tabs-container .tabs .tab-btn.active, .tabs-container .tabs .tab-btn-msource.active, .tabs-container .tabs .tab-btn-mtype.active {
+.tabs-container .tabs .tab-btn-admin:hover {
+  background-color: #8988881e;
+}
+
+.tabs-container .tabs .tab-btn.active, .tabs-container .tabs .tab-btn-msource.active, .tabs-container .tabs .tab-btn-mtype.active, .tabs-container .tabs .tab-btn-admin.active {
   font-weight: bold;
   border-radius: 10px 10px 0 0;
   border: 1px solid #dedede;
   background-color: #dedede;
-  color: #0F0F0F;
+  color: #0f0f0f;
+}
+
+.tabs-container .tabs .tab-btn-admin.active {
+  border: 1px solid #dedede23;
+  background-color: #898888;
+  color: #ffffff;
+
+}
+
+.tabs-container .tabs .tab-btn-admin.active:hover {
+  opacity: 0.875;
 }
 
 .tabs-container .tab-content {
@@ -2091,6 +2113,7 @@ label.account-type input:checked + .radio-dot::after {
   border: 1px solid #dedede;
   background-color: #dedede41;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
 }
 
 .sellers .no-market-message {
@@ -2185,7 +2208,16 @@ a.seller-right {
   text-decoration: none;
 }
 
-.promoBadgeDefault {
+.promo-badge-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  gap: 5px;
+  color: #898888;
+}
+
+.promo-badge-container .promoBadgeDefault {
   background: #dedede;
   color: #898989;
   border: none;
@@ -2198,7 +2230,7 @@ a.seller-right {
   text-align: center;
 }
 
-.promoBadgeGoGold {
+.promo-badge-container .promoBadgeGoGold {
   background: linear-gradient(
     145deg,
     #FFF3B0,
@@ -2219,7 +2251,7 @@ a.seller-right {
   text-align: center;
 }
 
-.promoBadgeGoPro {
+.promo-badge-container .promoBadgeGoPro {
   background: linear-gradient(
     135deg,
     #e8fff9 0%,
@@ -2976,11 +3008,16 @@ a.seller-right {
   font-size:12px;
 }
 
-/* PRODUCT MANAGEMENT CSS */
-.products-grid {
+/* PRODUCTS CSS */
+.products-grid, .tab-panel-admin .products-grid-admin {
   display: grid;
   grid-template-columns: repeat(auto-fit,minmax(250px,1fr));
   gap: 20px;
+}
+
+.tab-panel-admin .products-grid-admin .noproducts-admin-p, .tab-panel-admin .products-grid-admin {
+  padding: 10px;
+  color: #898888;
 }
 
 .products-grid .card {
@@ -3033,13 +3070,13 @@ a.seller-right {
 .products-grid .card .card-body .stock.in-stock{ color:green; }
 .products-grid .card .card-body .stock.low-stock{ color:orange; }
 .products-grid .card .card-body .stock.out-stock{ color:red; }
-.products-grid .card .card-actions{
+.products-grid .card .card-actions, .tab-panel-admin .products-grid-admin .product-card .card-actions {
   display:grid;
   border-top:1px solid #eee;
   grid-template-columns: 1fr 1fr;
 }
 
-.products-grid .card .card-actions button, .products-grid .card .card-actions a.edit {
+.products-grid .card .card-actions button, .products-grid .card .card-actions a.edit, .tab-panel-admin .products-grid-admin .product-card .card-actions a.edit, .tab-panel-admin .products-grid-admin .product-card .card-actions button {
   flex: 1;
   padding: 10px 16px;
   border: none;
@@ -3048,21 +3085,18 @@ a.seller-right {
   font-size: 14px;
 }
 
-.products-grid .card .card-actions a.edit {
+.products-grid .card .card-actions a.edit, .tab-panel-admin .products-grid-admin .product-card .card-actions a.edit {
   text-decoration: none;
   text-align: center;
-}
-
-.products-grid .card .card-actions button:hover, .products-grid .card .card-actions a.edit:hover {
-  background:#f5f5f5;
-}
-
-.products-grid .card .card-actions a.edit{
   color:#088000;
   width: 100%;
 }
 
-.products-grid .card .card-actions button.delete{
+.products-grid .card .card-actions button:hover, .products-grid .card .card-actions a.edit:hover, .tab-panel-admin .products-grid-admin .product-card .card-actions a.edit:hover, .tab-panel-admin .products-grid-admin .product-card .card-actions button:hover {
+  background:#f5f5f5;
+}
+
+.products-grid .card .card-actions button.delete, .tab-panel-admin .products-grid-admin .product-card .card-actions button.delete {
   color:#ff3b3b;
   width: 100%;
 }
@@ -3481,6 +3515,11 @@ body#adminBody {
 }
 
 .admin-tab-content .cards .card .profit{
+  color:#856404;
+  font-weight:bold
+}
+
+.admin-tab-content .cards .card .net-profit {
   color:#088000;
   font-weight:bold
 }
@@ -3493,6 +3532,18 @@ body#adminBody {
   padding:4px 10px;
   border-radius:14px;
   font-size:12px;
+}
+
+.containerAdmin .admin-tab-panel .tabs-container {
+  margin-top: 10px;
+}
+
+.containerAdmin .admin-tab-panel .products-grid-admin {
+  display:none;
+}
+
+.containerAdmin .admin-tab-panel .products-grid-admin.active {
+  display:grid;
 }
 
 /* ADMIN NAVIGATION */
@@ -3987,20 +4038,24 @@ AGENTS' PRODUCTS CSS
 
 }
 
-.container main#productsAgentMain .products-grid {
+.container main#productsAgentMain .products-grid, .tab-panel-admin .products-grid-admin {
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
   gap:40px;
 }
 
+.tab-panel-admin .products-grid-admin {
+  padding: 20px 0;
+}
+
 @media screen and (max-width: 581px) {
-  .container main#productsAgentMain .products-grid {
+  .container main#productsAgentMain .products-grid, .tab-panel-admin .products-grid-admin {
     gap:20px;
   }
   
 }
 
-.container main#productsAgentMain .product-card {
+.container main#productsAgentMain .product-card, .tab-panel-admin .products-grid-admin .product-card {
   border: 1px solid #dedede;
   display: flex;
   flex-direction: column;
@@ -4013,30 +4068,42 @@ AGENTS' PRODUCTS CSS
   margin: 0 auto;
 }
 
+.tab-panel-admin .products-grid-admin .product-card {
+  background-color: #ffffff;
+  box-shadow: 0 4px 8px rgba(255, 255, 255, 0.432);
+
+}
+
 .container main#productsAgentMain .product-card:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transform: translateY(-6px);
 }
 
-.container main#productsAgentMain .product-card img {
+.container main#productsAgentMain .product-card img, .tab-panel-admin .products-grid-admin .product-card img {
   width: 100%;
   height: 250px;
   object-fit: cover;
 }
 
-.container main#productsAgentMain .product-name {
+.tab-panel-admin .products-grid-admin .product-card img:hover {
+  transform: scale(1.03);
+  transition: transform 0.6s ease;
+}
+
+.container main#productsAgentMain .product-name, .tab-panel-admin .products-grid-admin .product-card .product-name {
   font-weight: bold;
   font-size: 16px;
   color: #0f0f0f;
   padding: 0 10px;
 }
 
-.container main#productsAgentMain .product-price {
+.container main#productsAgentMain .product-price, .tab-panel-admin .products-grid-admin .product-card .product-price {
   font-size: 14px;
   padding: 0 10px;
+  color: #0f0f0f;
 }
 
-.container main#productsAgentMain .product-description {
+.container main#productsAgentMain .product-description, .tab-panel-admin .products-grid-admin .product-card .product-description {
   font-size: 13px;
   line-height: 1.5;
   color: #898888;

@@ -417,13 +417,13 @@ $totalOwners = count($propertyOwners);
             </div>
 
             <div class="card">
-              <h3>Platform Commission</h3>
-              <div class="value">KES 245,000</div>
-              <div class="sub">Avg commission rate: 10%</div>
+              <h3>Platform Balance</h3>
+              <div class="value profit">KES 700,500</div>
+              <div class="sub">Withdrawable Company Balance</div>
               <ul class="list">
-                <li><span>E-commerce</span><strong>KES 165,000</strong></li>
-                <li><span>Property Rentals</span><strong>KES 80,000</strong></li>
+                <li><span>API</span><strong>Online</strong></li>
               </ul>
+              <small>↑ Healthy margin (72%)</small>
             </div>
 
             <div class="card">
@@ -436,10 +436,10 @@ $totalOwners = count($propertyOwners);
 
             <div class="card">
               <h3>Net Profit</h3>
-              <div class="value profit">KES 176,500</div>
+              <div class="value net-profit">KES 176,500</div>
               <div class="sub">Commission − Operating Costs</div>
               <div class="progress"><div class="bar" style="width:71%"></div></div>
-              <small>Healthy margin (72%)</small>
+              <small>↑ This month's net profit</small>
             </div>
 
             <div class="card">
@@ -1246,207 +1246,6 @@ $totalOwners = count($propertyOwners);
             </tr>
 
             <?php endforeach; ?>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="admin-tab-panel" data-tab="transactions">
-        <nav>
-          <p>Transactions</p>
-          <ul>
-            <a href="#">Home ~ </a> 
-            <a href="#" class="active">Transactions</a>
-          </ul>
-        </nav>
-        <h2>View all tansactions</h2>
-        <div class="admin-tab-content">
-        </div>
-        <!-- TRANSACTIONS -->
-        <div class="table-wrapper">
-          <div class="filter-bar">
-            <select id="statusFilter">
-              <option value="all">All Transactions</option>
-              <option value="Delivered">Completed</option>
-              <option value="Shipped">Pending</option>
-              <option value="Processing">Processing</option>
-            </select>
-          </div>
-          <table id="transactionsTable">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Transaction ID</th>
-                <th>Type</th>
-                <th>Amount</th>
-                <th>Commission</th>
-                <th>Status</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr data-status="Paid">
-                <td>1.</td>
-                <td>#TX20491</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge paid">Completed</span></td>
-                <td>2025-01-15</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>2.</td>
-                <td>#TX20492</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td>2025-01-16</td>
-              </tr>
-              <tr data-status="Paid">
-                <td>3.</td>
-                <td>#TX20493</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge paid">Completed</span></td>
-                <td>2025-01-17</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>4.</td>
-                <td>#TX20494</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge rejected">Rejected</span></td>
-                <td>2025-01-18</td>
-              </tr>
-              <tr data-status="Paid">
-                <td>5.</td>
-                <td>#TX20495</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge paid">Completed</span></td>
-                <td>2025-01-19</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>6.</td>
-                <td>#TX20496</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td>2025-01-20</td>
-              </tr>
-              <tr data-status="Paid">
-                <td>7.</td>
-                <td>#TX20495</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge paid">Completed</span></td>
-                <td>2025-01-19</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>8.</td>
-                <td>#TX20496</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td>2025-01-20</td>
-              </tr>
-              <tr data-status="Paid">
-                <td>9.</td>
-                <td>#TX20495</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge rejected">Rejected</span></td>
-                <td>2025-01-19</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>10.</td>
-                <td>#TX20496</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td>2025-01-20</td>
-              </tr>
-              <tr data-status="Paid">
-                <td>11.</td>
-                <td>#TX20495</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge paid">Completed</span></td>
-                <td>2025-01-19</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>12.</td>
-                <td>#TX20496</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td>2025-01-20</td>
-              </tr>
-              <tr data-status="Paid">
-                <td>13.</td>
-                <td>#TX20495</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge paid">Completed</span></td>
-                <td>2025-01-19</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>14.</td>
-                <td>#TX20496</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge rejected">Rejected</span></td>
-                <td>2025-01-20</td>
-              </tr>
-              <tr data-status="Paid">
-                <td>15.</td>
-                <td>#TX20495</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge paid">Completed</span></td>
-                <td>2025-01-19</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>16.</td>
-                <td>#TX20496</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td>2025-01-20</td>
-              </tr>
-              <tr data-status="Paid">
-                <td>17.</td>
-                <td>#TX20495</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge paid">Completed</span></td>
-                <td>2025-01-19</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>18.</td>
-                <td>#TX20496</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge rejected">Rejected</span></td>
-                <td>2025-01-20</td>
-              </tr>
             </tbody>
           </table>
         </div>
@@ -2398,6 +2197,489 @@ $totalOwners = count($propertyOwners);
         </div>
       </div>
 
+      <div class="admin-tab-panel" data-tab="transactions">
+        <nav>
+          <p>Transactions</p>
+          <ul>
+            <a href="#">Home ~ </a> 
+            <a href="#" class="active">Transactions</a>
+          </ul>
+        </nav>
+        <h2>View all tansactions</h2>
+        <div class="admin-tab-content">
+        </div>
+        <!-- TRANSACTIONS -->
+        <div class="table-wrapper">
+          <div class="filter-bar">
+            <select id="statusFilter">
+              <option value="all">All Transactions</option>
+              <option value="Delivered">Completed</option>
+              <option value="Shipped">Pending</option>
+              <option value="Processing">Processing</option>
+            </select>
+          </div>
+          <table id="transactionsTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Transaction ID</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Commission</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-status="Paid">
+                <td>1.</td>
+                <td>#TX20491</td>
+                <td>Buyer → Seller</td>
+                <td>KES 45,000</td>
+                <td>KES 4,500</td>
+                <td><span class="badge paid">Completed</span></td>
+                <td>2025-01-15</td>
+              </tr>
+              <tr data-status="Pending">
+                <td>2.</td>
+                <td>#TX20492</td>
+                <td>Tenant → Owner</td>
+                <td>KES 18,000</td>
+                <td>KES 1,800</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td>2025-01-16</td>
+              </tr>
+              <tr data-status="Paid">
+                <td>3.</td>
+                <td>#TX20493</td>
+                <td>Buyer → Seller</td>
+                <td>KES 45,000</td>
+                <td>KES 4,500</td>
+                <td><span class="badge paid">Completed</span></td>
+                <td>2025-01-17</td>
+              </tr>
+              <tr data-status="Pending">
+                <td>4.</td>
+                <td>#TX20494</td>
+                <td>Tenant → Owner</td>
+                <td>KES 18,000</td>
+                <td>KES 1,800</td>
+                <td><span class="badge rejected">Rejected</span></td>
+                <td>2025-01-18</td>
+              </tr>
+              <tr data-status="Paid">
+                <td>5.</td>
+                <td>#TX20495</td>
+                <td>Buyer → Seller</td>
+                <td>KES 45,000</td>
+                <td>KES 4,500</td>
+                <td><span class="badge paid">Completed</span></td>
+                <td>2025-01-19</td>
+              </tr>
+              <tr data-status="Pending">
+                <td>6.</td>
+                <td>#TX20496</td>
+                <td>Tenant → Owner</td>
+                <td>KES 18,000</td>
+                <td>KES 1,800</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td>2025-01-20</td>
+              </tr>
+              <tr data-status="Paid">
+                <td>7.</td>
+                <td>#TX20495</td>
+                <td>Buyer → Seller</td>
+                <td>KES 45,000</td>
+                <td>KES 4,500</td>
+                <td><span class="badge paid">Completed</span></td>
+                <td>2025-01-19</td>
+              </tr>
+              <tr data-status="Pending">
+                <td>8.</td>
+                <td>#TX20496</td>
+                <td>Tenant → Owner</td>
+                <td>KES 18,000</td>
+                <td>KES 1,800</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td>2025-01-20</td>
+              </tr>
+              <tr data-status="Paid">
+                <td>9.</td>
+                <td>#TX20495</td>
+                <td>Buyer → Seller</td>
+                <td>KES 45,000</td>
+                <td>KES 4,500</td>
+                <td><span class="badge rejected">Rejected</span></td>
+                <td>2025-01-19</td>
+              </tr>
+              <tr data-status="Pending">
+                <td>10.</td>
+                <td>#TX20496</td>
+                <td>Tenant → Owner</td>
+                <td>KES 18,000</td>
+                <td>KES 1,800</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td>2025-01-20</td>
+              </tr>
+              <tr data-status="Paid">
+                <td>11.</td>
+                <td>#TX20495</td>
+                <td>Buyer → Seller</td>
+                <td>KES 45,000</td>
+                <td>KES 4,500</td>
+                <td><span class="badge paid">Completed</span></td>
+                <td>2025-01-19</td>
+              </tr>
+              <tr data-status="Pending">
+                <td>12.</td>
+                <td>#TX20496</td>
+                <td>Tenant → Owner</td>
+                <td>KES 18,000</td>
+                <td>KES 1,800</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td>2025-01-20</td>
+              </tr>
+              <tr data-status="Paid">
+                <td>13.</td>
+                <td>#TX20495</td>
+                <td>Buyer → Seller</td>
+                <td>KES 45,000</td>
+                <td>KES 4,500</td>
+                <td><span class="badge paid">Completed</span></td>
+                <td>2025-01-19</td>
+              </tr>
+              <tr data-status="Pending">
+                <td>14.</td>
+                <td>#TX20496</td>
+                <td>Tenant → Owner</td>
+                <td>KES 18,000</td>
+                <td>KES 1,800</td>
+                <td><span class="badge rejected">Rejected</span></td>
+                <td>2025-01-20</td>
+              </tr>
+              <tr data-status="Paid">
+                <td>15.</td>
+                <td>#TX20495</td>
+                <td>Buyer → Seller</td>
+                <td>KES 45,000</td>
+                <td>KES 4,500</td>
+                <td><span class="badge paid">Completed</span></td>
+                <td>2025-01-19</td>
+              </tr>
+              <tr data-status="Pending">
+                <td>16.</td>
+                <td>#TX20496</td>
+                <td>Tenant → Owner</td>
+                <td>KES 18,000</td>
+                <td>KES 1,800</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td>2025-01-20</td>
+              </tr>
+              <tr data-status="Paid">
+                <td>17.</td>
+                <td>#TX20495</td>
+                <td>Buyer → Seller</td>
+                <td>KES 45,000</td>
+                <td>KES 4,500</td>
+                <td><span class="badge paid">Completed</span></td>
+                <td>2025-01-19</td>
+              </tr>
+              <tr data-status="Pending">
+                <td>18.</td>
+                <td>#TX20496</td>
+                <td>Tenant → Owner</td>
+                <td>KES 18,000</td>
+                <td>KES 1,800</td>
+                <td><span class="badge rejected">Rejected</span></td>
+                <td>2025-01-20</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <div class="admin-tab-panel" data-tab="products">
+        <nav>
+        <p>Products</p>
+        <ul>
+            <a href="#">Admin ~ </a> 
+            <a href="#" class="active">Products</a>
+        </ul>
+        </nav>
+        <h2>Market Hub Products</h2>
+        <div class="admin-tab-content">
+        <div class="cards">
+            <div class="card sub-card">
+                <i class="fa-solid fa-box"></i>
+                <div>
+                <h3>Total Products</h3>
+                <div class="value">245</div>
+                <small>Products in system</small>
+                </div>
+            </div>
+            <div class="card sub-card">
+
+                <i class="fa-solid fa-circle-check"></i>
+                <div>
+                <h3>Active Products</h3>
+                <div class="value">5</div>
+                <small>Currently visible</small>
+                </div>
+            </div>
+
+            <div class="card sub-card">
+                
+                <i class="fa-solid fa-ban"></i>
+                <div>
+                <h3>Inactive Products</h3>
+                <div class="value">193</div>
+                <small>Disabled or hidden</small>
+                </div>
+            </div>
+
+            <div class="card sub-card">
+                <i class="fa-solid fa-coins"></i>
+                <div>
+                <h3>Total Product Value</h3>
+                <div class="value">KES 2.4M</div>
+                </div>
+            </div>
+        </div>
+        </div>
+        <div class="tabs-container">
+            <div class="tabs">
+            <button class="tab-btn-admin active" data-tab="beauty">Beauty</button>
+            <button class="tab-btn-admin" data-tab="electronics">Electronics</button>
+            <button class="tab-btn-admin" data-tab="fashion">Fashion</button>
+            </div>
+            <div id="company-products" class="tab-panel-admin">
+                <div class="tab-top">
+                    <p>Market Hub Store<br><strong>Your control center for Market Hub products <i class="fa-regular fa-circle-check"></i></strong></p>
+                    <button onclick="toggleProductsAdd(true)">
+                    <i class="fa fa-plus"></i>&nbsp;<span>Add&nbsp;Product</span>
+                    </button>
+
+                </div>
+
+                <!-- PRODUCTS GRID -->
+                <div id="beauty" class="products-grid-admin active">
+                    <div class="product-card">
+                        <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
+                        <div class="product-name">Executive Leather Laptop Bag</div>
+                        <div class="product-price">KES 1,300.00</div>
+                        <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
+                        <div class="card-actions">
+                            <a href="#" class="edit">
+                            <i class="fa fa-pen"></i> Edit
+                            </a>
+                            <form method="POST">
+                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                            <button type="submit" class="delete">
+                                <i class="fa fa-trash"></i> Delete
+                            </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
+                        <div class="product-name">Executive Leather Laptop Bag</div>
+                        <div class="product-price">KES 1,300.00</div>
+                        <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
+                        <div class="card-actions">
+                            <a href="#" class="edit">
+                            <i class="fa fa-pen"></i> Edit
+                            </a>
+                            <form method="POST">
+                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                            <button type="submit" class="delete">
+                                <i class="fa fa-trash"></i> Delete
+                            </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
+                        <div class="product-name">Executive Leather Laptop Bag</div>
+                        <div class="product-price">KES 1,300.00</div>
+                        <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
+                        <div class="card-actions">
+                            <a href="#" class="edit">
+                            <i class="fa fa-pen"></i> Edit
+                            </a>
+                            <form method="POST">
+                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                            <button type="submit" class="delete">
+                                <i class="fa fa-trash"></i> Delete
+                            </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
+                        <div class="product-name">Executive Leather Laptop Bag</div>
+                        <div class="product-price">KES 1,300.00</div>
+                        <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
+                        <div class="card-actions">
+                            <a href="#" class="edit">
+                            <i class="fa fa-pen"></i> Edit
+                            </a>
+                            <form method="POST">
+                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                            <button type="submit" class="delete">
+                                <i class="fa fa-trash"></i> Delete
+                            </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- 
+                    <p class="noproducts-admin-p">No products uploaded yet. Click "Add Product" to start.</p> -->
+                </div>
+                <!-- PRODUCTS GRID -->
+                <div id="electronics" class="products-grid-admin">
+                    <div class="product-card">
+                        <img src="Images/6 Litre Electric Pressure Cooker.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
+                        <div class="product-name">6 Litre Electric Pressure Cooker</div>
+                        <div class="product-price">KES 5,200.00</div>
+                        <p class="product-description">Fast cooking, energy saving, perfect for family meals.</p>
+                        <div class="card-actions">
+                            <a href="#" class="edit">
+                            <i class="fa fa-pen"></i> Edit
+                            </a>
+                            <form method="POST">
+                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                            <button type="submit" class="delete">
+                                <i class="fa fa-trash"></i> Delete
+                            </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
+                        <div class="product-name">Executive Leather Laptop Bag</div>
+                        <div class="product-price">KES 1,300.00</div>
+                        <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
+                        <div class="card-actions">
+                            <a href="#" class="edit">
+                            <i class="fa fa-pen"></i> Edit
+                            </a>
+                            <form method="POST">
+                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                            <button type="submit" class="delete">
+                                <i class="fa fa-trash"></i> Delete
+                            </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
+                        <div class="product-name">Executive Leather Laptop Bag</div>
+                        <div class="product-price">KES 1,300.00</div>
+                        <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
+                        <div class="card-actions">
+                            <a href="#" class="edit">
+                            <i class="fa fa-pen"></i> Edit
+                            </a>
+                            <form method="POST">
+                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                            <button type="submit" class="delete">
+                                <i class="fa fa-trash"></i> Delete
+                            </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
+                        <div class="product-name">Executive Leather Laptop Bag</div>
+                        <div class="product-price">KES 1,300.00</div>
+                        <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
+                        <div class="card-actions">
+                            <a href="#" class="edit">
+                            <i class="fa fa-pen"></i> Edit
+                            </a>
+                            <form method="POST">
+                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                            <button type="submit" class="delete">
+                                <i class="fa fa-trash"></i> Delete
+                            </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <!-- PRODUCTS GRID -->
+                <div id="fashion" class="products-grid-admin">
+                    <div class="product-card">
+                        <img src="Images/Ipcone 16-inch standing fan.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
+                        <div class="product-name">16-inch Standing Fan</div>
+                        <div class="product-price">KES 2,350.00</div>
+                        <p class="product-description">Powerful airflow with adjustable height.</p>
+                        <div class="card-actions">
+                            <a href="#" class="edit">
+                            <i class="fa fa-pen"></i> Edit
+                            </a>
+                            <form method="POST">
+                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                            <button type="submit" class="delete">
+                                <i class="fa fa-trash"></i> Delete
+                            </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
+                        <div class="product-name">Executive Leather Laptop Bag</div>
+                        <div class="product-price">KES 1,300.00</div>
+                        <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
+                        <div class="card-actions">
+                            <a href="#" class="edit">
+                            <i class="fa fa-pen"></i> Edit
+                            </a>
+                            <form method="POST">
+                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                            <button type="submit" class="delete">
+                                <i class="fa fa-trash"></i> Delete
+                            </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
+                        <div class="product-name">Executive Leather Laptop Bag</div>
+                        <div class="product-price">KES 1,300.00</div>
+                        <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
+                        <div class="card-actions">
+                            <a href="#" class="edit">
+                            <i class="fa fa-pen"></i> Edit
+                            </a>
+                            <form method="POST">
+                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                            <button type="submit" class="delete">
+                                <i class="fa fa-trash"></i> Delete
+                            </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
+                        <div class="product-name">Executive Leather Laptop Bag</div>
+                        <div class="product-price">KES 1,300.00</div>
+                        <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
+                        <div class="card-actions">
+                            <a href="#" class="edit">
+                            <i class="fa fa-pen"></i> Edit
+                            </a>
+                            <form method="POST">
+                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                            <button type="submit" class="delete">
+                                <i class="fa fa-trash"></i> Delete
+                            </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </div>
 
     </main>
     <footer>
@@ -2478,6 +2760,42 @@ $totalOwners = count($propertyOwners);
         dropdown.style.display = "block";
         e.stopPropagation();
       }
+    });
+    // MARKET HUB PRODUCTS GRID SWITCH JS
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+    const tabButtons = document.querySelectorAll(".tab-btn-admin");
+    const productPanels = document.querySelectorAll(".products-grid-admin");
+
+    tabButtons.forEach((button) => {
+
+        button.addEventListener("click", function () {
+
+        const targetTab = this.dataset.tab;
+
+        // Remove active class from buttons
+        tabButtons.forEach(btn => btn.classList.remove("active"));
+
+        // Activate clicked button
+        this.classList.add("active");
+
+        // Hide all product panels
+        productPanels.forEach(panel => {
+            panel.classList.remove("active");
+        });
+
+        // Show selected panel instantly
+        const targetPanel = document.getElementById(targetTab);
+
+        if (targetPanel) {
+            targetPanel.classList.add("active");
+        }
+
+        });
+
+    });
+
     });
   </script>
 </body>

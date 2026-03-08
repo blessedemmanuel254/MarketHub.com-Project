@@ -843,9 +843,11 @@ $productStmt->close();
             <?php
               /* ---------- FETCH SELLER TOTAL DISTINCT ORDERS ---------- */
               $orderCountStmt = $conn->prepare("
-                  SELECT COUNT(DISTINCT order_id) AS total_orders
-                  FROM order_items
-                  WHERE seller_id = ?
+                SELECT COUNT(DISTINCT oi.order_id) AS total_orders
+                FROM order_items oi
+                JOIN orders o ON oi.order_id = o.order_id
+                WHERE oi.seller_id = ?
+                AND o.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
               ");
               $orderCountStmt->bind_param("i", $sellerId);
               $orderCountStmt->execute();
@@ -855,16 +857,27 @@ $productStmt->close();
 
               $totalOrders = (int)$totalOrders;
               if ($totalOrders < 100) {
-                $badgeClass = 'promoBadgeDefault';
-              } elseif ($totalOrders >= 100 && $totalOrders < 200) {
-                $badgeClass = 'promoBadgeGoGold';
-              } else {
-                $badgeClass = 'promoBadgeGoPro';
-              }
-            ?>
+                  $displayOrders = $totalOrders;
+                  $badgeClass = 'promoBadgeDefault';
 
-            <div class="<?php echo $badgeClass; ?>">
-              <?php echo $totalOrders; ?>+
+              } elseif ($totalOrders < 200) {
+                  $displayOrders = "100+";
+                  $badgeClass = 'promoBadgeGoGold';
+
+              } elseif ($totalOrders < 250) {
+                  $displayOrders = "200+";
+                  $badgeClass = 'promoBadgeGoPro';
+
+              } else {
+                  $displayOrders = "250+";
+                  $badgeClass = 'promoBadgeGoPro';
+              }
+
+            ?>
+            <div class="promo-badge-container">Orders : 
+              <p class="<?php echo $badgeClass; ?>">
+                <?php echo $displayOrders; ?>
+              </p>
             </div>
 
             <div class="bsType">
