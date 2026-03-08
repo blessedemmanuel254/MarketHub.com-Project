@@ -1044,7 +1044,6 @@ function toggleAgentAdd(showAdd) {
   }
 }
 
-
 // ADMIN DASHBOARD JS
 function toggleNavigationBar() {
   const navOverlay = document.getElementById("navOverlay");
@@ -1054,26 +1053,28 @@ function toggleNavigationBar() {
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  // ✅ Only run if admin dashboard exists
+  // Only run if admin dashboard exists
   if (!document.querySelector(".admin-tab-panel")) return;
 
   const tabs = document.querySelectorAll(".nav-link");
+  const navBtnTabs = document.querySelectorAll(".btn-edit");
   const panels = document.querySelectorAll(".admin-tab-panel");
 
-  const hasActiveTab = document.querySelector(".nav-link.active");
-  const hasActivePanel = document.querySelector(".admin-tab-panel.active");
+  // ---------- RESTORE LAST TAB ----------
+  const savedTab = localStorage.getItem("adminActiveTab");
 
-  if (!hasActiveTab || !hasActivePanel) {
+  if (savedTab) {
     tabs.forEach(t => t.classList.remove("active"));
     panels.forEach(p => p.classList.remove("active"));
 
-    const defaultTab = document.querySelector('.nav-link[data-tab="dashboard"]');
-    const defaultPanel = document.querySelector('.admin-tab-panel[data-tab="dashboard"]');
+    const savedTabBtn = document.querySelector(`.nav-link[data-tab="${savedTab}"]`);
+    const savedPanel = document.querySelector(`.admin-tab-panel[data-tab="${savedTab}"]`);
 
-    defaultTab?.classList.add("active");
-    defaultPanel?.classList.add("active");
+    savedTabBtn?.classList.add("active");
+    savedPanel?.classList.add("active");
   }
 
+  // ---------- TAB CLICK ----------
   tabs.forEach(tab => {
     tab.addEventListener("click", e => {
       e.preventDefault();
@@ -1085,12 +1086,127 @@ document.addEventListener("DOMContentLoaded", () => {
       panels.forEach(p => p.classList.remove("active"));
 
       tab.classList.add("active");
+
       document
         .querySelector(`.admin-tab-panel[data-tab="${target}"]`)
         ?.classList.add("active");
 
+      // SAVE LAST TAB
+      localStorage.setItem("adminActiveTab", target);
+
       toggleNavigationBar?.();
     });
+  });
+  navBtnTabs.forEach(tab => {
+    tab.addEventListener("click", e => {
+      e.preventDefault();
+
+      const target = tab.dataset.tab;
+      if (!target) return;
+      panels.forEach(p => p.classList.remove("active"));
+
+      document
+        .querySelector(`.admin-tab-panel[data-tab="${target}"]`)
+        ?.classList.add("active");
+
+      // SAVE LAST TAB
+      localStorage.setItem("adminActiveTab", target);
+    });
+  });
+
+});
+
+// EDIT FUNCTION - No page reload
+
+const allowedTypes = ["agent","buyer","seller","owner","product"];
+
+function editRecord(type, id) {
+  if (!Number.isInteger(id) || id <= 0) return;
+  if (!allowedTypes.includes(type)) return;
+
+  // Get the currently active panel
+  const activePanel = document.querySelector(".admin-tab-panel.active");
+  if (activePanel) {
+    localStorage.setItem("previousAdminTab", activePanel.dataset.tab);
+  }
+
+  // Hide all forms
+  allowedTypes.forEach(t => {
+    const f = document.getElementById(t + "-edit-form");
+    if (f) f.style.display = "none";
+  });
+
+  // Show selected form
+  const form = document.getElementById(type + "-edit-form");
+  if (form) form.style.display = "flex";
+
+  // Store active form and id
+  localStorage.setItem("activeForm", type);
+  localStorage.setItem("editId", id);
+
+  // Reload page so PHP values load
+  window.location.href = "adminPage.php?type=" + type + "&id=" + id;
+}
+
+// RESTORE FORM AFTER PAGE RELOAD
+document.addEventListener("DOMContentLoaded", function () {
+  const activeForm = localStorage.getItem("activeForm");
+  const editId = localStorage.getItem("editId");
+
+  if (activeForm && allowedTypes.includes(activeForm)) {
+    allowedTypes.forEach(t => {
+      const f = document.getElementById(t + "-edit-form");
+      if (f) f.style.display = "none";
+    });
+
+    const form = document.getElementById(activeForm + "-edit-form");
+    if (form) form.style.display = "flex";
+
+    // Restore URL if missing
+    const params = new URLSearchParams(window.location.search);
+    if (!params.get("id") && editId) {
+      window.history.replaceState(null, "", "adminPage.php?type=" + activeForm + "&id=" + editId);
+    }
+  }
+});
+
+function copyAgencyCode() {
+  const input = document.getElementById("agencyCodeInput");
+  const icon = document.querySelector(".agency_code i");
+  const text = input.value;
+
+  navigator.clipboard.writeText(text).then(() => {
+    icon.classList.remove("fa-copy");
+    icon.classList.add("fa-check");
+
+    setTimeout(() => {
+      icon.classList.remove("fa-check");
+      icon.classList.add("fa-copy");
+    }, 1500);
+  });
+}
+
+document.getElementById("goBackBtn")?.addEventListener("click", function () {
+
+  const previousTab = localStorage.getItem("previousAdminTab");
+
+  if (!previousTab) return;
+
+  const tabs = document.querySelectorAll(".nav-link");
+  const panels = document.querySelectorAll(".admin-tab-panel");
+
+  // Remove active states
+  tabs.forEach(t => t.classList.remove("active"));
+  panels.forEach(p => p.classList.remove("active"));
+
+  // Activate the previous panel
+  document.querySelector(`.nav-link[data-tab="${previousTab}"]`)?.classList.add("active");
+  document.querySelector(`.admin-tab-panel[data-tab="${previousTab}"]`)?.classList.add("active");
+
+  // Hide edit forms
+  allowedTypes.forEach(t => {
+    const f = document.getElementById(t + "-edit-form");
+    if (f) f.style.display = "none";
   });
 
 });

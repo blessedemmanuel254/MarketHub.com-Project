@@ -162,7 +162,7 @@ $profileLetter = strtoupper(substr($formattedUsername, 0, 1));
 $safeUsername = htmlspecialchars($formattedUsername, ENT_QUOTES, 'UTF-8');
 $safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
 
-$defaultAvatar = "Images/Market Hub Logo.avif";
+$defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
 if (!empty($profileImage) && file_exists($profileImage)) {
     $safeProfileImage = htmlspecialchars($profileImage, ENT_QUOTES, 'UTF-8');
@@ -600,38 +600,38 @@ while ($row = $query->fetch_assoc()) {
                             </div>
                         </div>
                         <a href="marketDisplay.php?seller=<?php echo $seller['user_id']; ?>" class="seller-right">
-                            <?php
-                            $totalOrders = (int)$seller['total_orders'];
+                          <?php
+                          $totalOrders = (int)$seller['total_orders'];
 
-                            /* ---------- BADGE DISPLAY VALUE ---------- */
-                            if ($totalOrders < 100) {
-                                $displayOrders = $totalOrders;
-                            } elseif ($totalOrders < 200) {
-                                $displayOrders = "100+";
-                            } elseif ($totalOrders < 250) {
-                                $displayOrders = "200+";
-                            } else {
-                                $displayOrders = "250+";
-                            }
+                          /* ---------- BADGE DISPLAY VALUE ---------- */
+                          if ($totalOrders < 100) {
+                              $displayOrders = $totalOrders;
+                          } elseif ($totalOrders < 200) {
+                              $displayOrders = "100+";
+                          } elseif ($totalOrders < 250) {
+                              $displayOrders = "200+";
+                          } else {
+                              $displayOrders = "250+";
+                          }
 
-                            /* ---------- BADGE COLOR CLASS ---------- */
-                            if ($totalOrders < 100) {
-                                $badgeClass = 'promoBadgeDefault';
-                            } elseif ($totalOrders < 200) {
-                                $badgeClass = 'promoBadgeGoGold';
-                            } else {
-                                $badgeClass = 'promoBadgeGoPro';
-                            }
-                            ?>
-                            <div class="promo-badge-container">Orders : 
-                              <div class="<?php echo $badgeClass; ?>">
-                                <?php echo $displayOrders; ?>
-                              </div>
+                          /* ---------- BADGE COLOR CLASS ---------- */
+                          if ($totalOrders < 100) {
+                              $badgeClass = 'promoBadgeDefault';
+                          } elseif ($totalOrders < 200) {
+                              $badgeClass = 'promoBadgeGoGold';
+                          } else {
+                              $badgeClass = 'promoBadgeGoPro';
+                          }
+                          ?>
+                          <div class="promo-badge-container">Orders : 
+                            <div class="<?php echo $badgeClass; ?>">
+                              <?php echo $displayOrders; ?>
                             </div>
-                            <div class="bsType">Business Type : <i><?php echo $bType; ?></i></div>
-                            <div class="action">
-                                <button>View&nbsp;seller</button>
-                            </div>
+                          </div>
+                          <div class="bsType">Business Type : <i><?php echo $bType; ?></i></div>
+                          <div class="action">
+                              <button>View&nbsp;seller</button>
+                          </div>
                         </a>
                     </div>
                 <?php endforeach; ?>

@@ -18,7 +18,7 @@ if (!isset($_SESSION['created'])) {
 $allowedRole = 'administrator';
 
 $roleStmt = $conn->prepare(
-    "SELECT account_type FROM users WHERE user_id = ? LIMIT 1"
+  "SELECT account_type FROM users WHERE user_id = ? LIMIT 1"
 );
 $roleStmt->bind_param("i", $_SESSION['user_id']);
 $roleStmt->execute();
@@ -114,6 +114,26 @@ function maskEmail($email, $mask = '***') {
   }
 
   return $maskedLocal . '@' . htmlspecialchars($domain, ENT_QUOTES, 'UTF-8');
+}
+
+function normalizePhoneNumber($rawPhone) {
+  // Remove all characters except numbers and plus sign
+  $cleaned = preg_replace('/[^\d+]/', '', $rawPhone);
+
+  // Handle various formats
+  if (strpos($cleaned, '+') === 0) {
+      // Already starts with country code
+      return $cleaned;
+  } elseif (strpos($cleaned, '0') === 0 && strlen($cleaned) >= 10) {
+      // Starts with 0 — assume it's local Kenyan-style and convert to +254
+      return '+254' . substr($cleaned, 1);
+  } elseif (strlen($cleaned) >= 9 && !str_starts_with($cleaned, '+')) {
+      // Assume starts directly with country code
+      return '+' . $cleaned;
+  }
+
+  // Invalid fallback
+  return '';
 }
 
 // Fetch admin details from the database using session user_id
@@ -266,6 +286,325 @@ while ($row = $ownersQuery->fetch_assoc()) {
 // Total Owners count
 $totalOwners = count($propertyOwners);
 
+/* ======================================
+   FETCH USER FOR EDITING
+====================================== */
+
+$editUser = [];
+
+$userId = isset($_GET['id']) ? intval($_GET['id']) : 0;
+$type   = $_GET['type'] ?? '';
+
+$map = [
+    'agent'  => 'sales_agent',
+    'seller' => 'seller',
+    'buyer'  => 'buyer',
+    'owner'  => 'property_owner'
+];
+
+if($userId && isset($map[$type])){
+
+    $dbType = $map[$type];
+
+    $stmt = $conn->prepare("
+        SELECT
+        user_id,
+        full_name,
+        username,
+        email,
+        phone,
+        account_type,
+        country,
+        county,
+        ward,
+        address,
+        business_name,
+        business_model,
+        business_type,
+        market_scope,
+        agency_code
+        FROM users
+        WHERE user_id=? AND account_type=?
+        LIMIT 1
+    ");
+
+    $stmt->bind_param("is",$userId,$dbType);
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+
+    if($result->num_rows === 1){
+        $editUser = $result->fetch_assoc();
+    }
+
+    $stmt->close();
+}
+
+/* ---------- Populate variables ---------- */
+
+$user_id       = $editUser['user_id'] ?? '';
+$full_name     = htmlspecialchars($editUser['full_name'] ?? '');
+$username      = htmlspecialchars($editUser['username'] ?? '');
+$email         = decodeEmail($editUser['email'] ?? '');
+$phone         = decodePhone($editUser['phone'] ?? '');
+$country       = htmlspecialchars($editUser['country'] ?? '');
+$county        = htmlspecialchars($editUser['county'] ?? '');
+$ward          = htmlspecialchars($editUser['ward'] ?? '');
+$address       = htmlspecialchars($editUser['address'] ?? '');
+$business_name = htmlspecialchars($editUser['business_name'] ?? '');
+$business_model= htmlspecialchars($editUser['business_model'] ?? '');
+$business_type = htmlspecialchars($editUser['business_type'] ?? '');
+$market_scope  = htmlspecialchars($editUser['market_scope'] ?? '');
+$agency_code   = htmlspecialchars($editUser['agency_code'] ?? '');
+
+$error = "";
+$success = "";
+
+/* ======================================
+   HANDLE UPDATE
+====================================== */
+
+if($_SERVER["REQUEST_METHOD"] === "POST"){
+
+$formType = $_POST['form_type'] ?? '';
+
+$user_id   = intval($_POST['user_id'] ?? 0);
+$full_name = trim($_POST['full_name'] ?? '');
+$username  = trim($_POST['username'] ?? '');
+$email     = trim($_POST['email'] ?? '');
+$phone     = trim($_POST['phone'] ?? '');
+
+$country   = trim($_POST['country'] ?? '');
+$county    = trim($_POST['county'] ?? '');
+$ward      = trim($_POST['ward'] ?? '');
+$address   = trim($_POST['address'] ?? '');
+
+$busname   = trim($_POST['business_name'] ?? '');
+$busmodel  = trim($_POST['business_model'] ?? '');
+$bustype   = trim($_POST['business_type'] ?? '');
+$market    = trim($_POST['market_scope'] ?? '');
+
+$password  = $_POST['password'] ?? '';
+$confirm_password = $_POST['confirm_password'] ?? '';
+
+/* ---------- VALIDATION ---------- */
+
+if(!$full_name || !$username || !$email || !$phone || !$country || !$county || !$ward || !$address){
+    $error = "All fields are required.";
+}
+
+elseif(str_word_count($full_name) < 2){
+    $error = "Full name must contain first and last name.";
+}
+
+elseif(strpos($username,' ') !== false){
+    $error = "Username should not contain spaces.";
+}
+
+elseif(strlen($username) < 5){
+    $error = "Username too short.";
+}
+
+elseif(!filter_var($email,FILTER_VALIDATE_EMAIL)){
+    $error = "Invalid email.";
+}
+
+/* ---------- Seller extra validation ---------- */
+
+if(!$error && $formType === "seller"){
+
+    if(!$busname || !$busmodel || !$bustype || !$market){
+        $error = "Seller business fields required.";
+    }
+
+}
+
+/* ---------- Phone normalize ---------- */
+
+if(!$error){
+
+$normalized_phone = normalizePhoneNumber($phone);
+
+if(!$normalized_phone || !preg_match('/^\+254\d{9}$/',$normalized_phone)){
+    $error = "Invalid phone number.";
+}
+
+}
+
+/* ---------- Check duplicates ---------- */
+
+if(!$error){
+
+$encEmail = base64_encode($email);
+$encPhone = base64_encode($normalized_phone);
+
+$stmt = $conn->prepare("
+SELECT user_id FROM users
+WHERE (email=? OR username=?)
+AND user_id!=?
+");
+
+$stmt->bind_param("ssi",$encEmail,$username,$user_id);
+$stmt->execute();
+$stmt->store_result();
+
+if($stmt->num_rows > 0){
+    $error = "Username or email already exists.";
+}
+
+$stmt->close();
+
+}
+
+/* ---------- Check phone duplicate ---------- */
+
+if(!$error){
+
+$stmt = $conn->prepare("
+SELECT user_id FROM users
+WHERE phone=? AND user_id!=?
+");
+
+$stmt->bind_param("si",$encPhone,$user_id);
+$stmt->execute();
+$stmt->store_result();
+
+if($stmt->num_rows > 0){
+    $error = "Phone number already exists.";
+}
+
+$stmt->close();
+
+}
+
+/* ---------- Password optional ---------- */
+
+if(!$error && $password){
+
+if($password !== $confirm_password){
+    $error = "Passwords do not match.";
+}
+
+else{
+
+$passErr = validatePassword($password);
+
+if($passErr){
+    $error = $passErr;
+}
+else{
+$hashedPassword = password_hash($password,PASSWORD_DEFAULT);
+}
+
+}
+
+}
+
+/* ---------- UPDATE ---------- */
+
+if(!$error){
+
+if($formType === "buyer"){
+$busname = null;
+$busmodel = null;
+$bustype = null;
+$market = null;
+}
+
+$encEmail = base64_encode($email);
+$encPhone = base64_encode($normalized_phone);
+
+if(!empty($hashedPassword)){
+
+$stmt = $conn->prepare("
+UPDATE users SET
+full_name=?,
+username=?,
+email=?,
+phone=?,
+password=?,
+country=?,
+county=?,
+ward=?,
+address=?,
+business_name=?,
+business_model=?,
+business_type=?,
+market_scope=?,
+updated_at=NOW()
+WHERE user_id=?
+");
+
+$stmt->bind_param(
+"sssssssssssssi",
+$full_name,
+$username,
+$encEmail,
+$encPhone,
+$hashedPassword,
+$country,
+$county,
+$ward,
+$address,
+$busname,
+$busmodel,
+$bustype,
+$market,
+$user_id
+);
+
+}
+else{
+
+$stmt = $conn->prepare("
+UPDATE users SET
+full_name=?,
+username=?,
+email=?,
+phone=?,
+country=?,
+county=?,
+ward=?,
+address=?,
+business_name=?,
+business_model=?,
+business_type=?,
+market_scope=?,
+updated_at=NOW()
+WHERE user_id=?
+");
+
+$stmt->bind_param(
+"ssssssssssssi",
+$full_name,
+$username,
+$encEmail,
+$encPhone,
+$country,
+$county,
+$ward,
+$address,
+$busname,
+$busmodel,
+$bustype,
+$market,
+$user_id
+);
+
+}
+
+if($stmt->execute()){
+$success = "User updated successfully!";
+}
+else{
+$error = "Update failed.";
+}
+
+$stmt->close();
+
+}
+
+}
 ?>
 
 <!DOCTYPE html>
@@ -773,8 +1112,14 @@ $totalOwners = count($propertyOwners);
 
               <td class="actions">
                 <div>
-                  <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
+                  <button 
+                  class="btn-edit" data-user-id="<?= $agent['user_id'] ?>" 
+                  data-tab="edit-forms" onclick="editRecord('agent', <?= (int)$agent['user_id'] ?>)">
+                  <i class="fa-solid fa-pen"></i>
+                  </button>
                   <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                  <button class="btn-activate"><i class="fa-solid fa-toggle-on"></i>Activate</button>
+                  <button class="btn-deactivate"><i class="fa-solid fa-toggle-off"></i>Deactivate</button>
                   <button class="btn-copy-link"><i class="fa-solid fa-link"></i> Copy&nbsp;Link</button>
                   <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
                 </div>
@@ -925,12 +1270,16 @@ $totalOwners = count($propertyOwners);
                   <td><span class="badge <?= $kycBadge ?>"><?= $kycText ?></span></td>
                   <td><span class="badge <?= strtolower($seller['status']) ?>"><?= ucfirst($seller['status']) ?></span></td>
                   <td class="actions">
-                      <div>
-                          <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                          <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                          <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                          <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                      </div>
+                    <div>
+                      <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                      <button
+                      class="btn-edit" data-user-id="<?= $seller['user_id'] ?>" 
+                      data-tab="edit-forms" onclick="editRecord('seller', <?= (int)$seller['user_id'] ?>)">
+                      <i class="fa-solid fa-pen"></i>
+                      </button>
+                      <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                      <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>
                   </td>
                   <td class="comm-cell">
                       <button class="comm-btn"><i class="fas fa-ellipsis-vertical"></i></button>
@@ -1029,7 +1378,7 @@ $totalOwners = count($propertyOwners);
                   // Default profile image
                   $img = (!empty($buyer['profile_image']) && file_exists($buyer['profile_image']))
                       ? $buyer['profile_image']
-                      : "Images/Market Hub Logo.avif"; 
+                      : "https://cdn-icons-png.flaticon.com/512/149/149071.png"; 
                   $phone = decodePhone($buyer['phone']);
                   $maskedPhone = maskPhone($phone);
 
@@ -1052,26 +1401,30 @@ $totalOwners = count($propertyOwners);
                       <td><?= $buyer['orders_count'] ?: 0 ?></td>
                       <td>KES <?= number_format($buyer['total_spend'] ?: 0) ?></td>
                       <td>
-                          <span class="badge <?= strtolower($buyer['status']) ?>"><?= htmlspecialchars($buyer['status']) ?></span>
+                        <span class="badge <?= strtolower($buyer['status']) ?>"><?= htmlspecialchars($buyer['status']) ?></span>
                       </td>
                       <td class="actions">
-                          <div>
-                              <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                              <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                              <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                              <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                          </div>
+                        <div>
+                          <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                          <button 
+                          class="btn-edit" data-user-id="<?= $buyer['user_id'] ?>" 
+                          data-tab="edit-forms" onclick="editRecord('buyer', <?= (int)$buyer['user_id'] ?>)">
+                          <i class="fa-solid fa-pen"></i>
+                          </button>
+                          <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                          <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
                       </td>
                       <td class="comm-cell">
-                          <button class="comm-btn">
-                              <i class="fas fa-ellipsis-vertical"></i>
-                          </button>
-                          <div class="comm-dropdown">
-                              <a href="tel:<?= htmlspecialchars($phone) ?>"><i class="fas fa-phone"></i> Call</a>
-                              <a href="https://wa.me/<?= preg_replace('/\D/', '', $phone) ?>" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                              <a href="mailto:<?= htmlspecialchars($email) ?>"><i class="fas fa-envelope"></i> Email</a>
-                              <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                          </div>
+                        <button class="comm-btn">
+                          <i class="fas fa-ellipsis-vertical"></i>
+                        </button>
+                        <div class="comm-dropdown">
+                          <a href="tel:<?= htmlspecialchars($phone) ?>"><i class="fas fa-phone"></i> Call</a>
+                          <a href="https://wa.me/<?= preg_replace('/\D/', '', $phone) ?>" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                          <a href="mailto:<?= htmlspecialchars($email) ?>"><i class="fas fa-envelope"></i> Email</a>
+                          <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                        </div>
                       </td>
                       <td><?= date('Y-m-d', strtotime($buyer['created_at'])) ?></td>
                       <td><?= date('Y-m-d', strtotime($buyer['updated_at'])) ?></td>
@@ -1172,8 +1525,8 @@ $totalOwners = count($propertyOwners);
 
                 // Default profile image
                 $img = (!empty($owner['profile_image']) && file_exists($owner['profile_image']))
-                    ? $owner['profile_image']
-                    : "Images/Market Hub Logo.avif";
+                ? $owner['profile_image']
+                : "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
                 $email = decodeEmail($owner['email']);
                 $maskedEmail = maskEmail($email);
@@ -1186,7 +1539,7 @@ $totalOwners = count($propertyOwners);
 
                 <td>
                   <div class="adm-user-profile">
-                    <img src="<?= htmlspecialchars($img) ?>" style="border-radius:50%">
+                    <img src="<?= htmlspecialchars($img) ?>">
                     <?= htmlspecialchars(ucwords(strtolower($owner['full_name']))) ?>
                   </div>
                   <em>ID: <?= $owner['user_id'] ?></em>
@@ -1212,33 +1565,37 @@ $totalOwners = count($propertyOwners);
                 </td>
 
                 <td class="actions">
-                    <div>
-                        <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                        <button class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                        <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-                    </div>
+                  <div>
+                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+                    <button
+                    class="btn-edit" data-user-id="<?= $owner['user_id'] ?>" 
+                    data-tab="edit-forms" onclick="editRecord('owner', <?= (int)$owner['user_id'] ?>)">
+                    <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
                 </td>
 
                 <td class="comm-cell">
-                    <button class="comm-btn">
-                        <i class="fas fa-ellipsis-vertical"></i>
-                    </button>
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
 
-                    <div class="comm-dropdown">
-                        <a href="tel:<?= htmlspecialchars($owner['phone']) ?>">
-                            <i class="fas fa-phone"></i> Call
-                        </a>
-                        <a href="https://wa.me/<?= preg_replace('/^\+/', '', $owner['phone']) ?>" target="_blank">
-                            <i class="fab fa-whatsapp"></i> WhatsApp
-                        </a>
-                        <a href="mailto:<?= htmlspecialchars($owner['email']) ?>">
-                            <i class="fas fa-envelope"></i> Email
-                        </a>
-                        <a href="#">
-                            <i class="fas fa-comment-dots"></i> SMS
-                        </a>
-                    </div>
+                  <div class="comm-dropdown">
+                    <a href="tel:<?= htmlspecialchars($owner['phone']) ?>">
+                        <i class="fas fa-phone"></i> Call
+                    </a>
+                    <a href="https://wa.me/<?= preg_replace('/^\+/', '', $owner['phone']) ?>" target="_blank">
+                        <i class="fab fa-whatsapp"></i> WhatsApp
+                    </a>
+                    <a href="mailto:<?= htmlspecialchars($owner['email']) ?>">
+                        <i class="fas fa-envelope"></i> Email
+                    </a>
+                    <a href="#">
+                        <i class="fas fa-comment-dots"></i> SMS
+                    </a>
+                  </div>
                 </td>
 
                 <td><?= date("Y-m-d", strtotime($owner['created_at'])) ?></td>
@@ -2678,6 +3035,518 @@ $totalOwners = count($propertyOwners);
                     </div>
                 </div>
             </div>
+        </div>
+      </div>
+      <div class="admin-tab-panel" data-tab="edit-forms">
+        <nav>
+          <p>Edit-Manage Sales Agents</p>
+          <ul>
+            <a href="#">Admin&nbsp;~</a>
+            <a href="#" class="active">Agents</a><!-- 
+            <a href="">Orders</a>
+            <a href="">Users</a> -->
+          </ul>
+        </nav>
+        <h2>Agents Manual Management</h2>
+        <div id="seller-products" class="tab-panel-admin">
+          <div class="tab-top">
+            <p>Manually manage agents</em> <br><strong>Oversee existing agents individual data <i class="fa-regular fa-circle-check"></i></strong></p>
+            <button id="goBackBtn">
+              <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
+            </button>
+
+          </div>
+          <div class="form-wrapper" id="agent-edit-form">
+            <form method="POST" enctype="multipart/form-data"><!-- 
+              <input type="hidden" name="user_id" value="<?= $user_id ?>"> -->
+              <input type="hidden" name="form_type" value="agent">
+              <h1>Update Agent Details</h1>
+              <?php if (!empty($error)): ?>
+                <p class="errorMessage">
+                  <i class="fa-solid fa-circle-exclamation"></i>
+                  <?= $error ?>
+                </p>
+              <?php endif; ?>
+
+              <?php if (!empty($success)): ?>
+                <p class="successMessage">
+                  <i class="fa-solid fa-check-circle"></i>
+                  <?= $success; ?>
+                </p>
+              <?php endif; ?>
+              <div class="formBody">
+                <div class="inp-box">
+                  <label>Agent's Full Name</label>
+                  <input type="text" value="<?= $full_name ?>" name="full_name" placeholder="Full Name">
+                </div>
+                <div class="inp-box">
+                  <label>Agent's Username</label>
+                  <input type="text" value="<?= $username ?>" name="username" placeholder="e.g blessedemmanuel254">
+                </div>
+                <div class="inp-box">
+                  <label>Agent's Email ID</label>
+                  <input type="text" value="<?= $email ?>" name="email" placeholder="john@example.com">
+                </div>
+                <div class="inp-box">
+                  <label>Agent's Phone</label>
+                  <input type="text" value="<?= $phone ?>" name="phone" placeholder="075***630">
+                </div>
+                <div class="inp-box">
+
+                  <label>Country</label>
+                  <select name="country">
+                    <option value=""><p>-- Select Country --</p></option>
+                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
+                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  </select>
+                </div>
+                <div class="inp-box">
+
+                  <label>County</label>
+                  <select name="county">
+                    <option value=""><p>-- Select County --</p></option>
+                    <option value="Kilifi" <?php echo ($county === 'Kilifi') ? 'selected' : ''; ?>>Kilifi</option><!-- 
+                    <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  </select>
+                </div>
+                <div class="inp-box">
+                  <label>Agent's Address</label>
+                  <input type="text" value="<?= $address ?>" name="address" placeholder="eg. Kilifi town">
+                </div>
+                <div class="inp-box">
+
+                  <label>Ward</label>
+                  <select name="ward">
+                    <option value=""><p>-- Select Ward --</p></option>
+                    <option value="Sokoni Ward" <?php echo ($ward === 'Sokoni Ward') ? 'selected' : ''; ?>>Sokoni Ward</option><!-- 
+                    <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  </select>
+                </div>
+                <div></div>
+                <div class="inp-box">
+                  <label class="agency_code">Agency Code (read-only)<i class="fa-solid fa-copy" onclick="copyAgencyCode()"></i></label>
+                    <input type="text" id="agencyCodeInput" value="<?= $agency_code ?>" name="agency_code" placeholder="A56D3847" disabled
+                    >
+                </div>
+                <div></div>
+                <button type="submit">
+                  Update User
+                </button>
+              </div>
+
+            </form>
+          </div>
+          <div class="form-wrapper" id="seller-edit-form">
+            <form method="POST" enctype="multipart/form-data"><!-- 
+              <input type="hidden" name="user_id" value="<?= $user_id ?>"> -->
+              <input type="hidden" name="form_type" value="seller">
+              <h1>Update Seller Details</h1>
+              <?php if (!empty($errors)): ?>
+                <p class="errorMessage">
+                  <i class="fa-solid fa-circle-exclamation"></i>
+                  <?= implode("<br>", $errors); ?>
+                </p>
+              <?php endif; ?>
+
+              <?php if (!empty($success)): ?>
+                <p class="successMessage">
+                  <i class="fa-solid fa-check-circle"></i>
+                  <?= $success; ?>
+                </p>
+              <?php endif; ?>
+              <div class="formBody">
+                <div class="inp-box">
+                  <label>Seller's Full Name</label>
+                  <input type="text" value="<?= $full_name ?>" name="full_name" placeholder="Full Name">
+                </div>
+                <div class="inp-box">
+                  <label>Seller's Username</label>
+                  <input type="text" value="<?= $username ?>" name="username" placeholder="e.g blessedemmanuel254">
+                </div>
+                <div class="inp-box">
+                  <label>Seller's Email ID</label>
+                  <input type="text" value="<?= $email ?>" name="email" placeholder="john@example.com">
+                </div>
+                <div class="inp-box">
+                  <label>Sellers's Phone</label>
+                  <input type="text" value="<?= $phone ?>" name="phone" placeholder="075***630">
+                </div>
+                <div class="inp-box">
+                  <label>Business Name</label>
+                  <input type="text" value="<?= $business_name ?>" name="business_name" placeholder="Main Cateen">
+                </div>
+                <div class="inp-box">
+
+                  <label>Business Model</label>
+                  <select name="business_model">
+                    <option value=""><p>-- Select Business Model --</p></option>
+                    <option value="products" <?php echo ($business_model === 'products') ? 'selected' : ''; ?>>Products</option>
+                    <option value="services" <?php echo ($business_model === 'services') ? 'selected' : ''; ?>>Services</option>
+                    <option value="rental" <?php echo ($business_model === 'rental') ? 'selected' : ''; ?>>Rental</option>
+                  </select>
+                </div>
+                <div class="inp-box">
+
+                  <label>Business type</label>
+                  <select name="business_type">
+                    <option value=""><p>-- Select Type --</p></option>
+                    <option value="shop" <?php echo ($business_type === 'shop') ? 'selected' : ''; ?>>Shop</option>
+                    <option value="supermarket" <?php echo ($business_type === 'supermarket') ? 'selected' : ''; ?>>Supermarket</option>
+                    <option value="kiosk" <?php echo ($business_type === 'kiosk') ? 'selected' : ''; ?>>Kiosk</option>
+                    <option value="kibanda" <?php echo ($business_type === 'kibanda') ? 'selected' : ''; ?>>Kibanda</option>
+                    <option value="canteen" <?php echo ($business_type === 'canteen') ? 'selected' : ''; ?>>Canteen</option>
+                    <option value="service_provider" <?php echo ($business_type === 'service_provider') ? 'selected' : ''; ?>>Service_provider</option>
+                    <option value="rental" <?php echo ($business_type === 'rental') ? 'selected' : ''; ?>>Rental</option>
+                  </select>
+                </div>
+                <div class="inp-box">
+                  <label>Seller's Address</label>
+                  <input type="text" value="<?= $address ?>" name="address" placeholder="eg. Kilifi town">
+                </div>
+                <div class="inp-box">
+
+                  <label>Country</label>
+                  <select name="country">
+                    <option value=""><p>-- Select Country --</p></option>
+                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
+                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  </select>
+                </div>
+                <div class="inp-box">
+
+                  <label>Market Type</label>
+                  <select name="market_scope">
+                    <option value=""><p>-- Select Market Type --</p></option>
+                    <option value="local" <?php echo ($market_scope === 'local') ? 'selected' : ''; ?>>Local</option>
+                    <option value="national" <?php echo ($market_scope === 'national') ? 'selected' : ''; ?>>National</option>
+                    <option value="global" <?php echo ($market_scope === 'global') ? 'selected' : ''; ?>>Global</option>
+                  </select>
+                </div>
+                <div class="inp-box">
+
+                  <label>County</label>
+                  <select name="county">
+                    <option value=""><p>-- Select County --</p></option>
+                    <option value="Kilifi" <?php echo ($county === 'Kilifi') ? 'selected' : ''; ?>>Kilifi</option><!-- 
+                    <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  </select>
+                </div>
+                <div class="inp-box">
+
+                  <label>Ward</label>
+                  <select name="ward">
+                    <option value=""><p>-- Select Ward --</p></option>
+                    <option value="Sokoni Ward" <?php echo ($ward === 'Sokoni Ward') ? 'selected' : ''; ?>>Sokoni Ward</option><!-- 
+                    <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  </select>
+                </div>
+                <div></div>
+                <div></div><!-- 
+                <div class="inp-box">
+                  <label>Agency Code (read-only)</label>
+                  <input type="text" name="agency_code" placeholder="A56D3847" disabled>
+                </div> -->
+                <div></div>
+                <button type="submit">
+                  Update User
+                </button>
+              </div>
+
+            </form>
+          </div>
+          <div class="form-wrapper" id="buyer-edit-form">
+            <form method="POST" enctype="multipart/form-data"><!-- 
+              <input type="hidden" name="user_id" value="<?= $user_id ?>"> -->
+              <input type="hidden" name="form_type" value="buyer">
+              <h1>Update Buyer Details</h1>
+              <?php if (!empty($errors)): ?>
+                <p class="errorMessage">
+                  <i class="fa-solid fa-circle-exclamation"></i>
+                  <?= implode("<br>", $errors); ?>
+                </p>
+              <?php endif; ?>
+
+              <?php if (!empty($success)): ?>
+                <p class="successMessage">
+                  <i class="fa-solid fa-check-circle"></i>
+                  <?= $success; ?>
+                </p>
+              <?php endif; ?>
+              <div class="formBody">
+                <div class="inp-box">
+                  <label>Buyer's Full Name</label>
+                  <input type="text" value="<?= $full_name ?>" name="full_name" placeholder="Full Name">
+                </div>
+                <div class="inp-box">
+                  <label>Buyer's Username</label>
+                  <input type="text" value="<?= $username ?>" name="username" placeholder="e.g blessedemmanuel254">
+                </div>
+                <div class="inp-box">
+                  <label>Buyer's Email ID</label>
+                  <input type="text" value="<?= $email ?>" name="email" placeholder="john@example.com">
+                </div>
+                <div class="inp-box">
+                  <label>Buyer's Phone</label>
+                  <input type="text" value="<?= $phone ?>" name="phone" placeholder="075***630">
+                </div>
+                <div class="inp-box">
+
+                  <label>Country</label>
+                  <select name="country">
+                    <option value=""><p>-- Select Country --</p></option>
+                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
+                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  </select>
+                </div>
+                <div class="inp-box">
+                  <label>Buyer's Address</label>
+                  <input type="text" value="<?= $address ?>" name="address" placeholder="eg. Kilifi town">
+                </div>
+                <div class="inp-box">
+
+                  <label>County</label>
+                  <select name="county">
+                    <option value=""><p>-- Select County --</p></option>
+                    <option value="Kilifi" <?php echo ($county === 'Kilifi') ? 'selected' : ''; ?>>Kilifi</option><!-- 
+                    <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  </select>
+                </div>
+                <div class="inp-box">
+
+                  <label>Ward</label>
+                  <select name="ward">
+                    <option value=""><p>-- Select Ward --</p></option>
+                    <option value="Sokoni Ward" <?php echo ($ward === 'Sokoni Ward') ? 'selected' : ''; ?>>Sokoni Ward</option><!-- 
+                    <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  </select>
+                </div>
+                <div></div>
+                <button type="submit">
+                  Update User
+                </button>
+              </div>
+
+            </form>
+          </div>
+          <div class="form-wrapper" id="owner-edit-form">
+            <form method="POST" enctype="multipart/form-data"><!-- 
+              <input type="hidden" name="user_id" value="<?= $user_id ?>"> -->
+              <input type="hidden" name="form_type" value="owner">
+              <h1>Update Owner Details</h1>
+              <?php if (!empty($errors)): ?>
+                <p class="errorMessage">
+                  <i class="fa-solid fa-circle-exclamation"></i>
+                  <?= implode("<br>", $errors); ?>
+                </p>
+              <?php endif; ?>
+
+              <?php if (!empty($success)): ?>
+                <p class="successMessage">
+                  <i class="fa-solid fa-check-circle"></i>
+                  <?= $success; ?>
+                </p>
+              <?php endif; ?>
+              <div class="formBody">
+                <div class="inp-box">
+                  <label>Owner's Full Name</label>
+                  <input type="text" value="<?= $full_name ?>" name="full_name" placeholder="Full Name">
+                </div>
+                <div class="inp-box">
+                  <label>Owner's Username</label>
+                  <input type="text" value="<?= $username ?>" name="username" placeholder="e.g blessedemmanuel254">
+                </div>
+                <div class="inp-box">
+                  <label>Owner's Email ID</label>
+                  <input type="text" value="<?= $email ?>" name="email" placeholder="john@example.com">
+                </div>
+                <div class="inp-box">
+                  <label>Owner's Phone</label>
+                  <input type="text" value="<?= $phone ?>" name="phone" placeholder="075***630">
+                </div><!-- 
+                <div class="account-type-box">
+                  <p class="account-title">Property Type</p>
+
+                  <label class="account-type">
+                    <input type="radio" name="property_type" value="cars" required>
+                    <div class="radio-dot"></div>
+                    <span>Cars</span>
+                  </label>
+
+                  <label class="account-type">
+                    <input type="radio" name="property_type" value="rental_houses" required>
+                    <div class="radio-dot"></div>
+                    Rental Houses
+                  </label>
+
+                  <label class="account-type">
+                    <input type="radio" name="property_type" value="lands" required>
+                    <div class="radio-dot"></div>
+                    Lands
+                  </label>
+
+                  <label class="account-type">
+                    <input type="radio" name="property_type" value="Tents" required>
+                    <div class="radio-dot"></div>
+                    Tents
+                  </label>
+
+                  <label class="account-type">
+                    <input type="radio" name="property_type" value="air_bnbs" required>
+                    <div class="radio-dot"></div>
+                    Air BNBs
+                  </label>
+                </div> -->
+                <div class="inp-box">
+
+                  <label>Country</label>
+                  <select name="country">
+                    <option value=""><p>-- Select Country --</p></option>
+                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
+                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  </select>
+                </div>
+                <div class="inp-box">
+
+                  <label>County</label>
+                  <select name="county">
+                    <option value=""><p>-- Select County --</p></option>
+                    <option value="Kilifi" <?php echo ($county === 'Kilifi') ? 'selected' : ''; ?>>Kilifi</option><!-- 
+                    <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  </select>
+                </div>
+                <div class="inp-box">
+                  <label>Owner's Address</label>
+                  <input type="text" value="<?= $address ?>" name="address" placeholder="eg. Kilifi town">
+                </div>
+                <div class="inp-box">
+
+                  <label>Ward</label>
+                  <select name="ward">
+                    <option value=""><p>-- Select Ward --</p></option>
+                    <option value="Sokoni Ward" <?php echo ($ward === 'Sokoni Ward') ? 'selected' : ''; ?>>Sokoni Ward</option><!-- 
+                    <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  </select>
+                </div>
+                <div></div>
+                <button type="submit">
+                  Update User
+                </button>
+              </div>
+
+            </form>
+          </div>
+          
+          <div class="form-wrapper" id="product-edit-form">
+            <form method="POST" enctype="multipart/form-data">
+
+              <?php if ($editMode): ?>
+                  <input type="hidden" name="edit_product_id" value="<?= $editProductId ?>">
+              <?php endif; ?>
+
+              <h1><?= $editMode ? 'Edit Product' : 'Add Product' ?></h1>
+
+              <?php if (!empty($error)): ?>
+                  <p class="errorMessage">
+                      <i class="fa-solid fa-circle-exclamation"></i>
+                      <?= htmlspecialchars($error); ?>
+                  </p>
+              <?php endif; ?>
+
+              <?php if (!empty($success)): ?>
+                  <p class="successMessage">
+                      <i class="fa-solid fa-check-circle"></i>
+                      <?= $success; ?>
+                  </p>
+              <?php endif; ?>
+
+              <div class="formBody">
+                  <div class="inp-box">
+                      <label>Product Name</label>
+                      <input type="text" name="name" placeholder="Enter name" 
+                          value="<?= htmlspecialchars($productName, ENT_QUOTES) ?>" required>
+                  </div>
+                  <div class="inp-box">
+                    <label>Price (KES)</label>
+                    <input type="number" name="price" step="0.01" placeholder="Enter price"
+                    value="<?= htmlspecialchars($price, ENT_QUOTES) ?>"
+                    oninput="this.value = this.value.replace(/[^0-9.]/g, '')" min="0" required>
+                  </div>
+                  <div class="inp-box">
+
+                    <label>Currency :</label>
+                    <select name="currency">
+                      <option value=""><p>-- Select currency --</p></option>
+                      <option value="KES" <?php echo ($currency === 'KES') ? 'selected' : ''; ?>>KES</option><!-- 
+                      <option value="USD" <?php echo ($currency === 'USD') ? 'selected' : ''; ?>>USD</option>
+                      <option value="TSH" <?php echo ($currency === 'TSH') ? 'selected' : ''; ?>>TSH</option> -->
+                    </select>
+                  </div>
+                  <div class="inp-box">
+                    <label>Description</label>
+                    <input type="text" name="description" placeholder="Enter description" 
+                    value="<?= htmlspecialchars($productDescription, ENT_QUOTES) ?>" required>
+                  </div>
+                  <div class="inp-box">
+                    <label>Is Active?</label>
+                    <select id="is_active" name="is_active">
+                      <option value=""><p>-- Select if active --</p></option>
+                      <option value="1" <?php echo ($is_active === '1') ? 'selected' : ''; ?>>Yes</option>
+                      <option value="0" <?php echo ($is_active === '0') ? 'selected' : ''; ?>>No</option>
+                    </select>
+                  </div>
+
+                  <?php if ($editMode): ?>
+                      <!-- IMAGE PREVIEW ONLY IN EDIT MODE -->
+                      <div class="inp-box">
+                          <label>Product Image</label>
+                          <?php if (!empty($currentImagePath) && file_exists($currentImagePath)): ?>
+                            <div class="edit-preview">
+                              <img src="<?= htmlspecialchars($currentImagePath) ?>" 
+                                  style="">
+                              <p style="font-size:12px;">Current Image</p>
+                            </div>
+                          <?php endif; ?>
+                      </div>
+
+                      <div class="inp-box">
+                          <label>Change Product Image (optional)</label>
+                          <input type="file" name="photo" accept="image/png,image/jpeg,image/webp">
+                          <div class="note">
+                              600×600 – 1600×1600 px • Max 5MB<br>
+                              Automatically optimized for buyers
+                          </div>
+                      </div>
+                  <?php else: ?>
+                      <!-- ONLY FOR ADD MODE -->
+                      <div class="inp-box">
+                        <label>Upload Product Image</label>
+                        <input type="file" name="photo" accept="image/png,image/jpeg,image/webp" required>
+                        <div class="note">
+                          600×600 – 1600×1600 px • Max 5MB<br>
+                          Automatically optimized for buyers
+                        </div>
+                      </div>
+                  <?php endif; ?>
+
+                  <button type="submit">
+                    <?= $editMode ? 'Update Product' : 'Add Product' ?>
+                  </button>
+              </div>
+
+            </form>
+          </div>
         </div>
       </div>
 

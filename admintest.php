@@ -126,7 +126,7 @@ if ($accountType !== $allowedRole) { */
 
     </div>
     <main class="adminMain">
-      <div class="admin-tab-panel" data-tab="dashboard">
+      <div class="admin-tab-panel" data-tab="edit-forms">
         <nav>
           <p>Edit-Manage Sales Agents</p>
           <ul>
@@ -145,7 +145,7 @@ if ($accountType !== $allowedRole) { */
             </button>
 
           </div>
-          <div class="form-wrapper">
+          <div class="form-wrapper" id="agent-edit-form">
             <form method="POST" enctype="multipart/form-data">
               <h1>Update Agent Details</h1>
               <?php if (!empty($errors)): ?>
@@ -225,7 +225,7 @@ if ($accountType !== $allowedRole) { */
 
             </form>
           </div>
-          <div class="form-wrapper">
+          <div class="form-wrapper" id="seller-edit-form">
             <form method="POST" enctype="multipart/form-data">
               <h1>Update Seller Details</h1>
               <?php if (!empty($errors)): ?>
@@ -344,7 +344,7 @@ if ($accountType !== $allowedRole) { */
 
             </form>
           </div>
-          <div class="form-wrapper">
+          <div class="form-wrapper" id="buyer-edit-form">
             <form method="POST" enctype="multipart/form-data">
               <h1>Update Buyer Details</h1>
               <?php if (!empty($errors)): ?>
@@ -419,7 +419,7 @@ if ($accountType !== $allowedRole) { */
 
             </form>
           </div>
-          <div class="form-wrapper">
+          <div class="form-wrapper" id="product-edit-form">
             <form method="POST" enctype="multipart/form-data">
               <h1>Update Owner Details</h1>
               <?php if (!empty($errors)): ?>
