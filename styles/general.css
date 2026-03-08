@@ -3225,10 +3225,25 @@ a.seller-right {
 }
 
 .form-wrapper form .inp-box .edit-preview {
+  border-radius: 4px;
+  border: 1px solid #dedede;
+  text-align: center;
+  padding: 10px;
+  padding-bottom: 5px;
+}
+
+.form-wrapper form .inp-box .edit-preview img {
   width: 80px;
   height: 80px;
   object-fit: cover;
   border-radius: 6px;
+  border: 1px solid #dedede;
+}
+
+.form-wrapper form .inp-box .edit-preview p {
+  font-size:12px;
+  color: #856404;
+
 }
 
 .tab-content .tab-panel .form-wrapper form .inp-box .note, .tab-panel-admin .form-wrapper form .inp-box .note {

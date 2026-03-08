@@ -1267,11 +1267,11 @@ $deliveredOrders  = $row['delivered_orders'];
                       <div class="inp-box">
                           <label>Product Image</label>
                           <?php if (!empty($currentImagePath) && file_exists($currentImagePath)): ?>
-                              <div class="edit-preview">
-                                  <img src="<?= htmlspecialchars($currentImagePath) ?>" 
-                                      style="width:80px;height:80px;object-fit:cover;border-radius:6px;">
-                                  <p style="font-size:12px;">Current Image</p>
-                              </div>
+                            <div class="edit-preview">
+                              <img src="<?= htmlspecialchars($currentImagePath) ?>" 
+                                style="width:80px;height:80px;object-fit:cover;border-radius:6px;">
+                              <p>Current Image</p>
+                            </div>
                           <?php endif; ?>
                       </div>
 
