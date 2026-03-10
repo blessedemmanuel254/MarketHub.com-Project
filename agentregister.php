@@ -236,7 +236,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <link rel="icon" type="image/png" sizes="16x16" href="Images/favicon-16x16.png">
   <link rel="manifest" href="Images/site.webmanifest">
 
-  <link rel="stylesheet" href="styles/general.css">
+  <link rel="stylesheet" href="assets/css/general.css">
 
   <!-- Font Awesome CDN -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -247,7 +247,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 
-  <title>Agent Register Account ~ Market Hub</title>
+  <title>Agent Register Account ~ Maket Hub</title>
 </head>
 <body>
   <div class="container">
@@ -256,13 +256,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       <div class="formContainer">
         <section>
           <div class="top">
-            <img src="Images/Market Hub Logo.avif" alt="Market Hub Logo" width="40">
-            <h1 class="login">Market&nbsp;Hub</h1>
+            <img src="Images/Maket Hub Logo.avif" alt="Maket Hub Logo" width="40">
+            <h1 class="login">Maket&nbsp;Hub</h1>
           </div>
           <h3>Earn More. Promote Products. Grow Your Network.</h3>
         </section>
         <form action="" method="POST">
-          <h2>Register account on Market Hub</h2>
+          <h2>Register account on Maket Hub</h2>
           <div class="account-type">
             <div class="account-icon">🛒</div>
             <div class="regInfo">
@@ -489,11 +489,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     </main>
     <?php endif; ?>
     <footer>
-      <p>&copy; 2025/2026, Market Hub.com, All Rights reserved.</p>
+      <p>&copy; 2025/2026, Maket Hub.com, All Rights reserved.</p>
     </footer>
   </div>
   
-  <script src="Scripts/general.js" type="text/javascript" defer></script>
+  <script src="assets/js/general.js" type="text/javascript" defer></script>
   <script>
     const passwordInput = document.getElementById("password");
     const strengthFill = document.getElementById("strengthFill");

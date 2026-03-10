@@ -131,7 +131,7 @@ $fullNameFormatted = strtoupper($fullName);
 $accountTypeFormatted = ucfirst(strtolower($accountType));
 
 // Default avatar if profile image does not exist
-$defaultAvatar = "Images/Market Hub Logo.avif";
+$defaultAvatar = "Images/Maket Hub Logo.avif";
 $safeProfileImage = (!empty($profileImage) && file_exists($profileImage)) ? htmlspecialchars($profileImage, ENT_QUOTES, 'UTF-8') : $defaultAvatar;
 
 /* ===============================
@@ -167,7 +167,7 @@ $agentData = $agentQuery->fetch_assoc();
    SALES AGENTS TABLE DATA
 ================================= */
 
-$defaultAvatar = "Images/Market Hub Logo.avif";
+$defaultAvatar = "Images/Maket Hub Logo.avif";
 
 $agentsStmt = $conn->prepare("
     SELECT user_id, full_name, username, email, phone, profile_image, 
@@ -279,7 +279,7 @@ $totalOwners = count($propertyOwners);
   <link rel="icon" type="image/png" sizes="16x16" href="Images/favicon-16x16.png">
   <link rel="manifest" href="Images/site.webmanifest">
 
-  <link rel="stylesheet" href="styles/general.css">
+  <link rel="stylesheet" href="assets/css/general.css">
 
   <!-- Font Awesome CDN -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -294,7 +294,7 @@ $totalOwners = count($propertyOwners);
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   
-  <title>ADMIN Page | Market Hub</title>
+  <title>ADMIN Page | Maket Hub</title>
   <style>
     /* Pagination buttons */
     .dataTables_wrapper .dataTables_paginate .paginate_button{
@@ -320,7 +320,7 @@ $totalOwners = count($propertyOwners);
 <body id="adminBody">
   <div class="containerAdmin">
     <section>
-      <h1>ADMIN&nbsp;PANEL<br><span>Market&nbsp;Hub</span></h1>
+      <h1>ADMIN&nbsp;PANEL<br><span>Maket&nbsp;Hub</span></h1>
       <div class="admin-rhs">
         <div class="notfy-wrapper">
           <i class="fa-solid fa-bell"></i>
@@ -914,7 +914,7 @@ $totalOwners = count($propertyOwners);
                   // Default profile image
                   $img = (!empty($seller['profile_image']) && file_exists($seller['profile_image']))
                       ? $seller['profile_image']
-                      : "Images/Market Hub Logo.avif";
+                      : "Images/Maket Hub Logo.avif";
                   $phone = decodePhone($seller['phone']);
                   $maskedPhone = maskPhone($phone);
 
@@ -1038,7 +1038,7 @@ $totalOwners = count($propertyOwners);
                   // Default profile image
                   $img = (!empty($buyer['profile_image']) && file_exists($buyer['profile_image']))
                       ? $buyer['profile_image']
-                      : "Images/Market Hub Logo.avif"; 
+                      : "Images/Maket Hub Logo.avif"; 
                   $phone = decodePhone($buyer['phone']);
                   $maskedPhone = maskPhone($phone);
 
@@ -1182,7 +1182,7 @@ $totalOwners = count($propertyOwners);
                 // Default profile image
                 $img = (!empty($owner['profile_image']) && file_exists($owner['profile_image']))
                     ? $owner['profile_image']
-                    : "Images/Market Hub Logo.avif";
+                    : "Images/Maket Hub Logo.avif";
 
                 $email = decodeEmail($owner['email']);
                 $maskedEmail = maskEmail($email);
@@ -1363,10 +1363,10 @@ $totalOwners = count($propertyOwners);
 
     </main>
     <footer>
-      <p>&copy; 2025/2026, Market Hub.com, All Rights reserved.</p>
+      <p>&copy; 2025/2026, Maket Hub.com, All Rights reserved.</p>
     </footer>
   </div>
-  <script src="Scripts/general.js" type="text/javascript" defer></script>
+  <script src="assets/js/general.js" type="text/javascript" defer></script>
   <script>
   $(document).ready(function () {
 
@@ -1441,7 +1441,7 @@ $totalOwners = count($propertyOwners);
         e.stopPropagation();
       }
     });
-    // MARKET HUB PRODUCTS GRID SWITCH JS
+    // Maket Hub PRODUCTS GRID SWITCH JS
 
     document.addEventListener("DOMContentLoaded", function () {
 

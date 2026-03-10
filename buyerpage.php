@@ -288,7 +288,7 @@ while ($row = $query->fetch_assoc()) {
   <link rel="icon" type="image/png" sizes="16x16" href="Images/favicon-16x16.png">
   <link rel="manifest" href="Images/site.webmanifest">
 
-  <link rel="stylesheet" href="styles/general.css">
+  <link rel="stylesheet" href="assets/css/general.css">
 
   <!-- Font Awesome CDN -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -299,7 +299,7 @@ while ($row = $query->fetch_assoc()) {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,70090000000;1,800;1,900&display=swap" rel="stylesheet">
 
-  <title>Buyer Page | Market Hub</title>
+  <title>Buyer Page | Maket Hub</title>
 </head>
 <body>
   <div class="container">
@@ -350,14 +350,14 @@ while ($row = $query->fetch_assoc()) {
     </header>
     <div class="overlay" onclick="toggleWhatsAppChat()" id="overlay"></div>
     <div id="whatsapp-button" onclick="toggleWhatsAppChat()">
-      <img src="Images/Market Hub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
+      <img src="Images/Maket Hub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
     </div>
 
     <div id="whatsapp-chat-box">
       <div class="chat-header">
         <div class="top">
-          <img src="Images/Market Hub Logo.avif" alt="Market Hub Logo" width="35">
-          <p><strong>Market Hub</strong><br>
+          <img src="Images/Maket Hub Logo.avif" alt="Maket Hub Logo" width="35">
+          <p><strong>Maket Hub</strong><br>
           <small>online</small></p>
         </div>
         <i class="fa-solid fa-xmark" onclick="toggleWhatsAppChat()"></i>
@@ -365,7 +365,7 @@ while ($row = $query->fetch_assoc()) {
       <div class="chat-body">
         <div class="chat-container">
           <div class="chat-bubble">
-            <div class="sender">Market Hub</div>
+            <div class="sender">Maket Hub</div>
             <div class="message">
               Hello there! 😊<br>
               How can we help?
@@ -819,7 +819,7 @@ while ($row = $query->fetch_assoc()) {
         <td>
             <img src="<?= !empty($order['image_path']) && file_exists($order['image_path']) 
                 ? htmlspecialchars($order['image_path']) 
-                : 'Images/Market Hub Logo.avif'; ?>" 
+                : 'Images/Maket Hub Logo.avif'; ?>" 
                 class="product-img">
         </td>
 
@@ -874,7 +874,7 @@ while ($row = $query->fetch_assoc()) {
       <?php
       $image = (!empty($order['image_path']) && file_exists($order['image_path']))
           ? $order['image_path']
-          : "Images/Market Hub Logo.avif";
+          : "Images/Maket Hub Logo.avif";
       ?>
 
       <div class="order-card" data-status="<?= htmlspecialchars($order['order_status']) ?>">
@@ -944,7 +944,7 @@ while ($row = $query->fetch_assoc()) {
             <strong>Order #ORD-90321</strong><br>
             <span>Placed on 12 Feb 2026</span>
           </div>
-          <div>3 Items</div>
+          <div><strong>3</strong> Items</div>
         </div>
 
         <div class="order-items-grid">
@@ -959,7 +959,7 @@ while ($row = $query->fetch_assoc()) {
                 <p>Status: <span class="status shipped">Shipped</span></p>
                 <span class="market-badge">National</span>
               </div>
-              <img src="Images/Market Hub Logo.avif" alt="Product">
+              <img src="Images/Maket Hub Logo.avif" alt="Product">
             </div>
 
             <div class="item-actions">
@@ -988,7 +988,7 @@ while ($row = $query->fetch_assoc()) {
                 <p>Status: <span class="status processing">Processing</span></p>
                 <span class="market-badge">Local</span>
               </div>
-              <img src="Images/Market Hub Logo.avif" alt="Product">
+              <img src="Images/Maket Hub Logo.avif" alt="Product">
             </div>
 
             <div class="item-actions">
@@ -1008,11 +1008,11 @@ while ($row = $query->fetch_assoc()) {
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleOrderMarket()">Go&nbsp;back</button> to continue shopping.</p>
     </main>
     <footer>
-      <p>&copy; 2025/2026, Market Hub.com, All Rights reserved.</p>
+      <p>&copy; 2025/2026, Maket Hub.com, All Rights reserved.</p>
     </footer>
   </div>
   
-  <script src="Scripts/general.js" type="text/javascript" defer></script>
+  <script src="assets/js/general.js" type="text/javascript" defer></script>
 
   <script>
   document.querySelectorAll(".toggle").forEach(btn => {

@@ -13,9 +13,9 @@ if (ini_get("session.use_cookies")) {
 session_destroy();
 
 /* ---------- DELETE REMEMBER-ME COOKIES ---------- */
-setcookie("user_id", "", time() - 3600, "/");
-setcookie("username", "", time() - 3600, "/");
-setcookie("account_type", "", time() - 3600, "/");
+setcookie("user_id", "", time() - 3600, "/", "", true, true);
+setcookie("username", "", time() - 3600, "/", "", true, true);
+setcookie("account_type", "", time() - 3600, "/", "", true, true);
 
 /* ---------- OUTPUT JS TO CLEAR LOCAL STORAGE AND REDIRECT ---------- */
 echo <<<HTML

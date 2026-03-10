@@ -222,7 +222,7 @@ $profileLetter = strtoupper(substr($formattedUsername, 0, 1));
 $safeUsername = htmlspecialchars($formattedUsername, ENT_QUOTES, 'UTF-8');
 $safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
 
-$defaultAvatar = "Images/Market Hub Logo.avif";
+$defaultAvatar = "Images/Maket Hub Logo.avif";
 
 if (!empty($profileImage) && file_exists($profileImage)) {
     $safeProfileImage = htmlspecialchars($profileImage, ENT_QUOTES, 'UTF-8');
@@ -936,7 +936,7 @@ $deliveredOrders  = $row['delivered_orders'];
   <link rel="icon" type="image/png" sizes="16x16" href="Images/favicon-16x16.png">
   <link rel="manifest" href="Images/site.webmanifest">
 
-  <link rel="stylesheet" href="styles/general.css">
+  <link rel="stylesheet" href="assets/css/general.css">
 
   <!-- Font Awesome CDN -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -951,7 +951,7 @@ $deliveredOrders  = $row['delivered_orders'];
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
-  <title>Seller Page | Market Hub</title>
+  <title>Seller Page | Maket Hub</title>
 </head>
 <body>
   <div class="container">
@@ -1025,14 +1025,14 @@ $deliveredOrders  = $row['delivered_orders'];
     </form>
     <div class="overlay" onclick="toggleWhatsAppChat()" id="overlay"></div>
     <div id="whatsapp-button" onclick="toggleWhatsAppChat()">
-      <img src="Images/Market Hub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
+      <img src="Images/Maket Hub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
     </div>
 
     <div id="whatsapp-chat-box">
       <div class="chat-header">
         <div class="top">
-          <img src="Images/Market Hub Logo.avif" alt="Market Hub Logo" width="35">
-          <p><strong>Market Hub</strong><br>
+          <img src="Images/Maket Hub Logo.avif" alt="Maket Hub Logo" width="35">
+          <p><strong>Maket Hub</strong><br>
           <small>online</small></p>
         </div>
         <i class="fa-solid fa-xmark" onclick="toggleWhatsAppChat()"></i>
@@ -1040,7 +1040,7 @@ $deliveredOrders  = $row['delivered_orders'];
       <div class="chat-body">
         <div class="chat-container">
           <div class="chat-bubble">
-            <div class="sender">Market Hub</div>
+            <div class="sender">Maket Hub</div>
             <div class="message">
               Hello there! 😊<br>
               How can we help?
@@ -1430,7 +1430,7 @@ $deliveredOrders  = $row['delivered_orders'];
           $date = date("d M Y", strtotime($order['created_at']));
 
           // Default image (since your query doesn't fetch product image yet)
-          $image = "Images/Market Hub Logo.avif";
+          $image = "Images/Maket Hub Logo.avif";
       ?>
 
       <div class="order-card" data-status="<?= htmlspecialchars($order['order_status']) ?>">
@@ -1554,11 +1554,11 @@ $deliveredOrders  = $row['delivered_orders'];
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleSellerOrdersTrack()">Go&nbsp;back</button> to continue delivering.</p>
     </main>
     <footer>
-      <p>&copy; 2025/2026, Market Hub.com, All Rights reserved.</p>
+      <p>&copy; 2025/2026, Maket Hub.com, All Rights reserved.</p>
     </footer>
   </div>
   
-  <script src="Scripts/general.js" type="text/javascript" defer></script>
+  <script src="assets/js/general.js" type="text/javascript" defer></script>
   <script>
     // DataTables Script Js
     $(document).ready(function () {

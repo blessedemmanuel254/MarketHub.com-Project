@@ -249,33 +249,33 @@ $totalOrders = mysqli_fetch_assoc($totalOrdersResult)['total_orders'];
 
 // ---------- Fetch buyers table data ----------
 $buyersQuery = "
-    SELECT u.user_id, u.full_name, u.email, u.phone, u.status, u.created_at, u.updated_at,
-           COUNT(o.order_id) AS orders_count,
-           SUM(o.total_amount) AS total_spend
-    FROM users u
-    LEFT JOIN orders o ON u.user_id = o.buyer_id
-    WHERE u.account_type='buyer'
-    GROUP BY u.user_id
-    ORDER BY u.created_at DESC
+  SELECT u.user_id, u.full_name, u.email, u.phone, u.status, u.created_at, u.updated_at,
+          COUNT(o.order_id) AS orders_count,
+          SUM(o.total_amount) AS total_spend
+  FROM users u
+  LEFT JOIN orders o ON u.user_id = o.buyer_id
+  WHERE u.account_type='buyer'
+  GROUP BY u.user_id
+  ORDER BY u.created_at DESC
 ";
 $buyersResult = mysqli_query($conn, $buyersQuery);
 
 // Fetch property owners
 $ownersQuery = $conn->query("
-    SELECT 
-        user_id,
-        full_name,
-        username,
-        email,
-        phone,
-        profile_image,
-        is_verified,
-        status,
-        created_at,
-        updated_at
-    FROM users
-    WHERE account_type = 'property_owner'
-    ORDER BY user_id DESC
+  SELECT 
+    user_id,
+    full_name,
+    username,
+    email,
+    phone,
+    profile_image,
+    is_verified,
+    status,
+    created_at,
+    updated_at
+  FROM users
+  WHERE account_type = 'property_owner'
+  ORDER BY user_id DESC
 ");
 
 $propertyOwners = [];
@@ -296,69 +296,69 @@ $userId = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $type   = $_GET['type'] ?? '';
 
 $map = [
-    'agent'  => 'sales_agent',
-    'seller' => 'seller',
-    'buyer'  => 'buyer',
-    'owner'  => 'property_owner'
+  'agent'  => 'sales_agent',
+  'seller' => 'seller',
+  'buyer'  => 'buyer',
+  'owner'  => 'property_owner'
 ];
 
 if($userId && isset($map[$type])){
 
-    $dbType = $map[$type];
+  $dbType = $map[$type];
 
-    $stmt = $conn->prepare("
-        SELECT
-        user_id,
-        full_name,
-        username,
-        email,
-        phone,
-        account_type,
-        country,
-        county,
-        ward,
-        address,
-        business_name,
-        business_model,
-        business_type,
-        market_scope,
-        agency_code
-        FROM users
-        WHERE user_id=? AND account_type=?
-        LIMIT 1
-    ");
+  $stmt = $conn->prepare("
+    SELECT
+    user_id,
+    full_name,
+    username,
+    email,
+    phone,
+    account_type,
+    country,
+    county,
+    ward,
+    address,
+    business_name,
+    business_model,
+    business_type,
+    market_scope,
+    agency_code
+    FROM users
+    WHERE user_id=? AND account_type=?
+    LIMIT 1
+  ");
 
-    $stmt->bind_param("is",$userId,$dbType);
-    $stmt->execute();
+  $stmt->bind_param("is",$userId,$dbType);
+  $stmt->execute();
 
-    $result = $stmt->get_result();
+  $result = $stmt->get_result();
 
-    if($result->num_rows === 1){
-        $editUser = $result->fetch_assoc();
-    }
+  if($result->num_rows === 1){
+      $editUser = $result->fetch_assoc();
+  }
 
-    $stmt->close();
+  $stmt->close();
 }
 
 /* ---------- Populate variables ---------- */
 
-$user_id       = $editUser['user_id'] ?? '';
+$edit_user_id       = $editUser['user_id'] ?? '';
 $full_name     = htmlspecialchars($editUser['full_name'] ?? '');
-$username      = htmlspecialchars($editUser['username'] ?? '');
-$email         = decodeEmail($editUser['email'] ?? '');
-$phone         = decodePhone($editUser['phone'] ?? '');
-$country       = htmlspecialchars($editUser['country'] ?? '');
-$county        = htmlspecialchars($editUser['county'] ?? '');
-$ward          = htmlspecialchars($editUser['ward'] ?? '');
-$address       = htmlspecialchars($editUser['address'] ?? '');
-$business_name = htmlspecialchars($editUser['business_name'] ?? '');
-$business_model= htmlspecialchars($editUser['business_model'] ?? '');
-$business_type = htmlspecialchars($editUser['business_type'] ?? '');
-$market_scope  = htmlspecialchars($editUser['market_scope'] ?? '');
-$agency_code   = htmlspecialchars($editUser['agency_code'] ?? '');
+$editUsername      = htmlspecialchars($editUser['username'] ?? '');
+$editEmail         = decodeEmail($editUser['email'] ?? '');
+$editPhone         = decodePhone($editUser['phone'] ?? '');
+$editCountry       = htmlspecialchars($editUser['country'] ?? '');
+$editCounty        = htmlspecialchars($editUser['county'] ?? '');
+$editWard          = htmlspecialchars($editUser['ward'] ?? '');
+$editAddress       = htmlspecialchars($editUser['address'] ?? '');
+$edit_business_name = htmlspecialchars($editUser['business_name'] ?? '');
+$edit_business_model= htmlspecialchars($editUser['business_model'] ?? '');
+$edit_business_type = htmlspecialchars($editUser['business_type'] ?? '');
+$edit_market_scope  = htmlspecialchars($editUser['market_scope'] ?? '');
+$edit_agency_code   = htmlspecialchars($editUser['agency_code'] ?? '');
 
-$error = "";
-$success = "";
+$editError = "";
+$editSuccess = "";
 
 /* ======================================
    HANDLE UPDATE
@@ -370,191 +370,135 @@ $formType = $_POST['form_type'] ?? '';
 
 $user_id   = intval($_POST['user_id'] ?? 0);
 $full_name = trim($_POST['full_name'] ?? '');
-$username  = trim($_POST['username'] ?? '');
-$email     = trim($_POST['email'] ?? '');
-$phone     = trim($_POST['phone'] ?? '');
+$editUsername  = trim($_POST['username'] ?? '');
+$editEmail     = trim($_POST['email'] ?? '');
+$editPhone     = trim($_POST['phone'] ?? '');
 
-$country   = trim($_POST['country'] ?? '');
-$county    = trim($_POST['county'] ?? '');
-$ward      = trim($_POST['ward'] ?? '');
-$address   = trim($_POST['address'] ?? '');
+$editCountry   = trim($_POST['country'] ?? '');
+$editCounty    = trim($_POST['county'] ?? '');
+$editWard      = trim($_POST['ward'] ?? '');
+$editAddress   = trim($_POST['address'] ?? '');
 
-$busname   = trim($_POST['business_name'] ?? '');
-$busmodel  = trim($_POST['business_model'] ?? '');
-$bustype   = trim($_POST['business_type'] ?? '');
-$market    = trim($_POST['market_scope'] ?? '');
-
-$password  = $_POST['password'] ?? '';
-$confirm_password = $_POST['confirm_password'] ?? '';
+$editBusname   = trim($_POST['business_name'] ?? '');
+$editBusmodel  = trim($_POST['business_model'] ?? '');
+$editBustype   = trim($_POST['business_type'] ?? '');
+$editMarket    = trim($_POST['market_scope'] ?? '');
 
 /* ---------- VALIDATION ---------- */
 
-if(!$full_name || !$username || !$email || !$phone || !$country || !$county || !$ward || !$address){
-    $error = "All fields are required.";
+if(!$full_name || !$editUsername || !$editEmail || !$editPhone || !$editCountry || !$editCounty || !$editWard || !$editAddress){
+  $editError = "All fields are required.";
 }
 
 elseif(str_word_count($full_name) < 2){
-    $error = "Full name must contain first and last name.";
+  $editError = "Full name must contain first and last name.";
 }
 
-elseif(strpos($username,' ') !== false){
-    $error = "Username should not contain spaces.";
+elseif(strpos($editUsername,' ') !== false){
+  $editError = "Username should not contain spaces.";
 }
 
-elseif(strlen($username) < 5){
-    $error = "Username too short.";
+elseif(strlen($editUsername) < 5){
+  $editError = "Username too short.";
 }
 
-elseif(!filter_var($email,FILTER_VALIDATE_EMAIL)){
-    $error = "Invalid email.";
+elseif(!filter_var($editEmail,FILTER_VALIDATE_EMAIL)){
+  $editError = "Invalid email.";
 }
 
 /* ---------- Seller extra validation ---------- */
 
-if(!$error && $formType === "seller"){
+if(!$editError && $formType === "seller"){
 
-    if(!$busname || !$busmodel || !$bustype || !$market){
-        $error = "Seller business fields required.";
-    }
+  if(!$editBusname || !$editBusmodel || !$editBustype || !$editMarket){
+    $editError = "Seller business fields required.";
+  }
 
 }
 
 /* ---------- Phone normalize ---------- */
 
-if(!$error){
+if(!$editError){
 
-$normalized_phone = normalizePhoneNumber($phone);
+$normalized_phone = normalizePhoneNumber($editPhone);
 
 if(!$normalized_phone || !preg_match('/^\+254\d{9}$/',$normalized_phone)){
-    $error = "Invalid phone number.";
+    $editError = "Invalid phone number.";
 }
 
 }
 
-/* ---------- Check duplicates ---------- */
+/* ---------- Check username duplicates ---------- */
+if(!$editError){
+  $stmt = $conn->prepare("
+    SELECT user_id FROM users
+    WHERE username=? AND user_id != ?
+    LIMIT 1
+  ");
+  $stmt->bind_param("si", $editUsername, $edit_user_id);
+  $stmt->execute();
+  $stmt->store_result();
 
-if(!$error){
+  if($stmt->num_rows > 0){
+    $editError = "Username already exists.";
+  }
 
-$encEmail = base64_encode($email);
-$encPhone = base64_encode($normalized_phone);
-
-$stmt = $conn->prepare("
-SELECT user_id FROM users
-WHERE (email=? OR username=?)
-AND user_id!=?
-");
-
-$stmt->bind_param("ssi",$encEmail,$username,$user_id);
-$stmt->execute();
-$stmt->store_result();
-
-if($stmt->num_rows > 0){
-    $error = "Username or email already exists.";
+  $stmt->close();
 }
 
-$stmt->close();
+/* ---------- Check email duplicates ---------- */
+if(!$editError){
+  $encEmail = base64_encode($editEmail);
 
+  $stmt = $conn->prepare("
+    SELECT user_id FROM users
+    WHERE email=? AND user_id != ?
+    LIMIT 1
+  ");
+  $stmt->bind_param("si", $encEmail, $edit_user_id);
+  $stmt->execute();
+  $stmt->store_result();
+
+  if($stmt->num_rows > 0){
+    $editError = "Email already exists.";
+  }
+
+  $stmt->close();
 }
 
 /* ---------- Check phone duplicate ---------- */
+if(!$editError){
+  $encPhone = base64_encode($normalized_phone);
 
-if(!$error){
+  $stmt = $conn->prepare("
+    SELECT user_id FROM users
+    WHERE phone=? AND user_id != ?
+    LIMIT 1
+  ");
+  $stmt->bind_param("si", $encPhone, $edit_user_id);
+  $stmt->execute();
+  $stmt->store_result();
 
-$stmt = $conn->prepare("
-SELECT user_id FROM users
-WHERE phone=? AND user_id!=?
-");
+  if($stmt->num_rows > 0){
+    $editError = "Phone number already exists.";
+  }
 
-$stmt->bind_param("si",$encPhone,$user_id);
-$stmt->execute();
-$stmt->store_result();
-
-if($stmt->num_rows > 0){
-    $error = "Phone number already exists.";
+  $stmt->close();
 }
 
-$stmt->close();
+/* ---------- UPDATE USER ---------- */
 
-}
-
-/* ---------- Password optional ---------- */
-
-if(!$error && $password){
-
-if($password !== $confirm_password){
-    $error = "Passwords do not match.";
-}
-
-else{
-
-$passErr = validatePassword($password);
-
-if($passErr){
-    $error = $passErr;
-}
-else{
-$hashedPassword = password_hash($password,PASSWORD_DEFAULT);
-}
-
-}
-
-}
-
-/* ---------- UPDATE ---------- */
-
-if(!$error){
+if(!$editError){
 
 if($formType === "buyer"){
-$busname = null;
-$busmodel = null;
-$bustype = null;
-$market = null;
+$editBusname = null;
+$editBusmodel = null;
+$editBustype = null;
+$editMarket = null;
 }
 
-$encEmail = base64_encode($email);
+$encEmail = base64_encode($editEmail);
 $encPhone = base64_encode($normalized_phone);
-
-if(!empty($hashedPassword)){
-
-$stmt = $conn->prepare("
-UPDATE users SET
-full_name=?,
-username=?,
-email=?,
-phone=?,
-password=?,
-country=?,
-county=?,
-ward=?,
-address=?,
-business_name=?,
-business_model=?,
-business_type=?,
-market_scope=?,
-updated_at=NOW()
-WHERE user_id=?
-");
-
-$stmt->bind_param(
-"sssssssssssssi",
-$full_name,
-$username,
-$encEmail,
-$encPhone,
-$hashedPassword,
-$country,
-$county,
-$ward,
-$address,
-$busname,
-$busmodel,
-$bustype,
-$market,
-$user_id
-);
-
-}
-else{
 
 $stmt = $conn->prepare("
 UPDATE users SET
@@ -577,33 +521,30 @@ WHERE user_id=?
 $stmt->bind_param(
 "ssssssssssssi",
 $full_name,
-$username,
+$editUsername,
 $encEmail,
 $encPhone,
-$country,
-$county,
-$ward,
-$address,
-$busname,
-$busmodel,
-$bustype,
-$market,
-$user_id
+$editCountry,
+$editCounty,
+$editWard,
+$editAddress,
+$editBusname,
+$editBusmodel,
+$editBustype,
+$editMarket,
+$edit_user_id
 );
 
-}
-
 if($stmt->execute()){
-$success = "User updated successfully!";
+$editSuccess = "User updated successfully!";
 }
 else{
-$error = "Update failed.";
+$editError = "Update failed.";
 }
 
 $stmt->close();
 
 }
-
 }
 ?>
 
@@ -618,7 +559,7 @@ $stmt->close();
   <link rel="icon" type="image/png" sizes="16x16" href="Images/favicon-16x16.png">
   <link rel="manifest" href="Images/site.webmanifest">
 
-  <link rel="stylesheet" href="styles/general.css">
+  <link rel="stylesheet" href="assets/css/general.css">
 
   <!-- Font Awesome CDN -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -659,7 +600,7 @@ $stmt->close();
 <body id="adminBody">
   <div class="containerAdmin">
     <section>
-      <h1>ADMIN&nbsp;PANEL<br><span>Market&nbsp;Hub</span></h1>
+      <h1>ADMIN&nbsp;PANEL<br><span>Maket&nbsp;Hub</span></h1>
       <div class="admin-rhs">
         <div class="notfy-wrapper">
           <i class="fa-solid fa-bell"></i>
@@ -741,10 +682,6 @@ $stmt->close();
                 <li>
                   <span>Verified Agents</span>
                   <strong><?= number_format($agentData['verified_agents']) ?></strong>
-                </li>
-                <li>
-                  <span>Active Agents</span>
-                  <strong><?= number_format($agentData['active_agents']) ?></strong>
                 </li>
                 <li>
                   <span>Under Review</span>
@@ -3061,17 +2998,17 @@ $stmt->close();
               <input type="hidden" name="user_id" value="<?= $user_id ?>"> -->
               <input type="hidden" name="form_type" value="agent">
               <h1>Update Agent Details</h1>
-              <?php if (!empty($error)): ?>
+              <?php if (!empty($editError)): ?>
                 <p class="errorMessage">
                   <i class="fa-solid fa-circle-exclamation"></i>
-                  <?= $error ?>
+                  <?= htmlspecialchars($editError, ENT_QUOTES) ?>
                 </p>
               <?php endif; ?>
 
-              <?php if (!empty($success)): ?>
+              <?php if (!empty($editSuccess)): ?>
                 <p class="successMessage">
                   <i class="fa-solid fa-check-circle"></i>
-                  <?= $success; ?>
+                  <?= $editSuccess; ?>
                 </p>
               <?php endif; ?>
               <div class="formBody">
@@ -3081,24 +3018,24 @@ $stmt->close();
                 </div>
                 <div class="inp-box">
                   <label>Agent's Username</label>
-                  <input type="text" value="<?= $username ?>" name="username" placeholder="e.g blessedemmanuel254">
+                  <input type="text" value="<?= $editUsername ?>" name="username" placeholder="e.g blessedemmanuel254">
                 </div>
                 <div class="inp-box">
                   <label>Agent's Email ID</label>
-                  <input type="text" value="<?= $email ?>" name="email" placeholder="john@example.com">
+                  <input type="text" value="<?= $editEmail ?>" name="email" placeholder="john@example.com">
                 </div>
                 <div class="inp-box">
                   <label>Agent's Phone</label>
-                  <input type="text" value="<?= $phone ?>" name="phone" placeholder="075***630">
+                  <input type="text" value="<?= $editPhone ?>" name="phone" placeholder="075***630">
                 </div>
                 <div class="inp-box">
 
                   <label>Country</label>
                   <select name="country">
                     <option value=""><p>-- Select Country --</p></option>
-                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
-                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
-                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                    <option value="Kenya" <?php echo ($editCountry === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
+                    <option value="Kenya" <?php echo ($editCountry === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($editCountry === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
                   </select>
                 </div>
                 <div class="inp-box">
@@ -3106,29 +3043,29 @@ $stmt->close();
                   <label>County</label>
                   <select name="county">
                     <option value=""><p>-- Select County --</p></option>
-                    <option value="Kilifi" <?php echo ($county === 'Kilifi') ? 'selected' : ''; ?>>Kilifi</option><!-- 
-                    <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
-                    <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                    <option value="Kilifi" <?php echo ($editCounty === 'Kilifi') ? 'selected' : ''; ?>>Kilifi</option><!-- 
+                    <option value="Kenya" <?php echo ($editCounty === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($editCounty === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
                   </select>
                 </div>
                 <div class="inp-box">
                   <label>Agent's Address</label>
-                  <input type="text" value="<?= $address ?>" name="address" placeholder="eg. Kilifi town">
+                  <input type="text" value="<?= $editAddress ?>" name="address" placeholder="eg. Kilifi town">
                 </div>
                 <div class="inp-box">
 
                   <label>Ward</label>
                   <select name="ward">
                     <option value=""><p>-- Select Ward --</p></option>
-                    <option value="Sokoni Ward" <?php echo ($ward === 'Sokoni Ward') ? 'selected' : ''; ?>>Sokoni Ward</option><!-- 
-                    <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
-                    <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                    <option value="Sokoni Ward" <?php echo ($editWard === 'Sokoni Ward') ? 'selected' : ''; ?>>Sokoni Ward</option><!-- 
+                    <option value="Kenya" <?php echo ($editWard === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($editWard === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
                   </select>
                 </div>
                 <div></div>
                 <div class="inp-box">
                   <label class="agency_code">Agency Code (read-only)<i class="fa-solid fa-copy" onclick="copyAgencyCode()"></i></label>
-                    <input type="text" id="agencyCodeInput" value="<?= $agency_code ?>" name="agency_code" placeholder="A56D3847" disabled
+                    <input type="text" id="agencyCodeInput" value="<?= $edit_agency_code ?>" name="agency_code" placeholder="A56D3847" disabled
                     >
                 </div>
                 <div></div>
@@ -3144,17 +3081,17 @@ $stmt->close();
               <input type="hidden" name="user_id" value="<?= $user_id ?>"> -->
               <input type="hidden" name="form_type" value="seller">
               <h1>Update Seller Details</h1>
-              <?php if (!empty($errors)): ?>
+              <?php if (!empty($editError)): ?>
                 <p class="errorMessage">
                   <i class="fa-solid fa-circle-exclamation"></i>
-                  <?= implode("<br>", $errors); ?>
+                  <?= htmlspecialchars($editError, ENT_QUOTES) ?>
                 </p>
               <?php endif; ?>
 
-              <?php if (!empty($success)): ?>
+              <?php if (!empty($editSuccess)): ?>
                 <p class="successMessage">
                   <i class="fa-solid fa-check-circle"></i>
-                  <?= $success; ?>
+                  <?= $editSuccess; ?>
                 </p>
               <?php endif; ?>
               <div class="formBody">
@@ -3164,28 +3101,28 @@ $stmt->close();
                 </div>
                 <div class="inp-box">
                   <label>Seller's Username</label>
-                  <input type="text" value="<?= $username ?>" name="username" placeholder="e.g blessedemmanuel254">
+                  <input type="text" value="<?= $editUsername ?>" name="username" placeholder="e.g blessedemmanuel254">
                 </div>
                 <div class="inp-box">
                   <label>Seller's Email ID</label>
-                  <input type="text" value="<?= $email ?>" name="email" placeholder="john@example.com">
+                  <input type="text" value="<?= $editEmail ?>" name="email" placeholder="john@example.com">
                 </div>
                 <div class="inp-box">
                   <label>Sellers's Phone</label>
-                  <input type="text" value="<?= $phone ?>" name="phone" placeholder="075***630">
+                  <input type="text" value="<?= $editPhone ?>" name="phone" placeholder="075***630">
                 </div>
                 <div class="inp-box">
                   <label>Business Name</label>
-                  <input type="text" value="<?= $business_name ?>" name="business_name" placeholder="Main Cateen">
+                  <input type="text" value="<?= $edit_business_name ?>" name="business_name" placeholder="Main Cateen">
                 </div>
                 <div class="inp-box">
 
                   <label>Business Model</label>
                   <select name="business_model">
                     <option value=""><p>-- Select Business Model --</p></option>
-                    <option value="products" <?php echo ($business_model === 'products') ? 'selected' : ''; ?>>Products</option>
-                    <option value="services" <?php echo ($business_model === 'services') ? 'selected' : ''; ?>>Services</option>
-                    <option value="rental" <?php echo ($business_model === 'rental') ? 'selected' : ''; ?>>Rental</option>
+                    <option value="products" <?php echo ($edit_business_model === 'products') ? 'selected' : ''; ?>>Products</option>
+                    <option value="services" <?php echo ($edit_business_model === 'services') ? 'selected' : ''; ?>>Services</option>
+                    <option value="rental" <?php echo ($edit_business_model === 'rental') ? 'selected' : ''; ?>>Rental</option>
                   </select>
                 </div>
                 <div class="inp-box">
@@ -3193,27 +3130,27 @@ $stmt->close();
                   <label>Business type</label>
                   <select name="business_type">
                     <option value=""><p>-- Select Type --</p></option>
-                    <option value="shop" <?php echo ($business_type === 'shop') ? 'selected' : ''; ?>>Shop</option>
-                    <option value="supermarket" <?php echo ($business_type === 'supermarket') ? 'selected' : ''; ?>>Supermarket</option>
-                    <option value="kiosk" <?php echo ($business_type === 'kiosk') ? 'selected' : ''; ?>>Kiosk</option>
-                    <option value="kibanda" <?php echo ($business_type === 'kibanda') ? 'selected' : ''; ?>>Kibanda</option>
-                    <option value="canteen" <?php echo ($business_type === 'canteen') ? 'selected' : ''; ?>>Canteen</option>
-                    <option value="service_provider" <?php echo ($business_type === 'service_provider') ? 'selected' : ''; ?>>Service_provider</option>
-                    <option value="rental" <?php echo ($business_type === 'rental') ? 'selected' : ''; ?>>Rental</option>
+                    <option value="shop" <?php echo ($edit_business_type === 'shop') ? 'selected' : ''; ?>>Shop</option>
+                    <option value="supermarket" <?php echo ($edit_business_type === 'supermarket') ? 'selected' : ''; ?>>Supermarket</option>
+                    <option value="kiosk" <?php echo ($edit_business_type === 'kiosk') ? 'selected' : ''; ?>>Kiosk</option>
+                    <option value="kibanda" <?php echo ($edit_business_type === 'kibanda') ? 'selected' : ''; ?>>Kibanda</option>
+                    <option value="canteen" <?php echo ($edit_business_type === 'canteen') ? 'selected' : ''; ?>>Canteen</option>
+                    <option value="service_provider" <?php echo ($edit_business_type === 'service_provider') ? 'selected' : ''; ?>>Service_provider</option>
+                    <option value="rental" <?php echo ($edit_business_type === 'rental') ? 'selected' : ''; ?>>Rental</option>
                   </select>
                 </div>
                 <div class="inp-box">
                   <label>Seller's Address</label>
-                  <input type="text" value="<?= $address ?>" name="address" placeholder="eg. Kilifi town">
+                  <input type="text" value="<?= $editAddress ?>" name="address" placeholder="eg. Kilifi town">
                 </div>
                 <div class="inp-box">
 
                   <label>Country</label>
                   <select name="country">
                     <option value=""><p>-- Select Country --</p></option>
-                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
-                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
-                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                    <option value="Kenya" <?php echo ($editCountry === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
+                    <option value="Kenya" <?php echo ($editCountry === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($editCountry === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
                   </select>
                 </div>
                 <div class="inp-box">
@@ -3221,9 +3158,9 @@ $stmt->close();
                   <label>Market Type</label>
                   <select name="market_scope">
                     <option value=""><p>-- Select Market Type --</p></option>
-                    <option value="local" <?php echo ($market_scope === 'local') ? 'selected' : ''; ?>>Local</option>
-                    <option value="national" <?php echo ($market_scope === 'national') ? 'selected' : ''; ?>>National</option>
-                    <option value="global" <?php echo ($market_scope === 'global') ? 'selected' : ''; ?>>Global</option>
+                    <option value="local" <?php echo ($edit_market_scope === 'local') ? 'selected' : ''; ?>>Local</option>
+                    <option value="national" <?php echo ($edit_market_scope === 'national') ? 'selected' : ''; ?>>National</option>
+                    <option value="global" <?php echo ($edit_market_scope === 'global') ? 'selected' : ''; ?>>Global</option>
                   </select>
                 </div>
                 <div class="inp-box">
@@ -3231,9 +3168,9 @@ $stmt->close();
                   <label>County</label>
                   <select name="county">
                     <option value=""><p>-- Select County --</p></option>
-                    <option value="Kilifi" <?php echo ($county === 'Kilifi') ? 'selected' : ''; ?>>Kilifi</option><!-- 
-                    <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
-                    <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                    <option value="Kilifi" <?php echo ($editCounty === 'Kilifi') ? 'selected' : ''; ?>>Kilifi</option><!-- 
+                    <option value="Kenya" <?php echo ($editCounty === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($editCounty === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
                   </select>
                 </div>
                 <div class="inp-box">
@@ -3241,9 +3178,9 @@ $stmt->close();
                   <label>Ward</label>
                   <select name="ward">
                     <option value=""><p>-- Select Ward --</p></option>
-                    <option value="Sokoni Ward" <?php echo ($ward === 'Sokoni Ward') ? 'selected' : ''; ?>>Sokoni Ward</option><!-- 
-                    <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
-                    <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                    <option value="Sokoni Ward" <?php echo ($editWard === 'Sokoni Ward') ? 'selected' : ''; ?>>Sokoni Ward</option><!-- 
+                    <option value="Kenya" <?php echo ($editWard === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($editWard === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
                   </select>
                 </div>
                 <div></div>
@@ -3265,17 +3202,17 @@ $stmt->close();
               <input type="hidden" name="user_id" value="<?= $user_id ?>"> -->
               <input type="hidden" name="form_type" value="buyer">
               <h1>Update Buyer Details</h1>
-              <?php if (!empty($errors)): ?>
+              <?php if (!empty($editError)): ?>
                 <p class="errorMessage">
                   <i class="fa-solid fa-circle-exclamation"></i>
-                  <?= implode("<br>", $errors); ?>
+                  <?= htmlspecialchars($editError, ENT_QUOTES) ?>
                 </p>
               <?php endif; ?>
 
-              <?php if (!empty($success)): ?>
+              <?php if (!empty($editSuccess)): ?>
                 <p class="successMessage">
                   <i class="fa-solid fa-check-circle"></i>
-                  <?= $success; ?>
+                  <?= $editSuccess; ?>
                 </p>
               <?php endif; ?>
               <div class="formBody">
@@ -3285,38 +3222,38 @@ $stmt->close();
                 </div>
                 <div class="inp-box">
                   <label>Buyer's Username</label>
-                  <input type="text" value="<?= $username ?>" name="username" placeholder="e.g blessedemmanuel254">
+                  <input type="text" value="<?= $editUsername ?>" name="username" placeholder="e.g blessedemmanuel254">
                 </div>
                 <div class="inp-box">
                   <label>Buyer's Email ID</label>
-                  <input type="text" value="<?= $email ?>" name="email" placeholder="john@example.com">
+                  <input type="text" value="<?= $editEmail ?>" name="email" placeholder="john@example.com">
                 </div>
                 <div class="inp-box">
                   <label>Buyer's Phone</label>
-                  <input type="text" value="<?= $phone ?>" name="phone" placeholder="075***630">
+                  <input type="text" value="<?= $editPhone ?>" name="phone" placeholder="075***630">
                 </div>
                 <div class="inp-box">
 
                   <label>Country</label>
                   <select name="country">
                     <option value=""><p>-- Select Country --</p></option>
-                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
-                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
-                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                    <option value="Kenya" <?php echo ($editCountry === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
+                    <option value="Kenya" <?php echo ($editCountry === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($editCountry === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
                   </select>
                 </div>
                 <div class="inp-box">
                   <label>Buyer's Address</label>
-                  <input type="text" value="<?= $address ?>" name="address" placeholder="eg. Kilifi town">
+                  <input type="text" value="<?= $editAddress ?>" name="address" placeholder="eg. Kilifi town">
                 </div>
                 <div class="inp-box">
 
                   <label>County</label>
                   <select name="county">
                     <option value=""><p>-- Select County --</p></option>
-                    <option value="Kilifi" <?php echo ($county === 'Kilifi') ? 'selected' : ''; ?>>Kilifi</option><!-- 
-                    <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
-                    <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                    <option value="Kilifi" <?php echo ($editCounty === 'Kilifi') ? 'selected' : ''; ?>>Kilifi</option><!-- 
+                    <option value="Kenya" <?php echo ($editCounty === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($editCounty === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
                   </select>
                 </div>
                 <div class="inp-box">
@@ -3324,9 +3261,9 @@ $stmt->close();
                   <label>Ward</label>
                   <select name="ward">
                     <option value=""><p>-- Select Ward --</p></option>
-                    <option value="Sokoni Ward" <?php echo ($ward === 'Sokoni Ward') ? 'selected' : ''; ?>>Sokoni Ward</option><!-- 
-                    <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
-                    <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                    <option value="Sokoni Ward" <?php echo ($editWard === 'Sokoni Ward') ? 'selected' : ''; ?>>Sokoni Ward</option><!-- 
+                    <option value="Kenya" <?php echo ($editWard === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($editWard === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
                   </select>
                 </div>
                 <div></div>
@@ -3342,17 +3279,17 @@ $stmt->close();
               <input type="hidden" name="user_id" value="<?= $user_id ?>"> -->
               <input type="hidden" name="form_type" value="owner">
               <h1>Update Owner Details</h1>
-              <?php if (!empty($errors)): ?>
+              <?php if (!empty($editError)): ?>
                 <p class="errorMessage">
                   <i class="fa-solid fa-circle-exclamation"></i>
-                  <?= implode("<br>", $errors); ?>
+                  <?= htmlspecialchars($editError, ENT_QUOTES) ?>
                 </p>
               <?php endif; ?>
 
-              <?php if (!empty($success)): ?>
+              <?php if (!empty($editSuccess)): ?>
                 <p class="successMessage">
                   <i class="fa-solid fa-check-circle"></i>
-                  <?= $success; ?>
+                  <?= $editSuccess; ?>
                 </p>
               <?php endif; ?>
               <div class="formBody">
@@ -3362,15 +3299,15 @@ $stmt->close();
                 </div>
                 <div class="inp-box">
                   <label>Owner's Username</label>
-                  <input type="text" value="<?= $username ?>" name="username" placeholder="e.g blessedemmanuel254">
+                  <input type="text" value="<?= $editUsername ?>" name="username" placeholder="e.g blessedemmanuel254">
                 </div>
                 <div class="inp-box">
                   <label>Owner's Email ID</label>
-                  <input type="text" value="<?= $email ?>" name="email" placeholder="john@example.com">
+                  <input type="text" value="<?= $editEmail ?>" name="email" placeholder="john@example.com">
                 </div>
                 <div class="inp-box">
                   <label>Owner's Phone</label>
-                  <input type="text" value="<?= $phone ?>" name="phone" placeholder="075***630">
+                  <input type="text" value="<?= $editPhone ?>" name="phone" placeholder="075***630">
                 </div><!-- 
                 <div class="account-type-box">
                   <p class="account-title">Property Type</p>
@@ -3410,9 +3347,9 @@ $stmt->close();
                   <label>Country</label>
                   <select name="country">
                     <option value=""><p>-- Select Country --</p></option>
-                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
-                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
-                    <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                    <option value="Kenya" <?php echo ($editCountry === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
+                    <option value="Kenya" <?php echo ($editCountry === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($editCountry === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
                   </select>
                 </div>
                 <div class="inp-box">
@@ -3420,23 +3357,23 @@ $stmt->close();
                   <label>County</label>
                   <select name="county">
                     <option value=""><p>-- Select County --</p></option>
-                    <option value="Kilifi" <?php echo ($county === 'Kilifi') ? 'selected' : ''; ?>>Kilifi</option><!-- 
-                    <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
-                    <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                    <option value="Kilifi" <?php echo ($editCounty === 'Kilifi') ? 'selected' : ''; ?>>Kilifi</option><!-- 
+                    <option value="Kenya" <?php echo ($editCounty === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($editCounty === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
                   </select>
                 </div>
                 <div class="inp-box">
                   <label>Owner's Address</label>
-                  <input type="text" value="<?= $address ?>" name="address" placeholder="eg. Kilifi town">
+                  <input type="text" value="<?= $editAddress ?>" name="address" placeholder="eg. Kilifi town">
                 </div>
                 <div class="inp-box">
 
                   <label>Ward</label>
                   <select name="ward">
                     <option value=""><p>-- Select Ward --</p></option>
-                    <option value="Sokoni Ward" <?php echo ($ward === 'Sokoni Ward') ? 'selected' : ''; ?>>Sokoni Ward</option><!-- 
-                    <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
-                    <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                    <option value="Sokoni Ward" <?php echo ($editWard === 'Sokoni Ward') ? 'selected' : ''; ?>>Sokoni Ward</option><!-- 
+                    <option value="Kenya" <?php echo ($editWard === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                    <option value="Kenya" <?php echo ($editWard === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
                   </select>
                 </div>
                 <div></div>
@@ -3555,7 +3492,7 @@ $stmt->close();
       <p>&copy; 2025/2026, Market Hub.com, All Rights reserved.</p>
     </footer>
   </div>
-  <script src="Scripts/general.js" type="text/javascript" defer></script>
+  <script src="assets/js/general.js" type="text/javascript" defer></script>
   <script>
   $(document).ready(function () {
 
@@ -3575,11 +3512,8 @@ $stmt->close();
     };
 
     // Initialize all tables
-    const tables = $('#ordersTable, #salesagentsTable, #sellersTable, #buyersTable, #transactionsTable, #withdrawalsTable, #propertyownersTable')
-      .DataTable(dataTableConfig);
-
-    // Override ordersTable only
-    $('#ordersTable').DataTable().page.len(10).draw(false);
+    const tables = $('#salesagentsTable, #sellersTable, #buyersTable, #transactionsTable, #withdrawalsTable, #propertyownersTable')
+    .DataTable(dataTableConfig);
 
     // ===== Custom Status + Region filter for salesagentsTable =====
     var salesAgentsTable = $('#salesagentsTable').DataTable();

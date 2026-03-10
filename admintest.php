@@ -46,7 +46,7 @@ if ($accountType !== $allowedRole) { */
   <link rel="icon" type="image/png" sizes="16x16" href="Images/favicon-16x16.png">
   <link rel="manifest" href="Images/site.webmanifest">
 
-  <link rel="stylesheet" href="styles/general.css">
+  <link rel="stylesheet" href="assets/css/general.css">
 
   <!-- Font Awesome CDN -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -61,7 +61,7 @@ if ($accountType !== $allowedRole) { */
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   
-  <title>ADMIN Page | Market Hub</title>
+  <title>ADMIN Page | Maket Hub</title>
   <style>
     /* Pagination buttons */
     .dataTables_wrapper .dataTables_paginate .paginate_button{
@@ -87,14 +87,14 @@ if ($accountType !== $allowedRole) { */
 <body id="adminBody">
   <div class="containerAdmin">
     <section>
-      <h1>ADMIN&nbsp;PANEL<br><span>Market&nbsp;Hub</span></h1>
+      <h1>ADMIN&nbsp;PANEL<br><span>Maket&nbsp;Hub</span></h1>
       <div class="admin-rhs">
         <div class="notfy-wrapper">
           <i class="fa-solid fa-bell"></i>
           <span class="notfy-count">0</span>
         </div>
         <div class="admin-profile">
-          <img src="Images/Market Hub Logo.avif" width="40" alt="Market Hub Logo">
+          <img src="Images/Maket Hub Logo.avif" width="40" alt="Maket Hub Logo">
           <p>EMMANUEL&nbsp;WERANGAI <br><em>Administrator</em></p>
         </div>
       </div>
@@ -633,10 +633,10 @@ if ($accountType !== $allowedRole) { */
 
     </main>
     <footer>
-      <p>&copy; 2025/2026, Market Hub.com, All Rights reserved.</p>
+      <p>&copy; 2025/2026, Maket Hub.com, All Rights reserved.</p>
     </footer>
   </div>
-  <script src="Scripts/general.js" type="text/javascript" defer></script>
+  <script src="assets/js/general.js" type="text/javascript" defer></script>
   <script>
     // DataTables Script Js
     $(document).ready(function () {

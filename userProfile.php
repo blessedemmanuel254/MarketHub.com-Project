@@ -108,7 +108,7 @@ $bio = !empty($user['bio']) ? substr($user['bio'], 0, $bioMaxLength) : '';
 $safeBio = safe($bio);
 
 /* ---------- SAFE IMAGE ---------- */
-$profileImg = 'Images/Market Hub Logo.avif';
+$profileImg = 'Images/Maket Hub Logo.avif';
 if (!empty($user['profile_image'])) {
     $realPath = realpath($user['profile_image']);
     if ($realPath && is_file($realPath)) {
@@ -128,7 +128,7 @@ if (!empty($user['profile_image'])) {
   <link rel="icon" type="image/png" sizes="16x16" href="Images/favicon-16x16.png">
   <link rel="manifest" href="Images/site.webmanifest">
 
-  <link rel="stylesheet" href="styles/general.css">
+  <link rel="stylesheet" href="assets/css/general.css">
 
   <!-- Font Awesome CDN -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -139,7 +139,7 @@ if (!empty($user['profile_image'])) {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,70090000000;1,800;1,900&display=swap" rel="stylesheet">
 
-  <title>My Profile | Market Hub</title>
+  <title>My Profile | Maket Hub</title>
 </head>
 <body>
   <div class="container">
@@ -153,13 +153,13 @@ if (!empty($user['profile_image'])) {
         <div class="profile-header">
           <div class="profile-pic">
             <img id="profilePreview"
-              src="<?= safe($user['profile_image']) ?: 'Images/Market Hub Logo.avif'; ?>">
+              src="<?= safe($user['profile_image']) ?: 'Images/Maket Hub Logo.avif'; ?>">
               <input type="file" id="profileImage" name="profile_image" accept="image/png,image/jpeg,image/webp" form="profileForm">
             <label for="profileImage"><i class="fa fa-camera"></i></label>
           </div>
           <div>
             <h2><?= safe($user['full_name']); ?></h2>
-            <p>Edit your Market Hub details</p>
+            <p>Edit your Maket Hub details</p>
           </div>
         </div>
 
@@ -241,13 +241,13 @@ if (!empty($user['profile_image'])) {
         <div class="profile-header">
           <div class="profile-pic">
             <img id="profilePreview"
-              src="<?= safe($user['profile_image']) ?: 'Images/Market Hub Logo.avif'; ?>">
+              src="<?= safe($user['profile_image']) ?: 'Images/Maket Hub Logo.avif'; ?>">
               <input type="file" id="profileImage" name="profile_image" accept="image/png,image/jpeg,image/webp" form="profileForm">
             <label for="profileImage"><i class="fa fa-camera"></i></label>
           </div>
           <div>
             <h2><?= safe($user['full_name']); ?></h2>
-            <p>Edit your Market Hub details</p>
+            <p>Edit your Maket Hub details</p>
           </div>
         </div>
 
@@ -346,13 +346,13 @@ if (!empty($user['profile_image'])) {
         <div class="profile-header">
           <div class="profile-pic">
             <img id="profilePreview"
-              src="<?= safe($user['profile_image']) ?: 'Images/Market Hub Logo.avif'; ?>">
+              src="<?= safe($user['profile_image']) ?: 'Images/Maket Hub Logo.avif'; ?>">
               <input type="file" id="profileImage" name="profile_image" accept="image/png,image/jpeg,image/webp" form="profileForm">
             <label for="profileImage"><i class="fa fa-camera"></i></label>
           </div>
           <div>
             <h2><?= safe($user['full_name']); ?></h2>
-            <p>Edit your Market Hub details</p>
+            <p>Edit your Maket Hub details</p>
           </div>
         </div>
 
@@ -425,7 +425,7 @@ if (!empty($user['profile_image'])) {
       </div>
     </main>
     <footer>
-      <p>&copy; 2025/2026, Market Hub.com, All Rights reserved.</p>
+      <p>&copy; 2025/2026, Maket Hub.com, All Rights reserved.</p>
     </footer>
   </div>
 

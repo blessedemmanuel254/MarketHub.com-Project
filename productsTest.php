@@ -132,7 +132,7 @@ $profileLetter = strtoupper(substr($formattedUsername, 0, 1));
 $safeUsername = htmlspecialchars($formattedUsername, ENT_QUOTES, 'UTF-8');
 $safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
 
-$defaultAvatar = "Images/Market Hub Logo.avif";
+$defaultAvatar = "Images/Maket Hub Logo.avif";
 
 if (!empty($profileImage) && file_exists($profileImage)) {
     $safeProfileImage = htmlspecialchars($profileImage, ENT_QUOTES, 'UTF-8');
@@ -353,7 +353,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_product_id'])
   <link rel="icon" type="image/png" sizes="16x16" href="Images/favicon-16x16.png">
   <link rel="manifest" href="Images/site.webmanifest">
 
-  <link rel="stylesheet" href="styles/general.css">
+  <link rel="stylesheet" href="assets/css/general.css">
 
   <!-- Font Awesome CDN -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -368,7 +368,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_product_id'])
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
-  <title>Seller Page | Market Hub</title>
+  <title>Seller Page | Maket Hub</title>
 </head>
 <body>
   <div class="container">
@@ -442,14 +442,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_product_id'])
     </form>
     <div class="overlay" onclick="toggleWhatsAppChat()" id="overlay"></div>
     <div id="whatsapp-button" onclick="toggleWhatsAppChat()">
-      <img src="Images/Market Hub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
+      <img src="Images/Maket Hub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
     </div>
 
     <div id="whatsapp-chat-box">
       <div class="chat-header">
         <div class="top">
-          <img src="Images/Market Hub Logo.avif" alt="Market Hub Logo" width="35">
-          <p><strong>Market Hub</strong><br>
+          <img src="Images/Maket Hub Logo.avif" alt="Maket Hub Logo" width="35">
+          <p><strong>Maket Hub</strong><br>
           <small>online</small></p>
         </div>
         <i class="fa-solid fa-xmark" onclick="toggleWhatsAppChat()"></i>
@@ -457,7 +457,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_product_id'])
       <div class="chat-body">
         <div class="chat-container">
           <div class="chat-bubble">
-            <div class="sender">Market Hub</div>
+            <div class="sender">Maket Hub</div>
             <div class="message">
               Hello there! 😊<br>
               How can we help?
@@ -483,7 +483,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_product_id'])
       </div>
       <div class="table-wrapper sellerOrdersTrack active">
         <div class="header">
-          <h1>Market Hub Daily Products</h1>
+          <h1>Maket Hub Daily Products</h1>
           <p>Download and post across all platforms today.</p>
         </div>
 
@@ -492,7 +492,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_product_id'])
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleAgentEarningsTrack()">Go&nbsp;back</button> to continue with sales.</p>
     </main>
     <footer>
-      <p>&copy; 2025/2026, Market Hub.com, All Rights reserved.</p>
+      <p>&copy; 2025/2026, Maket Hub.com, All Rights reserved.</p>
     </footer>
   </div>
 

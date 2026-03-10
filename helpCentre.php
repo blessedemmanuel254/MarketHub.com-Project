@@ -9,7 +9,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="Images/favicon-16x16.png">
   <link rel="manifest" href="Images/site.webmanifest">
 
-  <link rel="stylesheet" href="styles/general.css">
+  <link rel="stylesheet" href="assets/css/general.css">
 
   <!-- Font Awesome CDN -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -20,21 +20,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,70090000000;1,800;1,900&display=swap" rel="stylesheet">
 
-  <title>Help Center | Market Hub</title>
+  <title>Help Center | Maket Hub</title>
 </head>
 
 <body>
   <div class="container faq-wrapper">
     <div class="overlay" onclick="toggleWhatsAppChat()" id="overlay"></div>
     <div id="whatsapp-button" onclick="toggleWhatsAppChat()">
-      <img src="Images/Market Hub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
+      <img src="Images/Maket Hub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
     </div>
 
     <div id="whatsapp-chat-box">
       <div class="chat-header">
         <div class="top">
-          <img src="Images/Market Hub Logo.avif" alt="Market Hub Logo" width="35">
-          <p><strong>Market Hub</strong><br>
+          <img src="Images/Maket Hub Logo.avif" alt="Maket Hub Logo" width="35">
+          <p><strong>Maket Hub</strong><br>
           <small>online</small></p>
         </div>
         <i class="fa-solid fa-xmark" onclick="toggleWhatsAppChat()"></i>
@@ -42,7 +42,7 @@
       <div class="chat-body">
         <div class="chat-container">
           <div class="chat-bubble">
-            <div class="sender">Market Hub</div>
+            <div class="sender">Maket Hub</div>
             <div class="message">
               Hello there! 😊<br>
               How can we help?
@@ -64,7 +64,7 @@
       <div class="faq-header">
         <h1>Help Centre</h1>
         <p>
-          Answers to common questions about using Market Hub, from account management to buying and selling.
+          Answers to common questions about using Maket Hub, from account management to buying and selling.
         </p>
       </div>
 
@@ -74,14 +74,14 @@
         <div class="faq-item">
           <div class="faq-question" role="button" tabindex="0" aria-expanded="false"
             onclick="toggleFAQ(this)" onkeydown="handleKey(event,this)">
-            <h3>What is Market Hub?</h3>
+            <h3>What is Maket Hub?</h3>
             <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2">
               <path d="M6 9l6 6 6-6"/>
             </svg>
           </div>
           <div class="faq-answer">
             <p>
-              Market Hub is an online marketplace where you can buy products, book services,
+              Maket Hub is an online marketplace where you can buy products, book services,
               and rent items from local, national, and global sellers.
             </p>
           </div>
@@ -116,7 +116,7 @@
           <div class="faq-answer">
             <p>
               Click on Sign Up, provide your required details, verify your contact information,
-              and you’ll be ready to use Market Hub.
+              and you’ll be ready to use Maket Hub.
             </p>
           </div>
         </div>
@@ -125,7 +125,7 @@
         <div class="faq-item">
           <div class="faq-question" role="button" tabindex="0" aria-expanded="false"
             onclick="toggleFAQ(this)" onkeydown="handleKey(event,this)">
-            <h3>How do I buy products on Market Hub?</h3>
+            <h3>How do I buy products on Maket Hub?</h3>
             <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2">
               <path d="M6 9l6 6 6-6"/>
             </svg>
@@ -200,7 +200,7 @@
           </div>
           <div class="faq-answer">
             <p>
-              Market Hub supports M-Pesa, card payments, and other secure options depending
+              Maket Hub supports M-Pesa, card payments, and other secure options depending
               on your selected market.
             </p>
           </div>
@@ -260,7 +260,7 @@
         <div class="faq-item">
           <div class="faq-question" role="button" tabindex="0" aria-expanded="false"
             onclick="toggleFAQ(this)" onkeydown="handleKey(event,this)">
-            <h3>How do I become a seller on Market Hub?</h3>
+            <h3>How do I become a seller on Maket Hub?</h3>
             <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2">
               <path d="M6 9l6 6 6-6"/>
             </svg>
@@ -294,7 +294,7 @@
         <div class="faq-item">
           <div class="faq-question" role="button" tabindex="0" aria-expanded="false"
             onclick="toggleFAQ(this)" onkeydown="handleKey(event,this)">
-            <h3>Is Market Hub safe to use?</h3>
+            <h3>Is Maket Hub safe to use?</h3>
             <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2">
               <path d="M6 9l6 6 6-6"/>
             </svg>
@@ -327,7 +327,7 @@
         <div class="faq-item">
           <div class="faq-question" role="button" tabindex="0" aria-expanded="false"
             onclick="toggleFAQ(this)" onkeydown="handleKey(event,this)">
-            <h3>Does Market Hub support international users?</h3>
+            <h3>Does Maket Hub support international users?</h3>
             <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2">
               <path d="M6 9l6 6 6-6"/>
             </svg>
@@ -344,7 +344,7 @@
         <div class="faq-item">
           <div class="faq-question" role="button" tabindex="0" aria-expanded="false"
             onclick="toggleFAQ(this)" onkeydown="handleKey(event,this)">
-            <h3>How do I contact Market Hub support?</h3>
+            <h3>How do I contact Maket Hub support?</h3>
             <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2">
               <path d="M6 9l6 6 6-6"/>
             </svg>
@@ -361,11 +361,11 @@
 
     </main>
     <footer>
-      <p>&copy; 2025/2026, Market Hub.com, All Rights reserved.</p>
+      <p>&copy; 2025/2026, Maket Hub.com, All Rights reserved.</p>
     </footer>
   </div>
   
-  <script src="Scripts/general.js" type="text/javascript" defer></script>
+  <script src="assets/js/general.js" type="text/javascript" defer></script>
 
   <script>
     function toggleFAQ(element) {

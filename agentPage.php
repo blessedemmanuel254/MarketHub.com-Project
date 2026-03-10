@@ -1,11 +1,16 @@
 <?php
 session_start();
+// Dynamic OG data based on page content
+$pageTitle = "Agent Page | Maket Hub";
+$pageDescription = "Verify your Maket Hub agent account to unlock full agent privileges; receiving commissions, Making withdrawal requests and manage your agency efficiently.";
+$pageUrl = "agentregister.php";
+$pageImage = "Images/Maket Hub Logo.avif"; // Use a clear visual for verification
 require_once 'connection.php';
 
 /* ---------- SESSION SECURITY ---------- */
 if (!isset($_SESSION['user_id'])) {
-    header("Location: index.php");
-    exit();
+  header("Location: index.php");
+  exit();
 }
 
 /* Optional: regenerate session ID periodically */
@@ -106,7 +111,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
   <link rel="icon" type="image/png" sizes="16x16" href="Images/favicon-16x16.png">
   <link rel="manifest" href="Images/site.webmanifest">
 
-  <link rel="stylesheet" href="styles/general.css">
+  <link rel="stylesheet" href="assets/css/general.css">
 
   <!-- Font Awesome CDN -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -121,7 +126,22 @@ if (!empty($profileImage) && file_exists($profileImage)) {
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
-  <title>Agent Page | Market Hub</title>
+  <title><?= htmlspecialchars($pageTitle); ?></title>
+  <meta name="description" content="<?= htmlspecialchars($pageDescription); ?>">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="<?= htmlspecialchars($pageUrl); ?>">
+  <meta property="og:title" content="<?= htmlspecialchars($pageTitle); ?>">
+  <meta property="og:description" content="<?= htmlspecialchars($pageDescription); ?>">
+  <meta property="og:image" content="<?= htmlspecialchars($pageImage); ?>">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="<?= htmlspecialchars($pageUrl); ?>">
+  <meta name="twitter:title" content="<?= htmlspecialchars($pageTitle); ?>">
+  <meta name="twitter:description" content="<?= htmlspecialchars($pageDescription); ?>">
+  <meta name="twitter:image" content="<?= htmlspecialchars($pageImage); ?>">
 </head>
 <body>
   <div class="container">
@@ -248,14 +268,14 @@ if (!empty($profileImage) && file_exists($profileImage)) {
     </form>
     <div class="overlay" onclick="toggleWhatsAppChat()" id="overlay"></div>
     <div id="whatsapp-button" onclick="toggleWhatsAppChat()">
-      <img src="Images/Market Hub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
+      <img src="Images/Maket Hub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
     </div>
 
     <div id="whatsapp-chat-box">
       <div class="chat-header">
         <div class="top">
-          <img src="Images/Market Hub Logo.avif" alt="Market Hub Logo" width="35">
-          <p><strong>Market Hub</strong><br>
+          <img src="Images/Maket Hub Logo.avif" alt="Maket Hub Logo" width="35">
+          <p><strong>Maket Hub</strong><br>
           <small>online</small></p>
         </div>
         <i class="fa-solid fa-xmark" onclick="toggleWhatsAppChat()"></i>
@@ -263,7 +283,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       <div class="chat-body">
         <div class="chat-container">
           <div class="chat-bubble">
-            <div class="sender">Market Hub</div>
+            <div class="sender">Maket Hub</div>
             <div class="message">
               Hello there! 😊<br>
               How can we help?
@@ -333,7 +353,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                 <i class="fa-brands fa-renren"></i>
                 <h2>Market</h2>
                 <p>
-                  Also order on Market Hub like other buyers.
+                  Also order on Maket Hub like other buyers.
                 </p>
                 <div class="label">
                   <p>Market</p>
@@ -1021,7 +1041,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       </div>
       <div class="table-wrapper sellerOrdersTrack active">
         <div class="header">
-          <h1>Market Hub Daily Products</h1>
+          <h1>Maket Hub Daily Products</h1>
           <p>Download and post across all platforms today.</p>
         </div>
 
@@ -1249,7 +1269,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
             <strong>Order #ORD-90321</strong><br>
             <span>Placed on 12 Feb 2026</span>
           </div>
-          <div>3 Items</div>
+          <div><strong>3</strong> Items</div>
         </div>
 
         <div class="order-items-grid">
@@ -1264,7 +1284,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                 <p>Status: <span class="status shipped">Shipped</span></p>
                 <span class="market-badge">National</span>
               </div>
-              <img src="Images/Market Hub Logo.avif" alt="Product">
+              <img src="Images/Maket Hub Logo.avif" alt="Product">
             </div>
 
             <div class="item-actions">
@@ -1293,7 +1313,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                 <p>Status: <span class="status processing">Processing</span></p>
                 <span class="market-badge">Local</span>
               </div>
-              <img src="Images/Market Hub Logo.avif" alt="Product">
+              <img src="Images/Maket Hub Logo.avif" alt="Product">
             </div>
 
             <div class="item-actions">
@@ -1313,11 +1333,11 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleAgentOrdersTrack()">Go&nbsp;back</button> to continue shopping.</p>
     </main>
     <footer>
-      <p>&copy; 2025/2026, Market Hub.com, All Rights reserved.</p>
+      <p>&copy; 2025/2026, Maket Hub.com, All Rights reserved.</p>
     </footer>
   </div>
   
-  <script src="Scripts/general.js" type="text/javascript" defer></script>
+  <script src="assets/js/general.js" type="text/javascript" defer></script>
   <script>
     // DataTables Script Js
     $(document).ready(function () {
