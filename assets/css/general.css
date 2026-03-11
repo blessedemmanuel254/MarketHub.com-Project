@@ -3182,7 +3182,7 @@ a.seller-right {
   display: grid !important;
 }
 
-.tab-content .tab-panel .form-wrapper form .inp-box, .tab-panel-admin .form-wrapper form .inp-box {
+.tab-content .tab-panel .form-wrapper form .inp-box, .tab-panel-admin .form-wrapper form .inp-box, .tab-panel.agency .dashboard .grid .card.agency-lincods .lincod-box {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -3193,13 +3193,13 @@ a.seller-right {
 
 }
 
-.tab-content .tab-panel .form-wrapper form .inp-box label, .tab-panel-admin .form-wrapper form .inp-box label {
+.tab-content .tab-panel .form-wrapper form .inp-box label, .tab-panel-admin .form-wrapper form .inp-box label, .tab-panel.agency .dashboard .grid .card.agency-lincods .lincod-box span {
   font-size: 14px;
   color: #0f0f0f;
   width: 100%;
 }
 
-.tab-panel-admin .form-wrapper form .inp-box label.agency_code {
+.tab-panel-admin .form-wrapper form .inp-box label.agency_code, .tab-panel.agency .dashboard .grid .card.agency-lincods .lincod-box span.agency_link, .tab-panel.agency .dashboard .grid .card.agency-lincods .lincod-box span.agency_code {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -3207,7 +3207,7 @@ a.seller-right {
   padding-right: 8px;
 }
 
-.tab-panel-admin .form-wrapper form .inp-box label.agency_code i {
+.tab-panel-admin .form-wrapper form .inp-box label.agency_code i, .tab-panel.agency .dashboard .grid .card.agency-lincods .lincod-box span.agency_link i, .tab-panel.agency .dashboard .grid .card.agency-lincods .lincod-box span.agency_code i {
   color: #088000;
   background-color: #8988887c;
   height: 32px;
@@ -3221,11 +3221,11 @@ a.seller-right {
   margin-left: 6px;
 }
 
-.tab-panel-admin .form-wrapper form .inp-box label.agency_code i:hover {
+.tab-panel-admin .form-wrapper form .inp-box label.agency_code i:hover, .tab-panel.agency .dashboard .grid .card.agency-lincods .lincod-box span.agency_link i:hover, .tab-panel.agency .dashboard .grid .card.agency-lincods .lincod-box span.agency_code i:hover {
   opacity: .875;
 }
 
-.tab-content .tab-panel .form-wrapper form .inp-box input, .tab-panel-admin .form-wrapper input, .tab-content .tab-panel .form-wrapper form .inp-box select, .tab-panel-admin .form-wrapper form .inp-box select {
+.tab-content .tab-panel .form-wrapper form .inp-box input, .tab-panel-admin .form-wrapper input, .tab-content .tab-panel .form-wrapper form .inp-box select, .tab-panel-admin .form-wrapper form .inp-box select, .tab-panel.agency .dashboard .grid .card.agency-lincods input {
   padding: 8px 16px;
   border-radius: 4px;
   width: 100%;
@@ -3818,6 +3818,23 @@ body#adminBody {
   border-radius: 4px;
   padding: 20px;
   transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+}
+
+.tab-panel.agency .dashboard .grid .card.agency-lincods {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 5px;
+}
+
+.tab-panel.agency .dashboard .grid .card.agency-lincods .lincod-container {
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+  
+}
+
+.tab-panel.agency .dashboard .grid .card.agency-lincods .lincod-container .lincod-box input {
+  padding: 6px;
 }
 
 .tab-panel.agency .dashboard .grid .card:hover, .tab-panel .formBody.agency .card:hover {

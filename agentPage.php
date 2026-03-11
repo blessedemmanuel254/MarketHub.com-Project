@@ -200,32 +200,32 @@ if ($isVerified === 1 && $status === 'active') {
   // ---------- LEVEL 3 ----------
   if ($level2Count > 0) {
 
-      $placeholders = implode(',', array_fill(0, $level2Count, '?'));
-      $types = str_repeat('i', $level2Count);
+    $placeholders = implode(',', array_fill(0, $level2Count, '?'));
+    $types = str_repeat('i', $level2Count);
 
-      $stmt = $conn->prepare("
-      SELECT user_id, economic_period_count
-      FROM users
-      WHERE referred_by IN ($placeholders)
-      AND is_verified = 1
-      ");
+    $stmt = $conn->prepare("
+    SELECT user_id, economic_period_count
+    FROM users
+    WHERE referred_by IN ($placeholders)
+    AND is_verified = 1
+    ");
 
-      $stmt->bind_param($types, ...$level2);
-      $stmt->execute();
-      $result = $stmt->get_result();
+    $stmt->bind_param($types, ...$level2);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-      while ($row = $result->fetch_assoc()) {
+    while ($row = $result->fetch_assoc()) {
 
-          $level3[] = $row['user_id'];
+      $level3[] = $row['user_id'];
 
-          $periods = (int)$row['economic_period_count'];
+      $periods = (int)$row['economic_period_count'];
 
-          if ($periods > 0) {
-              $lvl3Earn += (20 * $periods);
-          }
+      if ($periods > 0) {
+          $lvl3Earn += (20 * $periods);
       }
+    }
 
-      $stmt->close();
+    $stmt->close();
   }
 
   $level3Count = count($level3);
@@ -712,12 +712,27 @@ if ($isVerified === 1 && $status === 'active') {
                   </div>
                 </div>
 
-                <div class="card">
-                  <h3>Referral Performance</h3>
-                  <div class="sub-info">Clicks this month: 73</div>
-                  <div class="sub-info">Agent Signups: <?php echo $newThisMonth; ?></div>
-                  <div class="sub-info">Activation Rate: 62%</div>
-                  <div class="growth up">▲ +12% better than last month</div>
+                <div class="card agency-lincods">
+                  <div>
+                    <h3>Referral Performance</h3>
+                    <div class="sub-info">Clicks this month: 73</div>
+                    <div class="sub-info">Agent Signups: <?php echo $newThisMonth; ?></div>
+                    <div class="sub-info">Activation Rate: 62%</div>
+                    <div class="growth up">▲ +12% better than last month</div>
+                  </div>
+                  <div class="lincod-container">
+                    <div class="lincod-box">
+                      <span class="agency_link">Your Agency link:<i class="fa-solid fa-copy" onclick="copyAgencyLink()"></i></span>
+                      <input type="text" id="agencyCodeInput" value="http://localhost/MaketHub.com-Project/agentRegister.php" name="agency_link" placeholder="A56D3847" disabled
+                      >
+                    </div>
+                    <div class="lincod-box">
+                      <span class="agency_code">Your Agency Code:<i class="fa-solid fa-copy" onclick="copyAgencyCode()"></i></span>
+                      
+                    <input type="text" id="agencyCodeInput" value="A56D3847" name="agency_code" placeholder="A56D3847" disabled
+                    >
+                    </div>
+                  </div>
                 </div>
 
               </div>
