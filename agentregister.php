@@ -164,28 +164,28 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         /* INSERT USER */
 
         $stmt = $conn->prepare("
-            INSERT INTO users
-            (account_type, full_name, username, email, phone, password, country, county, ward, address, business_name, business_model, business_type, market_scope, agency_code, referred_by, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+          INSERT INTO users
+          (account_type, full_name, username, email, phone, password, country, county, ward, address, business_name, business_model, business_type, market_scope, agency_code, referred_by, created_at, updated_at, economic_period_count)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), 0)
         ");
         $stmt->bind_param(
-            "ssssssssssssssss",
-            $accountType,
-            $full_name,
-            $username,
-            $encrypted_email,
-            $encrypted_phone,
-            $hashedPassword,
-            $country,
-            $county,
-            $ward,
-            $address,
-            $busname,
-            $busmodel,
-            $bustype,
-            $market,
-            $newReferralCode,
-            $referrer_id
+          "ssssssssssssssss",
+          $accountType,
+          $full_name,
+          $username,
+          $encrypted_email,
+          $encrypted_phone,
+          $hashedPassword,
+          $country,
+          $county,
+          $ward,
+          $address,
+          $busname,
+          $busmodel,
+          $bustype,
+          $market,
+          $newReferralCode,
+          $referrer_id
         );
 
         if($stmt->execute()){

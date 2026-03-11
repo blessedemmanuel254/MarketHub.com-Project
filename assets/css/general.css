@@ -616,7 +616,7 @@ html body.no-scroll {
 
 }
 
-.container main.buyerMain .agentHeader p.status span.verified, .container main.buyerMain .agentHeader p.status span.unverified {
+.container main.buyerMain .agentHeader p.status span.verified, .container main.buyerMain .agentHeader p.status span.unverified, .container main.buyerMain .agentHeader p.status span.suspended {
   color: #088000;
   background-color: #0980001f;
   padding: 4px;
@@ -632,6 +632,11 @@ html body.no-scroll {
 .container main.buyerMain .agentHeader p.status span.unverified {
   color: #ff3b3b;
   background-color: #ff3b3b2a;
+}
+
+.container main.buyerMain .agentHeader p.status span.suspended {
+  background:#fff3cd;
+  color:#856404;
 }
 
 .tabs-container .tabs {

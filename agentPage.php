@@ -19,25 +19,42 @@ if (!isset($_SESSION['created'])) {
     $_SESSION['created'] = time();
 }
 
-/* ---------- ROLE ACCESS CONTROL ---------- */
+/* ---------- ROLE + STATUS ACCESS CONTROL ---------- */
+
 $allowedRole = 'sales_agent';
 
 $roleStmt = $conn->prepare(
-    "SELECT account_type FROM users WHERE user_id = ? LIMIT 1"
+  "SELECT account_type, is_verified, status 
+  FROM users 
+  WHERE user_id = ? 
+  LIMIT 1"
 );
+
 $roleStmt->bind_param("i", $_SESSION['user_id']);
 $roleStmt->execute();
-$roleStmt->bind_result($accountType);
+$roleStmt->bind_result($accountType, $isVerified, $status);
 $roleStmt->fetch();
 $roleStmt->close();
 
-if ($accountType !== $allowedRole) {
-    // Optional: destroy session for safety
-    // session_destroy();
 
+/* ---------- VALIDATION ---------- */
+
+if ($accountType !== $allowedRole) {
     header("Location: index.php");
     exit();
 }
+
+/* Ensure the agent is verified */
+/* if ($isVerified != 1) {
+  header("Location: verifyAgent.php");
+  exit();
+} */
+
+/* Ensure the account is active */
+/* if ($status !== 'active') {
+  header("Location: accountSuspended.php");
+  exit();
+} */
 
 $country = "";
 $county = "";
@@ -98,6 +115,218 @@ if (!empty($profileImage) && file_exists($profileImage)) {
     $safeProfileImage = $defaultAvatar;
 }
 
+// ---------------------------
+// AGENT NETWORK CALCULATION
+// ---------------------------
+$level1 = [];
+$level2 = [];
+$level3 = [];
+
+$level1Count = 0;
+$level2Count = 0;
+$level3Count = 0;
+
+$lvl1Earn = 0;
+$lvl2Earn = 0;
+$lvl3Earn = 0;
+$totalNetwork = 0;
+$newThisMonth = 0;
+$highestLevel = "None";
+
+
+/* Ensure the agent is verified */
+if ($isVerified === 1 && $status === 'active') {
+  // ---------- LEVEL 1 ----------
+  $stmt = $conn->prepare("
+  SELECT user_id, economic_period_count
+  FROM users
+  WHERE referred_by = ?
+  AND is_verified = 1
+  ");
+
+  $stmt->bind_param("i", $user_id);
+  $stmt->execute();
+  $result = $stmt->get_result();
+
+  while ($row = $result->fetch_assoc()) {
+
+      $level1[] = $row['user_id'];
+
+      $periods = (int)$row['economic_period_count'];
+
+      if ($periods > 0) {
+          $lvl1Earn += (100 * $periods);
+      }
+  }
+
+  $stmt->close();
+  $level1Count = count($level1);
+
+
+  // ---------- LEVEL 2 ----------
+  if ($level1Count > 0) {
+
+      $placeholders = implode(',', array_fill(0, $level1Count, '?'));
+      $types = str_repeat('i', $level1Count);
+
+      $stmt = $conn->prepare("
+      SELECT user_id, economic_period_count
+      FROM users
+      WHERE referred_by IN ($placeholders)
+      AND is_verified = 1
+      ");
+
+      $stmt->bind_param($types, ...$level1);
+      $stmt->execute();
+      $result = $stmt->get_result();
+
+      while ($row = $result->fetch_assoc()) {
+
+          $level2[] = $row['user_id'];
+
+          $periods = (int)$row['economic_period_count'];
+
+          if ($periods > 0) {
+              $lvl2Earn += (40 * $periods);
+          }
+      }
+
+      $stmt->close();
+  }
+
+  $level2Count = count($level2);
+
+
+  // ---------- LEVEL 3 ----------
+  if ($level2Count > 0) {
+
+      $placeholders = implode(',', array_fill(0, $level2Count, '?'));
+      $types = str_repeat('i', $level2Count);
+
+      $stmt = $conn->prepare("
+      SELECT user_id, economic_period_count
+      FROM users
+      WHERE referred_by IN ($placeholders)
+      AND is_verified = 1
+      ");
+
+      $stmt->bind_param($types, ...$level2);
+      $stmt->execute();
+      $result = $stmt->get_result();
+
+      while ($row = $result->fetch_assoc()) {
+
+          $level3[] = $row['user_id'];
+
+          $periods = (int)$row['economic_period_count'];
+
+          if ($periods > 0) {
+              $lvl3Earn += (20 * $periods);
+          }
+      }
+
+      $stmt->close();
+  }
+
+  $level3Count = count($level3);
+
+
+  // ---------- TOTAL NETWORK ----------
+  $totalNetwork = $level1Count + $level2Count + $level3Count;
+
+
+  // ---------- TOTAL EARNINGS ----------
+  $totalEarnings = $lvl1Earn + $lvl2Earn + $lvl3Earn;
+
+
+  /* =====================================================
+    NEW AGENTS THIS MONTH (LAST 30 DAYS)
+  ===================================================== */
+
+  $newThisMonth = 0;
+
+
+  /* Level 1 new */
+  $stmt = $conn->prepare("
+  SELECT COUNT(*) as total
+  FROM users
+  WHERE referred_by = ?
+  AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+  ");
+
+  $stmt->bind_param("i",$user_id);
+  $stmt->execute();
+  $res = $stmt->get_result()->fetch_assoc();
+
+  $newThisMonth += $res['total'];
+
+  $stmt->close();
+
+  /* Level 2 new */
+
+  if($level1Count > 0){
+
+  $placeholders = implode(',', array_fill(0,$level1Count,'?'));
+  $types = str_repeat('i',$level1Count);
+
+  $stmt = $conn->prepare("
+  SELECT COUNT(*) as total
+  FROM users
+  WHERE referred_by IN ($placeholders)
+  AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+  ");
+
+  $stmt->bind_param($types, ...$level1);
+  $stmt->execute();
+  $res = $stmt->get_result()->fetch_assoc();
+
+  $newThisMonth += $res['total'];
+
+  $stmt->close();
+  }
+
+
+  /* Level 3 new */
+
+  if($level2Count > 0){
+
+  $placeholders = implode(',', array_fill(0,$level2Count,'?'));
+  $types = str_repeat('i',$level2Count);
+
+  $stmt = $conn->prepare("
+  SELECT COUNT(*) as total
+  FROM users
+  WHERE referred_by IN ($placeholders)
+  AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+  ");
+
+  $stmt->bind_param($types, ...$level2);
+  $stmt->execute();
+  $res = $stmt->get_result()->fetch_assoc();
+
+  $newThisMonth += $res['total'];
+
+  $stmt->close();
+  }
+
+  /* =====================================================
+    HIGHEST EARNING LEVEL
+  ===================================================== */
+
+  $highestLevel = "Level 1";
+  $highestValue = $lvl1Earn;
+
+  if($lvl2Earn > $highestValue){
+      $highestValue = $lvl2Earn;
+      $highestLevel = "Level 2";
+  }
+
+  if($lvl3Earn > $highestValue){
+      $highestLevel = "Level 3";
+  }
+
+
+  }
 ?>
 
 <!DOCTYPE html>
@@ -302,10 +531,30 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
     <main class="buyerMain" id="agentMain">
       <div class="agentHeader">
-        <h1>Agent Dashboard</h1><!-- 
-        <p class="status">Status:&nbsp;<span class="verified">Verified&nbsp;<i class="fa-solid fa-certificate"></i></span></p> -->
-        <p class="status">Status:&nbsp;<span class="unverified"><i class="fa-solid fa-ban"></i>&nbsp;Unverified</span></p>
+        <h1>Agent Dashboard</h1>
+        <p class="status">Status:&nbsp;
 
+        <?php if ($status !== 'active'): ?>
+
+        <span class="suspended">
+        <i class="fa-solid fa-ban"></i>&nbsp;Suspended
+        </span>
+
+        <?php elseif ($isVerified == 0): ?>
+
+        <span class="unverified">
+        <i class="fa-solid fa-ban"></i>&nbsp;Unverified
+        </span>
+
+        <?php elseif ($isVerified == 1): ?>
+
+        <span class="verified">
+        Verified&nbsp;<i class="fa-solid fa-certificate"></i>
+        </span>
+
+        <?php endif; ?>
+
+        </p>
       </div>
       <div class="tabs-container" id="toggleAgentTab">
         <div class="tabs">
@@ -400,12 +649,21 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
                 <!-- NETWORK SIZE -->
                 <div class="card">
-                  <h3>Your Network Size</h3>
-                  <div class="amount">46 Agents</div>
-                  <div class="sub-info">Level 1: 8</div>
-                  <div class="sub-info">Level 2: 14</div>
-                  <div class="sub-info">Level 3: 24</div>
-                  <div class="growth up">▲ +6 new this month</div>
+                  <div class="amount"><?php echo $totalNetwork; ?> Agents</div>
+                  <div class="sub-info">Level 1: <strong><?php echo $level1Count; ?></strong></div>
+                  <div class="sub-info">Level 2: <strong><?php echo $level2Count; ?></strong></div>
+                  <div class="sub-info">Level 3: <strong><?php echo $level3Count; ?></strong></div>
+                  <?php
+                    $growthClass = "growth up";
+                    $arrow = "▲";
+                    if ($highestLevel === "None") {
+                      $growthClass = "growth down";
+                      $arrow = "▼";
+                    }
+                  ?>
+                  <div class="<?php echo $growthClass; ?>">
+                    <?php echo $arrow; ?> +<?php echo $newThisMonth; ?> new in last 28 days
+                  </div>
                 </div>
 
                 <!-- ADVERTISING -->
@@ -436,28 +694,30 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
                   <div class="level-row">
                     <span>Level 1 (100 KES)</span>
-                    <strong>KES 3,200</strong>
+                    <strong>KES <?php echo number_format($lvl1Earn, 2); ?></strong>
                   </div>
 
                   <div class="level-row">
                     <span>Level 2 (40 KES)</span>
-                    <strong>KES 2,240</strong>
+                    <strong>KES <?php echo number_format($lvl2Earn, 2); ?></strong>
                   </div>
 
                   <div class="level-row">
                     <span>Level 3 (20 KES)</span>
-                    <strong>KES 1,700</strong>
+                    <strong>KES <?php echo number_format($lvl3Earn, 2); ?></strong>
                   </div>
 
-                  <div class="sub-info">Highest earning level: Level 1</div>
+                  <div class="sub-info">
+                  Highest earning level: <strong><?php echo $highestLevel; ?></strong>
+                  </div>
                 </div>
 
                 <div class="card">
                   <h3>Referral Performance</h3>
-                  <div class="sub-info">Clicks this month: 1,240</div>
-                  <div class="sub-info">Agent Signups: 24</div>
+                  <div class="sub-info">Clicks this month: 73</div>
+                  <div class="sub-info">Agent Signups: <?php echo $newThisMonth; ?></div>
                   <div class="sub-info">Activation Rate: 62%</div>
-                  <div class="growth up">▲ +8% better than last month</div>
+                  <div class="growth up">▲ +12% better than last month</div>
                 </div>
 
               </div>

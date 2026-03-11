@@ -46,3 +46,12 @@ KIBAONI IS COMING IN THE WEBSITE OF THE FIRST OF MAY IN THE COMING HOME OF THE T
 
 Bride groom: The King is coming
 Bride: See what the Lord has done
+
+@echo off & set "INPUT=C:\Users\ADMIN\Documents\BioKE Audio.wav" & set "OUT=C:\Users\ADMIN\Documents\BioKE_Chunks" & set "FINAL=C:\Users\ADMIN\Documents\BioKE_Full_Transcript.txt" & if not exist "%OUT%" mkdir "%OUT%" & if exist "%FINAL%" del "%FINAL%" & ffmpeg -i "%INPUT%" -f segment -segment_time 3600 -c copy "%OUT%\BioKE_part_%%03d.wav" & for %f in (%OUT%\BioKE_part_*.wav) do whisper "%f" --model small --language English --output_format txt --output_dir "%OUT%" & for %t in (%OUT%\BioKE_part_*.txt) do type "%t" >> "%FINAL%" & echo All transcripts merged into "%FINAL%" & pause
+
+Best Command (Always Works)
+whisper "C:\Users\ADMIN\Downloads\BioKE_part_000.wav" ^
+--model small ^
+--language en ^
+--output_format txt ^
+--output_dir "C:\Users\ADMIN\Downloads"

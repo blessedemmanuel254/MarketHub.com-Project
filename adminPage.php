@@ -151,7 +151,7 @@ $fullNameFormatted = strtoupper($fullName);
 $accountTypeFormatted = ucfirst(strtolower($accountType));
 
 // Default avatar if profile image does not exist
-$defaultAvatar = "Images/Market Hub Logo.avif";
+$defaultAvatar = "Images/Maket Hub Logo.avif";
 $safeProfileImage = (!empty($profileImage) && file_exists($profileImage)) ? htmlspecialchars($profileImage, ENT_QUOTES, 'UTF-8') : $defaultAvatar;
 
 /* ===============================
@@ -187,7 +187,7 @@ $agentData = $agentQuery->fetch_assoc();
    SALES AGENTS TABLE DATA
 ================================= */
 
-$defaultAvatar = "Images/Market Hub Logo.avif";
+$defaultAvatar = "Images/Maket Hub Logo.avif";
 
 $agentsStmt = $conn->prepare("
     SELECT user_id, full_name, username, email, phone, profile_image, 
@@ -1187,7 +1187,7 @@ $stmt->close();
                   // Default profile image
                   $img = (!empty($seller['profile_image']) && file_exists($seller['profile_image']))
                       ? $seller['profile_image']
-                      : "Images/Market Hub Logo.avif";
+                      : "Images/Maket Hub Logo.avif";
                   $phone = decodePhone($seller['phone']);
                   $maskedPhone = maskPhone($phone);
 

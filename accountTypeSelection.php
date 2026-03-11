@@ -1,17 +1,44 @@
-
 <?php
 session_start();
 
+// ==========================
+// CSRF Protection
+// ==========================
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+$csrf_token = $_SESSION['csrf_token'];
+
+// ==========================
+// Account type whitelist
+// ==========================
+$validAccountTypes = ['buyer', 'seller']; // Add more if needed
 $error = '';
 
+// ==========================
+// Handle POST request
+// ==========================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  if (isset($_POST['accountType'])) {
-    $_SESSION['accountType'] = $_POST['accountType'];
-    header('Location: register.php');
-    exit();
-  } else {
-    $error = 'Select account-type to proceed';
-  }
+
+    // Check CSRF token
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        $error = 'Invalid request. Please try again.';
+    } elseif (!isset($_POST['accountType'])) {
+        $error = 'Select account type to proceed';
+    } else {
+        $selectedType = $_POST['accountType'];
+
+        // Validate against whitelist
+        if (in_array($selectedType, $validAccountTypes)) {
+            $_SESSION['accountType'] = $selectedType;
+            // Regenerate session ID for extra safety
+            session_regenerate_id(true);
+            header('Location: register.php');
+            exit();
+        } else {
+            $error = 'Invalid account type selected';
+        }
+    }
 }
 ?>
 
@@ -77,9 +104,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <main>
       <form class="actpContainer" method="POST" action="">
         <h1>Select Your Account Type&nbsp;:</h1>
+        
         <?php if ($error): ?>
-          <p class="errorMessage"><i class="fa-solid fa-circle-exclamation"></i> <?= $error ?></p>
+          <p class="errorMessage"><i class="fa-solid fa-circle-exclamation"></i> <?= htmlspecialchars($error) ?></p>
         <?php endif; ?>
+
+        <!-- CSRF token hidden input -->
+        <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
         <div class="actpGrid">
           <label class="account-card">
             <input type="radio" name="accountType" value="buyer">
