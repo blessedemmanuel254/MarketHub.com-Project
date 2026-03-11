@@ -63,7 +63,10 @@ $ward = "";
 /* ---------- FETCH USER DATA ---------- */
 $user_id = $_SESSION['user_id'];
 
-$query = "SELECT username, profile_image FROM users WHERE user_id = ? LIMIT 1";
+$query = "SELECT username, profile_image, agency_code 
+FROM users 
+WHERE user_id = ? 
+LIMIT 1";
 $stmt = $conn->prepare($query);
 
 if (!$stmt) {
@@ -76,17 +79,18 @@ $result = $stmt->get_result();
 
 $username = "User";
 $profileImage = null;
+$agencyCode = "";
 
 if ($result && $result->num_rows === 1) {
-    $user = $result->fetch_assoc();
+  $user = $result->fetch_assoc();
 
-    if (!empty($user['username'])) {
-        $username = $user['username'];
-    }
+  if (!empty($user['username'])) {
+      $username = $user['username'];
+  }
 
-    $profileImage = $user['profile_image'] ?? null;
+  $profileImage = $user['profile_image'] ?? null;
+  $agencyCode = $user['agency_code'] ?? "";
 }
-
 
 $stmt->close();
 
@@ -114,6 +118,12 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 } else {
     $safeProfileImage = $defaultAvatar;
 }
+
+/* ---------- GENERATE AGENCY LINK ---------- */
+
+$baseAgencyLink = "http://localhost/MaketHub.com-Project/agentRegister.php";
+
+$agencyLink = $baseAgencyLink . "?ref=" . urlencode($agencyCode);
 
 // ---------------------------
 // AGENT NETWORK CALCULATION
@@ -689,7 +699,7 @@ if ($isVerified === 1 && $status === 'active') {
               <!-- AFFILIATE BREAKDOWN -->
               <div class="grid" style="margin-top:20px;">
 
-                <div class="card">
+                <div class="card agency-longtrm-stats">
                   <h3>Affiliate Earnings Breakdown</h3>
 
                   <div class="level-row">
@@ -721,18 +731,74 @@ if ($isVerified === 1 && $status === 'active') {
                     <div class="growth up">▲ +12% better than last month</div>
                   </div>
                   <div class="lincod-container">
+
                     <div class="lincod-box">
-                      <span class="agency_link">Your Agency link:<i class="fa-solid fa-copy" onclick="copyAgencyLink()"></i></span>
-                      <input type="text" id="agencyCodeInput" value="http://localhost/MaketHub.com-Project/agentRegister.php" name="agency_link" placeholder="A56D3847" disabled
+
+                      <span class="agency_link">
+                        Your Agency link:
+
+                        <i class="fa-solid fa-copy" onclick="copyAgencyLink()"></i>
+
+                        <button class="share-btn" onclick="toggleShareMenu()">
+                          <i class="fa-solid fa-share-nodes"></i> Share
+                        </button>
+
+                      </span>
+
+                      <input
+                        type="text"
+                        id="agencyLinkInput"
+                        value="<?php echo htmlspecialchars($agencyLink); ?>"
+                        name="agency_link"
+                        disabled
                       >
+
+                      <!-- SHARE MENU -->
+                      <div class="share-menu" id="shareMenu">
+
+                        <button onclick="shareWhatsApp()">
+                          <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                        </button>
+
+                        <button onclick="shareFacebook()">
+                          <i class="fa-brands fa-facebook"></i> Facebook
+                        </button>
+
+                        <button onclick="shareTwitter()">
+                          <i class="fa-brands fa-x-twitter"></i> X
+                        </button>
+
+                        <button onclick="shareEmail()">
+                          <i class="fa-solid fa-envelope"></i> Email
+                        </button>
+
+                        <button onclick="shareNative()">
+                          <i class="fa-solid fa-mobile"></i> More Apps
+                        </button>
+
+                      </div>
+
                     </div>
+
+
                     <div class="lincod-box">
-                      <span class="agency_code">Your Agency Code:<i class="fa-solid fa-copy" onclick="copyAgencyCode()"></i></span>
-                      
-                    <input type="text" id="agencyCodeInput" value="A56D3847" name="agency_code" placeholder="A56D3847" disabled
-                    >
+
+                      <span class="agency_code">
+                        Your Agency Code:
+                        <i class="fa-solid fa-copy" onclick="copyAgencyCode()"></i>
+                      </span>
+
+                      <input
+                        type="text"
+                        id="agencyCodeInput"
+                        value="<?php echo htmlspecialchars($agencyCode); ?>"
+                        name="agency_code"
+                        disabled
+                      >
+
                     </div>
-                  </div>
+
+                  </div>                  
                 </div>
 
               </div>

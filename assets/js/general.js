@@ -1158,6 +1158,22 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
+function copyAgencyLink() {
+  const input = document.getElementById("agencyLinkInput");
+  const icon = document.querySelector(".agency_link i");
+  const text = input.value;
+
+  navigator.clipboard.writeText(text).then(() => {
+    icon.classList.remove("fa-copy");
+    icon.classList.add("fa-check");
+
+    setTimeout(() => {
+      icon.classList.remove("fa-check");
+      icon.classList.add("fa-copy");
+    }, 1500);
+  });
+}
+
 function copyAgencyCode() {
   const input = document.getElementById("agencyCodeInput");
   const icon = document.querySelector(".agency_code i");
@@ -1172,6 +1188,148 @@ function copyAgencyCode() {
       icon.classList.add("fa-copy");
     }, 1500);
   });
+}
+
+// ------------------------------
+// SHARE MENU TOGGLE
+// ------------------------------
+
+function toggleShareMenu(){
+
+  const menu = document.getElementById("shareMenu");
+
+  menu.style.display =
+    menu.style.display === "block"
+    ? "none"
+    : "block";
+
+}
+
+
+
+// ------------------------------
+// GET REFERRAL LINK
+// ------------------------------
+
+function getAgencyLink(){
+
+  return document.getElementById("agencyLinkInput").value;
+
+}
+
+
+
+// ------------------------------
+// WHATSAPP SHARE
+// ------------------------------
+
+function shareWhatsApp(){
+
+  const link = getAgencyLink();
+
+  const message =
+  "Join Market Hub as an Agent and start earning commissions! 🚀\n\n" + link;
+
+  const url =
+  "https://wa.me/?text=" + encodeURIComponent(message);
+
+  window.open(url, "_blank");
+
+}
+
+
+
+// ------------------------------
+// FACEBOOK SHARE
+// ------------------------------
+
+function shareFacebook(){
+
+  const link = getAgencyLink();
+
+  const url =
+  "https://www.facebook.com/sharer/sharer.php?u=" +
+  encodeURIComponent(link);
+
+  window.open(url, "_blank");
+
+}
+
+
+
+// ------------------------------
+// TWITTER (X)
+// ------------------------------
+
+function shareTwitter(){
+
+  const link = getAgencyLink();
+
+  const text =
+  "Join Market Hub as an agent and earn commissions!";
+
+  const url =
+  "https://twitter.com/intent/tweet?text=" +
+  encodeURIComponent(text) +
+  "&url=" +
+  encodeURIComponent(link);
+
+  window.open(url, "_blank");
+
+}
+
+
+
+// ------------------------------
+// EMAIL SHARE
+// ------------------------------
+
+function shareEmail(){
+
+  const link = getAgencyLink();
+
+  const subject =
+  "Join Market Hub Agent Program";
+
+  const body =
+  "I invite you to join Market Hub and earn commissions.\n\nRegister here:\n" +
+  link;
+
+  window.location.href =
+  "mailto:?subject=" +
+  encodeURIComponent(subject) +
+  "&body=" +
+  encodeURIComponent(body);
+
+}
+
+
+
+// ------------------------------
+// NATIVE MOBILE SHARE
+// ------------------------------
+
+function shareNative(){
+
+  const link = getAgencyLink();
+
+  const text =
+  "Join Market Hub and start earning commissions.";
+
+  if(navigator.share){
+
+    navigator.share({
+      title: "Market Hub Agent",
+      text: text,
+      url: link
+    });
+
+  }else{
+
+    alert("Sharing not supported on this device.");
+
+  }
+
 }
 
 document.getElementById("goBackBtn")?.addEventListener("click", function () {

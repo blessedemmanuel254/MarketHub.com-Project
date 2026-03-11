@@ -3221,6 +3221,16 @@ a.seller-right {
   margin-left: 6px;
 }
 
+ .tab-panel.agency .dashboard .grid .card.agency-lincods .lincod-box span.agency_link i.fa-share-nodes {
+  color: #ffffff;
+  background-color: #0f0f0f;
+  height: auto;
+  width: auto;
+  font-size: 14px;
+  margin-left: 0;
+  border-radius: 0;
+ }
+
 .tab-panel-admin .form-wrapper form .inp-box label.agency_code i:hover, .tab-panel.agency .dashboard .grid .card.agency-lincods .lincod-box span.agency_link i:hover, .tab-panel.agency .dashboard .grid .card.agency-lincods .lincod-box span.agency_code i:hover {
   opacity: .875;
 }
@@ -3820,6 +3830,10 @@ body#adminBody {
   transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
 }
 
+.tab-panel.agency .dashboard .grid .card.agency-longtrm-stats {
+  max-height: fit-content;
+}
+
 .tab-panel.agency .dashboard .grid .card.agency-lincods {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -3837,9 +3851,51 @@ body#adminBody {
   padding: 6px;
 }
 
+.tab-panel.agency .dashboard .grid .card.agency-lincods .lincod-container .lincod-box button.share-btn {
+  background-color: #0f0f0f;
+  margin: 0;
+  width: fit-content;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+}
+
+.tab-panel.agency .dashboard .grid .share-menu{
+  display: none;
+  margin-top: 10px;
+  background: #ffffff;
+  border: 1px solid #dedede;
+  border-radius: 4px;
+  padding: 10px;
+  width: 200px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tab-panel.agency .dashboard .grid .share-menu button{
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.tab-panel.agency .dashboard .grid .share-menu button:hover{
+  opacity: .875;
+}
+
 .tab-panel.agency .dashboard .grid .card:hover, .tab-panel .formBody.agency .card:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transform: translateY(-6px);
+}
+
+.tab-panel.agency .dashboard .grid .card.agency-lincods:hover {
+  box-shadow: none;
+  transform: none;
 }
 
 .tab-panel.agency .dashboard .grid .card h3, .tab-panel .formBody.agency .card h3 {
