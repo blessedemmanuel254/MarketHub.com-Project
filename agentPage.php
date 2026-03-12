@@ -59,7 +59,227 @@ if ($accountType !== $allowedRole) {
 $country = "";
 $county = "";
 $ward = "";
+/* =====================================================
+ADD NEW AGENT FROM DASHBOARD
+===================================================== */
 
+$error = "";
+$success = "";
+
+function normalizePhoneNumber($rawPhone) {
+  // Remove all characters except numbers and plus sign
+  $cleaned = preg_replace('/[^\d+]/', '', $rawPhone);
+
+  // Handle various formats
+  if (strpos($cleaned, '+') === 0) {
+      // Already starts with country code
+      return $cleaned;
+  } elseif (strpos($cleaned, '0') === 0 && strlen($cleaned) >= 10) {
+      // Starts with 0 — assume it's local Kenyan-style and convert to +254
+      return '+254' . substr($cleaned, 1);
+  } elseif (strlen($cleaned) >= 9 && !str_starts_with($cleaned, '+')) {
+      // Assume starts directly with country code
+      return '+' . $cleaned;
+  }
+
+  // Invalid fallback
+  return '';
+}
+
+function generateReferralCode(){
+  return strtoupper(substr(bin2hex(random_bytes(5)),0,8));
+}
+
+function validatePassword($password) {
+  // Check all rules, but return only a simple generic message if any fail
+  if (strlen($password) < 8 || 
+    !preg_match('/[A-Z]/', $password) || 
+    !preg_match('/[a-z]/', $password) || 
+    !preg_match('/\d/', $password) || 
+    !preg_match('/[^A-Za-z0-9]/', $password)) {
+    return "Password does not meet requirements.";
+  }
+  return ""; // valid
+}
+
+if($_SERVER["REQUEST_METHOD"] === "POST"){
+
+  $full_name = trim($_POST['full-name'] ?? '');
+  $username_input = trim($_POST['username'] ?? '');
+  $email = trim($_POST['email'] ?? '');
+  $phone = trim($_POST['phone'] ?? '');
+  $country = trim($_POST['country'] ?? '');
+  $county = trim($_POST['county'] ?? '');
+  $ward = trim($_POST['ward'] ?? '');
+  $address = trim($_POST['address'] ?? '');
+
+  $accountType = "sales_agent";
+  $defaultPassword = "Makethub123#";
+
+  if(!$full_name || !$username_input || !$email || !$phone || !$country || !$county || !$ward || !$address){
+      $error = "All fields are required.";
+  }
+
+  elseif(str_word_count($full_name) < 2){
+      $error = "Full name must include at least first and last name!";
+  }
+
+  elseif(strpos($username_input,' ') !== false){
+      $error = "Username should not have space(s)!";
+  }
+
+  elseif(strlen($username_input) > 20){
+      $error = "Username should contain a maximum of 20 characters!";
+  }
+
+  elseif(strlen($username_input) < 5){
+      $error = "Username is too short!";
+  }
+
+  elseif(!filter_var($email, FILTER_VALIDATE_EMAIL)){
+      $error = "Invalid email address!";
+  }
+
+  elseif(strlen($address) > 25){
+      $error = "Address too long!";
+  }
+
+  else{
+
+      $normalized_phone = normalizePhoneNumber($phone);
+
+      if(!$normalized_phone || !preg_match('/^(\+254\d{9}|0\d{9})$/',$normalized_phone)){
+          $error = "Please enter a valid phone number!";
+      }
+
+      else{
+
+          $encrypted_email = base64_encode($email);
+          $encrypted_phone = base64_encode($normalized_phone);
+
+          /* CHECK USERNAME / EMAIL */
+          $stmt = $conn->prepare("SELECT user_id FROM users WHERE email = ? OR username = ?");
+          $stmt->bind_param("ss",$encrypted_email,$username_input);
+          $stmt->execute();
+          $stmt->store_result();
+
+          if($stmt->num_rows > 0){
+              $error = "Username or email already exists.";
+          }
+
+          $stmt->close();
+
+          /* CHECK PHONE */
+          if(!$error){
+
+              $stmt = $conn->prepare("SELECT user_id FROM users WHERE phone = ?");
+              $stmt->bind_param("s",$encrypted_phone);
+              $stmt->execute();
+              $stmt->store_result();
+
+              if($stmt->num_rows > 0){
+                  $error = "Phone number already exists!";
+              }
+
+              $stmt->close();
+          }
+
+          /* PASSWORD VALIDATION */
+
+          if(!$error){
+
+              $passwordError = validatePassword($defaultPassword);
+
+              if($passwordError){
+                  $error = $passwordError;
+              }
+          }
+
+          if(!$error){
+
+              $hashedPassword = password_hash($defaultPassword,PASSWORD_DEFAULT);
+
+              $newReferralCode = generateReferralCode();
+
+              $empty = "";
+
+              $stmt = $conn->prepare("
+              INSERT INTO users
+              (
+              account_type,
+              full_name,
+              username,
+              email,
+              phone,
+              password,
+              country,
+              county,
+              ward,
+              address,
+              business_name,
+              business_model,
+              business_type,
+              market_scope,
+              agency_code,
+              referred_by,
+              created_at,
+              updated_at,
+              economic_period_count
+              )
+              VALUES
+              (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?,NOW(),NOW(),0)
+              ");
+
+              $stmt->bind_param(
+              "ssssssssssssssss",
+              $accountType,
+              $full_name,
+              $username_input,
+              $encrypted_email,
+              $encrypted_phone,
+              $hashedPassword,
+              $country,
+              $county,
+              $ward,
+              $address,
+              $empty,
+              $empty,
+              $empty,
+              $empty,
+              $newReferralCode,
+              $user_id
+              );
+
+              if($stmt->execute()){
+
+                  $newAgentID = $stmt->insert_id;
+
+                  /* CREATE WALLET */
+
+                  $wallet = $conn->prepare("
+                  INSERT INTO agent_wallet
+                  (agent_id,balance,total_earned,updated_at)
+                  VALUES (?,0,0,NOW())
+                  ");
+
+                  $wallet->bind_param("i",$newAgentID);
+                  $wallet->execute();
+                  $wallet->close();
+
+                  $success = "New agent added successfully!";
+              }
+              else{
+                  $error = "Error: ".$stmt->error;
+              }
+
+              $stmt->close();
+          }
+
+      }
+
+  }
+
+}
 /* ---------- FETCH USER DATA ---------- */
 $user_id = $_SESSION['user_id'];
 
@@ -101,8 +321,8 @@ $profileLetter = strtoupper(substr($username, 0, 1));
 $username = trim($username);
 
 $formattedUsername =
-    strtoupper(substr($username, 0, 1)) .
-    strtolower(substr($username, 1));
+  strtoupper(substr($username, 0, 1)) .
+  strtolower(substr($username, 1));
 
 /* ---------- PROFILE LETTER ---------- */
 $profileLetter = strtoupper(substr($formattedUsername, 0, 1));

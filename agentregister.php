@@ -165,8 +165,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         $stmt = $conn->prepare("
           INSERT INTO users
-          (account_type, full_name, username, email, phone, password, country, county, ward, address, business_name, business_model, business_type, market_scope, agency_code, referred_by, created_at, updated_at, economic_period_count)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), 0)
+          (account_type, full_name, username, email, phone, password, country, county, ward, address, business_name, business_model, business_type, market_scope, agency_code, referred_by, created_at, updated_at, economic_period_count, must_change_password)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), 0,1)
         ");
         $stmt->bind_param(
           "ssssssssssssssss",

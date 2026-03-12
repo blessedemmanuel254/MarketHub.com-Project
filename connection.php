@@ -2,7 +2,7 @@
   $servername = "localhost";
   $username = "root";
   $password = "";
-  $dbname = "markethub";
+  $dbname = "makethub";
   
   $conn = new mysqli($servername, $username, $password, $dbname);
   
