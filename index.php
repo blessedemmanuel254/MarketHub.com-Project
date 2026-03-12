@@ -92,7 +92,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       $user = $result->fetch_assoc();
 
       if (password_verify($password, $user['password'])) {
-        $success = "Successfully logged in! <span id='redirect-msg'></span>";
+        $success = "Successfully logged in! <span class='redirect-msg'></span>";
         $_SESSION['user_id'] = $user['user_id'];
         $_SESSION['username'] = $user['username'];
         $_SESSION['account_type'] = $user['account_type'];
@@ -183,7 +183,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           <?php if ($error): ?>
             <p class="errorMessage"><i class="fa-solid fa-circle-exclamation"></i> <?= $error ?></p>
           <?php elseif ($success): ?>
-            <p class="successMessage"><i class="fa-solid fa-check-circle"></i> <?= $success ?></p>
+            <p class="successMessage" data-redirect="index.php">
+              <i class="fa-solid fa-check-circle"></i> <?= $success ?>
+            </p>
           <?php endif; ?>
           <div class="form-content-wrapper">
             <div class="form-content">

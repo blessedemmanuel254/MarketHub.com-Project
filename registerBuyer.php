@@ -9,6 +9,18 @@ $country = "";
 $county = "";
 $ward = "";
 
+function validatePassword($password) {
+  // Check all rules, but return only a simple generic message if any fail
+  if (strlen($password) < 8 || 
+    !preg_match('/[A-Z]/', $password) || 
+    !preg_match('/[a-z]/', $password) || 
+    !preg_match('/\d/', $password) || 
+    !preg_match('/[^A-Za-z0-9]/', $password)) {
+    return "Password does not meet requirements.";
+  }
+  return ""; // valid
+}
+
 function normalizePhoneNumber($rawPhone) {
   // Remove all characters except numbers and plus sign
   $cleaned = preg_replace('/[^\d+]/', '', $rawPhone);
@@ -30,17 +42,6 @@ function normalizePhoneNumber($rawPhone) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-  function validatePassword($password) {
-    // Check all rules, but return only a simple generic message if any fail
-    if (strlen($password) < 8 || 
-      !preg_match('/[A-Z]/', $password) || 
-      !preg_match('/[a-z]/', $password) || 
-      !preg_match('/\d/', $password) || 
-      !preg_match('/[^A-Za-z0-9]/', $password)) {
-      return "Password does not meet requirements.";
-    }
-    return ""; // valid
-  }
 
   $accountType = isset($_SESSION['accountType']) ? ucfirst(trim($_SESSION['accountType'])) : '';
   $full_name = trim($_POST['full_name'] ?? '');
@@ -62,19 +63,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $error = "Full name must include at least first and last name!";
   } elseif (strpos($username, ' ') !== false) {
     $error = 'Username should not have space(s)!';
-  } elseif (strlen($username) > 20) {
-      $error = 'Username should contain a maximum of 20 characters!';
   } elseif (strlen($username) < 5) {
     $error = 'Username is too short!';
-  } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    $error = "Invalid email address!";
   } elseif (strlen($username) > 20) {
     $error = 'Username is too long!';
   } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $error = 'Invalid email address!';
   } else {
     $encrypted_email = base64_encode($email);
-    $normalized_phone = normalizePhoneNumber($phone);
 
     $checkUserQuery = "SELECT * FROM users WHERE email = ? OR username = ?";
     $stmt = $conn->prepare($checkUserQuery);
@@ -91,7 +87,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       $stmt->execute();
       $stmt->store_result();
 
-      if (!$normalized_phone || !preg_match('/^(\+254\d{9}|0\d{9})$/', $normalized_phone)) {
+      /* 1️⃣ Check invalid characters first */
+      if (!preg_match('/^[0-9+\-\(\)\s]+$/', $phone)) {
+        $error = "Phone number contains invalid characters!";
+      }
+
+      /* 2️⃣ Normalize phone */
+      $normalized_phone = normalizePhoneNumber($phone);
+
+      else if (!$normalized_phone || !preg_match('/^(\+254\d{9}|0\d{9})$/', $normalized_phone)) {
         $error = "Please enter a valid phone number!";
       } elseif ($stmt->num_rows > 0) {
         $error = "Phone number already exists!";

@@ -45,13 +45,18 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 });
 
-/* Successful registration and redirecting */
+/* Global success redirect system */
 document.addEventListener("DOMContentLoaded", () => {
-  const successParagraph = document.querySelector(".successMessage");
-  const redirectSpan = document.getElementById("redirect-msg");
 
-  // ✅ HARD GUARD — prevents crash
-  if (!successParagraph || !redirectSpan) return;
+  const successMessage = document.querySelector(".successMessage");
+
+  if (!successMessage) return;
+
+  const redirectSpan = successMessage.querySelector(".redirect-msg");
+
+  if (!redirectSpan) return;
+
+  const redirectUrl = successMessage.dataset.redirect || "index.php";
 
   const baseText = "Redirecting";
   let dotCount = 0;
@@ -59,27 +64,40 @@ document.addEventListener("DOMContentLoaded", () => {
   let i = 0;
 
   const typing = setInterval(() => {
+
     if (i < baseText.length) {
       redirectSpan.textContent += baseText.charAt(i);
       i++;
-    } else {
+    }
+
+    else {
+
       clearInterval(typing);
       typingDone = true;
       animateDots();
 
       setTimeout(() => {
-        window.location.href = "index.php";
+        window.location.href = redirectUrl;
       }, 3500);
+
     }
+
   }, 100);
 
+
   function animateDots() {
+
     setInterval(() => {
+
       if (!typingDone) return;
+
       dotCount = (dotCount + 1) % 4;
       redirectSpan.textContent = baseText + ".".repeat(dotCount);
+
     }, 500);
+
   }
+
 });
 
 /* Toggle password visibility */
@@ -1090,6 +1108,7 @@ document.addEventListener("DOMContentLoaded", () => {
       document
         .querySelector(`.admin-tab-panel[data-tab="${target}"]`)
         ?.classList.add("active");
+      window.scrollTo({ top: 0, behavior: "smooth" });
 
       // SAVE LAST TAB
       localStorage.setItem("adminActiveTab", target);
@@ -1108,6 +1127,7 @@ document.addEventListener("DOMContentLoaded", () => {
       document
         .querySelector(`.admin-tab-panel[data-tab="${target}"]`)
         ?.classList.add("active");
+      window.scrollTo({ top: 0, behavior: "smooth" });  
 
       // SAVE LAST TAB
       localStorage.setItem("adminActiveTab", target);

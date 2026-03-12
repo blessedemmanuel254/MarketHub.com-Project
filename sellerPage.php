@@ -4,8 +4,8 @@ require_once 'connection.php';
 
 /* ---------- SESSION SECURITY ---------- */
 if (!isset($_SESSION['user_id'])) {
-    header("Location: index.php");
-    exit();
+  header("Location: index.php");
+  exit();
 }
 
 /* Optional: regenerate session ID periodically */
@@ -530,7 +530,7 @@ $imgPhash
 
 if ($stmt->execute()) {
 
-$success = "Product added successfully! <span id='count'>3</span>…";
+$success = "Product added successfully! <span class='redirect-msg'></span>";
 
 $productName='';
 $category='';
@@ -821,7 +821,7 @@ $user_id
 
 if($stmt->execute()){
 
-$success="Product updated successfully! <span id='count'>3</span>…";
+$success = "Product updated successfully! <span class='redirect-msg'></span>";
 
 $productName='';
 $category='';
@@ -1215,17 +1215,14 @@ $deliveredOrders  = $row['delivered_orders'];
                 <h1><?= $editMode ? 'Edit Product' : 'Add Product' ?></h1>
 
                 <?php if (!empty($error)): ?>
-                    <p class="errorMessage">
-                        <i class="fa-solid fa-circle-exclamation"></i>
-                        <?= htmlspecialchars($error); ?>
-                    </p>
-                <?php endif; ?>
-
-                <?php if (!empty($success)): ?>
-                    <p class="successMessage">
-                        <i class="fa-solid fa-check-circle"></i>
-                        <?= $success; ?>
-                    </p>
+                  <p class="errorMessage">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <?= htmlspecialchars($error); ?>
+                  </p>
+                <?php elseif ($success): ?>
+                  <p class="successMessage" data-redirect="agentPage.php">
+                    <i class="fa-solid fa-check-circle"></i> <?= $success ?>
+                  </p>
                 <?php endif; ?>
 
                 <div class="formBody">
@@ -1577,26 +1574,6 @@ $deliveredOrders  = $row['delivered_orders'];
         }
       });
     });
-  </script>
-  <script>
-    const counter = document.getElementById("count");
-
-    if (counter) {
-
-      let seconds = 3;
-
-      const interval = setInterval(() => {
-        seconds--;
-        counter.textContent = seconds;
-
-        if (seconds <= 0) {
-          clearInterval(interval);
-          window.location.href = "sellerPage.php";
-        }
-
-      }, 1000);
-
-    }
   </script>
   <?php if ($editMode): ?>
   <script>

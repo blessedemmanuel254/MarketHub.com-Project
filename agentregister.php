@@ -32,6 +32,18 @@ $bustype = "";
 $market = "";
 $referralToCheck = "";
 
+function validatePassword($password) {
+  // Check all rules, but return only a simple generic message if any fail
+  if (strlen($password) < 8 || 
+    !preg_match('/[A-Z]/', $password) || 
+    !preg_match('/[a-z]/', $password) || 
+    !preg_match('/\d/', $password) || 
+    !preg_match('/[^A-Za-z0-9]/', $password)) {
+    return "Password does not meet requirements.";
+  }
+  return ""; // valid
+}
+
 function normalizePhoneNumber($rawPhone) {
   // Remove all characters except numbers and plus sign
   $cleaned = preg_replace('/[^\d+]/', '', $rawPhone);
@@ -57,17 +69,6 @@ function generateReferralCode(){
 }
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-  function validatePassword($password) {
-    // Check all rules, but return only a simple generic message if any fail
-    if (strlen($password) < 8 || 
-      !preg_match('/[A-Z]/', $password) || 
-      !preg_match('/[a-z]/', $password) || 
-      !preg_match('/\d/', $password) || 
-      !preg_match('/[^A-Za-z0-9]/', $password)) {
-      return "Password does not meet requirements.";
-    }
-    return ""; // valid
-  }
   
   $full_name = trim($_POST['full_name'] ?? '');
   $username = trim($_POST['username'] ?? '');
@@ -111,12 +112,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $error = "Full name must include at least first and last name!";
   } elseif (strpos($username, ' ') !== false) {
     $error = 'Username should not have space(s)!';
-  } elseif (strlen($username) > 20) {
-      $error = 'Username should contain a maximum of 20 characters!';
   } elseif (strlen($username) < 5) {
     $error = 'Username is too short!';
-  } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    $error = "Invalid email address!";
   } elseif (strlen($username) > 20) {
     $error = 'Username is too long!';
   } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -165,8 +162,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         $stmt = $conn->prepare("
           INSERT INTO users
-          (account_type, full_name, username, email, phone, password, country, county, ward, address, business_name, business_model, business_type, market_scope, agency_code, referred_by, created_at, updated_at, economic_period_count, must_change_password)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), 0,1)
+          (account_type, full_name, username, email, phone, password, country, county, ward, address, business_name, business_model, business_type, market_scope, agency_code, referred_by, created_at, updated_at, economic_period_count)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), 0)
         ");
         $stmt->bind_param(
           "ssssssssssssssss",
@@ -209,7 +206,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         // Unset the referral session so it won't be reused
         unset($_SESSION['agency_code']);
-        $success = "Account registered successfully! <span id='redirect-msg'></span>";
+          $success = "Account registered successfully! <span class='redirect-msg'></span>";
 
         } else {
           $error = "Error: " . $stmt->error;
@@ -273,9 +270,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
           <?php if ($error): ?>
             <p class="errorMessage"><i class="fa-solid fa-circle-exclamation"></i> <?= $error ?></p>
-          <?php elseif ($success): ?>
-            <p class="successMessage"><i class="fa-solid fa-check-circle"></i> <?= $success ?></p>
-          <?php endif; ?>
+            <?php elseif ($success): ?>
+              <p class="successMessage">
+                <i class="fa-solid fa-check-circle"></i> <?= $success ?>
+              </p>
+            <?php endif; ?>
           <div class="form-content-wrapper">
             <div class="form-content">
               <div class="inpBox">

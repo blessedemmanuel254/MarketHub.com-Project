@@ -681,7 +681,7 @@ html body.no-scroll {
 
 .tabs-container .tabs .tab-btn-admin.active {
   border: 1px solid #dedede23;
-  background-color: #898888;
+  background-color: #89888865;
   color: #ffffff;
 
 }
@@ -1825,7 +1825,6 @@ label.account-type input:checked + .radio-dot::after {
 .container main form.actpContainer .actpGrid .account-card .account-icon {
   font-size: 40px;
   margin-bottom: 10px;
-  filter: grayscale(100%) brightness(100%) invert(20%);
 }
 
 .account-card input[type="radio"]:checked ~ .account-icon::before {
@@ -2942,7 +2941,7 @@ a.seller-right {
 
 .containerInner .card h3, .form-wrapper .formBody .card h3 {
   margin:0 0 10px;
-  font-size:16px;
+  font-size:14px;
 }
 
 .containerInner .card h3 {
@@ -2958,7 +2957,7 @@ a.seller-right {
 }
 
 .containerInner .card .stat, .form-wrapper .formBody .card .stat {
-  font-size:24px;
+  font-size:20px;
   font-weight:bold;
   margin-bottom:10px;
 }

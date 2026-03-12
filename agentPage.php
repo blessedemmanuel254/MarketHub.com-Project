@@ -44,6 +44,8 @@ if ($accountType !== $allowedRole) {
     exit();
 }
 
+/* ---------- USER ID ---------- */
+$user_id = $_SESSION['user_id'];
 /* Ensure the agent is verified */
 /* if ($isVerified != 1) {
   header("Location: verifyAgent.php");
@@ -63,8 +65,29 @@ $ward = "";
 ADD NEW AGENT FROM DASHBOARD
 ===================================================== */
 
-$error = "";
-$success = "";
+$agent_error = "";
+$agent_success = "";
+$agent_full_name = "";
+$agent_username = "";
+$agent_email = "";
+$agent_phone = "";
+$agent_country = "";
+$agent_county = "";
+$agent_ward = "";
+$agent_address = "";
+$agent_accountType = "";
+
+function validatePassword($password) {
+  // Check all rules, but return only a simple generic message if any fail
+  if (strlen($password) < 8 || 
+    !preg_match('/[A-Z]/', $password) || 
+    !preg_match('/[a-z]/', $password) || 
+    !preg_match('/\d/', $password) || 
+    !preg_match('/[^A-Za-z0-9]/', $password)) {
+    return "Password does not meet requirements.";
+  }
+  return ""; // valid
+}
 
 function normalizePhoneNumber($rawPhone) {
   // Remove all characters except numbers and plus sign
@@ -90,87 +113,75 @@ function generateReferralCode(){
   return strtoupper(substr(bin2hex(random_bytes(5)),0,8));
 }
 
-function validatePassword($password) {
-  // Check all rules, but return only a simple generic message if any fail
-  if (strlen($password) < 8 || 
-    !preg_match('/[A-Z]/', $password) || 
-    !preg_match('/[a-z]/', $password) || 
-    !preg_match('/\d/', $password) || 
-    !preg_match('/[^A-Za-z0-9]/', $password)) {
-    return "Password does not meet requirements.";
-  }
-  return ""; // valid
-}
-
 if($_SERVER["REQUEST_METHOD"] === "POST"){
 
-  $full_name = trim($_POST['full-name'] ?? '');
-  $username_input = trim($_POST['username'] ?? '');
-  $email = trim($_POST['email'] ?? '');
-  $phone = trim($_POST['phone'] ?? '');
-  $country = trim($_POST['country'] ?? '');
-  $county = trim($_POST['county'] ?? '');
-  $ward = trim($_POST['ward'] ?? '');
-  $address = trim($_POST['address'] ?? '');
+  $agent_full_name = trim($_POST['full_name'] ?? '');
+  $agent_username = trim($_POST['username'] ?? '');
+  $agent_email = trim($_POST['email'] ?? '');
+  $agent_phone = trim($_POST['phone'] ?? '');
+  $agent_country = trim($_POST['country'] ?? '');
+  $agent_county = trim($_POST['county'] ?? '');
+  $agent_ward = trim($_POST['ward'] ?? '');
+  $agent_address = trim($_POST['address'] ?? '');
 
-  $accountType = "sales_agent";
+  $agent_accountType = "sales_agent";
   $defaultPassword = "Makethub123#";
 
-  if(!$full_name || !$username_input || !$email || !$phone || !$country || !$county || !$ward || !$address){
-      $error = "All fields are required.";
+  if(!$agent_full_name || !$agent_username || !$agent_email || !$agent_phone || !$agent_country || !$agent_county || !$agent_ward || !$agent_address){
+      $agent_error = "All fields are required.";
   }
 
-  elseif(str_word_count($full_name) < 2){
-      $error = "Full name must include at least first and last name!";
+  elseif(str_word_count($agent_full_name) < 2){
+      $agent_error = "Full name must include at least first and last name!";
   }
 
-  elseif(strpos($username_input,' ') !== false){
-      $error = "Username should not have space(s)!";
+  elseif(strpos($agent_username,' ') !== false){
+      $agent_error = "Username should not have space(s)!";
   }
 
-  elseif(strlen($username_input) > 20){
-      $error = "Username should contain a maximum of 20 characters!";
+  elseif(strlen($agent_username) > 20){
+      $agent_error = "Username should contain a maximum of 20 characters!";
   }
 
-  elseif(strlen($username_input) < 5){
-      $error = "Username is too short!";
+  elseif(strlen($agent_username) < 5){
+      $agent_error = "Username is too short!";
   }
 
-  elseif(!filter_var($email, FILTER_VALIDATE_EMAIL)){
-      $error = "Invalid email address!";
+  elseif(!filter_var($agent_email, FILTER_VALIDATE_EMAIL)){
+      $agent_error = "Invalid email address!";
   }
 
-  elseif(strlen($address) > 25){
-      $error = "Address too long!";
+  elseif(strlen($agent_address) > 25){
+      $agent_error = "Address too long!";
   }
 
   else{
 
-      $normalized_phone = normalizePhoneNumber($phone);
+      $normalized_phone = normalizePhoneNumber($agent_phone);
 
       if(!$normalized_phone || !preg_match('/^(\+254\d{9}|0\d{9})$/',$normalized_phone)){
-          $error = "Please enter a valid phone number!";
+          $agent_error = "Please enter a valid phone number!";
       }
 
       else{
 
-          $encrypted_email = base64_encode($email);
+          $encrypted_email = base64_encode($agent_email);
           $encrypted_phone = base64_encode($normalized_phone);
 
           /* CHECK USERNAME / EMAIL */
           $stmt = $conn->prepare("SELECT user_id FROM users WHERE email = ? OR username = ?");
-          $stmt->bind_param("ss",$encrypted_email,$username_input);
+          $stmt->bind_param("ss",$encrypted_email,$agent_username);
           $stmt->execute();
           $stmt->store_result();
 
           if($stmt->num_rows > 0){
-              $error = "Username or email already exists.";
+              $agent_error = "Username or email already exists.";
           }
 
           $stmt->close();
 
           /* CHECK PHONE */
-          if(!$error){
+          if(!$agent_error){
 
               $stmt = $conn->prepare("SELECT user_id FROM users WHERE phone = ?");
               $stmt->bind_param("s",$encrypted_phone);
@@ -178,7 +189,7 @@ if($_SERVER["REQUEST_METHOD"] === "POST"){
               $stmt->store_result();
 
               if($stmt->num_rows > 0){
-                  $error = "Phone number already exists!";
+                  $agent_error = "Phone number already exists!";
               }
 
               $stmt->close();
@@ -186,16 +197,16 @@ if($_SERVER["REQUEST_METHOD"] === "POST"){
 
           /* PASSWORD VALIDATION */
 
-          if(!$error){
+          if(!$agent_error){
 
               $passwordError = validatePassword($defaultPassword);
 
               if($passwordError){
-                  $error = $passwordError;
+                  $agent_error = $passwordError;
               }
           }
 
-          if(!$error){
+          if(!$agent_error){
 
               $hashedPassword = password_hash($defaultPassword,PASSWORD_DEFAULT);
 
@@ -224,24 +235,24 @@ if($_SERVER["REQUEST_METHOD"] === "POST"){
               referred_by,
               created_at,
               updated_at,
-              economic_period_count
+              economic_period_count, must_change_password
               )
               VALUES
-              (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?,NOW(),NOW(),0)
+              (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?,NOW(),NOW(),0,1)
               ");
 
               $stmt->bind_param(
               "ssssssssssssssss",
               $accountType,
-              $full_name,
-              $username_input,
+              $agent_full_name,
+              $agent_username,
               $encrypted_email,
               $encrypted_phone,
               $hashedPassword,
-              $country,
-              $county,
-              $ward,
-              $address,
+              $agent_country,
+              $agent_county,
+              $agent_ward,
+              $agent_address,
               $empty,
               $empty,
               $empty,
@@ -252,24 +263,24 @@ if($_SERVER["REQUEST_METHOD"] === "POST"){
 
               if($stmt->execute()){
 
-                  $newAgentID = $stmt->insert_id;
+                $newAgentID = $stmt->insert_id;
 
-                  /* CREATE WALLET */
+                /* CREATE WALLET */
 
-                  $wallet = $conn->prepare("
-                  INSERT INTO agent_wallet
-                  (agent_id,balance,total_earned,updated_at)
-                  VALUES (?,0,0,NOW())
-                  ");
+                $wallet = $conn->prepare("
+                INSERT INTO agent_wallet
+                (agent_id,balance,total_earned,updated_at)
+                VALUES (?,0,0,NOW())
+                ");
 
-                  $wallet->bind_param("i",$newAgentID);
-                  $wallet->execute();
-                  $wallet->close();
+                $wallet->bind_param("i",$newAgentID);
+                $wallet->execute();
+                $wallet->close();
 
-                  $success = "New agent added successfully!";
+                $agent_success = "New agent added successfully! <span class='redirect-msg'></span>";
               }
               else{
-                  $error = "Error: ".$stmt->error;
+                  $agent_error = "Error: ".$stmt->error;
               }
 
               $stmt->close();
@@ -280,8 +291,6 @@ if($_SERVER["REQUEST_METHOD"] === "POST"){
   }
 
 }
-/* ---------- FETCH USER DATA ---------- */
-$user_id = $_SESSION['user_id'];
 
 $query = "SELECT username, profile_image, agency_code 
 FROM users 
@@ -1037,68 +1046,65 @@ if ($isVerified === 1 && $status === 'active') {
             <div class="form-wrapper">
               <form method="POST" enctype="multipart/form-data">
                 <h1>Add New Agent Details</h1>
-                <?php if (!empty($errors)): ?>
+                <?php if (!empty($agent_error)): ?>
                   <p class="errorMessage">
                     <i class="fa-solid fa-circle-exclamation"></i>
-                    <?= implode("<br>", $errors); ?>
+                    <?= htmlspecialchars($agent_error); ?>
                   </p>
-                <?php endif; ?>
-
-                <?php if (!empty($success)): ?>
-                  <p class="successMessage">
-                    <i class="fa-solid fa-check-circle"></i>
-                    <?= $success; ?>
+                <?php elseif ($agent_success): ?>
+                  <p class="successMessage" data-redirect="agentPage.php">
+                    <i class="fa-solid fa-check-circle"></i> <?= $agent_success ?>
                   </p>
                 <?php endif; ?>
                 <div class="formBody">
                   <div class="inp-box">
                     <label>Agent's Full Name</label>
-                    <input type="text" name="full-name" placeholder="Full Name">
+                    <input type="text" value="<?= $agent_full_name ?>" name="full_name" placeholder="Full Name" required>
                   </div>
                   <div class="inp-box">
                     <label>Agent's Username</label>
-                    <input type="text" name="username" placeholder="e.g blessedemmanuel254">
+                    <input type="text" value="<?= $agent_username ?>" name="username" placeholder="e.g blessedemmanuel254" required>
                   </div>
                   <div class="inp-box">
                     <label>Agent's Email ID</label>
-                    <input type="text" name="email" placeholder="john@example.com">
+                    <input type="email" value="<?= $agent_email ?>" name="email" placeholder="john@example.com" required>
                   </div>
                   <div class="inp-box">
                     <label>Agent's Phone</label>
-                    <input type="text" name="phone" placeholder="075***630">
+                    <input type="text" value="<?= $agent_phone ?>" name="phone" placeholder="075***630" required>
                   </div>
                   <div class="inp-box">
 
                     <label>Country</label>
-                    <select name="country">
+                    <select name="country" required>
                       <option value=""><p>-- Select Country --</p></option>
-                      <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
-                      <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
-                      <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                      <option value="Kenya" <?php echo ($agent_country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
+                      <option value="Kenya" <?php echo ($agent_country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                      <option value="Kenya" <?php echo ($agent_country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
                     </select>
                   </div>
                   <div class="inp-box">
 
                     <label>County</label>
-                    <select name="county">
+                    <select name="county" required>
                       <option value=""><p>-- Select County --</p></option>
-                      <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kilifi</option><!-- 
-                      <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
-                      <option value="Kenya" <?php echo ($county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                      <option value="Kilifi" <?php echo ($agent_county === 'Kilifi') ? 'selected' : ''; ?>>Kilifi</option><!-- 
+                      <option value="Kenya" <?php echo ($agent_county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                      <option value="Kenya" <?php echo ($agent_county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
                     </select>
                   </div>
                   <div class="inp-box">
                     <label>Agent's Address</label>
-                    <input type="text" name="address" placeholder="eg. Kilifi town">
+                    <input type="text" value="<?= $agent_address ?>" name="address" placeholder="eg. Kilifi town" required>
                   </div>
                   <div class="inp-box">
 
                     <label>Ward</label>
-                    <select name="ward">
+                    <select name="ward" required>
                       <option value=""><p>-- Select Ward --</p></option>
-                      <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kilifi</option><!-- 
-                      <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
-                      <option value="Kenya" <?php echo ($ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                      <option value="Sokoni Ward" <?php echo ($agent_ward === 'Sokoni Ward') ? 'selected' : ''; ?>>Sokoni Ward</option><!-- 
+                      <option value="Kenya" <?php echo ($agent_ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
+                      <option value="Kenya" <?php echo ($agent_ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
                     </select>
                   </div>
                   <div></div>

@@ -25,6 +25,18 @@ $busmodel = "";
 $bustype = "";
 $market = "";
 
+function validatePassword($password) {
+  // Check all rules, but return only a simple generic message if any fail
+  if (strlen($password) < 8 || 
+    !preg_match('/[A-Z]/', $password) || 
+    !preg_match('/[a-z]/', $password) || 
+    !preg_match('/\d/', $password) || 
+    !preg_match('/[^A-Za-z0-9]/', $password)) {
+    return "Password does not meet requirements.";
+  }
+  return ""; // valid
+}
+
 function normalizePhoneNumber($rawPhone) {
   // Remove all characters except numbers and plus sign
   $cleaned = preg_replace('/[^\d+]/', '', $rawPhone);
@@ -46,33 +58,20 @@ function normalizePhoneNumber($rawPhone) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-  function validatePassword($password) {
-    // Check all rules, but return only a simple generic message if any fail
-    if (strlen($password) < 8 || 
-      !preg_match('/[A-Z]/', $password) || 
-      !preg_match('/[a-z]/', $password) || 
-      !preg_match('/\d/', $password) || 
-      !preg_match('/[^A-Za-z0-9]/', $password)) {
-      return "Password does not meet requirements.";
-    }
-    return ""; // valid
-  }
-  
-
-    $full_name = trim($_POST['full_name'] ?? '');
-    $username = trim($_POST['username'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $phone = trim($_POST['phone'] ?? '');
-    $password = $_POST['password'] ?? '';
-    $confirm_password = $_POST['confirm_password'] ?? '';
-    $country = trim($_POST['country'] ?? '');
-    $county = trim($_POST['county'] ?? '');
-    $ward = trim($_POST['ward'] ?? '');
-    $address = trim($_POST['address'] ?? '');
-    $busname = trim($_POST['busname'] ?? '');
-    $busmodel = trim($_POST['busmodel'] ?? '');
-    $bustype = trim($_POST['bustype'] ?? '');
-    $market = trim($_POST['market'] ?? '');
+  $full_name = trim($_POST['full_name'] ?? '');
+  $username = trim($_POST['username'] ?? '');
+  $email = trim($_POST['email'] ?? '');
+  $phone = trim($_POST['phone'] ?? '');
+  $password = $_POST['password'] ?? '';
+  $confirm_password = $_POST['confirm_password'] ?? '';
+  $country = trim($_POST['country'] ?? '');
+  $county = trim($_POST['county'] ?? '');
+  $ward = trim($_POST['ward'] ?? '');
+  $address = trim($_POST['address'] ?? '');
+  $busname = trim($_POST['busname'] ?? '');
+  $busmodel = trim($_POST['busmodel'] ?? '');
+  $bustype = trim($_POST['bustype'] ?? '');
+  $market = trim($_POST['market'] ?? '');
 
   if (!$full_name || !$username || !$email || !$phone || !$password || !$confirm_password || !$country || !$county || !$ward || !$address || ($accountType === 'seller' && (!$busname || !$busmodel || !$bustype || !$market))) {
     $error = "All fields are required.";
@@ -82,12 +81,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $error = "Full name must include at least first and last name!";
   } elseif (strpos($username, ' ') !== false) {
     $error = 'Username should not have space(s)!';
-  } elseif (strlen($username) > 20) {
-      $error = 'Username should contain a maximum of 20 characters!';
   } elseif (strlen($username) < 5) {
     $error = 'Username is too short!';
-  } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    $error = "Invalid email address!";
   } elseif (strlen($username) > 20) {
     $error = 'Username is too long!';
   } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -164,7 +159,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           );
 
           if ($stmt->execute()) {
-            $success = "Account registered successfully! <span id='redirect-msg'></span>";
+            $success = "Account registered successfully! <span class='redirect-msg'></span>";
           } else {
             $error = "Error: " . $stmt->error;
           }
@@ -227,7 +222,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           <?php if ($error): ?>
             <p class="errorMessage"><i class="fa-solid fa-circle-exclamation"></i> <?= $error ?></p>
           <?php elseif ($success): ?>
-            <p class="successMessage"><i class="fa-solid fa-check-circle"></i> <?= $success ?></p>
+            <p class="successMessage">
+              <i class="fa-solid fa-check-circle"></i> <?= $success ?>
+            </p>
           <?php endif; ?>
           <div class="form-content-wrapper">
             <div class="form-content">
