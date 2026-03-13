@@ -69,8 +69,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $error = 'Username is too long!';
   } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $error = 'Invalid email address!';
+  } elseif (!preg_match('/^[0-9+\-\(\)\s]+$/', $phone)) {
+    $error = "Phone number contains invalid characters!";
   } else {
     $encrypted_email = base64_encode($email);
+    $normalized_phone = normalizePhoneNumber($phone);
 
     $checkUserQuery = "SELECT * FROM users WHERE email = ? OR username = ?";
     $stmt = $conn->prepare($checkUserQuery);
@@ -87,15 +90,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       $stmt->execute();
       $stmt->store_result();
 
-      /* 1️⃣ Check invalid characters first */
-      if (!preg_match('/^[0-9+\-\(\)\s]+$/', $phone)) {
-        $error = "Phone number contains invalid characters!";
-      }
-
-      /* 2️⃣ Normalize phone */
-      $normalized_phone = normalizePhoneNumber($phone);
-
-      else if (!$normalized_phone || !preg_match('/^(\+254\d{9}|0\d{9})$/', $normalized_phone)) {
+      if (!$normalized_phone || !preg_match('/^(\+254\d{9}|0\d{9})$/', $normalized_phone)) {
         $error = "Please enter a valid phone number!";
       } elseif ($stmt->num_rows > 0) {
         $error = "Phone number already exists!";

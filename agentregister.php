@@ -118,6 +118,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $error = 'Username is too long!';
   } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $error = 'Invalid email address!';
+  } elseif (!preg_match('/^[0-9+\-\(\)\s]+$/', $phone)) {
+    $error = "Phone number contains invalid characters!";
   } elseif ($accountType === 'seller' && strlen($busname) > 25) {
     $error = "Business name too long!";
   } elseif (strlen($address) > 25) {

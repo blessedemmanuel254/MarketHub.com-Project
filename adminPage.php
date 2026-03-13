@@ -404,7 +404,9 @@ elseif(strlen($editUsername) < 5){
 
 elseif(!filter_var($editEmail,FILTER_VALIDATE_EMAIL)){
   $editError = "Invalid email.";
-}
+} elseif (!preg_match('/^[0-9+\-\(\)\s]+$/', $editPhone)) {
+  $editError = "Phone number contains invalid characters!";
+} 
 
 /* ---------- Seller extra validation ---------- */
 

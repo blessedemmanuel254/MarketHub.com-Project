@@ -128,31 +128,33 @@ if($_SERVER["REQUEST_METHOD"] === "POST"){
   $defaultPassword = "Makethub123#";
 
   if(!$agent_full_name || !$agent_username || !$agent_email || !$agent_phone || !$agent_country || !$agent_county || !$agent_ward || !$agent_address){
-      $agent_error = "All fields are required.";
+    $agent_error = "All fields are required.";
   }
 
   elseif(str_word_count($agent_full_name) < 2){
-      $agent_error = "Full name must include at least first and last name!";
+    $agent_error = "Full name must include at least first and last name!";
   }
 
   elseif(strpos($agent_username,' ') !== false){
-      $agent_error = "Username should not have space(s)!";
+    $agent_error = "Username should not have space(s)!";
   }
 
   elseif(strlen($agent_username) > 20){
-      $agent_error = "Username should contain a maximum of 20 characters!";
+    $agent_error = "Username should contain a maximum of 20 characters!";
   }
 
   elseif(strlen($agent_username) < 5){
-      $agent_error = "Username is too short!";
+    $agent_error = "Username is too short!";
   }
 
   elseif(!filter_var($agent_email, FILTER_VALIDATE_EMAIL)){
-      $agent_error = "Invalid email address!";
-  }
+    $agent_error = "Invalid email address!";
+  } elseif (!preg_match('/^[0-9+\-\(\)\s]+$/', $agent_phone)) {
+    $agent_error = "Phone number contains invalid characters!";
+  } 
 
   elseif(strlen($agent_address) > 25){
-      $agent_error = "Address too long!";
+    $agent_error = "Address too long!";
   }
 
   else{
@@ -160,7 +162,7 @@ if($_SERVER["REQUEST_METHOD"] === "POST"){
       $normalized_phone = normalizePhoneNumber($agent_phone);
 
       if(!$normalized_phone || !preg_match('/^(\+254\d{9}|0\d{9})$/',$normalized_phone)){
-          $agent_error = "Please enter a valid phone number!";
+        $agent_error = "Please enter a valid phone number!";
       }
 
       else{

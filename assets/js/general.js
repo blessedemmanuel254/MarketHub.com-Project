@@ -1056,11 +1056,32 @@ function toggleAgentAdd(showAdd) {
   if (showAdd) {
     products.classList.remove("active");
     addProducts.classList.add("active");
+
+    // Save state
+    localStorage.setItem("agentAddView", "add");
+
   } else {
     products.classList.add("active");
     addProducts.classList.remove("active");
+
+    // Save state
+    localStorage.setItem("agentAddView", "agency");
   }
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  const savedView = localStorage.getItem("agentAddView");
+
+  if (savedView === "add") {
+    toggleAgentAdd(true);
+  }
+
+  if (savedView === "agency") {
+    toggleAgentAdd(false);
+  }
+
+});
 
 // ADMIN DASHBOARD JS
 function toggleNavigationBar() {

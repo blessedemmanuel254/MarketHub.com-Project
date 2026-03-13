@@ -222,25 +222,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 </label>
 
                 <label class="account-type">
-                  <input type="radio" name="login_type" value="seller" required>
+                  <input type="radio" name="login_type" value="seller">
                   <div class="radio-dot"></div>
                   Seller
                 </label>
 
                 <label class="account-type">
-                  <input type="radio" name="login_type" value="sales_agent" required>
+                  <input type="radio" name="login_type" value="sales_agent">
                   <div class="radio-dot"></div>
                   Agent
                 </label>
 
                 <label class="account-type">
-                  <input type="radio" name="login_type" value="property_owner" required>
+                  <input type="radio" name="login_type" value="property_owner">
                   <div class="radio-dot"></div>
                   Property&nbsp;Owner
                 </label>
 
                 <label class="account-type">
-                  <input type="radio" name="login_type" value="administrator" required>
+                  <input type="radio" name="login_type" value="administrator">
                   <div class="radio-dot"></div>
                   Administrator
                 </label>

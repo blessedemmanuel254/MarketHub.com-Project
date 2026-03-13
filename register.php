@@ -57,6 +57,20 @@ function normalizePhoneNumber($rawPhone) {
   return '';
 }
 
+function normalizeBusinessName($name) {
+
+  // Remove leading and trailing spaces
+  $name = trim($name);
+
+  // Convert multiple spaces to a single space
+  $name = preg_replace('/\s+/', ' ', $name);
+
+  // Convert to lowercase for comparison
+  $name = strtolower($name);
+
+  return $name;
+}
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $full_name = trim($_POST['full_name'] ?? '');
   $username = trim($_POST['username'] ?? '');
@@ -69,6 +83,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $ward = trim($_POST['ward'] ?? '');
   $address = trim($_POST['address'] ?? '');
   $busname = trim($_POST['busname'] ?? '');
+  $normalizedBusname = normalizeBusinessName($busname);
   $busmodel = trim($_POST['busmodel'] ?? '');
   $bustype = trim($_POST['bustype'] ?? '');
   $market = trim($_POST['market'] ?? '');
@@ -87,6 +102,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $error = 'Username is too long!';
   } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $error = 'Invalid email address!';
+  } elseif (!preg_match('/^[0-9+\-\(\)\s]+$/', $phone)) {
+    $error = "Phone number contains invalid characters!";
   } elseif ($accountType === 'seller' && strlen($busname) > 25) {
     $error = "Business name too long!";
   } elseif (strlen($address) > 25) {
@@ -114,7 +131,34 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $error = "Please enter a valid phone number!";
       } elseif ($stmt->num_rows > 0) {
         $error = "Phone number already exists!";
-      } elseif ($password !== $confirm_password) {
+        
+      } 
+
+      /* -----------------------------
+      CHECK BUSINESS NAME (CASE INSENSITIVE)
+      ----------------------------- */
+
+      elseif ($accountType === 'seller') {
+
+        $stmt = $conn->prepare("
+            SELECT user_id 
+            FROM users 
+            WHERE LOWER(business_name) = LOWER(?) 
+            LIMIT 1
+        ");
+
+        $stmt->bind_param("s", $normalizedBusname);
+        $stmt->execute();
+        $stmt->store_result();
+
+        if ($stmt->num_rows > 0) {
+            $error = "Business name already exists.";
+        }
+
+        $stmt->close();
+      }
+      
+      if ($password !== $confirm_password) {
         $error = 'Passwords do not match!';
       } else {
         // Validate password strength
@@ -124,6 +168,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       } else {
 
         if (!$error) {
+          $busname = ucwords($normalizedBusname);
           $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
           // Force NULL for buyer accounts
           if ($accountType === 'buyer') {
