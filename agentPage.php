@@ -1232,7 +1232,7 @@ if ($isVerified === 1 && $status === 'active') {
               </a>
 
               <!-- GLOBAL -->
-              <a class="card">
+              <a class="card" onclick="openMarketSource('shopsL')">
                 <i class="fa-solid fa-earth-americas"></i>
                 <h2>Global Market</h2>
                 <p>
@@ -1257,7 +1257,7 @@ if ($isVerified === 1 && $status === 'active') {
 
             <div class="cards">
               <!-- LOCAL -->
-              <a class="card">
+              <a class="card" onclick="openMarketSource('shopsL')">
                 <div class="tag">MOST VISITED</div>
                 <i class="fa-solid fa-screwdriver-wrench"></i>
                 <h2>Local Services</h2>
@@ -1286,7 +1286,7 @@ if ($isVerified === 1 && $status === 'active') {
               </a>
 
               <!-- GLOBAL -->
-              <a class="card">
+              <a class="card" onclick="openMarketSource('shopsL')">
                 <i class="fa-solid fa-globe"></i>
                 <h2>Global Services</h2>
                 <p>
@@ -1311,7 +1311,7 @@ if ($isVerified === 1 && $status === 'active') {
 
             <div class="cards">
               <!-- LOCAL -->
-              <a class="card">
+              <a class="card" onclick="openMarketSource('shopsL')">
                 <div class="tag">MOST VISITED</div>
                 <i class="fa-solid fa-house"></i>
                 <h2>Local Rentals</h2>
@@ -1356,7 +1356,7 @@ if ($isVerified === 1 && $status === 'active') {
           </div>
         </div>
       </div>
-      <div class="tabs-container" id="toggleMarketSourceTab">
+      <div class="tabs-container toggleMarketSourceTab">
         <div class="tabs">
           <button class="tab-btn-msource" data-tab="shops">Shops</button>
           <button class="tab-btn-msource" data-tab="supermarkets">Supermarkets</button><!-- 

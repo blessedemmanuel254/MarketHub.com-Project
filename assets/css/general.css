@@ -567,7 +567,7 @@ html body.no-scroll {
   gap: 10px;
 }
 
-#toggleMarketSourceTab, #toggleMarketTypeTabAgent {
+.toggleMarketSourceTab, .toggleMarketTypeTabAgent {
   display: none;
 }
 
@@ -725,7 +725,7 @@ html body.no-scroll {
   color: #ffffff;
 }
 
-.tabs-container .tab-content .tab-panel p strong, .tabs-container .tab-content .tab-panel-msource p strong, .container main .tab-top p strong, .tabs-container .tab-content .tab-panel-mtype p strong, #toggleMarketSourceTab .tab-content .tab-panel p strong, #toggleMarketSourceTab .tab-content .tab-panel-msource p strong, .tab-panel-admin .tab-top p strong {
+.tabs-container .tab-content .tab-panel p strong, .tabs-container .tab-content .tab-panel-msource p strong, .container main .tab-top p strong, .tabs-container .tab-content .tab-panel-mtype p strong, .toggleMarketSourceTab .tab-content .tab-panel p strong, .toggleMarketSourceTab .tab-content .tab-panel-msource p strong, .tab-panel-admin .tab-top p strong {
   font-size: 15px;
   font-weight: normal;
   color: #088000;

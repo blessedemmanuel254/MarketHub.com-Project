@@ -196,11 +196,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $orderStmt->close();
 
         // 3️⃣ Insert order item
+        $subtotal = $realPrice * $quantity;
+
         $itemStmt = $conn->prepare("
-            INSERT INTO order_items (order_id, product_id, seller_id, quantity, price)
-            VALUES (?, ?, ?, ?, ?)
+          INSERT INTO order_items 
+          (order_id, product_id, seller_id, quantity, price, subtotal)
+          VALUES (?, ?, ?, ?, ?, ?)
         ");
-        $itemStmt->bind_param("iiiid", $orderId, $productId, $sellerId, $quantity, $realPrice);
+
+        $itemStmt->bind_param(
+          "iiiidd",
+          $orderId,
+          $productId,
+          $sellerId,
+          $quantity,
+          $realPrice,
+          $subtotal
+        );
+
         $itemStmt->execute();
         $itemStmt->close();
 
@@ -284,11 +297,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             }
 
             // --- Insert order item ---
+            $subtotal = $price * $quantity;
+
             $itemStmt = $conn->prepare("
-                INSERT INTO order_items (order_id, product_id, seller_id, quantity, price)
-                VALUES (?, ?, ?, ?, ?)
+              INSERT INTO order_items 
+              (order_id, product_id, seller_id, quantity, price, subtotal)
+              VALUES (?, ?, ?, ?, ?, ?)
             ");
-            $itemStmt->bind_param("iiiid", $orderId, $productId, $sellerId, $quantity, $price);
+
+            $itemStmt->bind_param(
+              "iiiidd",
+              $orderId,
+              $productId,
+              $sellerId,
+              $quantity,
+              $price,
+              $subtotal
+            );
+
             $itemStmt->execute();
             $itemStmt->close();
 
@@ -491,20 +517,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
             // Insert order items
             foreach ($items as $item) {
-                $itemStmt = $conn->prepare("
-                    INSERT INTO order_items (order_id, product_id, seller_id, quantity, price)
-                    VALUES (?, ?, ?, ?, ?)
-                ");
-                $itemStmt->bind_param(
-                    "iiiid",
-                    $orderId,
-                    $item['product_id'],
-                    $sellerId,
-                    $item['quantity'],
-                    $item['price']
-                );
-                $itemStmt->execute();
-                $itemStmt->close();
+            $subtotal = $item['price'] * $item['quantity'];
+
+            $itemStmt = $conn->prepare("
+                INSERT INTO order_items 
+                (order_id, product_id, seller_id, quantity, price, subtotal)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ");
+
+            $itemStmt->bind_param(
+                "iiiidd",
+                $orderId,
+                $item['product_id'],
+                $sellerId,
+                $item['quantity'],
+                $item['price'],
+                $subtotal
+            );
+
+              $itemStmt->execute();
+              $itemStmt->close();
             }
         }
 

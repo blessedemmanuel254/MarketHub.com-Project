@@ -270,7 +270,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
               </a>
 
               <!-- GLOBAL -->
-              <a class="card">
+              <a class="card" onclick="openMarketSource('shopsL')">
                 <i class="fa-solid fa-globe"></i>
                 <h2>Global Services</h2>
                 <p>
@@ -335,7 +335,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
           </div>
         </div>
       </div>
-      <div class="tabs-container" id="toggleMarketSourceTab">
+      <div class="tabs-container" class="toggleMarketSourceTab">
         <div class="tabs">
           <button class="tab-btn-msource active" data-tab="shops">Shops</button>
           <button class="tab-btn-msource" data-tab="supermarkets">Supermarkets</button><!-- 
