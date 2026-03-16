@@ -222,22 +222,77 @@ $result = $stmt->get_result();
 $shops = [];
 $supermarkets = [];
 
+$shopsN = [];
+$supermarketsN = [];
+
+$shopsG = [];
+$supermarketsG = [];
+
 while ($row = $result->fetch_assoc()) {
 
   $row['business_name'] = ucwords(strtolower($row['business_name']));
   $row['business_type'] = ucwords(strtolower($row['business_type']));
   $row['address'] = ucwords(strtolower($row['address']));
 
-  // Normalize type for comparison
   $type = strtolower(trim($row['business_type']));
+  $scope = strtolower(trim($row['market_scope']));
 
-  if (in_array($type, ['shop', 'kiosk', 'canteen', 'kibanda'])) {
+  /* ---------- LOCAL ---------- */
+  if ($scope === "local") {
+
+    if (in_array($type, ['shop','kiosk','canteen','kibanda'])) {
       $shops[] = $row;
-  } elseif (in_array($type, ['supermarket', 'wholesale'])) {
+    }
+
+    elseif (in_array($type, ['supermarket','wholesale'])) {
       $supermarkets[] = $row;
+    }
+
   }
+
+  /* ---------- NATIONAL ---------- */
+  elseif ($scope === "national") {
+
+    if (in_array($type, ['shop','kiosk','canteen','kibanda'])) {
+      $shopsN[] = $row;
+    }
+
+    elseif (in_array($type, ['supermarket','wholesale'])) {
+      $supermarketsN[] = $row;
+    }
+
+  }
+
+  /* ---------- GLOBAL ---------- */
+  elseif ($scope === "global") {
+
+    if (in_array($type, ['shop','kiosk','canteen','kibanda'])) {
+      $shopsG[] = $row;
+    }
+
+    elseif (in_array($type, ['supermarket','wholesale'])) {
+      $supermarketsG[] = $row;
+    }
+
+  }
+
 }
 $stmt->close();
+
+$markets = [
+  'L' => [
+    'shops' => $shops,
+    'supermarkets' => $supermarkets
+  ],
+  'N' => [
+    'shops' => $shopsN,
+    'supermarkets' => $supermarketsN
+  ],
+  'G' => [
+    'shops' => $shopsG,
+    'supermarkets' => $supermarketsG
+  ]
+];
 
 $buyerId = $_SESSION['user_id'];
 
@@ -383,11 +438,11 @@ while ($row = $query->fetch_assoc()) {
     </div>
 
     <main class="buyerMain" id="marketMain">
-      <div class="tabs-container strongRed" id="toggleMarketTypeTab">
+      <div class="tabs-container strongRed" id="toggleMarketTypeTab" data-tab-storage="marketTypeTabs">
         <div class="tabs">
           <button class="tab-btn" data-tab="products">Products</button>
-          <button class="tab-btn" data-tab="services">Services</button>
-          <button class="tab-btn" data-tab="rentals">Rentals</button>
+          <button class="tab-btn" data-tab="services">Services</button><!-- 
+          <button class="tab-btn" data-tab="rentals">Rentals</button> -->
         </div>
 
         <div class="tab-content">
@@ -396,7 +451,7 @@ while ($row = $query->fetch_assoc()) {
 
             <div class="cards">
               <!-- LOCAL -->
-              <a class="card" onclick="openMarketSource('shops')">
+              <a class="card" onclick="openMarketSource('shopsL'); return false;">
                 <i class="fa-solid fa-location-dot"></i>
                 <h2>Local Market</h2>
                 <p>
@@ -410,7 +465,7 @@ while ($row = $query->fetch_assoc()) {
               </a>
 
               <!-- NATIONAL (MOST VISITED) -->
-              <a class="card" onclick="openMarketSource('shopsL')">
+              <a class="card" onclick="openMarketSource('shopsN'); return false;">
                 <div class="tag">MOST VISITED</div>
                 <i class="fa-solid fa-flag-usa"></i>
                 <h2>National Market</h2>
@@ -425,7 +480,7 @@ while ($row = $query->fetch_assoc()) {
               </a>
 
               <!-- GLOBAL -->
-              <a class="card" onclick="openMarketSource('shopsL')">
+              <a class="card" onclick="openMarketSource('shopsG'); return false;">
                 <i class="fa-solid fa-earth-americas"></i>
                 <h2>Global Market</h2>
                 <p>
@@ -460,7 +515,7 @@ while ($row = $query->fetch_assoc()) {
               </a>
 
               <!-- NATIONAL (MOST VISITED) -->
-              <a class="card" onclick="openMarketSource('shopsL')">
+              <a class="card" onclick="openMarketSource('shopsN')">
                 <i class="fa-solid fa-laptop-code"></i>
                 <h2>National Services</h2>
                 <p>
@@ -474,7 +529,7 @@ while ($row = $query->fetch_assoc()) {
               </a>
 
               <!-- GLOBAL -->
-              <a class="card" onclick="openMarketSource('shopsL')">
+              <a class="card" onclick="openMarketSource('shopsG')">
                 <i class="fa-solid fa-globe"></i>
                 <h2>Global Services</h2>
                 <p>
@@ -509,7 +564,7 @@ while ($row = $query->fetch_assoc()) {
               </a>
 
               <!-- NATIONAL (MOST VISITED) -->
-              <a class="card" onclick="openMarketSource('shopsL')">
+              <a class="card" onclick="openMarketSource('shopsN')">
                 <i class="fa-solid fa-building"></i>
                 <h2>National Rentals</h2>
                 <p>
@@ -523,7 +578,7 @@ while ($row = $query->fetch_assoc()) {
               </a>
 
               <!-- GLOBAL -->
-              <a class="card" onclick="openMarketSource('shopsL')">
+              <a class="card" onclick="openMarketSource('shopsG')">
                 <i class="fa-solid fa-jet-fighter-up"></i>
                 <h2>Global Rentals</h2>
                 <p>
@@ -539,762 +594,206 @@ while ($row = $query->fetch_assoc()) {
           </div>
         </div>
       </div>
-      <div class="tabs-container toggleMarketSourceTab">
+      <?php foreach ($markets as $scope => $types): ?>
+
+      <div class="tabs-container toggleMarketSourceTab" data-tab-storage="marketSource<?= $scope ?>Tabs">
+
         <div class="tabs">
-          <button class="tab-btn-msource" data-tab="shops">Shops(L)</button>
-          <button class="tab-btn-msource" data-tab="supermarkets">Supermarkets(L)</button><!-- 
-          <button class="tab-btn-msource" data-tab="rentals">Rentals</button> -->
+          <?php foreach ($types as $type => $array): ?>
+            <button class="tab-btn-msource" data-tab="<?= $type . $scope ?>">
+              <?= ucfirst($type) ?>(<?= $scope ?>)
+            </button>
+          <?php endforeach; ?>
         </div>
 
         <div class="tab-content">
-          <div id="shops" class="tab-panel-msource">
+
+        <?php foreach ($types as $type => $sellers): ?>
+
+          <div id="<?= $type . $scope ?>" class="tab-panel-msource">
+
             <div class="tab-top">
-              <p>Showing markets in <em>Sokoni Ward</em> <br><strong>Please select the market source <i class="fa-regular fa-circle-check"></i></strong></p>
+              <p>
+                Showing markets in <em>Sokoni Ward</em><br>
+                <strong>Please select the market source <i class="fa-regular fa-circle-check"></i></strong>
+              </p>
+
               <button onclick="goBackToMarketTypes()">
-                <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
+                <i class="fa-solid fa-circle-arrow-left"></i>
+                <span>Go Back</span>
               </button>
             </div>
 
             <div class="sellers">
-              <?php if (empty($shops)): ?>
-                <div class="no-market-message">
-                  No markets available.
-                </div>
-              <?php else: ?>
-                <?php foreach ($shops as $seller): ?>
-                    <?php
-                        // Safe outputs
-                        $bName = htmlspecialchars($seller['business_name'], ENT_QUOTES, 'UTF-8');
-                        $bType = htmlspecialchars($seller['business_type'], ENT_QUOTES, 'UTF-8');
-                        $address = htmlspecialchars($seller['address'], ENT_QUOTES, 'UTF-8');
-                        $avatar = !empty($seller['profile_image']) && file_exists($seller['profile_image']) 
-                                  ? htmlspecialchars($seller['profile_image'], ENT_QUOTES, 'UTF-8') 
-                                  : $defaultAvatar;
-                        $initials = strtoupper(substr($bName, 0, 1)) . (isset($seller['business_name'][1]) ? strtoupper(substr($bName, 1, 1)) : '');
-                    ?>
-                    <div class="seller">
-                        <div class="seller-left">
-                            <div class="avatar"><?php echo $initials; ?></div>
-                            <div>
-                                <div class="name"><?php echo $bName; ?></div>
-                                <div class="rating">★★★★★ (<?php echo rand(5, 200); ?>)</div>
-                                <div class="meta">
-                                  <h2 class="following-count" data-seller="<?php echo $seller['user_id']; ?>">
-                                      <?php echo $seller['following_count']; ?>&nbsp;<span>following</span>
-                                  </h2>
 
-                                  <h2 
-                                    class="<?php echo $seller['is_following'] ? 'followingBtn' : 'followBtn'; ?>" 
-                                    data-seller="<?php echo $seller['user_id']; ?>"
-                                  >
-                                    <?php echo $seller['is_following'] ? 'Following' : 'Follow'; ?>
-                                  </h2>
-                                </div>
+            <?php if (empty($sellers)): ?>
 
-                                <div class="meta">
-                                    <h2 class="followers-count" data-seller="<?php echo $seller['user_id']; ?>">
-                                        <?php echo $seller['followers_count']; ?>&nbsp;<span>followers</span>
-                                    </h2>
-                                </div>
-                                <div class="bsInfo"><strong>Location :</strong> <?php echo $address; ?></div>
-                            </div>
-                        </div>
-                        <a href="marketDisplay.php?seller=<?php echo $seller['user_id']; ?>" class="seller-right">
-                          <?php
-                          $totalOrders = (int)$seller['total_orders'];
+              <div class="no-market-message">
+                No markets available.
+              </div>
 
-                          /* ---------- BADGE DISPLAY VALUE ---------- */
-                          if ($totalOrders < 100) {
-                              $displayOrders = $totalOrders;
-                          } elseif ($totalOrders < 200) {
-                              $displayOrders = "100+";
-                          } elseif ($totalOrders < 250) {
-                              $displayOrders = "200+";
-                          } else {
-                              $displayOrders = "250+";
-                          }
+            <?php else: ?>
 
-                          /* ---------- BADGE COLOR CLASS ---------- */
-                          if ($totalOrders < 100) {
-                              $badgeClass = 'promoBadgeDefault';
-                          } elseif ($totalOrders < 200) {
-                              $badgeClass = 'promoBadgeGoGold';
-                          } else {
-                              $badgeClass = 'promoBadgeGoPro';
-                          }
-                          ?>
-                          <div class="promo-badge-container">Orders : 
-                            <div class="<?php echo $badgeClass; ?>">
-                              <?php echo $displayOrders; ?>
-                            </div>
-                          </div>
-                          <div class="bsType">Business Type : <i><?php echo $bType; ?></i></div>
-                          <div class="action">
-                              <button>View&nbsp;seller</button>
-                          </div>
-                        </a>
+              <?php foreach ($sellers as $seller): ?>
+
+              <?php
+                $bName = htmlspecialchars($seller['business_name']);
+                $bType = htmlspecialchars($seller['business_type']);
+                $address = htmlspecialchars($seller['address']);
+
+                $initials =
+                  strtoupper(substr($bName,0,1)) .
+                  (isset($bName[1]) ? strtoupper(substr($bName,1,1)) : '');
+
+                $totalOrders = (int)$seller['total_orders'];
+
+                if ($totalOrders < 100) {
+                    $displayOrders = $totalOrders;
+                    $badgeClass = 'promoBadgeDefault';
+                } elseif ($totalOrders < 200) {
+                    $displayOrders = "100+";
+                    $badgeClass = 'promoBadgeGoGold';
+                } else {
+                    $displayOrders = "200+";
+                    $badgeClass = 'promoBadgeGoPro';
+                }
+              ?>
+
+              <div class="seller">
+
+                <div class="seller-left">
+                  <div class="avatar"><?= $initials ?></div>
+
+                  <div>
+                    <div class="name"><?= $bName ?></div>
+
+                    <div class="rating">
+                      ★★★★★ (<?= rand(5,200) ?>)
                     </div>
-                <?php endforeach; ?>
+
+                    <div class="meta">
+
+                      <h2 class="following-count" data-seller="<?= $seller['user_id'] ?>">
+                        <?= $seller['following_count'] ?> <span>following</span>
+                      </h2>
+
+                      <h2
+                        class="<?= $seller['is_following'] ? 'followingBtn':'followBtn' ?>"
+                        data-seller="<?= $seller['user_id'] ?>"
+                      >
+                        <?= $seller['is_following'] ? 'Following':'Follow' ?>
+                      </h2>
+
+                    </div>
+
+                    <div class="meta">
+                      <h2 class="followers-count" data-seller="<?= $seller['user_id'] ?>">
+                        <?= $seller['followers_count'] ?> <span>followers</span>
+                      </h2>
+                    </div>
+
+                    <div class="bsInfo">
+                      <strong>Location :</strong> <?= $address ?>
+                    </div>
+
+                  </div>
+                </div>
+
+                <a href="marketDisplay.php?seller=<?= $seller['user_id'] ?>" class="seller-right">
+
+                  <div class="promo-badge-container">
+                    Orders :
+                    <div class="<?= $badgeClass ?>">
+                      <?= $displayOrders ?>
+                    </div>
+                  </div>
+
+                  <div class="bsType">
+                    Business Type : <i><?= $bType ?></i>
+                  </div>
+
+                  <div class="action">
+                    <button>View seller</button>
+                  </div>
+
+                </a>
+
+              </div>
+
+              <?php endforeach; ?>
+
             <?php endif; ?>
+
             </div>
-            <script>
-            document.addEventListener('click', function (e) {
-                const button = e.target.closest('.followBtn, .followingBtn');
-                if (!button) return;
+            
 
-                e.preventDefault();
+          </div>
 
-                const sellerId = button.dataset.seller;
-                if (!sellerId) return;
+        <?php endforeach; ?>
 
-                fetch(window.location.href, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: `seller_id=${sellerId}`
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (!data.success) {
-                        alert(data.error || 'Something went wrong');
-                        return;
-                    }
+        </div>
 
-                    /* ---------- TOGGLE TEXT ---------- */
-                    button.textContent = data.is_following ? 'Following' : 'Follow';
+          <script>
+          document.addEventListener('click', function (e) {
+            const button = e.target.closest('.followBtn, .followingBtn');
+            if (!button) return;
 
-                    /* ---------- TOGGLE CLASS ---------- */
-                    if (data.is_following) {
-                        button.classList.remove('followBtn');
-                        button.classList.add('followingBtn');
-                    } else {
-                        button.classList.remove('followingBtn');
-                        button.classList.add('followBtn');
-                    }
+            e.preventDefault();
 
-                    /* ---------- UPDATE COUNTS ---------- */
-                    const followersEl = document.querySelector(
-                        `.followers-count[data-seller="${sellerId}"]`
-                    );
-                    const followingEl = document.querySelector(
-                        `.following-count[data-seller="${sellerId}"]`
-                    );
+            const sellerId = button.dataset.seller;
+            if (!sellerId) return;
 
-                    if (followersEl) {
-                        followersEl.innerHTML = `${data.followers}&nbsp;<span>followers</span>`;
-                    }
+            fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: `seller_id=${sellerId}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) {
+                    alert(data.error || 'Something went wrong');
+                    return;
+                }
 
-                    if (followingEl) {
-                        followingEl.innerHTML = `${data.following}&nbsp;<span>following</span>`;
-                    }
-                })
-                .catch(() => {
-                    alert('Network error');
-                });
+                /* ---------- TOGGLE TEXT ---------- */
+                button.textContent = data.is_following ? 'Following' : 'Follow';
+
+                /* ---------- TOGGLE CLASS ---------- */
+                if (data.is_following) {
+                    button.classList.remove('followBtn');
+                    button.classList.add('followingBtn');
+                } else {
+                    button.classList.remove('followingBtn');
+                    button.classList.add('followBtn');
+                }
+
+                /* ---------- UPDATE COUNTS ---------- */
+                const followersEl = document.querySelector(
+                    `.followers-count[data-seller="${sellerId}"]`
+                );
+                const followingEl = document.querySelector(
+                    `.following-count[data-seller="${sellerId}"]`
+                );
+
+                if (followersEl) {
+                    followersEl.innerHTML = `${data.followers}&nbsp;<span>followers</span>`;
+                }
+
+                if (followingEl) {
+                    followingEl.innerHTML = `${data.following}&nbsp;<span>following</span>`;
+                }
+            })
+            .catch(() => {
+                alert('Network error');
             });
-            </script>
-          </div>
-
-          <div id="supermarkets" class="tab-panel-msource">
-            <div class="tab-top">
-              <p>Showing markets in <em>Sokoni Ward</em> <br><strong>Please select the market source <i class="fa-regular fa-circle-check"></i></strong></p>
-              <button onclick="goBackToMarketTypes()">
-                <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
-              </button>
-            </div>
-
-            <!-- SELLERS LIST -->
-            <div class="sellers">
-              <?php if (empty($supermarkets)): ?>
-                <div class="no-market-message">
-                  No markets available.
-                </div>
-              <?php else: ?>
-                <?php foreach ($supermarkets as $seller): ?>
-                    <?php
-                        // Safe outputs
-                        $bName = htmlspecialchars($seller['business_name'], ENT_QUOTES, 'UTF-8');
-                        $bType = htmlspecialchars($seller['business_type'], ENT_QUOTES, 'UTF-8');
-                        $address = htmlspecialchars($seller['address'], ENT_QUOTES, 'UTF-8');
-                        $avatar = !empty($seller['profile_image']) && file_exists($seller['profile_image']) 
-                                  ? htmlspecialchars($seller['profile_image'], ENT_QUOTES, 'UTF-8') 
-                                  : $defaultAvatar;
-                        $initials = strtoupper(substr($bName, 0, 1)) . (isset($seller['business_name'][1]) ? strtoupper(substr($bName, 1, 1)) : '');
-                    ?>
-                    <div class="seller">
-                        <div class="seller-left">
-                            <div class="avatar"><?php echo $initials; ?></div>
-                            <div>
-                                <div class="name"><?php echo $bName; ?></div>
-                                <div class="rating">★★★★★ (<?php echo rand(5, 200); ?>)</div>
-                                <div class="meta">
-                                  <h2 class="following-count" data-seller="<?php echo $seller['user_id']; ?>">
-                                      <?php echo $seller['following_count']; ?>&nbsp;<span>following</span>
-                                  </h2>
-
-                                  <h2 
-                                    class="<?php echo $seller['is_following'] ? 'followingBtn' : 'followBtn'; ?>" 
-                                    data-seller="<?php echo $seller['user_id']; ?>"
-                                  >
-                                    <?php echo $seller['is_following'] ? 'Following' : 'Follow'; ?>
-                                  </h2>
-                                </div>
-
-                                <div class="meta">
-                                    <h2 class="followers-count" data-seller="<?php echo $seller['user_id']; ?>">
-                                        <?php echo $seller['followers_count']; ?>&nbsp;<span>followers</span>
-                                    </h2>
-                                </div>
-                                <div class="bsInfo"><strong>Location :</strong> <?php echo $address; ?></div>
-                            </div>
-                        </div>
-                        <a href="marketDisplay.php?seller=<?php echo $seller['user_id']; ?>" class="seller-right">
-                            <?php
-                            $totalOrders = (int)$seller['total_orders'];
-
-                            /* ---------- BADGE DISPLAY VALUE ---------- */
-                            if ($totalOrders < 100) {
-                                $displayOrders = $totalOrders;
-                            } elseif ($totalOrders < 200) {
-                                $displayOrders = "100+";
-                            } elseif ($totalOrders < 250) {
-                                $displayOrders = "200+";
-                            } else {
-                                $displayOrders = "250+";
-                            }
-
-                            /* ---------- BADGE COLOR CLASS ---------- */
-                            if ($totalOrders < 100) {
-                                $badgeClass = 'promoBadgeDefault';
-                            } elseif ($totalOrders < 200) {
-                                $badgeClass = 'promoBadgeGoGold';
-                            } else {
-                                $badgeClass = 'promoBadgeGoPro';
-                            }
-                            ?>
-                            <div class="promo-badge-container">Orders : 
-                              <div class="<?php echo $badgeClass; ?>">
-                                <?php echo $displayOrders; ?>
-                              </div>
-                            </div>
-                            <div class="bsType">Business Type : <i><?php echo $bType; ?></i></div>
-                            <div class="action">
-                                <button>View&nbsp;seller</button>
-                            </div>
-                        </a>
-                    </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
-            </div>
-          </div>
-        </div>
+          });
+          </script>
       </div>
-      <div class="tabs-container toggleMarketSourceTab">
-        <div class="tabs">
-          <button class="tab-btn-msource" data-tab="shopsN">Shops(N)</button>
-          <button class="tab-btn-msource" data-tab="supermarketsN">Supermarkets(N)</button><!-- 
-          <button class="tab-btn-msource" data-tab="rentals">Rentals</button> -->
-        </div>
 
-        <div class="tab-content">
-          <div id="shopsN" class="tab-panel-msource">
-            <div class="tab-top">
-              <p>Showing markets in <em>Sokoni Ward</em> <br><strong>Please select the market source <i class="fa-regular fa-circle-check"></i></strong></p>
-              <button onclick="goBackToMarketTypes()">
-                <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
-              </button>
-            </div>
-
-            <div class="sellers">
-              <?php if (empty($shops)): ?>
-                <div class="no-market-message">
-                  No markets available.
-                </div>
-              <?php else: ?>
-                <?php foreach ($shops as $seller): ?>
-                    <?php
-                        // Safe outputs
-                        $bName = htmlspecialchars($seller['business_name'], ENT_QUOTES, 'UTF-8');
-                        $bType = htmlspecialchars($seller['business_type'], ENT_QUOTES, 'UTF-8');
-                        $address = htmlspecialchars($seller['address'], ENT_QUOTES, 'UTF-8');
-                        $avatar = !empty($seller['profile_image']) && file_exists($seller['profile_image']) 
-                                  ? htmlspecialchars($seller['profile_image'], ENT_QUOTES, 'UTF-8') 
-                                  : $defaultAvatar;
-                        $initials = strtoupper(substr($bName, 0, 1)) . (isset($seller['business_name'][1]) ? strtoupper(substr($bName, 1, 1)) : '');
-                    ?>
-                    <div class="seller">
-                        <div class="seller-left">
-                            <div class="avatar"><?php echo $initials; ?></div>
-                            <div>
-                                <div class="name"><?php echo $bName; ?></div>
-                                <div class="rating">★★★★★ (<?php echo rand(5, 200); ?>)</div>
-                                <div class="meta">
-                                  <h2 class="following-count" data-seller="<?php echo $seller['user_id']; ?>">
-                                      <?php echo $seller['following_count']; ?>&nbsp;<span>following</span>
-                                  </h2>
-
-                                  <h2 
-                                    class="<?php echo $seller['is_following'] ? 'followingBtn' : 'followBtn'; ?>" 
-                                    data-seller="<?php echo $seller['user_id']; ?>"
-                                  >
-                                    <?php echo $seller['is_following'] ? 'Following' : 'Follow'; ?>
-                                  </h2>
-                                </div>
-
-                                <div class="meta">
-                                    <h2 class="followers-count" data-seller="<?php echo $seller['user_id']; ?>">
-                                        <?php echo $seller['followers_count']; ?>&nbsp;<span>followers</span>
-                                    </h2>
-                                </div>
-                                <div class="bsInfo"><strong>Location :</strong> <?php echo $address; ?></div>
-                            </div>
-                        </div>
-                        <a href="marketDisplay.php?seller=<?php echo $seller['user_id']; ?>" class="seller-right">
-                          <?php
-                          $totalOrders = (int)$seller['total_orders'];
-
-                          /* ---------- BADGE DISPLAY VALUE ---------- */
-                          if ($totalOrders < 100) {
-                              $displayOrders = $totalOrders;
-                          } elseif ($totalOrders < 200) {
-                              $displayOrders = "100+";
-                          } elseif ($totalOrders < 250) {
-                              $displayOrders = "200+";
-                          } else {
-                              $displayOrders = "250+";
-                          }
-
-                          /* ---------- BADGE COLOR CLASS ---------- */
-                          if ($totalOrders < 100) {
-                              $badgeClass = 'promoBadgeDefault';
-                          } elseif ($totalOrders < 200) {
-                              $badgeClass = 'promoBadgeGoGold';
-                          } else {
-                              $badgeClass = 'promoBadgeGoPro';
-                          }
-                          ?>
-                          <div class="promo-badge-container">Orders : 
-                            <div class="<?php echo $badgeClass; ?>">
-                              <?php echo $displayOrders; ?>
-                            </div>
-                          </div>
-                          <div class="bsType">Business Type : <i><?php echo $bType; ?></i></div>
-                          <div class="action">
-                              <button>View&nbsp;seller</button>
-                          </div>
-                        </a>
-                    </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
-            </div>
-            <script>
-            document.addEventListener('click', function (e) {
-                const button = e.target.closest('.followBtn, .followingBtn');
-                if (!button) return;
-
-                e.preventDefault();
-
-                const sellerId = button.dataset.seller;
-                if (!sellerId) return;
-
-                fetch(window.location.href, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: `seller_id=${sellerId}`
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (!data.success) {
-                        alert(data.error || 'Something went wrong');
-                        return;
-                    }
-
-                    /* ---------- TOGGLE TEXT ---------- */
-                    button.textContent = data.is_following ? 'Following' : 'Follow';
-
-                    /* ---------- TOGGLE CLASS ---------- */
-                    if (data.is_following) {
-                        button.classList.remove('followBtn');
-                        button.classList.add('followingBtn');
-                    } else {
-                        button.classList.remove('followingBtn');
-                        button.classList.add('followBtn');
-                    }
-
-                    /* ---------- UPDATE COUNTS ---------- */
-                    const followersEl = document.querySelector(
-                        `.followers-count[data-seller="${sellerId}"]`
-                    );
-                    const followingEl = document.querySelector(
-                        `.following-count[data-seller="${sellerId}"]`
-                    );
-
-                    if (followersEl) {
-                        followersEl.innerHTML = `${data.followers}&nbsp;<span>followers</span>`;
-                    }
-
-                    if (followingEl) {
-                        followingEl.innerHTML = `${data.following}&nbsp;<span>following</span>`;
-                    }
-                })
-                .catch(() => {
-                    alert('Network error');
-                });
-            });
-            </script>
-          </div>
-
-          <div id="supermarketsN" class="tab-panel-msource">
-            <div class="tab-top">
-              <p>Showing markets in <em>Sokoni Ward</em> <br><strong>Please select the market source <i class="fa-regular fa-circle-check"></i></strong></p>
-              <button onclick="goBackToMarketTypes()">
-                <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
-              </button>
-            </div>
-
-            <!-- SELLERS LIST -->
-            <div class="sellers">
-              <?php if (empty($supermarkets)): ?>
-                <div class="no-market-message">
-                  No markets available.
-                </div>
-              <?php else: ?>
-                <?php foreach ($supermarkets as $seller): ?>
-                    <?php
-                        // Safe outputs
-                        $bName = htmlspecialchars($seller['business_name'], ENT_QUOTES, 'UTF-8');
-                        $bType = htmlspecialchars($seller['business_type'], ENT_QUOTES, 'UTF-8');
-                        $address = htmlspecialchars($seller['address'], ENT_QUOTES, 'UTF-8');
-                        $avatar = !empty($seller['profile_image']) && file_exists($seller['profile_image']) 
-                                  ? htmlspecialchars($seller['profile_image'], ENT_QUOTES, 'UTF-8') 
-                                  : $defaultAvatar;
-                        $initials = strtoupper(substr($bName, 0, 1)) . (isset($seller['business_name'][1]) ? strtoupper(substr($bName, 1, 1)) : '');
-                    ?>
-                    <div class="seller">
-                        <div class="seller-left">
-                            <div class="avatar"><?php echo $initials; ?></div>
-                            <div>
-                                <div class="name"><?php echo $bName; ?></div>
-                                <div class="rating">★★★★★ (<?php echo rand(5, 200); ?>)</div>
-                                <div class="meta">
-                                  <h2 class="following-count" data-seller="<?php echo $seller['user_id']; ?>">
-                                      <?php echo $seller['following_count']; ?>&nbsp;<span>following</span>
-                                  </h2>
-
-                                  <h2 
-                                    class="<?php echo $seller['is_following'] ? 'followingBtn' : 'followBtn'; ?>" 
-                                    data-seller="<?php echo $seller['user_id']; ?>"
-                                  >
-                                    <?php echo $seller['is_following'] ? 'Following' : 'Follow'; ?>
-                                  </h2>
-                                </div>
-
-                                <div class="meta">
-                                    <h2 class="followers-count" data-seller="<?php echo $seller['user_id']; ?>">
-                                        <?php echo $seller['followers_count']; ?>&nbsp;<span>followers</span>
-                                    </h2>
-                                </div>
-                                <div class="bsInfo"><strong>Location :</strong> <?php echo $address; ?></div>
-                            </div>
-                        </div>
-                        <a href="marketDisplay.php?seller=<?php echo $seller['user_id']; ?>" class="seller-right">
-                            <?php
-                            $totalOrders = (int)$seller['total_orders'];
-
-                            /* ---------- BADGE DISPLAY VALUE ---------- */
-                            if ($totalOrders < 100) {
-                                $displayOrders = $totalOrders;
-                            } elseif ($totalOrders < 200) {
-                                $displayOrders = "100+";
-                            } elseif ($totalOrders < 250) {
-                                $displayOrders = "200+";
-                            } else {
-                                $displayOrders = "250+";
-                            }
-
-                            /* ---------- BADGE COLOR CLASS ---------- */
-                            if ($totalOrders < 100) {
-                                $badgeClass = 'promoBadgeDefault';
-                            } elseif ($totalOrders < 200) {
-                                $badgeClass = 'promoBadgeGoGold';
-                            } else {
-                                $badgeClass = 'promoBadgeGoPro';
-                            }
-                            ?>
-                            <div class="promo-badge-container">Orders : 
-                              <div class="<?php echo $badgeClass; ?>">
-                                <?php echo $displayOrders; ?>
-                              </div>
-                            </div>
-                            <div class="bsType">Business Type : <i><?php echo $bType; ?></i></div>
-                            <div class="action">
-                                <button>View&nbsp;seller</button>
-                            </div>
-                        </a>
-                    </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="tabs-container toggleMarketSourceTab">
-        <div class="tabs">
-          <button class="tab-btn-msource" data-tab="shops">Shops(G)</button>
-          <button class="tab-btn-msource" data-tab="supermarkets">Supermarkets(G)</button><!-- 
-          <button class="tab-btn-msource" data-tab="rentals">Rentals</button> -->
-        </div>
-
-        <div class="tab-content">
-          <div id="shopsG" class="tab-panel-msource">
-            <div class="tab-top">
-              <p>Showing markets in <em>Sokoni Ward</em> <br><strong>Please select the market source <i class="fa-regular fa-circle-check"></i></strong></p>
-              <button onclick="goBackToMarketTypes()">
-                <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
-              </button>
-            </div>
-
-            <div class="sellers">
-              <?php if (empty($shops)): ?>
-                <div class="no-market-message">
-                  No markets available.
-                </div>
-              <?php else: ?>
-                <?php foreach ($shops as $seller): ?>
-                    <?php
-                        // Safe outputs
-                        $bName = htmlspecialchars($seller['business_name'], ENT_QUOTES, 'UTF-8');
-                        $bType = htmlspecialchars($seller['business_type'], ENT_QUOTES, 'UTF-8');
-                        $address = htmlspecialchars($seller['address'], ENT_QUOTES, 'UTF-8');
-                        $avatar = !empty($seller['profile_image']) && file_exists($seller['profile_image']) 
-                                  ? htmlspecialchars($seller['profile_image'], ENT_QUOTES, 'UTF-8') 
-                                  : $defaultAvatar;
-                        $initials = strtoupper(substr($bName, 0, 1)) . (isset($seller['business_name'][1]) ? strtoupper(substr($bName, 1, 1)) : '');
-                    ?>
-                    <div class="seller">
-                        <div class="seller-left">
-                            <div class="avatar"><?php echo $initials; ?></div>
-                            <div>
-                                <div class="name"><?php echo $bName; ?></div>
-                                <div class="rating">★★★★★ (<?php echo rand(5, 200); ?>)</div>
-                                <div class="meta">
-                                  <h2 class="following-count" data-seller="<?php echo $seller['user_id']; ?>">
-                                      <?php echo $seller['following_count']; ?>&nbsp;<span>following</span>
-                                  </h2>
-
-                                  <h2 
-                                    class="<?php echo $seller['is_following'] ? 'followingBtn' : 'followBtn'; ?>" 
-                                    data-seller="<?php echo $seller['user_id']; ?>"
-                                  >
-                                    <?php echo $seller['is_following'] ? 'Following' : 'Follow'; ?>
-                                  </h2>
-                                </div>
-
-                                <div class="meta">
-                                    <h2 class="followers-count" data-seller="<?php echo $seller['user_id']; ?>">
-                                        <?php echo $seller['followers_count']; ?>&nbsp;<span>followers</span>
-                                    </h2>
-                                </div>
-                                <div class="bsInfo"><strong>Location :</strong> <?php echo $address; ?></div>
-                            </div>
-                        </div>
-                        <a href="marketDisplay.php?seller=<?php echo $seller['user_id']; ?>" class="seller-right">
-                          <?php
-                          $totalOrders = (int)$seller['total_orders'];
-
-                          /* ---------- BADGE DISPLAY VALUE ---------- */
-                          if ($totalOrders < 100) {
-                              $displayOrders = $totalOrders;
-                          } elseif ($totalOrders < 200) {
-                              $displayOrders = "100+";
-                          } elseif ($totalOrders < 250) {
-                              $displayOrders = "200+";
-                          } else {
-                              $displayOrders = "250+";
-                          }
-
-                          /* ---------- BADGE COLOR CLASS ---------- */
-                          if ($totalOrders < 100) {
-                              $badgeClass = 'promoBadgeDefault';
-                          } elseif ($totalOrders < 200) {
-                              $badgeClass = 'promoBadgeGoGold';
-                          } else {
-                              $badgeClass = 'promoBadgeGoPro';
-                          }
-                          ?>
-                          <div class="promo-badge-container">Orders : 
-                            <div class="<?php echo $badgeClass; ?>">
-                              <?php echo $displayOrders; ?>
-                            </div>
-                          </div>
-                          <div class="bsType">Business Type : <i><?php echo $bType; ?></i></div>
-                          <div class="action">
-                              <button>View&nbsp;seller</button>
-                          </div>
-                        </a>
-                    </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
-            </div>
-            <script>
-            document.addEventListener('click', function (e) {
-                const button = e.target.closest('.followBtn, .followingBtn');
-                if (!button) return;
-
-                e.preventDefault();
-
-                const sellerId = button.dataset.seller;
-                if (!sellerId) return;
-
-                fetch(window.location.href, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: `seller_id=${sellerId}`
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (!data.success) {
-                        alert(data.error || 'Something went wrong');
-                        return;
-                    }
-
-                    /* ---------- TOGGLE TEXT ---------- */
-                    button.textContent = data.is_following ? 'Following' : 'Follow';
-
-                    /* ---------- TOGGLE CLASS ---------- */
-                    if (data.is_following) {
-                        button.classList.remove('followBtn');
-                        button.classList.add('followingBtn');
-                    } else {
-                        button.classList.remove('followingBtn');
-                        button.classList.add('followBtn');
-                    }
-
-                    /* ---------- UPDATE COUNTS ---------- */
-                    const followersEl = document.querySelector(
-                        `.followers-count[data-seller="${sellerId}"]`
-                    );
-                    const followingEl = document.querySelector(
-                        `.following-count[data-seller="${sellerId}"]`
-                    );
-
-                    if (followersEl) {
-                        followersEl.innerHTML = `${data.followers}&nbsp;<span>followers</span>`;
-                    }
-
-                    if (followingEl) {
-                        followingEl.innerHTML = `${data.following}&nbsp;<span>following</span>`;
-                    }
-                })
-                .catch(() => {
-                    alert('Network error');
-                });
-            });
-            </script>
-          </div>
-
-          <div id="supermarketsG" class="tab-panel-msource">
-            <div class="tab-top">
-              <p>Showing markets in <em>Sokoni Ward</em> <br><strong>Please select the market source <i class="fa-regular fa-circle-check"></i></strong></p>
-              <button onclick="goBackToMarketTypes()">
-                <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
-              </button>
-            </div>
-
-            <!-- SELLERS LIST -->
-            <div class="sellers">
-              <?php if (empty($supermarkets)): ?>
-                <div class="no-market-message">
-                  No markets available.
-                </div>
-              <?php else: ?>
-                <?php foreach ($supermarkets as $seller): ?>
-                    <?php
-                        // Safe outputs
-                        $bName = htmlspecialchars($seller['business_name'], ENT_QUOTES, 'UTF-8');
-                        $bType = htmlspecialchars($seller['business_type'], ENT_QUOTES, 'UTF-8');
-                        $address = htmlspecialchars($seller['address'], ENT_QUOTES, 'UTF-8');
-                        $avatar = !empty($seller['profile_image']) && file_exists($seller['profile_image']) 
-                                  ? htmlspecialchars($seller['profile_image'], ENT_QUOTES, 'UTF-8') 
-                                  : $defaultAvatar;
-                        $initials = strtoupper(substr($bName, 0, 1)) . (isset($seller['business_name'][1]) ? strtoupper(substr($bName, 1, 1)) : '');
-                    ?>
-                    <div class="seller">
-                        <div class="seller-left">
-                            <div class="avatar"><?php echo $initials; ?></div>
-                            <div>
-                                <div class="name"><?php echo $bName; ?></div>
-                                <div class="rating">★★★★★ (<?php echo rand(5, 200); ?>)</div>
-                                <div class="meta">
-                                  <h2 class="following-count" data-seller="<?php echo $seller['user_id']; ?>">
-                                      <?php echo $seller['following_count']; ?>&nbsp;<span>following</span>
-                                  </h2>
-
-                                  <h2 
-                                    class="<?php echo $seller['is_following'] ? 'followingBtn' : 'followBtn'; ?>" 
-                                    data-seller="<?php echo $seller['user_id']; ?>"
-                                  >
-                                    <?php echo $seller['is_following'] ? 'Following' : 'Follow'; ?>
-                                  </h2>
-                                </div>
-
-                                <div class="meta">
-                                    <h2 class="followers-count" data-seller="<?php echo $seller['user_id']; ?>">
-                                        <?php echo $seller['followers_count']; ?>&nbsp;<span>followers</span>
-                                    </h2>
-                                </div>
-                                <div class="bsInfo"><strong>Location :</strong> <?php echo $address; ?></div>
-                            </div>
-                        </div>
-                        <a href="marketDisplay.php?seller=<?php echo $seller['user_id']; ?>" class="seller-right">
-                            <?php
-                            $totalOrders = (int)$seller['total_orders'];
-
-                            /* ---------- BADGE DISPLAY VALUE ---------- */
-                            if ($totalOrders < 100) {
-                                $displayOrders = $totalOrders;
-                            } elseif ($totalOrders < 200) {
-                                $displayOrders = "100+";
-                            } elseif ($totalOrders < 250) {
-                                $displayOrders = "200+";
-                            } else {
-                                $displayOrders = "250+";
-                            }
-
-                            /* ---------- BADGE COLOR CLASS ---------- */
-                            if ($totalOrders < 100) {
-                                $badgeClass = 'promoBadgeDefault';
-                            } elseif ($totalOrders < 200) {
-                                $badgeClass = 'promoBadgeGoGold';
-                            } else {
-                                $badgeClass = 'promoBadgeGoPro';
-                            }
-                            ?>
-                            <div class="promo-badge-container">Orders : 
-                              <div class="<?php echo $badgeClass; ?>">
-                                <?php echo $displayOrders; ?>
-                              </div>
-                            </div>
-                            <div class="bsType">Business Type : <i><?php echo $bType; ?></i></div>
-                            <div class="action">
-                                <button>View&nbsp;seller</button>
-                            </div>
-                        </a>
-                    </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
-            </div>
-          </div>
-        </div>
-      </div>
+      <?php endforeach; ?>
 
       <h1>Recent Orders</h1>
 
@@ -1482,6 +981,52 @@ while ($row = $query->fetch_assoc()) {
             </div>
           </div>
 
+          <!-- ITEM 2 -->
+          <div class="order-item">
+            <div class="item-top">
+              <div class="item-info">
+                <h4>Office Chair</h4>
+                <p>Seller: Comfort Furnish</p>
+                <p>Qty: 2 • Total: KES 18,000</p>
+                <p>Status: <span class="status processing">Processing</span></p>
+                <span class="market-badge">Local</span>
+              </div>
+              <img src="Images/Maket Hub Logo.avif" alt="Product">
+            </div>
+
+            <div class="item-actions">
+              <button class="toggle" data-target="d2">View details</button>
+            </div>
+
+            <div class="item-extra" id="d2">
+              <div class="extra-box">
+                Awaiting dispatch
+              </div>
+            </div>
+          </div>
+          <!-- ITEM 2 -->
+          <div class="order-item">
+            <div class="item-top">
+              <div class="item-info">
+                <h4>Office Chair</h4>
+                <p>Seller: Comfort Furnish</p>
+                <p>Qty: 2 • Total: KES 18,000</p>
+                <p>Status: <span class="status processing">Processing</span></p>
+                <span class="market-badge">Local</span>
+              </div>
+              <img src="Images/Maket Hub Logo.avif" alt="Product">
+            </div>
+
+            <div class="item-actions">
+              <button class="toggle" data-target="d2">View details</button>
+            </div>
+
+            <div class="item-extra" id="d2">
+              <div class="extra-box">
+                Awaiting dispatch
+              </div>
+            </div>
+          </div>
           <!-- ITEM 2 -->
           <div class="order-item">
             <div class="item-top">

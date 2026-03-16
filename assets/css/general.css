@@ -1185,7 +1185,7 @@ html body.no-scroll {
 .container main.buyerMain .order-group .order-header {
   background: #898989;
   color: #ffffff;
-  padding: 10px;
+  padding: 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1198,15 +1198,15 @@ html body.no-scroll {
 
 .container main.buyerMain .order-group .order-items-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 10px;
-  padding: 10px;
+  padding: 8px;
 }
 
 .container main.buyerMain .order-group .order-items-grid .order-item {
   border: 1px solid #e5e5e5;
   border-radius: 10px;
-  padding: 14px;
+  padding: 8px;
   background: #fff;
   display: flex;
   flex-direction: column;
@@ -1220,8 +1220,8 @@ html body.no-scroll {
 }
 
 .container main.buyerMain .order-group .order-items-grid .order-item .item-top img {
-  width: 100px;
-  height: 100px;
+  width: 70px;
+  height: 70px;
   object-fit: cover;
   border-radius: 8px;
   border: 1px solid #ddd;
