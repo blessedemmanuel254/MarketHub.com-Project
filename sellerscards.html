@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Market Hub Services</title>
+
+<style>
+
+body{
+font-family:Arial,Helvetica,sans-serif;
+background:#f5f7fb;
+padding:40px;
+}
+
+.services-grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+gap:25px;
+}
+
+/* CARD */
+
+.service-card{
+
+background:white;
+border-radius:14px;
+padding:20px;
+box-shadow:0 6px 15px rgba(0,0,0,0.08);
+transition:0.3s;
+display:flex;
+flex-direction:column;
+gap:12px;
+position:relative;
+}
+
+.service-card:hover{
+transform:translateY(-6px);
+box-shadow:0 10px 22px rgba(0,0,0,0.15);
+}
+
+/* SERVICE TAG */
+
+.service-tag{
+
+position:absolute;
+top:0;
+right:0;
+background:#0a66c2;
+color:white;
+padding:5px 12px;
+font-size:12px;
+border-bottom-left-radius:10px;
+}
+
+/* HEADER */
+
+.header{
+display:flex;
+align-items:center;
+gap:12px;
+}
+
+.avatar{
+
+width:48px;
+height:48px;
+border-radius:50%;
+background:#e0e0e0;
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:bold;
+}
+
+.provider{
+font-size:14px;
+font-weight:600;
+}
+
+.rating{
+font-size:13px;
+color:#f5a623;
+}
+
+/* SERVICE NAME */
+
+.service-name{
+font-size:18px;
+font-weight:600;
+}
+
+/* META */
+
+.meta{
+font-size:13px;
+color:#666;
+}
+
+/* LOCATION */
+
+.location{
+font-size:13px;
+}
+
+/* STATS */
+
+.stats{
+
+display:flex;
+justify-content:space-between;
+margin-top:8px;
+font-size:14px;
+}
+
+/* BUTTONS */
+
+.buttons{
+
+display:flex;
+gap:10px;
+margin-top:10px;
+}
+
+.follow-btn{
+
+background:#e4e6eb;
+border:none;
+padding:6px 12px;
+border-radius:6px;
+cursor:pointer;
+}
+
+.following{
+background:#d1e7ff;
+}
+
+.request-btn{
+
+flex:1;
+background:#ff3c3c;
+color:white;
+border:none;
+padding:9px;
+border-radius:8px;
+cursor:pointer;
+font-weight:600;
+}
+
+.request-btn:hover{
+background:#e12c2c;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="services-grid">
+
+<!-- SERVICE CARD -->
+
+<div class="service-card">
+
+<div class="service-tag">SERVICE</div>
+
+<div class="header">
+
+<div class="avatar">JM</div>
+
+<div>
+
+<div class="provider">John Mwangi</div>
+
+<div class="rating">★★★★★ (92)</div>
+
+</div>
+
+</div>
+
+<div class="service-name">
+Elite Plumbing Services
+</div>
+
+<div class="meta">
+
+Type: Plumbing • Model: Mobile Technician
+
+</div>
+
+<div class="location">
+
+Location: Kilifi • Sokoni Ward
+
+</div>
+
+<div class="stats">
+
+<div><b>23</b> orders</div>
+
+<div><b class="followers-count">7</b> followers</div>
+
+</div>
+
+<div class="buttons">
+
+<button class="follow-btn">
+Follow
+</button>
+
+<button class="request-btn">
+Request Service
+</button>
+
+</div>
+
+</div>
+
+<!-- SERVICE CARD -->
+
+<div class="service-card">
+
+<div class="service-tag">SERVICE</div>
+
+<div class="header">
+
+<div class="avatar">MK</div>
+
+<div>
+
+<div class="provider">Mary Kimani</div>
+
+<div class="rating">★★★★☆ (54)</div>
+
+</div>
+
+</div>
+
+<div class="service-name">
+Smart Home Cleaning
+</div>
+
+<div class="meta">
+
+Type: Cleaning • Model: Home Service
+
+</div>
+
+<div class="location">
+
+Location: Kilifi • Gede Ward
+
+</div>
+
+<div class="stats">
+
+<div><b>15</b> orders</div>
+
+<div><b class="followers-count">3</b> followers</div>
+
+</div>
+
+<div class="buttons">
+
+<button class="follow-btn">
+Follow
+</button>
+
+<button class="request-btn">
+Request Service
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+/* FOLLOW SYSTEM */
+
+document.querySelectorAll(".follow-btn").forEach(btn=>{
+
+btn.addEventListener("click",function(){
+
+const followers = this
+.closest(".service-card")
+.querySelector(".followers-count");
+
+let count = parseInt(followers.innerText);
+
+if(this.classList.contains("following")){
+
+this.classList.remove("following");
+this.innerText="Follow";
+followers.innerText = count - 1;
+
+}else{
+
+this.classList.add("following");
+this.innerText="Following";
+followers.innerText = count + 1;
+
+}
+
+});
+
+});
+
+/* REQUEST SERVICE */
+
+document.querySelectorAll(".request-btn").forEach(btn=>{
+
+btn.addEventListener("click",function(){
+
+let service = this
+.closest(".service-card")
+.querySelector(".service-name")
+.innerText;
+
+alert("Service requested: " + service);
+
+});
+
+});
+
+</script>
+
+</body>
+</html>

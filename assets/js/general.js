@@ -962,6 +962,151 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 });
+document.addEventListener("click", function(e){
+
+const btn = e.target.closest(".action-btn");
+if(!btn) return;
+
+const actionsUserId = btn.dataset.userId;
+const action = btn.dataset.action;
+console.log(actionsUserId, action);
+
+if(!actionsUserId || !action) return;
+
+/* CONFIRMATION MESSAGE */
+
+let message = "";
+
+if(action === "suspend") message = "Suspend this agent?";
+if(action === "restore") message = "Restore this agent?";
+if(action === "activate") message = "Activate this agent?";
+if(action === "deactivate") message = "Deactivate this agent?";
+if(action === "delete") message = "Delete this agent permanently?";
+
+if(!confirm(message)) return;
+
+
+/* AJAX REQUEST */
+
+fetch("adminPage.php",{
+method:"POST",
+headers:{
+"Content-Type":"application/x-www-form-urlencoded",
+"X-Requested-With":"XMLHttpRequest"
+},
+body: new URLSearchParams({
+  user_id: actionsUserId,
+  action: action
+})
+})
+.then(res=>res.json())
+.then(data=>{
+
+if(!data.success){
+alert(data.error || "Action failed");
+return;
+}
+
+const row = btn.closest("tr");
+const badge = row.querySelector(".badge");
+const actionsCell = row.querySelector(".actions div");
+
+/* DELETE ROW */
+
+if(action === "delete"){
+row.remove();
+return;
+}
+
+
+/* UPDATE STATUS BADGE */
+
+if(action === "suspend"){
+badge.textContent="Suspended";
+badge.className="badge suspendedSpan";
+}
+
+if(action === "restore"){
+badge.textContent="Unverified";
+badge.className="badge unverified";
+}
+
+if(action === "activate"){
+badge.textContent="Verified";
+badge.className="badge verified";
+}
+
+if(action === "deactivate"){
+badge.textContent="Unverified";
+badge.className="badge unverified";
+}
+
+
+/* SWITCH BUTTONS */
+
+if(action === "suspend"){
+btn.outerHTML=`<button class="btn-restore action-btn"
+data-action="restore"
+data-user-id="${actionsUserId}">
+<i class="fa-solid fa-trash-can-arrow-up"></i></button>`;
+}
+
+if(action === "restore"){
+btn.outerHTML=`<button class="btn-suspend action-btn"
+data-action="suspend"
+data-user-id="${actionsUserId}">
+<i class="fa-solid fa-ban"></i></button>`;
+}
+
+if(action === "activate"){
+btn.outerHTML=`<button class="btn-deactivate action-btn"
+data-action="deactivate"
+data-user-id="${actionsUserId}">
+<i class="fa-solid fa-toggle-off"></i> Deactivate
+</button>`;
+}
+
+if(action === "deactivate"){
+btn.outerHTML=`<button class="btn-activate action-btn"
+data-action="activate"
+data-user-id="${actionsUserId}">
+<i class="fa-solid fa-toggle-on"></i> Activate
+</button>`;
+}
+
+})
+.catch(()=>{
+alert("Network error");
+});
+
+});
+
+document.addEventListener("click", function(e){
+
+const btn = e.target.closest(".copy-link-btn");
+if(!btn) return;
+
+const ref = btn.dataset.ref;
+
+const link = `http://localhost/MaketHub.com-Project/agentRegister.php?ref=${ref}`;
+
+navigator.clipboard.writeText(link)
+.then(()=>{
+
+const original = btn.innerHTML;
+
+btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied';
+
+setTimeout(()=>{
+btn.innerHTML = original;
+},2000);
+
+})
+.catch(()=>{
+alert("Failed to copy link");
+});
+
+});
 
 // EDIT FUNCTION - No page reload
 

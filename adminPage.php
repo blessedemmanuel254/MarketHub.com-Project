@@ -184,29 +184,93 @@ $agentQuery = $conn->query("
 $agentData = $agentQuery->fetch_assoc();
 
 /* ===============================
-   SALES AGENTS TABLE DATA
+  SALES AGENTS TABLE DATA
 ================================= */
 
 $defaultAvatar = "Images/Maket Hub Logo.avif";
 
 $agentsStmt = $conn->prepare("
-    SELECT user_id, full_name, username, email, phone, profile_image, 
-      status, is_verified, created_at, updated_at
-    FROM users
-    WHERE account_type = 'sales_agent'
-    ORDER BY user_id DESC
+  SELECT 
+    a.user_id,
+    a.full_name,
+    a.username,
+    a.email,
+    a.phone,
+    a.profile_image,
+    a.status,
+    a.is_verified,
+    a.created_at,
+    a.updated_at,
+    a.agency_code,
+    r.username AS referrer_username,
+    (
+      SELECT COUNT(*) 
+      FROM users u 
+      WHERE u.referred_by = a.user_id
+    ) AS total_sub_agents
+  FROM users a
+  LEFT JOIN users r 
+    ON a.referred_by = r.user_id
+  WHERE a.account_type = 'sales_agent'
+  ORDER BY a.user_id DESC
 ");
 
 $agentsStmt->execute();
 $agentsResult = $agentsStmt->get_result();
 
+
+if(isset($_POST['action']) && isset($_POST['user_id'])){
+
+    header('Content-Type: application/json');
+
+    $userId = intval($_POST['user_id']);
+    $action = $_POST['action'];
+
+    switch($action){
+
+        case "suspend":
+            $stmt=$conn->prepare("UPDATE users SET status='suspended' WHERE user_id=?");
+        break;
+
+        case "restore":
+            $stmt=$conn->prepare("UPDATE users SET status='active' WHERE user_id=?");
+        break;
+
+        case "activate":
+            $stmt=$conn->prepare("UPDATE users SET is_verified=1 WHERE user_id=?");
+        break;
+
+        case "deactivate":
+            $stmt=$conn->prepare("UPDATE users SET is_verified=0 WHERE user_id=?");
+        break;
+
+        case "delete":
+            $stmt=$conn->prepare("DELETE FROM users WHERE user_id=?");
+        break;
+
+        default:
+            echo json_encode(["success"=>false]);
+            exit;
+    }
+
+    $stmt->bind_param("i",$userId);
+
+    if($stmt->execute()){
+        echo json_encode(["success"=>true]);
+    }else{
+        echo json_encode(["success"=>false]);
+    }
+
+    exit;
+}
+
 // Fetch sellers
 $sellerQuery = $conn->query("
-    SELECT 
-        user_id, full_name, username, email, phone, profile_image, is_verified, status, created_at, updated_at
-    FROM users
-    WHERE account_type='seller'
-    ORDER BY user_id DESC
+  SELECT 
+  user_id, full_name, username, email, phone, profile_image, is_verified, status, created_at, updated_at
+  FROM users
+  WHERE account_type='seller'
+  ORDER BY user_id DESC
 ");
 
 $sellers = [];
@@ -334,7 +398,7 @@ if($userId && isset($map[$type])){
   $result = $stmt->get_result();
 
   if($result->num_rows === 1){
-      $editUser = $result->fetch_assoc();
+    $editUser = $result->fetch_assoc();
   }
 
   $stmt->close();
@@ -984,6 +1048,7 @@ $stmt->close();
                 <th>Agent</th>
                 <th>Phone</th>
                 <th>Sub&nbsp;Agents</th>
+                <th>Referred&nbsp;by</th>
                 <th>Wallet</th>
                 <th>Region</th>
                 <th>Status</th>
@@ -998,7 +1063,10 @@ $stmt->close();
             <?php 
             $count = 1;
             while ($agent = $agentsResult->fetch_assoc()):
-              $name = ucfirst(strtolower($agent['full_name']));
+              $name = ucfirst(strtolower($agent['username']));
+              $referrer = !empty($agent['referrer_username']) 
+                ? ucfirst(strtolower($agent['referrer_username'])) 
+                : 'Direct Registration';
 
               // 🔐 Decode
               $phone = decodePhone($agent['phone']);
@@ -1038,7 +1106,8 @@ $stmt->close();
 
               <td><?= $maskedPhone ?></td>
 
-              <td>0</td>
+              <td><?= (int)$agent['total_sub_agents'] ?></td>
+              <td><?= htmlspecialchars($referrer) ?></td>
 
               <td>KES 12,000</td>
 
@@ -1050,20 +1119,67 @@ $stmt->close();
                 </span>
               </td>
 
-              <td class="actions">
+                <td class="actions">
                 <div>
-                  <button 
-                  class="btn-edit" data-user-id="<?= $agent['user_id'] ?>" 
-                  data-tab="edit-forms" onclick="editRecord('agent', <?= (int)$agent['user_id'] ?>)">
-                  <i class="fa-solid fa-pen"></i>
-                  </button>
-                  <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                  <button class="btn-activate"><i class="fa-solid fa-toggle-on"></i>Activate</button>
-                  <button class="btn-deactivate"><i class="fa-solid fa-toggle-off"></i>Deactivate</button>
-                  <button class="btn-copy-link"><i class="fa-solid fa-link"></i> Copy&nbsp;Link</button>
-                  <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+
+                <button 
+                class="btn-edit"
+                data-user-id="<?= $agent['user_id'] ?>"
+                data-tab="edit-forms"
+                onclick="editRecord('agent', <?= (int)$agent['user_id'] ?>)">
+                <i class="fa-solid fa-pen"></i>
+                </button>
+
+                <?php if ($agent['status'] === 'suspended'): ?>
+
+                <button class="btn-restore action-btn"
+                data-action="restore"
+                data-user-id="<?= $agent['user_id'] ?>">
+                <i class="fa-solid fa-trash-can-arrow-up"></i></button>
+
+                <?php else: ?>
+
+                <button class="btn-suspend action-btn"
+                data-action="suspend"
+                data-user-id="<?= $agent['user_id'] ?>">
+                <i class="fa-solid fa-ban"></i></button>
+
+                <?php endif; ?>
+
+
+                <?php if ($agent['is_verified'] == 1): ?>
+
+                <button class="btn-deactivate action-btn"
+                data-action="deactivate"
+                data-user-id="<?= $agent['user_id'] ?>">
+                <i class="fa-solid fa-toggle-off"></i> Deactivate
+                </button>
+
+                <?php else: ?>
+
+                <button class="btn-activate action-btn"
+                data-action="activate"
+                data-user-id="<?= $agent['user_id'] ?>">
+                <i class="fa-solid fa-toggle-on"></i> Activate
+                </button>
+
+                <?php endif; ?>
+
+
+                <button 
+                class="btn-copy-link copy-link-btn"
+                data-ref="<?= htmlspecialchars($agent['agency_code']) ?>">
+                <i class="fa-solid fa-link"></i> Copy&nbsp;Link
+                </button>
+
+                <button class="btn-delete action-btn"
+                data-action="delete"
+                data-user-id="<?= $agent['user_id'] ?>">
+                <i class="fa-solid fa-trash-can"></i>
+                </button>
+
                 </div>
-              </td>
+                </td>
 
               <td class="comm-cell">
                 <button class="comm-btn">

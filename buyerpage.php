@@ -1050,6 +1050,29 @@ while ($row = $query->fetch_assoc()) {
               </div>
             </div>
           </div>
+          <!-- ITEM 2 -->
+          <div class="order-item">
+            <div class="item-top">
+              <div class="item-info">
+                <h4>Office Chair</h4>
+                <p>Seller: Comfort Furnish</p>
+                <p>Qty: 2 • Total: KES 18,000</p>
+                <p>Status: <span class="status processing">Processing</span></p>
+                <span class="market-badge">Local</span>
+              </div>
+              <img src="Images/Maket Hub Logo.avif" alt="Product">
+            </div>
+
+            <div class="item-actions">
+              <button class="toggle" data-target="d2">View details</button>
+            </div>
+
+            <div class="item-extra" id="d2">
+              <div class="extra-box">
+                Awaiting dispatch
+              </div>
+            </div>
+          </div>
 
         </div>
       </div>
