@@ -391,13 +391,13 @@ if ($isVerified === 1 && $status === 'active') {
 
   while ($row = $result->fetch_assoc()) {
 
-      $level1[] = $row['user_id'];
+    $level1[] = $row['user_id'];
 
-      $periods = (int)$row['economic_period_count'];
+    $periods = (int)$row['economic_period_count'];
 
-      if ($periods > 0) {
-          $lvl1Earn += (100 * $periods);
-      }
+    if ($periods > 0) {
+      $lvl1Earn += (100 * $periods);
+    }
   }
 
   $stmt->close();
@@ -881,7 +881,7 @@ if ($isVerified === 1 && $status === 'active') {
 
                 <!-- WITHDRAW HISTORY -->
                 <div class="card">
-                  <h3>Total Withdrawn</h3>
+                  <h3>Total Earned</h3>
                   <div class="amount">KES 71,140</div>
                   <div class="sub-info">12 successful withdrawalss</div>
                   <div class="growth up">▲ +15% from last month</div>

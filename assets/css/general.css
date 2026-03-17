@@ -1735,10 +1735,16 @@ html body.no-scroll {
   background-color: #ffffff;
   border-radius: 4px;
   width: fit-content;
+  position: relative;
 }
 
 /* ---- RADIO UI ---- */
-label.account-type input { display: none; }
+label.account-type input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  
+}
 
 label.account-type .radio-dot {
   width: 16px;

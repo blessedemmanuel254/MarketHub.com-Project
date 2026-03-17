@@ -61,9 +61,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   if (!$identifier || !$password || !$login_type) {
     $error = "All fields are required.";
   } else {
-    $encrypted_email = base64_encode($identifier);
-    $normalized_phone = normalizePhone($identifier);
-    $encrypted_phone = base64_encode($normalized_phone);
+  $normalized_phone = normalizePhone($identifier);
+  $encrypted_phone = base64_encode($normalized_phone);
+
+  $normalized_email = strtolower($identifier);
+  $encrypted_email = base64_encode($normalized_email);
 
     /*
     IMPORTANT:
@@ -73,7 +75,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       SELECT *
       FROM users
       WHERE account_type = ?
-        AND (username = ? OR email = ? OR phone = ?)
+        AND (
+          BINARY username = ?
+          OR email = ?
+          OR phone = ?
+        )
       LIMIT 1
     ";
 
@@ -129,8 +135,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
 
         echo "<script>
-              setTimeout(() => window.location.href = '$redirectPage', 3500);
-            </script>";
+          setTimeout(() => window.location.href = '$redirectPage', 3500);
+        </script>";
 
       } else {
         $error = "One of the credentials is invalid.";
@@ -222,25 +228,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 </label>
 
                 <label class="account-type">
-                  <input type="radio" name="login_type" value="seller">
+                  <input type="radio" name="login_type" value="seller" required>
                   <div class="radio-dot"></div>
                   Seller
                 </label>
 
                 <label class="account-type">
-                  <input type="radio" name="login_type" value="sales_agent">
+                  <input type="radio" name="login_type" value="sales_agent" required>
                   <div class="radio-dot"></div>
                   Agent
                 </label>
 
                 <label class="account-type">
-                  <input type="radio" name="login_type" value="property_owner">
+                  <input type="radio" name="login_type" value="property_owner" required>
                   <div class="radio-dot"></div>
                   Property&nbsp;Owner
                 </label>
 
                 <label class="account-type">
-                  <input type="radio" name="login_type" value="administrator">
+                  <input type="radio" name="login_type" value="administrator" required>
                   <div class="radio-dot"></div>
                   Administrator
                 </label>

@@ -202,11 +202,12 @@ $agentsStmt = $conn->prepare("
     a.created_at,
     a.updated_at,
     a.agency_code,
+    a.economic_period_count,
     r.username AS referrer_username,
     (
       SELECT COUNT(*) 
       FROM users u 
-      WHERE u.referred_by = a.user_id
+      WHERE u.referred_by = a.user_id and is_verified = 1
     ) AS total_sub_agents
   FROM users a
   LEFT JOIN users r 
@@ -228,40 +229,45 @@ if(isset($_POST['action']) && isset($_POST['user_id'])){
 
     switch($action){
 
-        case "suspend":
-            $stmt=$conn->prepare("UPDATE users SET status='suspended' WHERE user_id=?");
-        break;
+      case "suspend":
+          $stmt = $conn->prepare("UPDATE users SET status='suspended' WHERE user_id=?");
+          $stmt->bind_param("i", $userId);
+      break;
 
-        case "restore":
-            $stmt=$conn->prepare("UPDATE users SET status='active' WHERE user_id=?");
-        break;
+      case "restore":
+          $stmt = $conn->prepare("UPDATE users SET status='active' WHERE user_id=?");
+          $stmt->bind_param("i", $userId);
+      break;
 
-        case "activate":
-            $stmt=$conn->prepare("UPDATE users SET is_verified=1 WHERE user_id=?");
-        break;
+      case "activate":
+          // Increment economic_period_count by 1
+          $stmt = $conn->prepare("UPDATE users SET is_verified=1, economic_period_count = economic_period_count + 1 WHERE user_id=?");
+          $stmt->bind_param("i", $userId);
+      break;
 
-        case "deactivate":
-            $stmt=$conn->prepare("UPDATE users SET is_verified=0 WHERE user_id=?");
-        break;
+      case "deactivate":
+          // Decrement economic_period_count by 1
+          $stmt = $conn->prepare("UPDATE users SET is_verified=0, economic_period_count = GREATEST(economic_period_count - 1, 0) WHERE user_id=?");
+          $stmt->bind_param("i", $userId);
+      break;
 
-        case "delete":
-            $stmt=$conn->prepare("DELETE FROM users WHERE user_id=?");
-        break;
+      case "delete":
+          $stmt = $conn->prepare("DELETE FROM users WHERE user_id=?");
+          $stmt->bind_param("i", $userId);
+      break;
 
-        default:
-            echo json_encode(["success"=>false]);
-            exit;
-    }
+      default:
+          echo json_encode(["success"=>false]);
+          exit;
+  }
 
-    $stmt->bind_param("i",$userId);
+  if($stmt->execute()){
+      echo json_encode(["success"=>true]);
+  }else{
+      echo json_encode(["success"=>false]);
+  }
 
-    if($stmt->execute()){
-        echo json_encode(["success"=>true]);
-    }else{
-        echo json_encode(["success"=>false]);
-    }
-
-    exit;
+  exit;
 }
 
 // Fetch sellers
@@ -1048,6 +1054,7 @@ $stmt->close();
                 <th>Agent</th>
                 <th>Phone</th>
                 <th>Sub&nbsp;Agents</th>
+                <th>Economic&nbsp;P.</th>
                 <th>Referred&nbsp;by</th>
                 <th>Wallet</th>
                 <th>Region</th>
@@ -1107,6 +1114,7 @@ $stmt->close();
               <td><?= $maskedPhone ?></td>
 
               <td><?= (int)$agent['total_sub_agents'] ?></td>
+              <td><?= (int)$agent['economic_period_count'] ?></td>
               <td><?= htmlspecialchars($referrer) ?></td>
 
               <td>KES 12,000</td>
