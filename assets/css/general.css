@@ -166,6 +166,10 @@ html body.no-scroll {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.container header.pgHeader section .rhs a.lkOdr .odrIconDiv p.agent-not {
+  background-color: #ff3b3b;
+}
+
 .container header.pgHeader section .sContainer p.wcmTxt {
   font-size: 18px;
 }
@@ -533,7 +537,7 @@ html body.no-scroll {
   }
 }
 
-.container main.buyerMain, .container main.profile-main, .container main.help-centre-main, main.agentWithdrawalH {
+.container main.buyerMain, .container main.profile-main, .container main.help-centre-main, main.agentWithdrawalH, .container.cmng-sn main {
   padding: 20px;
   flex: 1 0 auto;
   display: flex;
@@ -1588,19 +1592,19 @@ html body.no-scroll {
   gap: 16px;
 }
 
-.container main .formContainer section, .container main .formContainer .top {
+.container main .formContainer section, .container main .formContainer .top, .container.cmng-sn section, .container.cmng-sn section .top {
   display: flex;
   gap: 10px;
   align-items: center;
   flex-direction: column;
 }
 
-.container main .formContainer section h3 {
+.container main .formContainer section h3, .container.cmng-sn section h3 {
   font-size: 18px;
   text-align: center;
 }
 
-.container main .formContainer .top {
+.container main .formContainer .top, .container.cmng-sn section .top {
   flex-direction: row;
 }
 
@@ -1743,7 +1747,7 @@ label.account-type input {
   position: absolute;
   opacity: 0;
   pointer-events: none;
-  
+
 }
 
 label.account-type .radio-dot {
@@ -4601,4 +4605,72 @@ justify-content: space-between;
   90%{transform:translateX(-5px)}
   100%{transform:translateX(0)}
 
+}
+
+/* COMING SOON CSS*/
+
+body#cmng-sn-body {
+  background-image: url('/Images/Coming\ Soon\ Background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+}
+
+.container.cmng-sn main {
+  position: relative;
+}
+
+.container.cmng-sn main section {
+  width: 100%;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.container.cmng-sn main section .top h1 {
+  animation: wiggle 2s ease-in-out infinite;
+  font-family: 'Chewy', cursive;
+  font-size: 33px;
+  color: #0f0f0f;
+  text-shadow: 2px 2px 0 #088000, 4px 4px 0 #ff3b3b;
+  letter-spacing: 1px;
+  margin: 20px 0;
+  text-align: center;
+}
+
+.container.cmng-sn main .content {
+  width: 100%;
+}
+
+.container.cmng-sn main .content .launch-time {
+  display: flex;
+}
+
+.container.cmng-sn main .content .launch-time div {
+  flex-basis: 100px;
+}
+
+.container.cmng-sn main .content .launch-time div p {
+  font-size: 45px;
+  margin-bottom: -14px;
+}
+
+.container.container.cmng-sn .rocket {
+  width: 200px;
+  position: absolute;
+  right: 10%;
+  bottom: 0;
+  animation: flying 4s linear infinite;
+  color: #0f0f0f;
+}
+
+@keyframes flying {
+  0% {
+    bottom: 0;
+    opacity: 0;
+  }
+  100% {
+    bottom: 105%;
+    opacity: 1;
+  }
 }

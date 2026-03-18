@@ -301,7 +301,7 @@ LIMIT 1";
 $stmt = $conn->prepare($query);
 
 if (!$stmt) {
-    die("System error.");
+  die("System error.");
 }
 
 $stmt->bind_param("i", $user_id);
@@ -682,7 +682,7 @@ if ($isVerified === 1 && $status === 'active') {
           <a class="lkOdr" onclick="toggleAgentEarningsTrack()">
             <div class="odrIconDiv">
               <i class="fa-solid fa-sack-dollar"></i>
-              <p>3</p>
+              <p class="agent-not">3</p>
             </div>
           </a>
           <select name="" id="ward">
