@@ -55,3 +55,18 @@ whisper "C:\Users\ADMIN\Downloads\BioKE_part_000.wav" ^
 --language en ^
 --output_format txt ^
 --output_dir "C:\Users\ADMIN\Downloads"
+
+
+
+
+
+
+
+
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);   // TEMPORARY
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/php_errors.log');
+
+I had a folder named database which had sql files in it; I have deleted it. I also had some sql files inside the main folder but I have removed all of them and did some adjustments on forms inputs and error/success display logic.

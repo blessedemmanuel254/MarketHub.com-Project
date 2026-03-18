@@ -2,6 +2,10 @@
 session_start();
 include 'connection.php';
 
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // Set your launch date in UTC
 $launchDateUTC = new DateTime('2026-04-07 12:00:00', new DateTimeZone('UTC'));
 $launchTimestamp = $launchDateUTC->getTimestamp() * 1000;
@@ -9,35 +13,48 @@ $launchTimestamp = $launchDateUTC->getTimestamp() * 1000;
 $error = "";
 $success = "";
 
-// Handle email subscription
 if (isset($_POST['subscribe'])) {
-  $email = trim($_POST['email']);
-  $encrypted_email = base64_encode($email);
 
-  if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-      $error = "Please enter a valid email address!";
+  // CSRF validation
+  if (
+      empty($_POST['csrf_token']) ||
+      empty($_SESSION['csrf_token']) ||
+      !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])
+  ) {
+      $error = "Invalid request. Please refresh and try again.";
   } else {
-      // Check if email already exists
-      $stmt = $conn->prepare("SELECT id FROM subscribers WHERE email = ?");
-      $stmt->bind_param("s", $encrypted_email);
-      $stmt->execute();
-      $stmt->store_result();
 
-      if ($stmt->num_rows > 0) {
-          $error = "This email is already subscribed!";
+      $email = trim($_POST['email']);
+      $hashed_email = hash('sha256', strtolower($email));
+
+      if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+          $error = "Please enter a valid email address!";
       } else {
-          // Insert new subscriber
-          $stmtInsert = $conn->prepare("INSERT INTO subscribers (email, created_at) VALUES (?, NOW())");
-          $stmtInsert->bind_param("s", $encrypted_email);
+          // Check if email already exists
+          $stmt = $conn->prepare("SELECT id FROM subscribers WHERE email = ?");
+          $stmt->bind_param("s", $hashed_email);
+          $stmt->execute();
+          $stmt->store_result();
 
-          if ($stmtInsert->execute()) {
-              $success = "Noted. We’ll update you! <span class='redirect-msg'></span>";
+          if ($stmt->num_rows > 0) {
+              $error = "This email is already subscribed!";
           } else {
-              $error = "Something went wrong. Please try again later.";
+              // Insert new subscriber
+              $stmtInsert = $conn->prepare("INSERT INTO subscribers (email, created_at) VALUES (?, NOW())");
+              $stmtInsert->bind_param("s", $hashed_email);
+
+              if ($stmtInsert->execute()) {
+                  $success = "Noted. We’ll update you! <span class='redirect-msg'></span>";
+              } else {
+                  $error = "Something went wrong. Please try again later.";
+              }
+              $stmtInsert->close();
           }
-          $stmtInsert->close();
+          $stmt->close();
       }
-      $stmt->close();
+
+      // Regenerate token after processing
+      $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
   }
 }
 ?>
@@ -98,11 +115,16 @@ if (isset($_POST['subscribe'])) {
           </div>
         </div>
         <form method="POST" action="">
-          <?php if ($error): ?>
-            <p class="errorMessage"><i class="fa-solid fa-circle-exclamation"></i> <?= $error ?></p>
-          <?php elseif ($success): ?>
+          <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token']; ?>">
+          <?php if (!empty($error)): ?>
+            <p class="errorMessage">
+              <i class="fa-solid fa-circle-exclamation"></i>
+              <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?>
+            </p>
+          <?php elseif (!empty($success)): ?>
             <p class="successMessage">
-              <i class="fa-solid fa-check-circle"></i> <?= $success ?>
+              <i class="fa-solid fa-check-circle"></i>
+              <?= strip_tags($success, '<span>'); ?>
             </p>
           <?php endif; ?>
           <div>
