@@ -1620,7 +1620,7 @@ html body.no-scroll {
   margin-bottom: 20px;
 }
 
-.container main .formContainer form p.errorMessage, .container main .formContainer form p.successMessage, .container main form.actpContainer p.errorMessage, .tab-content .tab-panel p.errorMessage, .tab-content .tab-panel p.successMessage, .tab-panel-admin .form-wrapper form .errorMessage {
+.container main .formContainer form p.errorMessage, .container main .formContainer form p.successMessage, .container main form.actpContainer p.errorMessage, .tab-content .tab-panel p.errorMessage, .tab-content .tab-panel p.successMessage, .tab-panel-admin .form-wrapper form .errorMessage, .container.cmng-sn main .content form .successMessage, .container.cmng-sn main .content form .errorMessage {
   display: flex;
   align-items: center;
   gap: 5px;
@@ -1628,7 +1628,7 @@ html body.no-scroll {
   color: #ff3b3b;
 }
 
-.container main .formContainer form p.successMessage, .tab-content .tab-panel p.successMessage,.tab-panel-admin .form-wrapper form .successMessage {
+.container main .formContainer form p.successMessage, .tab-content .tab-panel p.successMessage,.tab-panel-admin .form-wrapper form .successMessage, .container.cmng-sn main .content form .successMessage {
   color: #088000;
 }
 
@@ -4609,21 +4609,11 @@ justify-content: space-between;
 
 /* COMING SOON CSS*/
 
-body#cmng-sn-body {
-  background-image: url('/Images/Coming\ Soon\ Background.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-
-}
-
 .container.cmng-sn main {
-  position: relative;
+  gap: 50px;
 }
 
 .container.cmng-sn main section {
-  width: 100%;
-  align-items: flex-start;
   gap: 0;
 }
 
@@ -4639,15 +4629,32 @@ body#cmng-sn-body {
 }
 
 .container.cmng-sn main .content {
-  width: 100%;
+  position: relative;
+}
+
+.container.cmng-sn main .content p.ready-p {
+  font-size: 14px;
+  text-align: center;
+}
+
+.container.cmng-sn main .content h1 {
+  font-size: clamp(25px, 10vw, 45px);
+  font-weight: bold;
+  text-align: center;
+}
+
+.container.cmng-sn main .content h1 span {
+  color: #ff3b3b;
 }
 
 .container.cmng-sn main .content .launch-time {
   display: flex;
+  justify-content: center;
 }
 
 .container.cmng-sn main .content .launch-time div {
   flex-basis: 100px;
+  text-align: center;
 }
 
 .container.cmng-sn main .content .launch-time div p {
@@ -4655,22 +4662,77 @@ body#cmng-sn-body {
   margin-bottom: -14px;
 }
 
-.container.container.cmng-sn .rocket {
-  width: 200px;
-  position: absolute;
-  right: 10%;
-  bottom: 0;
-  animation: flying 4s linear infinite;
-  color: #0f0f0f;
+.container.cmng-sn main .content .launch-time div span {
+  font-size: 14px;
+  color: #898888;
 }
 
-@keyframes flying {
+.container.cmng-sn main .content form {
+  text-align: center;
+  padding: 10px 0;
+  margin-top: 20px;
+}
+
+.container.cmng-sn main .content form .successMessage, .container.cmng-sn main .content form .errorMessage {
+  justify-content: center;
+}
+
+.container.cmng-sn main .content form div {
+  display: flex;
+  align-items: center;
+  margin-top: 20px;
+  justify-content: center;
+}
+
+.container.cmng-sn main .content form div input, .container.cmng-sn main .content form div button {
+  padding: 8px 16px;
+  border: 1px solid #dedede;
+  border-radius: 4px;
+  outline: none;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+
+}
+
+.container.cmng-sn main .content form div input {
+  width: clamp(150px, 100%, 350px);
+}
+
+.container.cmng-sn main .content form div button {
+  background-color: #0f0f0f;
+  color: white;
+  border: 1px solid #0f0f0f;
+  cursor: pointer;
+  border-radius: 4px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  margin-left: -1px;
+
+}
+
+.container.cmng-sn main .content form div button:hover {
+  opacity: .875;
+}
+
+/* Rocket styling */
+.container.cmng-sn img.rocket {
+  width: 90px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  opacity: 0.35; /* subtle in the background */
+  transform: translate(-50%, -50%) rotate(0deg) translateX(20vw); 
+  /* initial position at right of center (radius = 20vw) */
+  transform-origin: center center; /* rotate around container center */
+  animation: rocketCircle 20s linear infinite; /* slower orbit */
+}
+
+/* Circular orbit animation */
+@keyframes rocketCircle {
   0% {
-    bottom: 0;
-    opacity: 0;
+    transform: translate(-50%, -50%) rotate(0deg) translateX(20vw);
   }
   100% {
-    bottom: 105%;
-    opacity: 1;
+    transform: translate(-50%, -50%) rotate(-360deg) translateX(20vw);
   }
 }

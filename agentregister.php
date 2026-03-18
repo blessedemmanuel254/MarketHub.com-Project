@@ -272,11 +272,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
           <?php if ($error): ?>
             <p class="errorMessage"><i class="fa-solid fa-circle-exclamation"></i> <?= $error ?></p>
-            <?php elseif ($success): ?>
-              <p class="successMessage">
-                <i class="fa-solid fa-check-circle"></i> <?= $success ?>
-              </p>
-            <?php endif; ?>
+          <?php elseif ($success): ?>
+            <p class="successMessage">
+              <i class="fa-solid fa-check-circle"></i> <?= $success ?>
+            </p>
+          <?php endif; ?>
           <div class="form-content-wrapper">
             <div class="form-content">
               <div class="inpBox">
