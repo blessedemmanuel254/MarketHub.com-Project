@@ -267,17 +267,28 @@ if($_SERVER["REQUEST_METHOD"] === "POST"){
 
                 $newAgentID = $stmt->insert_id;
 
-                /* CREATE WALLET */
+                /* ===========================
+                  CREATE AGENT WALLETS
+                =========================== */
 
-                $wallet = $conn->prepare("
-                INSERT INTO agent_wallet
-                (agent_id,balance,total_earned,updated_at)
-                VALUES (?,0,0,NOW())
+                $salesWallet = $conn->prepare("
+                INSERT INTO wallets (user_id, wallet_type, balance, total_transacted)
+                VALUES (?, 'sales', 0.00, 0.00)
                 ");
 
-                $wallet->bind_param("i",$newAgentID);
-                $wallet->execute();
-                $wallet->close();
+                $salesWallet->bind_param("i", $newAgentID);
+                $salesWallet->execute();
+                $salesWallet->close();
+
+
+                $agencyWallet = $conn->prepare("
+                INSERT INTO wallets (user_id, wallet_type, balance, total_transacted)
+                VALUES (?, 'agency', 0.00, 0.00)
+                ");
+
+                $agencyWallet->bind_param("i", $newAgentID);
+                $agencyWallet->execute();
+                $agencyWallet->close();
 
                 $agent_success = "New agent added successfully! <span class='redirect-msg'></span>";
               }
@@ -352,7 +363,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
 /* ---------- GENERATE AGENCY LINK ---------- */
 
-$baseAgencyLink = "http://localhost/MaketHub.com-Project/agentRegister.php";
+$baseAgencyLink = "http://localhost/MaketHub.shop-Project/agentRegister.php";
 
 $agencyLink = $baseAgencyLink . "?ref=" . urlencode($agencyCode);
 
@@ -1051,11 +1062,12 @@ if ($isVerified === 1 && $status === 'active') {
                 <?php if (!empty($agent_error)): ?>
                   <p class="errorMessage">
                     <i class="fa-solid fa-circle-exclamation"></i>
-                    <?= htmlspecialchars($agent_error); ?>
+                    <?= htmlspecialchars($agent_error, ENT_QUOTES, 'UTF-8'); ?>
                   </p>
-                <?php elseif ($agent_success): ?>
-                  <p class="successMessage" data-redirect="agentPage.php">
-                    <i class="fa-solid fa-check-circle"></i> <?= $agent_success ?>
+                <?php elseif (!empty($agent_success)): ?>
+                  <p class="successMessage">
+                    <i class="fa-solid fa-check-circle"></i>
+                    <?= strip_tags($agent_success, '<span>'); ?>
                   </p>
                 <?php endif; ?>
                 <div class="formBody">
@@ -1902,7 +1914,7 @@ if ($isVerified === 1 && $status === 'active') {
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleAgentOrdersTrack()">Go&nbsp;back</button> to continue shopping.</p>
     </main>
     <footer>
-      <p>&copy; 2025/2026, Maket Hub.com, All Rights reserved.</p>
+      <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
     </footer>
   </div>
   

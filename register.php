@@ -204,7 +204,40 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           );
 
           if ($stmt->execute()) {
+
+            $userId = $stmt->insert_id;
+
+            /* ===========================
+              CREATE USER WALLET
+            ============================ */
+
+            if ($accountType === 'buyer') {
+
+                $walletType = 'buyer';
+
+                $walletStmt = $conn->prepare("
+                    INSERT INTO wallets (user_id, wallet_type, balance, total_transacted)
+                    VALUES (?, ?, 0.00, 0.00)
+                ");
+                $walletStmt->bind_param("is", $userId, $walletType);
+                $walletStmt->execute();
+                $walletStmt->close();
+
+            } elseif ($accountType === 'seller') {
+
+                $walletType = 'seller';
+
+                $walletStmt = $conn->prepare("
+                    INSERT INTO wallets (user_id, wallet_type, balance, total_transacted)
+                    VALUES (?, ?, 0.00, 0.00)
+                ");
+                $walletStmt->bind_param("is", $userId, $walletType);
+                $walletStmt->execute();
+                $walletStmt->close();
+            }
+
             $success = "Account registered successfully! <span class='redirect-msg'></span>";
+
           } else {
             $error = "Error: " . $stmt->error;
           }
@@ -717,7 +750,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     </main>
     <?php endif; ?>
     <footer>
-      <p>&copy; 2025/2026, Maket Hub.com, All Rights reserved.</p>
+      <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
     </footer>
   </div>
   

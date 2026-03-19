@@ -161,6 +161,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $newReferralCode = generateReferralCode();
 
         /* INSERT USER */
+        $busname = null;
+        $busmodel = null;
+        $bustype = null;
+        $market = null;
 
         $stmt = $conn->prepare("
           INSERT INTO users
@@ -189,32 +193,50 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if($stmt->execute()){
 
-        $newAgentID = $stmt->insert_id;
+          $newAgentID = $stmt->insert_id;
 
-        /* CREATE AGENT WALLET */
+          /* ===========================
+            CREATE AGENT WALLETS
+          ============================ */
 
-        $wallet = $conn->prepare("
+          // Sales Wallet
+          $salesWallet = $conn->prepare("
+            INSERT INTO wallets (user_id, wallet_type, balance, total_transacted)
+            VALUES (?, 'sales', 0.00, 0.00)
+          ");
 
-        INSERT INTO agent_wallet
-        (agent_id,balance,total_earned,updated_at)
+          if(!$salesWallet){
+            die("Sales wallet error: " . $conn->error);
+          }
 
-        VALUES (?,0,0,NOW())
+          $salesWallet->bind_param("i", $newAgentID);
+          $salesWallet->execute();
+          $salesWallet->close();
 
-        ");
 
-        $wallet->bind_param("i",$newAgentID);
-        $wallet->execute();
-        $wallet->close();
+          // Agency Wallet
+          $agencyWallet = $conn->prepare("
+            INSERT INTO wallets (user_id, wallet_type, balance, total_transacted)
+            VALUES (?, 'agency', 0.00, 0.00)
+          ");
 
-        // Unset the referral session so it won't be reused
-        unset($_SESSION['agency_code']);
+          if(!$agencyWallet){
+            die("Agency wallet error: " . $conn->error);
+          }
+
+          $agencyWallet->bind_param("i", $newAgentID);
+          $agencyWallet->execute();
+          $agencyWallet->close();
+
+
+          // Clear referral session
+          unset($_SESSION['agency_code']);
+
           $success = "Account registered successfully! <span class='redirect-msg'></span>";
 
         } else {
           $error = "Error: " . $stmt->error;
         }
-        
-
           $stmt->close();
         }
       }
@@ -270,11 +292,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             </div>
           </div>
 
-          <?php if ($error): ?>
-            <p class="errorMessage"><i class="fa-solid fa-circle-exclamation"></i> <?= $error ?></p>
-          <?php elseif ($success): ?>
+          <?php if (!empty($error)): ?>
+            <p class="errorMessage">
+              <i class="fa-solid fa-circle-exclamation"></i>
+              <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?>
+            </p>
+          <?php elseif (!empty($success)): ?>
             <p class="successMessage">
-              <i class="fa-solid fa-check-circle"></i> <?= $success ?>
+              <i class="fa-solid fa-check-circle"></i>
+              <?= strip_tags($success, '<span>'); ?>
             </p>
           <?php endif; ?>
           <div class="form-content-wrapper">
@@ -490,7 +516,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     </main>
     <?php endif; ?>
     <footer>
-      <p>&copy; 2025/2026, Maket Hub.com, All Rights reserved.</p>
+      <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
     </footer>
   </div>
   

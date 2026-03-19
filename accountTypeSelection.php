@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="chat-header">
         <div class="top">
           <img src="Images/Maket Hub Logo.avif" alt="Maket Hub Logo" width="35">
-          <p><strong>Maket Hub.com</strong><br>
+          <p><strong>Maket Hub.shop</strong><br>
           <small>Online</small></p>
         </div>
         <i class="fa-solid fa-xmark" onclick="toggleWhatsAppChat()"></i>
@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="chat-body">
         <div class="chat-container">
           <div class="chat-bubble">
-            <div class="sender">Maket Hub.com</div>
+            <div class="sender">Maket Hub.shop</div>
             <div class="message">
               Hello there! 😊<br>
               How can we help?
@@ -153,7 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </form>
     </main>
     <footer>
-      <p>&copy; 2025/2026, Maket Hub.com, All Rights reserved.</p>
+      <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
     </footer>
   </div>
   

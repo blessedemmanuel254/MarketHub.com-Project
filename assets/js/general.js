@@ -1220,7 +1220,7 @@ function shareWhatsApp(){
   const link = getAgencyLink();
 
   const message =
-  "Join Market Hub as an Agent and start earning commissions! 🚀\n\n" + link;
+  "Join Maket Hub as an Agent and start earning commissions! 🚀\n\n" + link;
 
   const url =
   "https://wa.me/?text=" + encodeURIComponent(message);
@@ -1258,7 +1258,7 @@ function shareTwitter(){
   const link = getAgencyLink();
 
   const text =
-  "Join Market Hub as an agent and earn commissions!";
+  "Join Maket Hub as an agent and earn commissions!";
 
   const url =
   "https://twitter.com/intent/tweet?text=" +
@@ -1281,10 +1281,10 @@ function shareEmail(){
   const link = getAgencyLink();
 
   const subject =
-  "Join Market Hub Agent Program";
+  "Join Maket Hub Agent Program";
 
   const body =
-  "I invite you to join Market Hub and earn commissions.\n\nRegister here:\n" +
+  "I invite you to join Maket Hub and earn commissions.\n\nRegister here:\n" +
   link;
 
   window.location.href =
@@ -1306,12 +1306,12 @@ function shareNative(){
   const link = getAgencyLink();
 
   const text =
-  "Join Market Hub and start earning commissions.";
+  "Join Maket Hub and start earning commissions.";
 
   if(navigator.share){
 
     navigator.share({
-      title: "Market Hub Agent",
+      title: "Maket Hub Agent",
       text: text,
       url: link
     });
@@ -1588,7 +1588,7 @@ function buyNow(button) {
     </div>
     ${sellerContent}
     <div class="guarantee">
-      Market Hub · your number one marketplace.
+      Maket Hub · your number one marketplace.
     </div>
   `;
 
@@ -1851,7 +1851,7 @@ function proceedFromCart() {
         </div>
 
         <div class="guarantee">
-          Market Hub · your number one marketplace.
+          Maket Hub · your number one marketplace.
         </div>
       `;
     }

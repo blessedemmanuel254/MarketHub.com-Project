@@ -2,10 +2,6 @@
 session_start();
 include 'connection.php';
 
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
-
 // Set your launch date in UTC
 $launchDateUTC = new DateTime('2026-04-07 12:00:00', new DateTimeZone('UTC'));
 $launchTimestamp = $launchDateUTC->getTimestamp() * 1000;
@@ -15,47 +11,34 @@ $success = "";
 
 if (isset($_POST['subscribe'])) {
 
-  // CSRF validation
-  if (
-      empty($_POST['csrf_token']) ||
-      empty($_SESSION['csrf_token']) ||
-      !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])
-  ) {
-      $error = "Invalid request. Please refresh and try again.";
-  } else {
+    $email = trim($_POST['email']);
+    $hashed_email = hash('sha256', strtolower($email));
 
-      $email = trim($_POST['email']);
-      $hashed_email = hash('sha256', strtolower($email));
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = "Please enter a valid email address!";
+    } else {
+        // Check if email already exists
+        $stmt = $conn->prepare("SELECT id FROM subscribers WHERE email = ?");
+        $stmt->bind_param("s", $hashed_email);
+        $stmt->execute();
+        $stmt->store_result();
 
-      if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-          $error = "Please enter a valid email address!";
-      } else {
-          // Check if email already exists
-          $stmt = $conn->prepare("SELECT id FROM subscribers WHERE email = ?");
-          $stmt->bind_param("s", $hashed_email);
-          $stmt->execute();
-          $stmt->store_result();
+        if ($stmt->num_rows > 0) {
+            $error = "This email is already subscribed!";
+        } else {
+            // Insert new subscriber
+            $stmtInsert = $conn->prepare("INSERT INTO subscribers (email, created_at) VALUES (?, NOW())");
+            $stmtInsert->bind_param("s", $hashed_email);
 
-          if ($stmt->num_rows > 0) {
-              $error = "This email is already subscribed!";
-          } else {
-              // Insert new subscriber
-              $stmtInsert = $conn->prepare("INSERT INTO subscribers (email, created_at) VALUES (?, NOW())");
-              $stmtInsert->bind_param("s", $hashed_email);
-
-              if ($stmtInsert->execute()) {
-                  $success = "Noted. We’ll update you! <span class='redirect-msg'></span>";
-              } else {
-                  $error = "Something went wrong. Please try again later.";
-              }
-              $stmtInsert->close();
-          }
-          $stmt->close();
-      }
-
-      // Regenerate token after processing
-      $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-  }
+            if ($stmtInsert->execute()) {
+              $success = "Noted. We’ll update you! <span class='redirect-msg'></span>";
+            } else {
+              $error = "Something went wrong. Please try again later.";
+            }
+            $stmtInsert->close();
+        }
+        $stmt->close();
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -115,7 +98,6 @@ if (isset($_POST['subscribe'])) {
           </div>
         </div>
         <form method="POST" action="">
-          <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token']; ?>">
           <?php if (!empty($error)): ?>
             <p class="errorMessage">
               <i class="fa-solid fa-circle-exclamation"></i>
@@ -128,7 +110,7 @@ if (isset($_POST['subscribe'])) {
             </p>
           <?php endif; ?>
           <div>
-            <input type="email" name="email" placeholder="Enter your email" required>
+            <input type="email" name="email" value="<?php echo htmlspecialchars($email ?? ''); ?>" placeholder="Enter your email" required>
             <button type="submit" name="subscribe">Notify&nbsp;Me</button>
           </div>
         </form>
@@ -136,7 +118,7 @@ if (isset($_POST['subscribe'])) {
       </div>
     </main>
     <footer>
-      <p>&copy; 2025/2026, Maket Hub.com, All Rights reserved.</p>
+      <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
     </footer>
   </div>
   

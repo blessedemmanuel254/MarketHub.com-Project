@@ -333,7 +333,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       </div>
     </main>
     <footer>
-      <p>&copy; 2025/2026, Maket Hub.com, All Rights reserved.</p>
+      <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
     </footer>
   </div>
   

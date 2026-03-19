@@ -913,7 +913,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       <p class="toggleOrdersOrMarket"><button href="" onclick="toggleMarketMain()">Go&nbsp;back</button> to continue shopping.</p>
     </main>
     <footer>
-      <p>&copy; 2025/2026, Maket Hub.com, All Rights reserved.</p>
+      <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
     </footer>
   </div>
   

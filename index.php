@@ -186,11 +186,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </section>
         <form action="index.php" method="POST">
           <h2>Login to Maket Hub</h2>
-          <?php if ($error): ?>
-            <p class="errorMessage"><i class="fa-solid fa-circle-exclamation"></i> <?= $error ?></p>
-          <?php elseif ($success): ?>
-            <p class="successMessage" data-redirect="index.php">
-              <i class="fa-solid fa-check-circle"></i> <?= $success ?>
+          <?php if (!empty($error)): ?>
+            <p class="errorMessage">
+              <i class="fa-solid fa-circle-exclamation"></i>
+              <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?>
+            </p>
+          <?php elseif (!empty($success)): ?>
+            <p class="successMessage">
+              <i class="fa-solid fa-check-circle"></i>
+              <?= strip_tags($success, '<span>'); ?>
             </p>
           <?php endif; ?>
           <div class="form-content-wrapper">
@@ -279,7 +283,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       </div>
     </main>
     <footer>
-      <p>&copy; 2025/2026, Maket Hub.com, All Rights reserved.</p>
+      <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
     </footer>
   </div>
 

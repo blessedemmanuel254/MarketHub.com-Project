@@ -71,7 +71,8 @@ function maskPhone($phone, $maskChar = '*') {
 
 /**
  * Decode a base64-encoded email safely
- */
+*/
+
 function decodeEmail($encodedEmail) {
   if (empty($encodedEmail)) {
       return '';
@@ -88,9 +89,12 @@ function decodeEmail($encodedEmail) {
 }
 
 /**
+ * 
  * Mask an email address partially
  * Example: emmanueltindi23@gmail.com => em***23@gmail.com
- */
+ * 
+*/
+
 function maskEmail($email, $mask = '***') {
   if (empty($email)) {
       return '';
@@ -151,7 +155,7 @@ $fullNameFormatted = strtoupper($fullName);
 $accountTypeFormatted = ucfirst(strtolower($accountType));
 
 // Default avatar if profile image does not exist
-$defaultAvatar = "Images/Maket Hub Logo.avif";
+$defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 $safeProfileImage = (!empty($profileImage) && file_exists($profileImage)) ? htmlspecialchars($profileImage, ENT_QUOTES, 'UTF-8') : $defaultAvatar;
 
 /* ===============================
@@ -187,7 +191,7 @@ $agentData = $agentQuery->fetch_assoc();
   SALES AGENTS TABLE DATA
 ================================= */
 
-$defaultAvatar = "Images/Maket Hub Logo.avif";
+$defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
 $agentsStmt = $conn->prepare("
   SELECT 
