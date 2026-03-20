@@ -642,6 +642,34 @@ if ($isVerified === 1 && $status === 'active') {
 
 
   }
+
+
+  $commissions = [];
+
+  $stmt = $conn->prepare("
+    SELECT 
+        ac.source_user_id,
+        ac.`level`,
+        ac.amount,
+        ac.commission_type,
+        ac.created_at,
+        u.username
+    FROM agent_commissions ac
+    LEFT JOIN users u ON u.user_id = ac.source_user_id
+    WHERE ac.agent_id = ?
+    ORDER BY ac.created_at DESC
+  ");
+
+  $stmt->bind_param("i", $user_id);
+  $stmt->execute();
+  $result = $stmt->get_result();
+
+  while ($row = $result->fetch_assoc()) {
+    $commissions[] = $row;
+  }
+
+  $stmt->close();
+
 ?>
 
 <!DOCTYPE html>
@@ -1770,67 +1798,66 @@ if ($isVerified === 1 && $status === 'active') {
             <tr>
               <th>Date</th>
               <th>Source</th>
-              <th>Status</th>
               <th>Level</th>
+              <th>Name</th>
+              <th>Status</th>
               <th>Amount</th>
             </tr>
           </thead>
           <tbody>
-            <tr data-status="Delivered">
-              <td>12 Feb 2026</td>
-              <td>Agent&nbsp;Activation</td>
-              <td><span class="badge pending">Pending</span></td>
-              <td>Level&nbsp;1</td>
-              <td>KES&nbsp;100</td>
+          <?php if (!empty($commissions)): ?>
+
+            <?php foreach ($commissions as $row): 
+
+              // Format date
+              $date = date("d M Y", strtotime($row['created_at']));
+
+              // Source
+              $source = ($row['commission_type'] === 'activation')
+                  ? 'Agent Activation'
+                  : 'Commission';
+
+              // Level
+              $level = "Level " . (int)$row['level'];
+
+              // Name (fallback if missing)
+              $name = !empty($row['username']) 
+                  ? $row['username'] 
+                  : 'Unknown';
+
+              // Status (default since not stored)
+              $status = "Paid";
+              $statusClass = "paid";
+
+              // Amount
+              $amount = "KES " . number_format($row['amount'], 2);
+
+            ?>
+
+              <tr data-status="<?php echo $status; ?>">
+                <td><?php echo htmlspecialchars($date); ?></td>
+                <td><?php echo htmlspecialchars($source); ?></td>
+                <td><?php echo htmlspecialchars($level); ?></td>
+                <td><?php echo htmlspecialchars($name); ?></td>
+                <td>
+                  <span class="badge <?php echo $statusClass; ?>">
+                    <?php echo $status; ?>
+                  </span>
+                </td>
+                <td><?php echo htmlspecialchars($amount); ?></td>
+              </tr>
+
+            <?php endforeach; ?>
+
+          <?php else: ?>
+
+            <tr>
+              <td colspan="6" style="text-align:center;">
+                No earnings history yet
+              </td>
             </tr>
 
-            <tr data-status="Processing">
-              <td>13 Feb 2026</td>
-              <td>Product&nbsp;Sales</td>
-              <td><span class="badge processing">Processing</span></td>
-              <td>Product</td>
-              <td>KES&nbsp;7700</td>
-            </tr>
-
-            <tr data-status="Shipped">
-              <td>14 Feb 2026</td>
-              <td>Agent&nbsp;Activation</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td>Level&nbsp;2</td>
-              <td>KES&nbsp;40</td>
-            </tr>
-
-            <tr data-status="Processing">
-              <td>14 Feb 2026</td>
-              <td>Product&nbsp;Sales</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td>Product</td>
-              <td>KES&nbsp;800</td>
-            </tr>
-
-            <tr data-status="Shipped">
-              <td>14 Feb 2026</td>
-              <td>Agent&nbsp;Activation</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td>Level&nbsp;3</td>
-              <td>KES&nbsp;20</td>
-            </tr>
-
-            <tr data-status="Processing">
-              <td>13 Feb 2026</td>
-              <td>Agent&nbsp;Activation</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td>Level&nbsp;2</td>
-              <td>KES&nbsp;40</td>
-            </tr>
-
-            <tr data-status="Shipped">
-              <td>14 Feb 2026</td>
-              <td>Agent&nbsp;Activation</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td>Level&nbsp;3</td>
-              <td>KES&nbsp;20</td>
-            </tr>
+          <?php endif; ?>
           </tbody>
         </table>
       </div>
@@ -1877,68 +1904,59 @@ if ($isVerified === 1 && $status === 'active') {
             </tr>
           </thead>
           <tbody>
-            <tr data-status="Delivered">
-              <td>12 Feb 2026</td>
-              <td>Agent&nbsp;Activation</td>
-              <td>Level&nbsp;1</td>
-              <td>Sony_254</td>
-              <td><span class="badge pending">Pending</span></td>
-              <td>KES&nbsp;100</td>
+          <?php if (!empty($commissions)): ?>
+
+            <?php foreach ($commissions as $row): 
+
+              // Format date
+              $date = date("d M Y", strtotime($row['created_at']));
+
+              // Source
+              $source = ($row['commission_type'] === 'activation')
+                  ? 'Agent Activation'
+                  : 'Commission';
+
+              // Level
+              $level = "Level " . (int)$row['level'];
+
+              // Name (fallback if missing)
+              $name = !empty($row['username']) 
+                  ? $row['username'] 
+                  : 'Unknown';
+
+              // Status (default since not stored)
+              $status = "Paid";
+              $statusClass = "paid";
+
+              // Amount
+              $amount = "KES " . number_format($row['amount'], 2);
+
+            ?>
+
+              <tr data-status="<?php echo $status; ?>">
+                <td><?php echo htmlspecialchars($date); ?></td>
+                <td><?php echo htmlspecialchars($source); ?></td>
+                <td><?php echo htmlspecialchars($level); ?></td>
+                <td><?php echo htmlspecialchars($name); ?></td>
+                <td>
+                  <span class="badge <?php echo $statusClass; ?>">
+                    <?php echo $status; ?>
+                  </span>
+                </td>
+                <td><?php echo htmlspecialchars($amount); ?></td>
+              </tr>
+
+            <?php endforeach; ?>
+
+          <?php else: ?>
+
+            <tr>
+              <td colspan="6" style="text-align:center;">
+                No earnings history yet
+              </td>
             </tr>
 
-            <tr data-status="Processing">
-              <td>13 Feb 2026</td>
-              <td>Product&nbsp;Sales</td>
-              <td>Product</td>
-              <td>Passion Juice</td>
-              <td><span class="badge processing">Processing</span></td>
-              <td>KES&nbsp;7700</td>
-            </tr>
-
-            <tr data-status="Shipped">
-              <td>14 Feb 2026</td>
-              <td>Agent&nbsp;Activation</td>
-              <td>Level&nbsp;2</td>
-              <td>Levi254</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td>KES&nbsp;40</td>
-            </tr>
-
-            <tr data-status="Processing">
-              <td>14 Feb 2026</td>
-              <td>Product&nbsp;Sales</td>
-              <td>Product</td>
-              <td>Oraimo Headphones</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td>KES&nbsp;800</td>
-            </tr>
-
-            <tr data-status="Shipped">
-              <td>14 Feb 2026</td>
-              <td>Agent&nbsp;Activation</td>
-              <td>Level&nbsp;3</td>
-              <td>Agentrael</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td>KES&nbsp;20</td>
-            </tr>
-
-            <tr data-status="Processing">
-              <td>13 Feb 2026</td>
-              <td>Agent&nbsp;Activation</td>
-              <td>Level&nbsp;2</td>
-              <td>Kalvani</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td>KES&nbsp;40</td>
-            </tr>
-
-            <tr data-status="Shipped">
-              <td>14 Feb 2026</td>
-              <td>Agent&nbsp;Activation</td>
-              <td>Level&nbsp;3</td>
-              <td>Blessedemmanuel254</td>
-              <td><span class="badge paid">Paid</span></td>
-              <td>KES&nbsp;20</td>
-            </tr>
+          <?php endif; ?>
           </tbody>
         </table>
       </div>

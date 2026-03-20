@@ -150,6 +150,27 @@ elseif ($action === "activate") {
         $log->bind_param("idss", $walletId, $amount, $desc, $userId);
         $log->execute();
         $log->close();
+        
+        $levelNumber = $level + 1;
+        $commissionType = "activation";
+
+        $commissionStmt = $conn->prepare("
+            INSERT INTO agent_commissions 
+            (agent_id, source_user_id, level, amount, commission_type, created_at)
+            VALUES (?, ?, ?, ?, ?, NOW())
+        ");
+
+        $commissionStmt->bind_param(
+            "iiids",
+            $referrerId,
+            $userId,
+            $levelNumber,
+            $amount,
+            $commissionType
+        );
+
+        $commissionStmt->execute();
+        $commissionStmt->close();
 
         // Move up chain
         $stmt = $conn->prepare("SELECT referred_by FROM users WHERE user_id=?");
