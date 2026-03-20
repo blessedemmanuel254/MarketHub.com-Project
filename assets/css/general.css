@@ -3922,6 +3922,12 @@ body#adminBody {
 
 }
 
+.tab-panel.agency .dashboard .grid .card span.ineligible, .tab-panel .formBody.agency .card span.ineligible {
+  color: #ff3b3b;
+  background-color: #ff3b3b2a;
+
+}
+
 .tab-panel.agency .dashboard .grid .card .amount, .tab-panel .formBody.agency .amount {
   font-size: 26px;
   font-weight: bold;
@@ -3935,9 +3941,16 @@ body#adminBody {
 
 .tab-panel.agency .dashboard .grid .card .sub-info-m, .tab-panel .formBody.agency .card .sub-info-m {
   color: #898888;
-  font-size: 14px;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.tab-panel .formBody.agency .card .sub-info-m {
   font-weight: bold;
-  margin-top: 5px;
+}
+
+.tab-panel.agency .dashboard .grid .card .sub-info-m span {
+  color: #856404;
 }
 
 .tab-panel.agency .dashboard .grid .card button, .tab-panel .formBody.agency .card button {
@@ -3946,7 +3959,7 @@ body#adminBody {
   padding: 8px 16px;
   width: 100%;
   text-align: center;
-  margin: 10px 0 2px;
+  margin: 6px 0 2px;
   border: none;
   border-radius: 4px;
 }

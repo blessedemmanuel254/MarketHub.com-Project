@@ -58,6 +58,85 @@ $user_id = $_SESSION['user_id'];
   exit();
 } */
 
+/* ---------------------------
+   FETCH WALLET BALANCES & TRANSACTIONS (AGENCY + SALES)
+--------------------------- */
+
+$agencyBalance   = 0;
+$totalTransacted = 0;
+$salesBalance    = 0;
+$totalWithdrawals = 0;
+$totalWithdrawn   = 0;
+$totalSales       = 0;
+$totalSalesAmount = 0;
+
+// Combined query for balances + withdrawal/sales totals
+$stmt = $conn->prepare("
+    SELECT 
+        w.wallet_type,
+        w.balance,
+        w.total_transacted,
+        -- Agency withdrawals
+        (SELECT COUNT(*) 
+         FROM wallet_transactions wt 
+         WHERE wt.wallet_id = w.wallet_id 
+           AND wt.transaction_type = 'debit' 
+           AND wt.status = 'completed') AS total_withdrawals,
+        (SELECT COALESCE(SUM(wt.amount),0) 
+         FROM wallet_transactions wt 
+         WHERE wt.wallet_id = w.wallet_id 
+           AND wt.transaction_type = 'debit' 
+           AND wt.status = 'completed') AS total_withdrawn,
+        -- Sales earnings (this month)
+        (SELECT COUNT(*) 
+         FROM wallet_transactions wt 
+         WHERE wt.wallet_id = w.wallet_id 
+           AND wt.transaction_type = 'credit' 
+           AND wt.status = 'completed'
+           AND w.wallet_type = 'sales'
+           AND wt.created_at >= DATE_FORMAT(NOW(), '%Y-%m-01')) AS sales_count,
+        (SELECT COALESCE(SUM(wt.amount),0) 
+         FROM wallet_transactions wt 
+         WHERE wt.wallet_id = w.wallet_id 
+           AND wt.transaction_type = 'credit' 
+           AND wt.status = 'completed'
+           AND w.wallet_type = 'sales'
+           AND wt.created_at >= DATE_FORMAT(NOW(), '%Y-%m-01')) AS sales_sum
+    FROM wallets w
+    WHERE w.user_id = ?
+      AND w.wallet_type IN ('agency','sales')
+");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+while ($row = $result->fetch_assoc()) {
+    if ($row['wallet_type'] === 'agency') {
+        $agencyBalance   = (float)$row['balance'];
+        $totalTransacted = (float)$row['total_transacted'];
+        $totalWithdrawals = (int)$row['total_withdrawals'];
+        $totalWithdrawn   = (float)$row['total_withdrawn'];
+    } elseif ($row['wallet_type'] === 'sales') {
+        $salesBalance     = (float)$row['balance'];
+        $totalSales       = (int)$row['sales_count'];
+        $totalSalesAmount = (float)$row['sales_sum'];
+    }
+}
+$stmt->close();
+
+/* ---------------------------
+   WITHDRAWAL RULES / MINIMUM THRESHOLDS
+--------------------------- */
+$agencyMin = 400;
+$salesMin  = 500;
+
+$isAgencyEligible = $agencyBalance >= $agencyMin;
+$isSalesEligible  = $salesBalance >= $salesMin;
+$progressPercent = min(($agencyBalance / $agencyMin) * 100, 100);
+$remaining = max($agencyMin - $agencyBalance, 0);
+$progressPercentSales = min(($salesBalance / $salesMin) * 100, 100);
+$remainingSales = max($salesMin - $salesBalance, 0);
+
 $country = "";
 $county = "";
 $ward = "";
@@ -265,31 +344,6 @@ if($_SERVER["REQUEST_METHOD"] === "POST"){
 
               if($stmt->execute()){
 
-                $newAgentID = $stmt->insert_id;
-
-                /* ===========================
-                  CREATE AGENT WALLETS
-                =========================== */
-
-                $salesWallet = $conn->prepare("
-                INSERT INTO wallets (user_id, wallet_type, balance, total_transacted)
-                VALUES (?, 'sales', 0.00, 0.00)
-                ");
-
-                $salesWallet->bind_param("i", $newAgentID);
-                $salesWallet->execute();
-                $salesWallet->close();
-
-
-                $agencyWallet = $conn->prepare("
-                INSERT INTO wallets (user_id, wallet_type, balance, total_transacted)
-                VALUES (?, 'agency', 0.00, 0.00)
-                ");
-
-                $agencyWallet->bind_param("i", $newAgentID);
-                $agencyWallet->execute();
-                $agencyWallet->close();
-
                 $agent_success = "New agent added successfully! <span class='redirect-msg'></span>";
               }
               else{
@@ -363,7 +417,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
 /* ---------- GENERATE AGENCY LINK ---------- */
 
-$baseAgencyLink = "http://localhost/MaketHub.shop-Project/agentRegister.php";
+$baseAgencyLink = "http://localhost/MaketHub.com-Project/agentRegister.php";
 
 $agencyLink = $baseAgencyLink . "?ref=" . urlencode($agencyCode);
 
@@ -473,7 +527,7 @@ if ($isVerified === 1 && $status === 'active') {
       $periods = (int)$row['economic_period_count'];
 
       if ($periods > 0) {
-          $lvl3Earn += (20 * $periods);
+        $lvl3Earn += (20 * $periods);
       }
     }
 
@@ -565,16 +619,25 @@ if ($isVerified === 1 && $status === 'active') {
     HIGHEST EARNING LEVEL
   ===================================================== */
 
-  $highestLevel = "Level 1";
-  $highestValue = $lvl1Earn;
+  // Default
+  $highestLevel = "None";
+  $highestValue = 0;
 
-  if($lvl2Earn > $highestValue){
-      $highestValue = $lvl2Earn;
-      $highestLevel = "Level 2";
-  }
+  // Check if all levels are equal
+  if ($lvl1Earn === $lvl2Earn && $lvl2Earn === $lvl3Earn) {
+    $highestLevel = "None";
+    $highestValue = $lvl1Earn; // all same anyway
+  } else {
+    // Find the actual highest
+    $highestValue = max($lvl1Earn, $lvl2Earn, $lvl3Earn);
 
-  if($lvl3Earn > $highestValue){
-      $highestLevel = "Level 3";
+    if ($highestValue === $lvl1Earn) {
+        $highestLevel = "Level 1";
+    } elseif ($highestValue === $lvl2Earn) {
+        $highestLevel = "Level 2";
+    } else {
+        $highestLevel = "Level 3";
+    }
   }
 
 
@@ -880,38 +943,125 @@ if ($isVerified === 1 && $status === 'active') {
 
                 <!-- AGENCY WALLET -->
                 <div class="card">
-                  <h3>Agency Balance</h3>
-                  <div class="amount">KES 12,540</div>
-                  <div class="sub-info">Last withdrawal: 3 days ago</div>
-                  <div class="growth up">▲ +18% from last month</div>
-                  <div class="progress">
-                    <div class="progress-fill"></div>
+                  <h3>Agency Wallet Balance</h3>
+
+                  <div class="amount">
+                    KES <?= htmlspecialchars(number_format($agencyBalance, 2)) ?>
                   </div>
-                  <div class="sub-info">KES 2,460 to next payout milestone</div>
+
+                  <div class="sub-info">Available for withdrawal</div>
+
+                  <div class="growth up">▲ Live agency balance</div>
+
+                  <div class="progress">
+                    <div class="progress-fill" 
+                        style="width: <?= htmlspecialchars($progressPercent) ?>%">
+                    </div>
+                  </div>
+
+                  <?php if ($agencyBalance >= $agencyMin): ?>
+                    
+                    <!-- ✅ Milestone reached -->
+                    <div class="sub-info">
+                      🎉 Milestone reached!
+                    </div>
+
+                  <?php else: ?>
+                    
+                    <!-- ⏳ Still progressing -->
+                    <div class="sub-info">
+                      KES <?= htmlspecialchars(number_format($remaining, 2)) ?> to next milestone
+                    </div>
+
+                  <?php endif; ?>
+
                 </div>
 
-                <!-- WITHDRAW HISTORY -->
                 <div class="card">
-                  <h3>Total Earned</h3>
-                  <div class="amount">KES 71,140</div>
-                  <div class="sub-info">12 successful withdrawalss</div>
-                  <div class="growth up">▲ +15% from last month</div>
-                  <div class="sub-info">Endless Payouts in line</div>
+                  <h3>Sales Wallet Balance</h3>
+
+                  <div class="amount">
+                    KES <?= number_format($salesBalance, 2) ?>
+                  </div>
+
+                  <div class="sub-info">
+                    <?php if ($totalSales > 0): ?>
+                      Average per sale: KES <?= number_format($totalSalesAmount / $totalSales, 2) ?>
+                    <?php else: ?>
+                      Average per sale: KES 0.00
+                    <?php endif; ?>
+                  </div>
+
+                  <div class="growth up">
+                    ▲ Live sales earnings
+                  </div>
+
+                  <div class="progress">
+                    <div class="progress-fill" 
+                        style="width: <?= htmlspecialchars($progressPercentSales) ?>%">
+                    </div>
+                  </div>
+
+                  <?php if ($salesBalance >= $salesMin): ?>
+                    
+                    <!-- ✅ Milestone reached -->
+                    <div class="sub-info">
+                      🎉 Kudos!
+                    </div>
+
+                  <?php else: ?>
+                    
+                    <!-- ⏳ Still progressing -->
+                    <div class="sub-info">
+                      KES <?= htmlspecialchars(number_format($remainingSales, 2)) ?> to next achievement
+                    </div>
+
+                  <?php endif; ?>
+                </div>
+
+                <!-- WITHDRAWAL HISTORY -->
+                <div class="card">
+                  <h3>Total Withdrawn</h3>
+
+                  <div class="amount">
+                    KES <?= htmlspecialchars(number_format($totalWithdrawn, 2)) ?>
+                  </div>
+
+                  <?php if ($totalWithdrawals > 0): ?>
+                    <div class="sub-info">
+                      <?= htmlspecialchars(
+                        $totalWithdrawals . ' successful withdrawal' . ($totalWithdrawals > 1 ? 's' : '')
+                      ) ?>
+                    </div>
+                  <?php endif; ?>
+
+                  <div class="growth up">▲ Withdrawal history</div>
+
+                  <div class="sub-info">Money you have cashed out</div>
                 </div>
 
                 <!-- NETWORK SIZE -->
                 <div class="card">
-                  <div class="amount"><?php echo $totalNetwork; ?> Agents</div>
+                  <?php
+                  $agentLabel = ($totalNetwork === 1) ? 'Agent' : 'Agents';
+                  ?>
+
+                  <div class="amount">
+                    <?php echo $totalNetwork . ' ' . $agentLabel; ?>
+                  </div>
                   <div class="sub-info">Level 1: <strong><?php echo $level1Count; ?></strong></div>
                   <div class="sub-info">Level 2: <strong><?php echo $level2Count; ?></strong></div>
                   <div class="sub-info">Level 3: <strong><?php echo $level3Count; ?></strong></div>
                   <?php
-                    $growthClass = "growth up";
-                    $arrow = "▲";
-                    if ($highestLevel === "None") {
+                  $growthClass = "growth up";
+                  $arrow = "▲";
+
+                  // If no earnings at all OR no highest level
+                  if (
+                      $highestLevel === "None" || $newThisMonth <= 0) {
                       $growthClass = "growth down";
                       $arrow = "▼";
-                    }
+                  }
                   ?>
                   <div class="<?php echo $growthClass; ?>">
                     <?php echo $arrow; ?> +<?php echo $newThisMonth; ?> new in last 28 days
@@ -921,10 +1071,28 @@ if ($isVerified === 1 && $status === 'active') {
                 <!-- ADVERTISING -->
                 <div class="card">
                   <h3>Withdrawal Status</h3>
-                  <span class="wStatus">Eligible</span>
-                  <div class="sub-info-m">Minimum threshold met</div>
-                  <button>Withdraw</button>
-                  <div class="growth up">▲ +12% increase</div>
+
+                  <?php if ($isAgencyEligible || $isSalesEligible): ?>
+                    <span class="wStatus">Eligible</span>
+                    <div class="sub-info-m">Minimum threshold met</div>
+
+                    <button>Withdraw</button>
+
+                  <?php else: ?>
+                    <span class="wStatus ineligible">Not Eligible</span>
+
+                    <div class="sub-info-m">
+                      <?php if (!$isAgencyEligible): ?>
+                        Agency: KES <span><?= number_format($agencyMin - $agencyBalance, 2) ?></span> remaining<br>
+                      <?php endif; ?>
+
+                      <?php if (!$isSalesEligible): ?>
+                        Sales: KES <span><?= number_format($salesMin - $salesBalance, 2) ?></span> remaining
+                      <?php endif; ?>
+                    </div>
+                  <?php endif; ?>
+
+                  <div class="growth up">▲ Wallet status updated</div>
                 </div>
 
                 <!-- ADVERTISING --><!-- 
@@ -1158,10 +1326,44 @@ if ($isVerified === 1 && $status === 'active') {
                   <!-- ADVERTISING -->
                   <div class="card">
                     <h3>Sales Wallet Balance</h3>
-                    <div class="amount">KES 5,400</div>
-                    <div class="sub-info">32 conversions this month</div>
-                    <div class="growth up">▲ +12% increase</div>
-                    <div class="sub-info">Conversion Rate: 4.8%</div>
+
+                    <div class="amount">
+                      KES <?= number_format($salesBalance, 2) ?>
+                    </div>
+
+                    <div class="sub-info">
+                      <?php if ($totalSales > 0): ?>
+                        Average per sale: KES <?= number_format($totalSalesAmount / $totalSales, 2) ?>
+                      <?php else: ?>
+                        Average per sale: KES 0.00
+                      <?php endif; ?>
+                    </div>
+
+                    <div class="growth up">
+                      ▲ Live sales earnings
+                    </div>
+
+                    <div class="progress">
+                      <div class="progress-fill" 
+                          style="width: <?= htmlspecialchars($progressPercentSales) ?>%">
+                      </div>
+                    </div>
+
+                    <?php if ($salesBalance >= $salesMin): ?>
+                      
+                      <!-- ✅ Milestone reached -->
+                      <div class="sub-info">
+                        🎉 Kudos!
+                      </div>
+
+                    <?php else: ?>
+                      
+                      <!-- ⏳ Still progressing -->
+                      <div class="sub-info">
+                        KES <?= htmlspecialchars(number_format($remainingSales, 2)) ?> to next achievement
+                      </div>
+
+                    <?php endif; ?>
                   </div>
                   <div>
                     <div class="inp-box">
@@ -1174,14 +1376,38 @@ if ($isVerified === 1 && $status === 'active') {
                 <div class="formBody agency" id="agencyWallet">
                   <!-- AGENCY WALLET -->
                   <div class="card">
-                    <h3>Agency Wallet Balance</h3>
-                    <div class="amount">KES 12,540</div>
-                    <div class="sub-info">Last withdrawal: 3 days ago</div>
-                    <div class="growth up">▲ +18% from last month</div>
-                    <div class="progress">
-                      <div class="progress-fill"></div>
+                    <h3>Agency Balance</h3>
+
+                    <div class="amount">
+                      KES <?= htmlspecialchars(number_format($agencyBalance, 2)) ?>
                     </div>
-                    <div class="sub-info">KES 2,460 to next payout milestone</div>
+
+                    <div class="sub-info">Available for withdrawal</div>
+
+                    <div class="growth up">▲ Live wallet balance</div>
+
+                    <div class="progress">
+                      <div class="progress-fill" 
+                          style="width: <?= htmlspecialchars($progressPercent) ?>%">
+                      </div>
+                    </div>
+
+                    <?php if ($agencyBalance >= $agencyMin): ?>
+                      
+                      <!-- ✅ Milestone reached -->
+                      <div class="sub-info">
+                        🎉 Milestone reached!
+                      </div>
+
+                    <?php else: ?>
+                      
+                      <!-- ⏳ Still progressing -->
+                      <div class="sub-info">
+                        KES <?= htmlspecialchars(number_format($remaining, 2)) ?> to next milestone
+                      </div>
+
+                    <?php endif; ?>
+
                   </div>
 
                   <div>

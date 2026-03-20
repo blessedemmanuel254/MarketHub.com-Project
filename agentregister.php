@@ -192,43 +192,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         );
 
         if($stmt->execute()){
-
-          $newAgentID = $stmt->insert_id;
-
-          /* ===========================
-            CREATE AGENT WALLETS
-          ============================ */
-
-          // Sales Wallet
-          $salesWallet = $conn->prepare("
-            INSERT INTO wallets (user_id, wallet_type, balance, total_transacted)
-            VALUES (?, 'sales', 0.00, 0.00)
-          ");
-
-          if(!$salesWallet){
-            die("Sales wallet error: " . $conn->error);
-          }
-
-          $salesWallet->bind_param("i", $newAgentID);
-          $salesWallet->execute();
-          $salesWallet->close();
-
-
-          // Agency Wallet
-          $agencyWallet = $conn->prepare("
-            INSERT INTO wallets (user_id, wallet_type, balance, total_transacted)
-            VALUES (?, 'agency', 0.00, 0.00)
-          ");
-
-          if(!$agencyWallet){
-            die("Agency wallet error: " . $conn->error);
-          }
-
-          $agencyWallet->bind_param("i", $newAgentID);
-          $agencyWallet->execute();
-          $agencyWallet->close();
-
-
+          
           // Clear referral session
           unset($_SESSION['agency_code']);
 

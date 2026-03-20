@@ -224,56 +224,6 @@ $agentsStmt->execute();
 $agentsResult = $agentsStmt->get_result();
 
 
-if(isset($_POST['action']) && isset($_POST['user_id'])){
-
-    header('Content-Type: application/json');
-
-    $userId = intval($_POST['user_id']);
-    $action = $_POST['action'];
-
-    switch($action){
-
-      case "suspend":
-          $stmt = $conn->prepare("UPDATE users SET status='suspended' WHERE user_id=?");
-          $stmt->bind_param("i", $userId);
-      break;
-
-      case "restore":
-          $stmt = $conn->prepare("UPDATE users SET status='active' WHERE user_id=?");
-          $stmt->bind_param("i", $userId);
-      break;
-
-      case "activate":
-          // Increment economic_period_count by 1
-          $stmt = $conn->prepare("UPDATE users SET is_verified=1, economic_period_count = economic_period_count + 1 WHERE user_id=?");
-          $stmt->bind_param("i", $userId);
-      break;
-
-      case "deactivate":
-          // Decrement economic_period_count by 1
-          $stmt = $conn->prepare("UPDATE users SET is_verified=0, economic_period_count = GREATEST(economic_period_count - 1, 0) WHERE user_id=?");
-          $stmt->bind_param("i", $userId);
-      break;
-
-      case "delete":
-          $stmt = $conn->prepare("DELETE FROM users WHERE user_id=?");
-          $stmt->bind_param("i", $userId);
-      break;
-
-      default:
-          echo json_encode(["success"=>false]);
-          exit;
-  }
-
-  if($stmt->execute()){
-      echo json_encode(["success"=>true]);
-  }else{
-      echo json_encode(["success"=>false]);
-  }
-
-  exit;
-}
-
 // Fetch sellers
 $sellerQuery = $conn->query("
   SELECT 

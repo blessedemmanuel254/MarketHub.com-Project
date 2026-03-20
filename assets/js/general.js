@@ -988,7 +988,7 @@ if(!confirm(message)) return;
 
 /* AJAX REQUEST */
 
-fetch("adminPage.php",{
+fetch("user_functionalities.php",{
 method:"POST",
 headers:{
 "Content-Type":"application/x-www-form-urlencoded",
