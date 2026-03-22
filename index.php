@@ -17,6 +17,7 @@ if (isset($_SESSION['user_id'], $_SESSION['account_type'])) {
     case 'seller': header("Location: sellerPage.php"); exit;
     case 'buyer':  header("Location: buyerPage.php");  exit;
     case 'sales_agent':  header("Location: agentPage.php");  exit;
+    case 'property_owner':  header("Location: propertyOwnerPage.php");  exit;
     case 'administrator':  header("Location: adminPage.php");  exit;
   }
 }

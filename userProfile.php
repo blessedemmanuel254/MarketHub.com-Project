@@ -10,6 +10,8 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = (int) $_SESSION['user_id'];
 
+$accountType = $_SESSION['account_type'];
+
 /* ---------- HELPERS ---------- */
 function safe($v) {
     return htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8');
@@ -49,7 +51,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $county       = trim($_POST['county']);
     $ward         = trim($_POST['ward']);
     $address      = trim($_POST['address']);
-    $account_type = trim($_POST['account_type']);
 
     $profile_image = $user['profile_image'];
 
@@ -86,14 +87,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $update = $conn->prepare("
         UPDATE users SET
             full_name = ?, phone = ?, bio = ?, username = ?, country = ?, county = ?, ward = ?,
-            address = ?, account_type = ?, profile_image = ?, updated_at = NOW()
+            address = ?, profile_image = ?, updated_at = NOW()
         WHERE user_id = ?
     ");
 
     $update->bind_param(
         "ssssssssssi",
         $full_name, $phone, $bio, $username, $country, $county, $ward,
-        $address, $account_type, $profile_image, $user_id
+        $address, $profile_image, $user_id
     );
     $update->execute();
     $update->close();
@@ -143,6 +144,7 @@ if (!empty($user['profile_image'])) {
 </head>
 <body>
   <div class="container">
+    <?php if ($accountType === 'buyer'): ?>
     <main class="profile-main" id="buyerProfile">
       <div class="container profile-container">
 
@@ -231,6 +233,8 @@ if (!empty($user['profile_image'])) {
         </form>
       </div>
     </main>
+    <?php endif; ?>
+    <?php if ($accountType === 'seller'): ?>
     <main class="profile-main" id="sellerProfile">
       <div class="container profile-container">
 
@@ -273,7 +277,6 @@ if (!empty($user['profile_image'])) {
             <input type="text" name="phone" value="<?= safe($user['phone']); ?>">
           </div>
 
-
           <div class="form-group">
             <label>Business Name</label>
             <select name="country">
@@ -292,7 +295,6 @@ if (!empty($user['profile_image'])) {
             <label>Physical Address</label>
             <input type="text" name="address" value="<?= safe($user['address']); ?>">
           </div>
-
 
           <div class="form-group">
             <label>Country</label>
@@ -336,7 +338,9 @@ if (!empty($user['profile_image'])) {
         </form>
       </div>
     </main>
-    <main class="profile-main" id="buyerProfile">
+    <?php endif; ?>
+    <?php if ($accountType === 'sales_agent'): ?>
+    <main class="profile-main" id="agentProfile">
       <div class="container profile-container">
 
         <?php if (isset($_GET['updated'])): ?>
@@ -424,6 +428,97 @@ if (!empty($user['profile_image'])) {
         </form>
       </div>
     </main>
+    <?php endif; ?>
+    <?php if ($accountType === 'property_owner'): ?>
+    <main class="profile-main" id="propertyOwnerProfile">
+      <div class="container profile-container">
+
+        <?php if (isset($_GET['updated'])): ?>
+          <div class="success"><i class="fa-solid fa-check-circle"></i>Profile updated successfully!</div>
+        <?php endif; ?>
+
+        <div class="profile-header">
+          <div class="profile-pic">
+            <img id="profilePreview"
+              src="<?= safe($user['profile_image']) ?: 'Images/Maket Hub Logo.avif'; ?>">
+              <input type="file" id="profileImage" name="profile_image" accept="image/png,image/jpeg,image/webp" form="profileForm">
+            <label for="profileImage"><i class="fa fa-camera"></i></label>
+          </div>
+          <div>
+            <h2><?= safe($user['full_name']); ?></h2>
+            <p>Edit your Maket Hub details</p>
+          </div>
+        </div>
+
+        <form id="profileForm" class="profile-form" method="POST" enctype="multipart/form-data">
+
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" name="full_name" value="<?= safe($user['full_name']); ?>">
+          </div>
+
+          <div class="form-group">
+            <label>Email (read-only)</label>
+            <input type="email" value="<?= safe($user['email']); ?>" disabled>
+          </div>
+
+
+          <div class="form-group">
+            <label>Country</label>
+            <select name="country">
+              <option <?= $user['country']=='Kenya'?'selected':'' ?>>Kenya</option>
+              <option <?= $user['country']=='Uganda'?'selected':'' ?>>Uganda</option>
+              <option <?= $user['country']=='Tanzania'?'selected':'' ?>>Tanzania</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>County</label>
+            <select name="county">
+              <option <?= $user['county']=='Kenya'?'selected':'' ?>>Kilifi</option>
+              <option <?= $user['county']=='Uganda'?'selected':'' ?>>Mombasa</option>
+              <option <?= $user['county']=='Tanzania'?'selected':'' ?>>Bungoma</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>username</label>
+            <input type="text" name="username" value="<?= safe($user['username']); ?>">
+          </div>
+
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="text" name="phone" value="<?= safe($user['phone']); ?>">
+          </div>
+
+          <div class="form-group">
+            <label>Bio (max <?= $bioMaxLength ?> characters)</label>
+            <textarea id="bioTextarea" name="bio" maxlength="<?= $bioMaxLength ?>" 
+                      placeholder="Tell something about yourself..."><?= $safeBio ?></textarea>
+            <small id="bioCount"><?= strlen($bio) ?>/<?= $bioMaxLength ?> characters</small>
+          </div>
+
+          <div class="form-group">
+            <label>Physical Address</label>
+            <input type="text" name="address" value="<?= safe($user['address']); ?>">
+          </div>
+          
+          <div class="form-group">
+            <label>Ward</label>
+            <select name="ward">
+              <option <?= $user['ward']=='Kenya'?'selected':'' ?>>Sokoni</option>
+              <option <?= $user['ward']=='Uganda'?'selected':'' ?>>Kilifi North</option>
+              <option <?= $user['ward']=='Tanzania'?'selected':'' ?>>Kilifi South</option>
+            </select>
+          </div>
+          <div></div>
+          <div></div>
+
+          <button type="submit">Save Profile</button>
+        </form>
+      </div>
+    </main>
+    <?php endif; ?>
     <footer>
       <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
     </footer>

@@ -648,12 +648,15 @@ if ($isVerified === 1 && $status === 'active') {
 
   $stmt = $conn->prepare("
     SELECT 
-        ac.source_user_id,
-        ac.`level`,
-        ac.amount,
-        ac.commission_type,
-        ac.created_at,
-        u.username
+      ac.source_user_id,
+      ac.`level`,
+      ac.amount,
+      ac.status,
+      ac.commission_type,
+      ac.created_at,
+      u.username,
+      u.phone,
+      u.email
     FROM agent_commissions ac
     LEFT JOIN users u ON u.user_id = ac.source_user_id
     WHERE ac.agent_id = ?
@@ -796,8 +799,8 @@ if ($isVerified === 1 && $status === 'active') {
             <i class="fa-regular fa-circle-question"></i>
             <p>Help&nbsp;Centre</p>
           </a>
-          <div class="profile-icon" onclick="toggleProfileOption()">
-            <i class="fa-regular fa-user"></i>
+          <div class="profile-icon">
+            <i class="fa-regular fa-user" onclick="toggleProfileOption()"></i>
             <p class="profile-text">Profile</p>
             <div class="profileOption" id="profileOption">
               <?php if ($safeProfileImage !== $defaultAvatar): ?>
@@ -1796,16 +1799,19 @@ if ($isVerified === 1 && $status === 'active') {
         <table id="ordersTable">
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Source</th>
-              <th>Level</th>
+              <th>#</th>
               <th>Name</th>
               <th>Status</th>
               <th>Amount</th>
+              <th>Level</th>
+              <th>Source</th>
+              <th>Talk</th>
+              <th>Date</th>
             </tr>
           </thead>
+
           <tbody>
-          <?php if (!empty($commissions)): ?>
+          <?php $count = 1; if (!empty($commissions)): ?>
 
             <?php foreach ($commissions as $row): 
 
@@ -1815,7 +1821,7 @@ if ($isVerified === 1 && $status === 'active') {
               // Source
               $source = ($row['commission_type'] === 'activation')
                   ? 'Agent Activation'
-                  : 'Commission';
+                  : 'Products Sales';
 
               // Level
               $level = "Level " . (int)$row['level'];
@@ -1826,25 +1832,41 @@ if ($isVerified === 1 && $status === 'active') {
                   : 'Unknown';
 
               // Status (default since not stored)
-              $status = "Paid";
-              $statusClass = "paid";
+              $status = ucfirst($row['status']);
+              $statusClass = strtolower($row['status']);
 
               // Amount
               $amount = "KES " . number_format($row['amount'], 2);
 
+              $phone = !empty($row['phone']) ? base64_decode($row['phone']) : '';
+              $email = !empty($row['email']) ? base64_decode($row['email']) : '';
+              
             ?>
 
               <tr data-status="<?php echo $status; ?>">
-                <td><?php echo htmlspecialchars($date); ?></td>
-                <td><?php echo htmlspecialchars($source); ?></td>
-                <td><?php echo htmlspecialchars($level); ?></td>
-                <td><?php echo htmlspecialchars($name); ?></td>
+                <td><?= $count++ ?>.</td>
+                <td><?php echo htmlspecialchars(ucwords(strtolower($name))); ?></td>
                 <td>
                   <span class="badge <?php echo $statusClass; ?>">
                     <?php echo $status; ?>
                   </span>
                 </td>
                 <td><?php echo htmlspecialchars($amount); ?></td>
+                <td><?php echo htmlspecialchars($level); ?></td>
+                <td><?php echo htmlspecialchars($source); ?></td>
+                
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
+                  <div class="comm-dropdown">
+                    <a href="tel:<?= htmlspecialchars($phone) ?>"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/<?= preg_replace('/\D/', '', $phone) ?>" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:<?= htmlspecialchars($email) ?>"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                  </div>
+                </td>
+                <td><?php echo htmlspecialchars($date); ?></td>
               </tr>
 
             <?php endforeach; ?>
@@ -1852,7 +1874,7 @@ if ($isVerified === 1 && $status === 'active') {
           <?php else: ?>
 
             <tr>
-              <td colspan="6" style="text-align:center;">
+              <td colspan="7" style="text-align:center;">
                 No earnings history yet
               </td>
             </tr>
@@ -1891,20 +1913,31 @@ if ($isVerified === 1 && $status === 'active') {
           <i class="fa-solid fa-circle-arrow-left" data-tab="products"></i> <span>Go&nbsp;Back</span>
         </button>
       </div>
+      <div class="filter-bar">
+        <select id="statusFilter">
+          <option value="all">All Orders</option>
+          <option value="Delivered">Delivered</option>
+          <option value="Shipped">Shipped</option>
+          <option value="Processing">Processing</option>
+        </select>
+      </div>
       <div class="table-wrapper agentEarningsTrack">
         <table id="agentEarnings">
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Source</th>
-              <th>Level</th>
+              <th>#</th>
               <th>Name</th>
               <th>Status</th>
               <th>Amount</th>
+              <th>Level</th>
+              <th>Source</th>
+              <th>Talk</th>
+              <th>Date</th>
             </tr>
           </thead>
+
           <tbody>
-          <?php if (!empty($commissions)): ?>
+          <?php $count = 1; if (!empty($commissions)): ?>
 
             <?php foreach ($commissions as $row): 
 
@@ -1914,7 +1947,7 @@ if ($isVerified === 1 && $status === 'active') {
               // Source
               $source = ($row['commission_type'] === 'activation')
                   ? 'Agent Activation'
-                  : 'Commission';
+                  : 'Products Sales';
 
               // Level
               $level = "Level " . (int)$row['level'];
@@ -1925,36 +1958,61 @@ if ($isVerified === 1 && $status === 'active') {
                   : 'Unknown';
 
               // Status (default since not stored)
-              $status = "Paid";
-              $statusClass = "paid";
+              $status = ucfirst($row['status']);
+              $statusClass = strtolower($row['status']);
 
               // Amount
               $amount = "KES " . number_format($row['amount'], 2);
 
+              $phone = !empty($row['phone']) ? base64_decode($row['phone']) : '';
+              $email = !empty($row['email']) ? base64_decode($row['email']) : '';              
+              
             ?>
 
               <tr data-status="<?php echo $status; ?>">
-                <td><?php echo htmlspecialchars($date); ?></td>
-                <td><?php echo htmlspecialchars($source); ?></td>
-                <td><?php echo htmlspecialchars($level); ?></td>
-                <td><?php echo htmlspecialchars($name); ?></td>
+                <td><?= $count++ ?>.</td>
+                <td><?php echo htmlspecialchars(ucwords(strtolower($name))); ?></td>
                 <td>
                   <span class="badge <?php echo $statusClass; ?>">
                     <?php echo $status; ?>
                   </span>
                 </td>
                 <td><?php echo htmlspecialchars($amount); ?></td>
+                <td><?php echo htmlspecialchars($level); ?></td>
+                <td><?php echo htmlspecialchars($source); ?></td>
+                <td class="comm-cell">
+                  <button class="comm-btn">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                  </button>
+
+                  <div class="comm-dropdown">
+
+                    <?php if ($phone): ?>
+                      <a href="tel:<?= htmlspecialchars($phone) ?>">
+                        <i class="fas fa-phone"></i> Call
+                      </a>
+
+                      <a href="https://wa.me/<?= $cleanPhone ?>" target="_blank">
+                        <i class="fab fa-whatsapp"></i> WhatsApp
+                      </a>
+
+                      <a href="sms:<?= htmlspecialchars($phone) ?>">
+                        <i class="fas fa-comment-dots"></i> SMS
+                      </a>
+                    <?php endif; ?>
+
+                    <?php if ($email): ?>
+                      <a href="mailto:<?= htmlspecialchars($email) ?>">
+                        <i class="fas fa-envelope"></i> Email
+                      </a>
+                    <?php endif; ?>
+
+                  </div>
+                </td>
+                <td><?php echo htmlspecialchars($date); ?></td>
               </tr>
 
             <?php endforeach; ?>
-
-          <?php else: ?>
-
-            <tr>
-              <td colspan="6" style="text-align:center;">
-                No earnings history yet
-              </td>
-            </tr>
 
           <?php endif; ?>
           </tbody>

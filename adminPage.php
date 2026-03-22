@@ -1377,18 +1377,18 @@ $stmt->close();
           <table id="buyersTable">
               <thead>
                   <tr>
-                      <th>#</th>
-                      <th>Buyer</th>
-                      <th>Email</th>
-                      <th>Phone</th>
-                      <th>Region</th>
-                      <th>Orders</th>
-                      <th>Total&nbsp;Spend</th>
-                      <th>Status</th>
-                      <th>Actions</th>
-                      <th>Talk</th>
-                      <th>Created&nbsp;On</th>
-                      <th>Updated&nbsp;On</th>
+                    <th>#</th>
+                    <th>Buyer</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Region</th>
+                    <th>Orders</th>
+                    <th>Total&nbsp;Spend</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                    <th>Talk</th>
+                    <th>Created&nbsp;On</th>
+                    <th>Updated&nbsp;On</th>
                   </tr>
               </thead>
               <tbody>

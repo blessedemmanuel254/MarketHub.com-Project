@@ -8,7 +8,7 @@ if (!isset($_SESSION['accountType'])) {
   exit();
 }
 
-$accountType = $_SESSION['accountType']; // buyer | seller
+$accountType = $_SESSION['accountType'];
 
 $error = "";
 $success = "";

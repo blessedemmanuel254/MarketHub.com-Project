@@ -398,8 +398,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_product_id'])
             <i class="fa-regular fa-circle-question"></i>
             <p>Help&nbsp;Centre</p>
           </a>
-          <div class="profile-icon" onclick="toggleProfileOption()">
-            <i class="fa-regular fa-user"></i>
+          <div class="profile-icon">
+            <i class="fa-regular fa-user" onclick="toggleProfileOption()"></i>
             <p class="profile-text">Profile</p>
             <div class="profileOption" id="profileOption">
               <?php if ($safeProfileImage !== $defaultAvatar): ?>
