@@ -31,41 +31,71 @@ elseif ($action === "delete") {
 elseif ($action === "activate") {
 
     /* -----------------------------
-       PREVENT DOUBLE ACTIVATION
+       FETCH USER STATE
     ----------------------------- */
-    $check = $conn->prepare("SELECT is_verified FROM users WHERE user_id=?");
+    $check = $conn->prepare("
+        SELECT is_verified, subscription_expires_at
+        FROM users 
+        WHERE user_id=?
+    ");
     $check->bind_param("i", $userId);
     $check->execute();
-    $check->bind_result($isVerified);
+    $check->bind_result($isVerified, $expiresAt);
     $check->fetch();
     $check->close();
 
-    if ($isVerified == 1) {
-        echo json_encode(["success" => false, "message" => "Already activated"]);
+    $now = date('Y-m-d H:i:s');
+    $isFirstTime = empty($expiresAt);
+    $isExpired   = !empty($expiresAt) && ($expiresAt < $now);
+
+    $shouldPayCommission = false;
+
+    /* -----------------------------
+       DETERMINE ACTION
+    ----------------------------- */
+    if ($isFirstTime) {
+        // First activation (payment)
+        $shouldPayCommission = true;
+        $stmt = $conn->prepare("
+            UPDATE users 
+            SET is_verified = 1,
+                economic_period_count = economic_period_count + 1,
+                subscription_expires_at = DATE_ADD(NOW(), INTERVAL 30 DAY)
+            WHERE user_id = ?
+        ");
+    } elseif ($isVerified == 0) {
+        // Reactivation (no payment)
+        $stmt = $conn->prepare("
+            UPDATE users 
+            SET is_verified = 1
+            WHERE user_id = ?
+        ");
+    } elseif ($isExpired) {
+        // Renewal (payment)
+        $shouldPayCommission = true;
+        $stmt = $conn->prepare("
+            UPDATE users 
+            SET economic_period_count = economic_period_count + 1,
+                subscription_expires_at = DATE_ADD(NOW(), INTERVAL 30 DAY)
+            WHERE user_id = ?
+        ");
+    } else {
+        echo json_encode([
+            "success" => false,
+            "message" => "Subscription still active"
+        ]);
         exit;
     }
 
-    /* -----------------------------
-       ACTIVATE USER
-    ----------------------------- */
-    $stmt = $conn->prepare("
-        UPDATE users 
-        SET is_verified = 1,
-            economic_period_count = economic_period_count + 1,
-            agent_activated_at = NOW()
-        WHERE user_id = ?
-    ");
     $stmt->bind_param("i", $userId);
     $stmt->execute();
     $stmt->close();
 
     /* -----------------------------
-       CREATE WALLETS
+       CREATE WALLETS IF MISSING
     ----------------------------- */
     $walletTypes = ['sales', 'agency'];
-
     foreach ($walletTypes as $type) {
-
         $checkWallet = $conn->prepare("
             SELECT wallet_id FROM wallets 
             WHERE user_id = ? AND wallet_type = ?
@@ -75,7 +105,6 @@ elseif ($action === "activate") {
         $checkWallet->store_result();
 
         if ($checkWallet->num_rows === 0) {
-
             $createWallet = $conn->prepare("
                 INSERT INTO wallets (user_id, wallet_type, balance, total_transacted)
                 VALUES (?, ?, 0, 0)
@@ -84,103 +113,99 @@ elseif ($action === "activate") {
             $createWallet->execute();
             $createWallet->close();
         }
-
         $checkWallet->close();
     }
 
     /* -----------------------------
-       DISTRIBUTE COMMISSIONS
+       PROCESS COMMISSIONS (ONLY IF PAYMENT)
+       Update pending commissions to completed instead of inserting new
     ----------------------------- */
-    $levels = [100, 40, 20];
-    $level = 0;
+    if ($shouldPayCommission) {
 
-    $stmt = $conn->prepare("SELECT referred_by FROM users WHERE user_id=?");
-    $stmt->bind_param("i", $userId);
-    $stmt->execute();
-    $stmt->bind_result($referrerId);
-    $stmt->fetch();
-    $stmt->close();
+        $levels = [100, 40, 20]; // Level payouts
+        $level = 0;
 
-    while ($referrerId && $level < 3) {
-
-        $amount = $levels[$level];
-
-        // Ensure wallet exists
-        $walletCheck = $conn->prepare("
-            SELECT wallet_id FROM wallets 
-            WHERE user_id=? AND wallet_type='agency'
-        ");
-        $walletCheck->bind_param("i", $referrerId);
-        $walletCheck->execute();
-        $walletCheck->store_result();
-
-        if ($walletCheck->num_rows === 0) {
-            $create = $conn->prepare("
-                INSERT INTO wallets (user_id, wallet_type, balance, total_transacted)
-                VALUES (?, 'agency', 0, 0)
-            ");
-            $create->bind_param("i", $referrerId);
-            $create->execute();
-            $walletId = $create->insert_id;
-            $create->close();
-        } else {
-            $walletCheck->bind_result($walletId);
-            $walletCheck->fetch();
-        }
-        $walletCheck->close();
-
-        // Credit wallet
-        $update = $conn->prepare("
-            UPDATE wallets 
-            SET balance = balance + ?, total_transacted = total_transacted + ?
-            WHERE wallet_id=?
-        ");
-        $update->bind_param("ddi", $amount, $amount, $walletId);
-        $update->execute();
-        $update->close();
-
-        // Log transaction
-        $desc = "Level " . ($level+1) . " commission from agent $userId";
-
-        $log = $conn->prepare("
-            INSERT INTO wallet_transactions 
-            (wallet_id, amount, transaction_type, status, description, reference_id)
-            VALUES (?, ?, 'credit', 'completed', ?, ?)
-        ");
-        $log->bind_param("idss", $walletId, $amount, $desc, $userId);
-        $log->execute();
-        $log->close();
-        
-        $levelNumber = $level + 1;
-        $commissionType = "activation";
-
-        $commissionStmt = $conn->prepare("
-            INSERT INTO agent_commissions 
-            (agent_id, source_user_id, level, amount, commission_type, created_at)
-            VALUES (?, ?, ?, ?, ?, NOW())
-        ");
-
-        $commissionStmt->bind_param(
-            "iiids",
-            $referrerId,
-            $userId,
-            $levelNumber,
-            $amount,
-            $commissionType
-        );
-
-        $commissionStmt->execute();
-        $commissionStmt->close();
-
-        // Move up chain
         $stmt = $conn->prepare("SELECT referred_by FROM users WHERE user_id=?");
-        $stmt->bind_param("i", $referrerId);
+        $stmt->bind_param("i", $userId);
         $stmt->execute();
         $stmt->bind_result($referrerId);
         $stmt->fetch();
         $stmt->close();
 
-        $level++;
+        while ($referrerId && $level < 3) {
+
+            $amount = $levels[$level];
+
+            // Ensure wallet exists
+            $walletCheck = $conn->prepare("
+                SELECT wallet_id FROM wallets 
+                WHERE user_id=? AND wallet_type='agency'
+            ");
+            $walletCheck->bind_param("i", $referrerId);
+            $walletCheck->execute();
+            $walletCheck->store_result();
+
+            if ($walletCheck->num_rows === 0) {
+                $create = $conn->prepare("
+                    INSERT INTO wallets (user_id, wallet_type, balance, total_transacted)
+                    VALUES (?, 'agency', 0, 0)
+                ");
+                $create->bind_param("i", $referrerId);
+                $create->execute();
+                $walletId = $create->insert_id;
+                $create->close();
+            } else {
+                $walletCheck->bind_result($walletId);
+                $walletCheck->fetch();
+            }
+            $walletCheck->close();
+
+            // Update wallet balance
+            $update = $conn->prepare("
+                UPDATE wallets 
+                SET balance = balance + ?, total_transacted = total_transacted + ?
+                WHERE wallet_id=?
+            ");
+            $update->bind_param("ddi", $amount, $amount, $walletId);
+            $update->execute();
+            $update->close();
+
+            $desc = "Level " . ($level + 1) . " commission from agent $userId";
+
+            // Log wallet transaction
+            $log = $conn->prepare("
+                INSERT INTO wallet_transactions 
+                (wallet_id, amount, transaction_type, status, description, reference_id)
+                VALUES (?, ?, 'credit', 'completed', ?, ?)
+            ");
+            $log->bind_param("idss", $walletId, $amount, $desc, $userId);
+            $log->execute();
+            $log->close();
+
+            $levelNumber = $level + 1;
+
+            // UPDATE pending commissions to completed
+            $commissionUpdate = $conn->prepare("
+                UPDATE agent_commissions
+                SET status = 'paid',
+                    amount = ?,
+                    created_at = NOW()
+                WHERE source_user_id = ? AND level = ? AND status = 'pending'
+            ");
+            $commissionUpdate->bind_param("dii", $amount, $userId, $levelNumber);
+            $commissionUpdate->execute();
+            $commissionUpdate->close();
+
+            // Move up the chain
+            $stmt = $conn->prepare("SELECT referred_by FROM users WHERE user_id=?");
+            $stmt->bind_param("i", $referrerId);
+            $stmt->execute();
+            $stmt->bind_result($referrerId);
+            $stmt->fetch();
+            $stmt->close();
+
+            $level++;
+        }
     }
 
     echo json_encode(["success" => true]);
@@ -193,10 +218,34 @@ elseif ($action === "activate") {
 
 elseif ($action === "deactivate") {
 
+    /* -----------------------------
+       CHECK CURRENT STATE
+    ----------------------------- */
+    $check = $conn->prepare("
+        SELECT is_verified 
+        FROM users 
+        WHERE user_id=?
+    ");
+    $check->bind_param("i", $userId);
+    $check->execute();
+    $check->bind_result($isVerified);
+    $check->fetch();
+    $check->close();
+
+    if ($isVerified == 0) {
+        echo json_encode([
+            "success" => false,
+            "message" => "Already inactive"
+        ]);
+        exit;
+    }
+
+    /* -----------------------------
+       DEACTIVATE (NO PAYMENT REVERSAL)
+    ----------------------------- */
     $stmt = $conn->prepare("
         UPDATE users 
-        SET is_verified = 0,
-            economic_period_count = GREATEST(economic_period_count - 1, 0)
+        SET is_verified = 0
         WHERE user_id = ?
     ");
 }

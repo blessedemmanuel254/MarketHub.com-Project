@@ -1,14 +1,13 @@
 -- phpMyAdmin SQL Dump
--- version 4.9.0.1
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: sql107.infinityfree.com
--- Generation Time: Mar 21, 2026 at 06:04 PM
--- Server version: 11.4.10-MariaDB
--- PHP Version: 7.2.22
+-- Host: 127.0.0.1
+-- Generation Time: Mar 24, 2026 at 12:44 AM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -19,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `if0_41020500_db_markethub`
+-- Database: `makethub`
 --
 
 -- --------------------------------------------------------
@@ -38,6 +37,13 @@ CREATE TABLE `agent_commissions` (
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `status` enum('pending','paid') DEFAULT 'paid'
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- Dumping data for table `agent_commissions`
+--
+
+INSERT INTO `agent_commissions` (`id`, `agent_id`, `source_user_id`, `level`, `amount`, `commission_type`, `created_at`, `status`) VALUES
+(1, 25, 26, 1, 100.00, 'activation', '2026-03-23 23:32:09', 'paid');
 
 -- --------------------------------------------------------
 
@@ -98,10 +104,14 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`order_id`, `order_code`, `buyer_id`, `total_amount`, `order_status`, `created_at`) VALUES
-(93, 'ORD-20260305-55635', 14, '4000.00', 'Pending', '2026-03-05 11:31:15'),
-(95, 'ORD-20260306-66785', 16, '80.00', 'Pending', '2026-03-06 18:57:42'),
-(96, 'ORD-20260306-20534', 16, '22800.00', 'Pending', '2026-03-06 19:00:34'),
-(97, 'ORD-20260308-05958', 16, '40.00', 'Pending', '2026-03-08 08:34:49');
+(93, 'ORD-20260305-55635', 14, 4000.00, 'Pending', '2026-03-05 11:31:15'),
+(95, 'ORD-20260306-66785', 16, 80.00, 'Pending', '2026-03-06 18:57:42'),
+(96, 'ORD-20260306-20534', 16, 22800.00, 'Pending', '2026-03-06 19:00:34'),
+(97, 'ORD-20260308-05958', 16, 40.00, 'Pending', '2026-03-08 08:34:49'),
+(98, 'ORD-20260322-70950', 14, 68956.00, 'Pending', '2026-03-22 01:49:39'),
+(99, 'ORD-20260322-64375', 14, 4008.00, 'Pending', '2026-03-22 01:50:09'),
+(100, 'ORD-20260322-66244', 14, 4008.00, 'Pending', '2026-03-22 01:50:17'),
+(101, 'ORD-20260322-80951', 14, 2600.00, 'Pending', '2026-03-22 01:50:45');
 
 -- --------------------------------------------------------
 
@@ -124,13 +134,18 @@ CREATE TABLE `order_items` (
 --
 
 INSERT INTO `order_items` (`item_id`, `order_id`, `product_id`, `seller_id`, `quantity`, `price`, `subtotal`) VALUES
-(177, 93, 6, 15, 1, '4000.00', '0.00'),
-(178, 95, 4, 19, 2, '40.00', '0.00'),
-(179, 96, 6, 15, 1, '4000.00', '0.00'),
-(180, 96, 2, 17, 1, '13000.00', '0.00'),
-(181, 96, 3, 17, 1, '1300.00', '0.00'),
-(182, 96, 5, 20, 1, '4500.00', '0.00'),
-(183, 97, 4, 19, 1, '40.00', '0.00');
+(177, 93, 6, 15, 1, 4000.00, 0.00),
+(178, 95, 4, 19, 2, 40.00, 0.00),
+(179, 96, 6, 15, 1, 4000.00, 0.00),
+(180, 96, 2, 17, 1, 13000.00, 0.00),
+(181, 96, 3, 17, 1, 1300.00, 0.00),
+(182, 96, 5, 20, 1, 4500.00, 0.00),
+(183, 97, 4, 19, 1, 40.00, 0.00),
+(184, 98, 6, 15, 1, 4008.00, 4008.00),
+(185, 98, 8, 15, 1, 64948.00, 64948.00),
+(186, 99, 6, 15, 1, 4008.00, 4008.00),
+(187, 100, 6, 15, 1, 4008.00, 4008.00),
+(188, 101, 3, 17, 2, 1300.00, 2600.00);
 
 -- --------------------------------------------------------
 
@@ -178,14 +193,13 @@ CREATE TABLE `productservicesrentals` (
 --
 
 INSERT INTO `productservicesrentals` (`product_id`, `user_id`, `product_name`, `category`, `price`, `stock_quantity`, `image_path`, `image_hash`, `image_width`, `image_height`, `image_size_kb`, `image_format`, `status`, `created_at`, `updated_at`, `image_phash`) VALUES
-(1, 17, 'Passion Juice', 'Food & Snacks', '40.00', 56, 'uploads/products/product_699f6e94012145.78607241.webp', '197441253198dfbd6ec2ead44aff3e40', 700, 700, 57, 'webp', 'active', '2026-02-25 21:50:12', '2026-02-25 21:50:12', NULL),
-(2, 17, 'Bike', 'Home Items', '13000.00', 12, 'uploads/products/product_699f7d45913b39.70833140.webp', '4688f6d846fc96bdba4db3f75f16d9b3', 700, 519, 55, 'webp', 'active', '2026-02-25 22:52:53', '2026-03-06 19:00:34', NULL),
-(3, 17, 'jug', 'Home Items', '1300.00', 44, 'uploads/products/product_699f7dab95bf65.10914891.webp', '902284afaaefe5a5a6f55c09cea05089', 700, 700, 40, 'webp', 'active', '2026-02-25 22:54:35', '2026-03-06 19:00:34', NULL),
-(4, 19, 'Passion Juice', 'Food & Snacks', '40.00', 31, 'uploads/products/product_69a017086d9a78.65234946.webp', '57cce22a22b1386a867d231a364f5109', 700, 700, 33, 'webp', 'active', '2026-02-26 09:48:56', '2026-03-08 08:34:49', NULL),
-(5, 20, 'Matress', 'Home Items', '4500.00', 3, 'uploads/products/product_69a08decb192e1.62675128.webp', 'e24629049379675f3a1b4309bb699f4a', 700, 527, 27, 'webp', 'active', '2026-02-26 18:16:12', '2026-03-06 19:00:34', NULL),
-(6, 15, 'Bicycle', 'Home Items', '4008.00', 9, 'uploads/products/product_69a59b4d0cd4e9.76902524.webp', '15ab1b502eaee9e786e973b38bf2e051', 700, 393, 10, 'webp', 'active', '2026-03-02 14:14:36', '2026-03-08 08:40:18', NULL),
-(7, 15, 'HP Elite Book G3', 'Home Items', '64546.00', 12, 'uploads/products/product_69af5231444eb5.54131987.webp', 'bd95626ecd3487014ac260a09967130a', 700, 525, 3, 'webp', 'active', '2026-03-09 23:05:21', '2026-03-09 23:05:21', '00011111000111110001111100011111'),
-(8, 15, 'HP Elite Book G', 'Home Items', '64948.00', 13, 'uploads/products/product_69af542ed14d19.08555660.webp', '332f4633790b42f07617bd6c21296451', 700, 525, 6, 'webp', 'active', '2026-03-09 23:13:50', '2026-03-09 23:13:50', '00100100001000100010001110000011');
+(1, 17, 'Passion Juice', 'Food & Snacks', 40.00, 56, 'uploads/products/product_699f6e94012145.78607241.webp', '197441253198dfbd6ec2ead44aff3e40', 700, 700, 57, 'webp', 'active', '2026-02-25 21:50:12', '2026-02-25 21:50:12', NULL),
+(2, 17, 'Bike', 'Home Items', 13000.00, 12, 'uploads/products/product_699f7d45913b39.70833140.webp', '4688f6d846fc96bdba4db3f75f16d9b3', 700, 519, 55, 'webp', 'active', '2026-02-25 22:52:53', '2026-03-06 19:00:34', NULL),
+(3, 17, 'jug', 'Home Items', 1300.00, 42, 'uploads/products/product_699f7dab95bf65.10914891.webp', '902284afaaefe5a5a6f55c09cea05089', 700, 700, 40, 'webp', 'active', '2026-02-25 22:54:35', '2026-03-22 01:50:45', NULL),
+(4, 19, 'Passion Juice', 'Food & Snacks', 40.00, 31, 'uploads/products/product_69a017086d9a78.65234946.webp', '57cce22a22b1386a867d231a364f5109', 700, 700, 33, 'webp', 'active', '2026-02-26 09:48:56', '2026-03-08 08:34:49', NULL),
+(5, 20, 'Matress', 'Home Items', 4500.00, 3, 'uploads/products/product_69a08decb192e1.62675128.webp', 'e24629049379675f3a1b4309bb699f4a', 700, 527, 27, 'webp', 'active', '2026-02-26 18:16:12', '2026-03-06 19:00:34', NULL),
+(6, 15, 'Bicycle', 'Home Items', 4008.00, 6, 'uploads/products/product_69a59b4d0cd4e9.76902524.webp', '15ab1b502eaee9e786e973b38bf2e051', 700, 393, 10, 'webp', 'active', '2026-03-02 14:14:36', '2026-03-22 01:50:17', NULL),
+(8, 15, 'HP Elite Book G', 'Home Items', 64948.00, 12, 'uploads/products/product_69af542ed14d19.08555660.webp', '332f4633790b42f07617bd6c21296451', 700, 525, 6, 'webp', 'active', '2026-03-09 23:13:50', '2026-03-22 01:49:39', '00100100001000100010001110000011');
 
 -- --------------------------------------------------------
 
@@ -268,6 +282,7 @@ CREATE TABLE `users` (
   `agency_code` varchar(50) DEFAULT NULL,
   `referred_by` int(11) DEFAULT NULL,
   `agent_activated_at` datetime DEFAULT NULL,
+  `subscription_expires_at` datetime DEFAULT NULL,
   `must_change_password` tinyint(1) DEFAULT 0,
   `economic_period_count` int(11) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
@@ -276,17 +291,19 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`user_id`, `full_name`, `username`, `email`, `phone`, `profile_image`, `bio`, `password`, `account_type`, `is_verified`, `status`, `country`, `county`, `ward`, `address`, `business_name`, `business_model`, `business_type`, `market_scope`, `created_at`, `updated_at`, `agency_code`, `referred_by`, `agent_activated_at`, `must_change_password`, `economic_period_count`) VALUES
-(14, 'EMMANUEL WERANGAI', 'buyer_001', 'YnV5ZXJfMDAxQGdtYWlsLmNvbQ==', 'KzI1NDc1OTU3ODYzMA==', NULL, NULL, '$2y$10$eZaCoaJd1r6NPqecOo8gX.fhXnk2sCbxyrfRLL7YoGllHWaLmyS5W', 'buyer', 0, 'active', 'Kenya', 'Kilifi', 'Sokoni Ward', 'Kilifi', NULL, NULL, NULL, NULL, '2026-02-25 13:54:11', '2026-02-25 13:54:11', NULL, NULL, NULL, 0, NULL),
-(15, 'EMMANUEL WERANGAI', 'seller_001', 'c2VsbGVyXzAwMUBnbWFpbC5jb20=', 'KzI1NDc3MzAyOTQ0MA==', NULL, NULL, '$2y$10$CqCArt9rG4O278HT4JRwz.OT8yNHssp6D9Wlvg50VHBBnVRrkGobi', 'seller', 0, 'active', 'Kenya', 'Kilifi', 'Sokoni Ward', 'kisumu ndogo', 'market hub', NULL, 'shop', 'Local', '2026-02-25 14:18:40', '2026-02-25 14:18:40', NULL, NULL, NULL, 0, NULL),
-(16, 'EMMANUEL WERANGAI', 'buyer_002', 'YnV5ZXJfMDAyQGdtYWlsLmNvbQ==', 'KzI1NDc1OTU3ODYzMQ==', NULL, NULL, '$2y$10$DVxzrzSTosLmpkLoCos9QeLNGDPAmW3YolY5W6dYMhV7FnTSE2OIW', 'buyer', 0, 'active', 'Kenya', 'Kilifi', 'Sokoni Ward', 'Watamu', NULL, NULL, NULL, NULL, '2026-02-25 14:26:12', '2026-02-25 14:26:12', NULL, NULL, NULL, 0, NULL),
-(17, 'EMMANUEL WERANGAI', 'seller_002', 'c2VsbGVyXzAwMkBnbWFpbC5jb20=', 'KzI1NDc1OTU3ODYzMg==', NULL, NULL, '$2y$10$VABFqJUUCuGnx3M5NN6sfuDJ640MPia5z5mofYZv0.niTtM8u6cva', 'seller', 0, 'active', 'Kenya', 'Kilifi', 'Sokoni Ward', 'Kilifi', 'main canteen', NULL, 'canteen', 'Local', '2026-02-25 14:29:15', '2026-02-25 14:29:15', NULL, NULL, NULL, 0, NULL),
-(18, 'EMMANUEL WERANGAI', 'seller_003', 'c2VsbGVyXzAwM0BnbWFpbC5jb20=', 'KzI1NDc1OTU3ODYzMw==', NULL, NULL, '$2y$10$kdTNspptrvARewNR3/9PQ.0lx4fwWXrF33TPqC7.VRsa2dXMW1sfG', 'seller', 0, 'active', 'Kenya', 'Kilifi', 'Sokoni Ward', 'Kilifi', 'BETRADES MANAGEMENT', NULL, 'supermarket', 'Local', '2026-02-25 14:31:11', '2026-02-25 14:31:11', NULL, NULL, NULL, 0, NULL),
-(19, 'EMMANUEL WERANGAI', 'seller_004', 'c2VsbGVyXzAwNEBnbWFsaS5jb20=', 'KzI1NDc1OTU3ODYzNQ==', NULL, NULL, '$2y$10$OR16Ab7u7PiToTnqRTGzCeNrlBf4E4Cyr.eAyoGYnLmyN2foUtvK2', 'seller', 0, 'active', 'Kenya', 'Kilifi', 'Sokoni Ward', 'Gede', 'Fred Pharmacy', 'products', 'supermarket', 'local', '2026-02-26 09:26:57', '2026-02-26 09:26:57', NULL, NULL, NULL, 0, NULL),
-(20, 'Antonai Mayende', 'Logan', 'YW50b25haW1heWVuZGVAZ21haWwuY29t', 'KzI1NDc0ODE4NDI2NA==', NULL, NULL, '$2y$10$5DtlnPtdK6QABTq9t.k3hutH2.LCA.IRacCsPkcKcZjFhNznLFpPO', 'seller', 0, 'active', 'Kenya', 'Kilifi', 'Sokoni Ward', 'Kibaoni', 'Antonai Mayende', 'products', 'shop', 'local', '2026-02-26 18:02:34', '2026-02-26 18:02:34', NULL, NULL, NULL, 0, NULL),
-(21, 'EMMANUEL TINDI', 'admin_002', 'ZW1tYW51ZWx0aW5kaTIzQGdtYWlsLmNvbQ==', 'KzI1NDc1OTU3ODYzNw==', NULL, NULL, '$2y$10$A0zeQcrmvrrk.uP8pSpwFeUfQJ3qFc9bVJentpZ4DEUwvVjb9QMZS', 'administrator', 0, 'active', 'Kenya', 'Kilifi', 'Sokoni Ward', 'Naivas', '', '', '', '', '2026-03-04 17:27:25', '2026-03-04 17:27:25', NULL, NULL, NULL, 0, NULL),
-(22, 'EMMANUEL TINDI', 'agent_001', 'YWdlbnRfMDAxQGdtYWlsLmNvbQ==', 'KzI1NDc1OTU3ODYzNA==', NULL, NULL, '$2y$10$DsQMJGjlMy5CHkJMEq0a.euEhDui8zTd0s9N/4.tTPcXrwuGqbexm', 'sales_agent', 0, 'active', 'Kenya', 'Kilifi', 'Sokoni Ward', 'Naivas', '', '', '', '', '2026-03-04 17:34:57', '2026-03-09 19:29:26', NULL, NULL, NULL, 0, NULL),
-(23, 'EMMANUEL TINDI', 'property_owner_001', 'cHJvcGVydHlfb3duZXJfMDAxQGdtYWlsLmNvbQ==', 'KzI1NDc1OTU3ODY4OQ==', NULL, NULL, '$2y$10$ry31rKkNzYi9LIIpr8Ajp.7BkSj8BbovXXAbEO/iNxTff14fX/Ery', 'property_owner', 0, 'active', 'Kenya', 'Kilifi', 'Sokoni Ward', 'Naivas', '', '', '', '', '2026-03-04 17:41:30', '2026-03-04 17:41:30', NULL, NULL, NULL, 0, NULL);
+INSERT INTO `users` (`user_id`, `full_name`, `username`, `email`, `phone`, `profile_image`, `bio`, `password`, `account_type`, `is_verified`, `status`, `country`, `county`, `ward`, `address`, `business_name`, `business_model`, `business_type`, `market_scope`, `created_at`, `updated_at`, `agency_code`, `referred_by`, `agent_activated_at`, `subscription_expires_at`, `must_change_password`, `economic_period_count`) VALUES
+(14, 'EMMANUEL WERANGAI', 'buyer_001', 'YnV5ZXJfMDAxQGdtYWlsLmNvbQ==', 'KzI1NDc1OTU3ODYzMA==', NULL, NULL, '$2y$10$eZaCoaJd1r6NPqecOo8gX.fhXnk2sCbxyrfRLL7YoGllHWaLmyS5W', 'buyer', 0, 'active', 'Kenya', 'Kilifi', 'Sokoni Ward', 'Kilifi', NULL, NULL, NULL, NULL, '2026-02-25 13:54:11', '2026-02-25 13:54:11', NULL, NULL, NULL, NULL, 0, NULL),
+(15, 'EMMANUEL WERANGAI', 'seller_001', 'c2VsbGVyXzAwMUBnbWFpbC5jb20=', 'KzI1NDc3MzAyOTQ0MA==', NULL, NULL, '$2y$10$CqCArt9rG4O278HT4JRwz.OT8yNHssp6D9Wlvg50VHBBnVRrkGobi', 'seller', 0, 'active', 'Kenya', 'Kilifi', 'Sokoni Ward', 'kisumu ndogo', 'market hub', NULL, 'shop', 'Local', '2026-02-25 14:18:40', '2026-02-25 14:18:40', NULL, NULL, NULL, NULL, 0, NULL),
+(16, 'EMMANUEL WERANGAI', 'buyer_002', 'YnV5ZXJfMDAyQGdtYWlsLmNvbQ==', 'KzI1NDc1OTU3ODYzMQ==', NULL, NULL, '$2y$10$DVxzrzSTosLmpkLoCos9QeLNGDPAmW3YolY5W6dYMhV7FnTSE2OIW', 'buyer', 0, 'active', 'Kenya', 'Kilifi', 'Sokoni Ward', 'Watamu', NULL, NULL, NULL, NULL, '2026-02-25 14:26:12', '2026-03-21 22:09:00', NULL, NULL, NULL, NULL, 0, NULL),
+(17, 'EMMANUEL WERANGAI', 'seller_002', 'c2VsbGVyXzAwMkBnbWFpbC5jb20=', 'KzI1NDc1OTU3ODYzMg==', NULL, NULL, '$2y$10$VABFqJUUCuGnx3M5NN6sfuDJ640MPia5z5mofYZv0.niTtM8u6cva', 'seller', 0, 'active', 'Kenya', 'Kilifi', 'Sokoni Ward', 'Kilifi', 'main canteen', NULL, 'canteen', 'Local', '2026-02-25 14:29:15', '2026-02-25 14:29:15', NULL, NULL, NULL, NULL, 0, NULL),
+(18, 'EMMANUEL WERANGAI', 'seller_003', 'c2VsbGVyXzAwM0BnbWFpbC5jb20=', 'KzI1NDc1OTU3ODYzMw==', NULL, NULL, '$2y$10$kdTNspptrvARewNR3/9PQ.0lx4fwWXrF33TPqC7.VRsa2dXMW1sfG', 'seller', 0, 'active', 'Kenya', 'Kilifi', 'Sokoni Ward', 'Kilifi', 'BETRADES MANAGEMENT', NULL, 'supermarket', 'Local', '2026-02-25 14:31:11', '2026-02-25 14:31:11', NULL, NULL, NULL, NULL, 0, NULL),
+(19, 'EMMANUEL WERANGAI', 'seller_004', 'c2VsbGVyXzAwNEBnbWFsaS5jb20=', 'KzI1NDc1OTU3ODYzNQ==', NULL, NULL, '$2y$10$OR16Ab7u7PiToTnqRTGzCeNrlBf4E4Cyr.eAyoGYnLmyN2foUtvK2', 'seller', 0, 'active', 'Kenya', 'Kilifi', 'Sokoni Ward', 'Gede', 'Fred Pharmacy', 'products', 'supermarket', 'local', '2026-02-26 09:26:57', '2026-02-26 09:26:57', NULL, NULL, NULL, NULL, 0, NULL),
+(20, 'Antonai Mayende', 'Logan', 'YW50b25haW1heWVuZGVAZ21haWwuY29t', 'KzI1NDc0ODE4NDI2NA==', NULL, NULL, '$2y$10$5DtlnPtdK6QABTq9t.k3hutH2.LCA.IRacCsPkcKcZjFhNznLFpPO', 'seller', 0, 'active', 'Kenya', 'Kilifi', 'Sokoni Ward', 'Kibaoni', 'Antonai Mayende', 'products', 'shop', 'local', '2026-02-26 18:02:34', '2026-02-26 18:02:34', NULL, NULL, NULL, NULL, 0, NULL),
+(21, 'EMMANUEL TINDI', 'admin_002', 'ZW1tYW51ZWx0aW5kaTIzQGdtYWlsLmNvbQ==', 'KzI1NDc1OTU3ODYzNw==', NULL, NULL, '$2y$10$A0zeQcrmvrrk.uP8pSpwFeUfQJ3qFc9bVJentpZ4DEUwvVjb9QMZS', 'administrator', 0, 'active', 'Kenya', 'Kilifi', 'Sokoni Ward', 'Naivas', '', '', '', '', '2026-03-04 17:27:25', '2026-03-04 17:27:25', NULL, NULL, NULL, NULL, 0, NULL),
+(24, 'Kamau Kasi', 'agent_001', 'YWdlbnRfMDAxQGdtYWlsLmNvbQ==', 'KzI1NDc1OTU3ODYzNA==', NULL, '', '$2y$10$8ZA.JMP7dEQmS1/kJbUpqeSy6G46Tk0YOl1zj7gp.R1o9MvQu9pOG', '', 0, 'active', 'Kenya', 'Kilifi', 'Sokoni', 'Kilifi', NULL, NULL, NULL, NULL, '2026-03-22 01:21:33', '2026-03-22 01:22:43', '609A6DCE', NULL, NULL, NULL, 0, 0),
+(23, 'EMMANUEL TINDI', 'property_owner_001', 'cHJvcGVydHlfb3duZXJfMDAxQGdtYWlsLmNvbQ==', 'KzI1NDc1OTU3ODY4OQ==', NULL, NULL, '$2y$10$ry31rKkNzYi9LIIpr8Ajp.7BkSj8BbovXXAbEO/iNxTff14fX/Ery', 'property_owner', 0, 'active', 'Kenya', 'Kilifi', 'Sokoni Ward', 'Naivas', '', '', '', '', '2026-03-04 17:41:30', '2026-03-21 22:09:22', NULL, NULL, NULL, NULL, 0, NULL),
+(25, 'Tina Batka', 'agent_002', 'YWdlbnRfMDAyQGdtYWlsLmNvbQ==', 'KzI1NDc1OTU3ODAwMg==', NULL, NULL, '$2y$10$ByjOXYcsBMEsUDPUHESnkuJE8G2msAmZU1rZK99NTiWbo.ivcPbOK', 'sales_agent', 1, 'active', 'Kenya', 'Kilifi', 'Sokoni Ward', 'Kilifi', NULL, NULL, NULL, NULL, '2026-03-23 20:55:50', '2026-03-23 20:55:50', '5A395D68', NULL, '2026-03-24 02:23:37', NULL, 0, 1),
+(26, 'Maket Hub', 'agent_003', 'YWdlbnRfMDAzQGdtYWlsLmNvbQ==', 'KzI1NDc1OTU3ODAwMQ==', NULL, NULL, '$2y$10$fcmFguLtKZ1YmNP.R8xloeXGSNZudeIzv.Dqwvv15zW3cBH.AmtxK', 'sales_agent', 1, 'active', 'Kenya', 'Kilifi', 'Sokoni Ward', 'Naivas', NULL, NULL, NULL, NULL, '2026-03-23 23:30:34', '2026-03-23 23:30:34', 'B0804056', 25, '2026-03-24 02:32:09', NULL, 0, 1);
 
 -- --------------------------------------------------------
 
@@ -302,13 +319,6 @@ CREATE TABLE `user_cart` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `user_cart`
---
-
-INSERT INTO `user_cart` (`cart_id`, `user_id`, `product_id`, `quantity`, `created_at`, `updated_at`) VALUES
-(30, 14, 6, 2, '2026-03-05 11:31:59', '2026-03-05 11:32:00');
 
 -- --------------------------------------------------------
 
@@ -354,6 +364,18 @@ CREATE TABLE `wallets` (
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
+--
+-- Dumping data for table `wallets`
+--
+
+INSERT INTO `wallets` (`wallet_id`, `user_id`, `wallet_type`, `balance`, `total_transacted`, `created_at`, `updated_at`) VALUES
+(1, 22, 'sales', 0.00, 0.00, '2026-03-21 22:22:04', '2026-03-21 22:22:04'),
+(2, 22, 'agency', 0.00, 0.00, '2026-03-21 22:22:04', '2026-03-21 22:22:04'),
+(3, 25, 'sales', 0.00, 0.00, '2026-03-23 23:23:37', '2026-03-23 23:23:37'),
+(4, 25, 'agency', 100.00, 100.00, '2026-03-23 23:23:37', '2026-03-23 23:32:09'),
+(5, 26, 'sales', 0.00, 0.00, '2026-03-23 23:32:09', '2026-03-23 23:32:09'),
+(6, 26, 'agency', 0.00, 0.00, '2026-03-23 23:32:09', '2026-03-23 23:32:09');
+
 -- --------------------------------------------------------
 
 --
@@ -371,6 +393,13 @@ CREATE TABLE `wallet_transactions` (
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- Dumping data for table `wallet_transactions`
+--
+
+INSERT INTO `wallet_transactions` (`transaction_id`, `wallet_id`, `amount`, `status`, `transaction_type`, `description`, `reference_id`, `created_at`, `updated_at`) VALUES
+(1, 4, 100.00, 'completed', 'credit', 'Level 1 commission from agent 26', '26', '2026-03-23 23:32:09', '2026-03-23 23:32:09');
 
 --
 -- Indexes for dumped tables
@@ -504,7 +533,7 @@ ALTER TABLE `wallet_transactions`
 -- AUTO_INCREMENT for table `agent_commissions`
 --
 ALTER TABLE `agent_commissions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `markethub_products`
@@ -522,13 +551,13 @@ ALTER TABLE `mpesa_payments`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=98;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=102;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=184;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=189;
 
 --
 -- AUTO_INCREMENT for table `payments`
@@ -564,25 +593,25 @@ ALTER TABLE `transactions`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `user_cart`
 --
 ALTER TABLE `user_cart`
-  MODIFY `cart_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+  MODIFY `cart_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT for table `wallets`
 --
 ALTER TABLE `wallets`
-  MODIFY `wallet_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `wallet_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `wallet_transactions`
 --
 ALTER TABLE `wallet_transactions`
-  MODIFY `transaction_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `transaction_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Constraints for dumped tables

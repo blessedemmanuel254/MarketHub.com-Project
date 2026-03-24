@@ -620,7 +620,7 @@ html body.no-scroll {
 
 }
 
-.container main.buyerMain .agentHeader p.status span.verified, .container main.buyerMain .agentHeader p.status span.unverified, .container main.buyerMain .agentHeader p.status span.suspended {
+.container main.buyerMain .agentHeader p.status span.verified, .container main.buyerMain .agentHeader p.status span.unverified, .container main.buyerMain .agentHeader p.status span.suspended, .container main.buyerMain .agentHeader p.status span.expired {
   color: #088000;
   background-color: #0980001f;
   padding: 4px;
@@ -638,7 +638,7 @@ html body.no-scroll {
   background-color: #ff3b3b2a;
 }
 
-.container main.buyerMain .agentHeader p.status span.suspended {
+.container main.buyerMain .agentHeader p.status span.expired {
   background:#fff3cd;
   color:#856404;
 }
@@ -989,7 +989,7 @@ html body.no-scroll {
 .table-wrapper table tbody tr td.actions button.btn-deactivate {
   background-color: #d3b55b;
 }
-.table-wrapper table tbody tr td .suspended {background-color: #89888834; color: #898888;}
+.table-wrapper table tbody tr td .suspended, .container main.buyerMain .agentHeader p.status span.suspended {background-color: #89888834; color: #898888;}
 .table-wrapper table tbody tr td.actions div {
   display: flex;
   gap: 6px;
@@ -1969,18 +1969,12 @@ label.account-type input:checked + .radio-dot::after {
   padding:10px;
   border:1px solid #ccc;
   border-radius:4px;
+  outline: none;
 }
 
 .container main.profile-main .profile-container .profile-form .form-group textarea {
   resize: vertical;
   min-height: 100px;
-}
-
-.container main.profile-main .profile-container .profile-form .form-group input:focus,
-.container main.profile-main .profile-container .profile-form .form-group select:focus,
-.container main.profile-main .profile-container .profile-form .form-group textarea:focus {
-  outline:none;
-  border-color:#0f0f0f;
 }
 
 .container main.profile-main .profile-container .profile-form button {

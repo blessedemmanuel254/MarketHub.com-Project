@@ -192,7 +192,71 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         );
 
         if($stmt->execute()){
-          
+
+          $newUserId = $stmt->insert_id;
+
+          // Commission structure
+          $commissionLevels = [
+              1 => 100,
+              2 => 40,
+              3 => 20
+          ];
+
+          $currentReferrer = $referrer_id ?? 0;
+          $level = 1;
+
+          // If no referrer → assign to company (agent_id = 0)
+          if (!$currentReferrer) {
+
+              $stmtCom = $conn->prepare("
+                  INSERT INTO agent_commissions
+                  (agent_id, source_user_id, level, amount, commission_type, created_at, status)
+                  VALUES (0, ?, 1, ?, 'activation', NOW(), 'pending')
+              ");
+              $amount = $commissionLevels[1];
+              $stmtCom->bind_param("id", $newUserId, $amount);
+              $stmtCom->execute();
+              $stmtCom->close();
+
+          } else {
+
+              while ($currentReferrer && $level <= 3) {
+
+                  $amount = $commissionLevels[$level];
+
+                  // Insert pending commission
+                  $stmtCom = $conn->prepare("
+                      INSERT INTO agent_commissions
+                      (agent_id, source_user_id, level, amount, commission_type, created_at, status)
+                      VALUES (?, ?, ?, ?, 'activation', NOW(), 'pending')
+                  ");
+
+                  $stmtCom->bind_param(
+                      "iiid",
+                      $currentReferrer,
+                      $newUserId,
+                      $level,
+                      $amount
+                  );
+
+                  $stmtCom->execute();
+                  $stmtCom->close();
+
+                  // Move up the chain
+                  $stmtRef = $conn->prepare("
+                      SELECT referred_by FROM users WHERE user_id = ?
+                  ");
+                  $stmtRef->bind_param("i", $currentReferrer);
+                  $stmtRef->execute();
+                  $stmtRef->bind_result($nextReferrer);
+                  $stmtRef->fetch();
+                  $stmtRef->close();
+
+                  $currentReferrer = $nextReferrer;
+                  $level++;
+              }
+          }
+
           // Clear referral session
           unset($_SESSION['agency_code']);
 

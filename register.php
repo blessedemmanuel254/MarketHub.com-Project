@@ -285,7 +285,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <img src="Images/Maket Hub Logo.avif" alt="Maket Hub Logo" width="40">
             <h1 class="login">Maket&nbsp;Hub</h1>
           </div>
-          <h3>Find Local. Shop Without Limits.</h3>
+          <h3>Find Local. Shop Without Limits!</h3>
         </section>
         <form action="" method="POST">
           <h2>Register account on Maket Hub</h2>
@@ -509,7 +509,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <img src="Images/Maket Hub Logo.avif" alt="Maket Hub Logo" width="40">
             <h1 class="login">Maket&nbsp;Hub</h1>
           </div>
-          <h3>List Once. Sell Everywhere.</h3>
+          <h3>List Once. Sell Everywhere!</h3>
         </section>
         <form action="" method="POST">
           <h2>Register account on Maket Hub</h2>
@@ -554,8 +554,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <select id="busmodel" name="busmodel" required>
                   <option value="">-- Select Business Model --</option>
                   <option value="products" <?= ($busmodel ?? '') === 'products' ? 'selected' : ''; ?>>Products</option>
-                  <option value="dervices" <?= ($busmodel ?? '') === 'dervices' ? 'selected' : ''; ?>>Services</option>
-                  <option value="dental" <?= ($busmodel ?? '') === 'dental' ? 'selected' : ''; ?>>Rental</option>
+                  <option value="services" <?= ($busmodel ?? '') === 'services' ? 'selected' : ''; ?>>Services</option>
+                  <option value="rentals" <?= ($busmodel ?? '') === 'rentals' ? 'selected' : ''; ?>>Rentals</option>
                 </select>
               </div>
 

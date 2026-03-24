@@ -24,17 +24,23 @@ if (!isset($_SESSION['created'])) {
 $allowedRole = 'sales_agent';
 
 $roleStmt = $conn->prepare(
-  "SELECT account_type, is_verified, status 
-  FROM users 
-  WHERE user_id = ? 
-  LIMIT 1"
+  "SELECT account_type, is_verified, status, subscription_expires_at 
+   FROM users 
+   WHERE user_id = ? 
+   LIMIT 1"
 );
 
 $roleStmt->bind_param("i", $_SESSION['user_id']);
 $roleStmt->execute();
-$roleStmt->bind_result($accountType, $isVerified, $status);
+$roleStmt->bind_result($accountType, $isVerified, $status, $expiresAt);
 $roleStmt->fetch();
 $roleStmt->close();
+
+$isExpired = false;
+
+if (!empty($expiresAt)) {
+  $isExpired = (strtotime($expiresAt) < time());
+}
 
 
 /* ---------- VALIDATION ---------- */
@@ -287,71 +293,123 @@ if($_SERVER["REQUEST_METHOD"] === "POST"){
               }
           }
 
-          if(!$agent_error){
+    if(!$agent_error){
 
-              $hashedPassword = password_hash($defaultPassword,PASSWORD_DEFAULT);
+        $hashedPassword = password_hash($defaultPassword,PASSWORD_DEFAULT);
 
-              $newReferralCode = generateReferralCode();
+        $newReferralCode = generateReferralCode();
 
-              $empty = "";
+        $empty = "";
 
-              $stmt = $conn->prepare("
-              INSERT INTO users
-              (
-              account_type,
-              full_name,
-              username,
-              email,
-              phone,
-              password,
-              country,
-              county,
-              ward,
-              address,
-              business_name,
-              business_model,
-              business_type,
-              market_scope,
-              agency_code,
-              referred_by,
-              created_at,
-              updated_at,
-              economic_period_count, must_change_password
-              )
-              VALUES
-              (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?,NOW(),NOW(),0,1)
+        $stmt = $conn->prepare("
+        INSERT INTO users
+        (
+        account_type,
+        full_name,
+        username,
+        email,
+        phone,
+        password,
+        country,
+        county,
+        ward,
+        address,
+        business_name,
+        business_model,
+        business_type,
+        market_scope,
+        agency_code,
+        referred_by,
+        created_at,
+        updated_at,
+        economic_period_count, must_change_password
+        )
+        VALUES
+        (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?,NOW(),NOW(),0,1)
+        ");
+
+        $stmt->bind_param(
+        "ssssssssssssssss",
+        $accountType,
+        $agent_full_name,
+        $agent_username,
+        $encrypted_email,
+        $encrypted_phone,
+        $hashedPassword,
+        $agent_country,
+        $agent_county,
+        $agent_ward,
+        $agent_address,
+        $empty,
+        $empty,
+        $empty,
+        $empty,
+        $newReferralCode,
+        $user_id
+        );
+
+        if($stmt->execute()){
+
+          $newUserId = $stmt->insert_id;
+
+          /* =========================
+              INSERT COMMISSIONS (PENDING)
+          ========================= */
+
+          $commissionLevels = [
+              1 => 100,
+              2 => 40,
+              3 => 20
+          ];
+
+          $currentReferrer = $user_id; // direct referrer (logged-in agent)
+          $level = 1;
+
+          while ($currentReferrer && $level <= 3) {
+
+              $amount = $commissionLevels[$level];
+
+              // Insert pending commission
+              $stmtCom = $conn->prepare("
+                  INSERT INTO agent_commissions
+                  (agent_id, source_user_id, level, amount, commission_type, created_at, status)
+                  VALUES (?, ?, ?, ?, 'activation', NOW(), 'pending')
               ");
 
-              $stmt->bind_param(
-              "ssssssssssssssss",
-              $accountType,
-              $agent_full_name,
-              $agent_username,
-              $encrypted_email,
-              $encrypted_phone,
-              $hashedPassword,
-              $agent_country,
-              $agent_county,
-              $agent_ward,
-              $agent_address,
-              $empty,
-              $empty,
-              $empty,
-              $empty,
-              $newReferralCode,
-              $user_id
+              $stmtCom->bind_param(
+                  "iiid",
+                  $currentReferrer,
+                  $newUserId,
+                  $level,
+                  $amount
               );
 
-              if($stmt->execute()){
+              $stmtCom->execute();
+              $stmtCom->close();
 
-                $agent_success = "New agent added successfully! <span class='redirect-msg'></span>";
-              }
-              else{
-                  $agent_error = "Error: ".$stmt->error;
-              }
+              // Move to next upline
+              $stmtRef = $conn->prepare("
+                  SELECT referred_by FROM users WHERE user_id = ?
+              ");
+              $stmtRef->bind_param("i", $currentReferrer);
+              $stmtRef->execute();
+              $stmtRef->bind_result($nextReferrer);
+              $stmtRef->fetch();
+              $stmtRef->close();
 
-              $stmt->close();
+              $currentReferrer = $nextReferrer;
+              $level++;
           }
+
+          $agent_success = "New agent added successfully! <span class='redirect-msg'></span>";
+
+        }
+        else{
+            $agent_error = "Error: ".$stmt->error;
+        }
+
+        $stmt->close();
+        }
 
       }
 
@@ -882,21 +940,27 @@ if ($isVerified === 1 && $status === 'active') {
 
         <?php if ($status !== 'active'): ?>
 
-        <span class="suspended">
-        <i class="fa-solid fa-ban"></i>&nbsp;Suspended
-        </span>
+          <span class="suspended">
+            <i class="fa-solid fa-ban"></i>&nbsp;Suspended
+          </span>
 
         <?php elseif ($isVerified == 0): ?>
 
-        <span class="unverified">
-        <i class="fa-solid fa-ban"></i>&nbsp;Unverified
-        </span>
+          <span class="unverified">
+            <i class="fa-solid fa-ban"></i>&nbsp;Unverified
+          </span>
 
-        <?php elseif ($isVerified == 1): ?>
+        <?php elseif ($isExpired): ?>
 
-        <span class="verified">
-        Verified&nbsp;<i class="fa-solid fa-certificate"></i>
-        </span>
+          <span class="expired">
+            <i class="fa-solid fa-clock"></i>&nbsp;Expired
+          </span>
+
+        <?php else: ?>
+
+          <span class="verified">
+            Verified&nbsp;<i class="fa-solid fa-certificate"></i>
+          </span>
 
         <?php endif; ?>
 
