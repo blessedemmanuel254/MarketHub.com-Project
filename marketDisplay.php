@@ -1025,8 +1025,7 @@ $productStmt->close();
             </div>
 
             <div class="address-name">
-              <?= htmlspecialchars($formattedName) ?> · 
-              <?= htmlspecialchars($decodedPhone) ?>
+              <?= htmlspecialchars($formattedName) ?> :
             </div>
 
             <div class="address-text">
@@ -1037,13 +1036,13 @@ $productStmt->close();
             </div>
           </div>                  
 
-            <br>
-            
-            <br>
+          <br>
+          
+          <br>
 
-            <!-- PRODUCTS BY SELLER -->
-            <div class="card">
-            </div>
+          <!-- PRODUCTS BY SELLER -->
+          <div class="card">
+          </div>
 
         </div>
 

@@ -386,7 +386,7 @@ if (!empty($user['profile_image'])) {
 
           <div class="form-group">
             <label>Bio (max <?= $bioMaxLength ?> characters)</label>
-            <textarea id="bioTextarea" name="bio" maxlength="<?= $bioMaxLength ?>" placeholder="Tell something about yourself..."><?= safe($bio); ?></textarea>
+            <textarea id="bioTextarea" name="bio" maxlength="<?= $bioMaxLength ?>" placeholder="Tell something about yourself..." required><?= safe($bio); ?></textarea>
             <small id="bioCount"><?= strlen($bio) ?>/<?= $bioMaxLength ?> characters</small>
           </div>
           
@@ -714,7 +714,7 @@ if (!empty($user['profile_image'])) {
 
           <div class="form-group">
             <label>Bio (max <?= $bioMaxLength ?> characters)</label>
-            <textarea id="bioTextarea" name="bio" maxlength="<?= $bioMaxLength ?>" placeholder="Tell something about yourself..."><?= safe($bio); ?></textarea>
+            <textarea id="bioTextarea" name="bio" maxlength="<?= $bioMaxLength ?>" placeholder="Tell something about yourself..." required><?= safe($bio); ?></textarea>
             <small id="bioCount"><?= strlen($bio) ?>/<?= $bioMaxLength ?> characters</small>
           </div>
 
