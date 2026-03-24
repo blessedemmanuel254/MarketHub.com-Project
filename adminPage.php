@@ -1296,7 +1296,12 @@ $stmt->close();
                       <i class="fa-solid fa-pen"></i>
                       </button>
                       <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                      <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+
+                      <button class="btn-delete action-btn"
+                      data-action="delete"
+                      data-user-id="<?= $seller['user_id'] ?>">
+                      <i class="fa-solid fa-trash-can"></i>
+                      </button>
                     </div>
                   </td>
                   <td class="comm-cell">
@@ -1430,7 +1435,12 @@ $stmt->close();
                           <i class="fa-solid fa-pen"></i>
                           </button>
                           <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                          <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+
+                          <button class="btn-delete action-btn"
+                          data-action="delete"
+                          data-user-id="<?= $buyer['user_id'] ?>">
+                          <i class="fa-solid fa-trash-can"></i>
+                          </button>
                         </div>
                       </td>
                       <td class="comm-cell">

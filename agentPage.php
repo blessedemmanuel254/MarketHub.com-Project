@@ -526,7 +526,6 @@ if ($isVerified === 1 && $status === 'active') {
   $stmt->close();
   $level1Count = count($level1);
 
-
   // ---------- LEVEL 2 ----------
   if ($level1Count > 0) {
 
@@ -2286,6 +2285,23 @@ if ($isVerified === 1 && $status === 'active') {
   
   <script src="assets/js/general.js" type="text/javascript" defer></script>
   <script>
+    /* ================= DROPDOWN LOGIC ================= */
+    document.addEventListener("click", function (e) {
+
+      // Close all dropdowns
+      document.querySelectorAll(".comm-dropdown").forEach(dd => {
+        dd.style.display = "none";
+      });
+
+      // Toggle clicked dropdown
+      const btn = e.target.closest(".comm-btn");
+      if (btn) {
+        const cell = btn.closest(".comm-cell");
+        const dropdown = cell.querySelector(".comm-dropdown");
+        dropdown.style.display = "block";
+        e.stopPropagation();
+      }
+    });
     // DataTables Script Js
     $(document).ready(function () {
       $('#agentEarnings').DataTable({
