@@ -60,7 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $login_type  = strtolower($_POST['login_type'] ?? '');
 
   if (!$identifier || !$password || !$login_type) {
-    $error = "All fields are required.";
+    $error = "All fields are required!";
   } else {
   $normalized_phone = normalizePhone($identifier);
   $encrypted_phone = base64_encode($normalized_phone);

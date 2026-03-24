@@ -411,7 +411,7 @@ $editMarket    = trim($_POST['market_scope'] ?? '');
 /* ---------- VALIDATION ---------- */
 
 if(!$full_name || !$editUsername || !$editEmail || !$editPhone || !$editCountry || !$editCounty || !$editWard || !$editAddress){
-  $editError = "All fields are required.";
+  $editError = "All fields are required!";
 }
 
 elseif(str_word_count($full_name) < 2){
@@ -3207,7 +3207,7 @@ $stmt->close();
                     <option value=""><p>-- Select Business Model --</p></option>
                     <option value="products" <?php echo ($edit_business_model === 'products') ? 'selected' : ''; ?>>Products</option>
                     <option value="services" <?php echo ($edit_business_model === 'services') ? 'selected' : ''; ?>>Services</option>
-                    <option value="rental" <?php echo ($edit_business_model === 'rental') ? 'selected' : ''; ?>>Rental</option>
+                    <option value="rentals" <?php echo ($edit_business_model === 'rentals') ? 'selected' : ''; ?>>Rentals</option>
                   </select>
                 </div>
                 <div class="inp-box">
@@ -3221,7 +3221,7 @@ $stmt->close();
                     <option value="kibanda" <?php echo ($edit_business_type === 'kibanda') ? 'selected' : ''; ?>>Kibanda</option>
                     <option value="canteen" <?php echo ($edit_business_type === 'canteen') ? 'selected' : ''; ?>>Canteen</option>
                     <option value="service_provider" <?php echo ($edit_business_type === 'service_provider') ? 'selected' : ''; ?>>Service_provider</option>
-                    <option value="rental" <?php echo ($edit_business_type === 'rental') ? 'selected' : ''; ?>>Rental</option>
+                    <option value="rentals" <?php echo ($edit_business_type === 'rentals') ? 'selected' : ''; ?>>Rentals</option>
                   </select>
                 </div>
                 <div class="inp-box">

@@ -14,13 +14,13 @@ $accountType = $_SESSION['account_type'];
 
 /* ---------- HELPERS ---------- */
 function safe($v) {
-    return htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8');
+  return htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8');
 }
 function encodeField($v) {
-    return base64_encode($v);
+  return base64_encode($v);
 }
 function decodeField($v) {
-    return $v ? base64_decode($v) : '';
+  return $v ? base64_decode($v) : '';
 }
 
 /* ---------- FETCH USER ---------- */
@@ -40,21 +40,24 @@ if (!$user) {
 $user['email'] = decodeField($user['email']);
 $user['phone'] = decodeField($user['phone']);
 
+/* ---------- MAP USER DATA TO VARIABLES ---------- */
+$full_name = $user['full_name'] ?? '';
+$username  = $user['username'] ?? '';
+$email     = $user['email'] ?? '';
+$phone     = $user['phone'] ?? '';
+$country   = $user['country'] ?? '';
+$county    = $user['county'] ?? '';
+$ward      = $user['ward'] ?? '';
+$address   = $user['address'] ?? '';
+$busname   = $user['business_name'] ?? '';
+$busmodel  = $user['business_model'] ?? '';
+$bustype   = $user['business_type'] ?? '';
+$market    = $user['market_scope'] ?? '';
+$bio       = $user['bio'] ?? '';
+
 /* ---------- UPDATE PROFILE ---------- */
 $error = "";
 $success = "";
-$full_name = "";
-$username = "";
-$email = "";
-$phone = "";
-$country = "";
-$county = "";
-$ward = "";
-$address = "";
-$busname = "";
-$busmodel = "";
-$bustype = "";
-$market = "";
 
 function validatePassword($password) {
   // Check all rules, but return only a simple generic message if any fail
@@ -118,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   ----------------------------- */
 
   if (!$full_name || !$phoneRaw || !$country || !$county || !$ward || !$address) {
-      $error = "All fields are required.";
+      $error = "All fields are required!";
   }
   elseif (str_word_count($full_name) < 2) {
       $error = "Full name must include at least first and last name!";
@@ -141,7 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $bustype  = trim($_POST['bustype'] ?? '');
 
       if (!$busname || !$busmodel || !$bustype) {
-          $error = "All business fields are required.";
+          $error = "All business fields are required!";
       }
 
       elseif (strlen($busname) > 25) {
@@ -162,7 +165,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           $stmt->store_result();
 
           if ($stmt->num_rows > 0) {
-              $error = "Business name already exists.";
+              $error = "Business name already exists!";
           }
           $stmt->close();
 
@@ -256,9 +259,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       }
 
       if ($update->execute()) {
-          $success = "Profile updated successfully!";
+        $success = "Profile updated successfully! <span class='redirect-msg'></span>";
       } else {
-          $error = "Update failed.";
+        $error = "Update failed.";
       }
 
       $update->close();
@@ -319,17 +322,17 @@ if (!empty($user['profile_image'])) {
       <?php if ($accountType === 'buyer'): ?>
       <div class="container profile-container">
 
-      <?php if (!empty($error)): ?>
-        <p class="errorMessage">
-          <i class="fa-solid fa-circle-exclamation"></i>
-          <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?>
-        </p>
-      <?php elseif (!empty($success)): ?>
-        <p class="successMessage">
-          <i class="fa-solid fa-check-circle"></i>
-          <?= strip_tags($success, '<span>'); ?>
-        </p>
-      <?php endif; ?>
+        <?php if (!empty($error)): ?>
+          <p class="errorMessage">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?>
+          </p>
+        <?php elseif (!empty($success)): ?>
+          <p class="successMessage" data-redirect="userProfile.php">
+            <i class="fa-solid fa-check-circle"></i>
+            <?= strip_tags($success, '<span>'); ?>
+          </p>
+        <?php endif; ?>
 
         <div class="profile-header">
           <div class="profile-pic">
@@ -339,7 +342,7 @@ if (!empty($user['profile_image'])) {
             <label for="profileImage"><i class="fa fa-camera"></i></label>
           </div>
           <div>
-            <h2><?= safe($user['full_name']); ?></h2>
+            <h2><?= htmlspecialchars(ucwords(strtolower($full_name))) ?></h2>
             <p>Edit your Maket Hub profile details</p>
           </div>
         </div>
@@ -348,43 +351,42 @@ if (!empty($user['profile_image'])) {
 
           <div class="form-group">
             <label>Full Name</label>
-            <input type="text" name="full_name" value="<?= safe($user['full_name']); ?>">
+            <input type="text" name="full_name" value="<?= safe($full_name); ?>">
           </div>
 
           <div class="form-group">
             <label>Username (read-only)</label>
-            <input type="text" name="username" value="<?= safe($user['username']); ?>" disabled>
+            <input type="text" name="username" value="<?= safe($username); ?>" disabled>
           </div>
 
           <div class="form-group">
             <label>Email (read-only)</label>
-            <input type="email" value="<?= safe($user['email']); ?>" disabled>
+            <input type="email" value="<?= safe($email); ?>" disabled>
           </div>
 
           <div class="form-group">
             <label>Phone</label>
-            <input type="text" name="phone" value="<?= safe($user['phone']); ?>">
+            <input type="text" name="phone" value="<?= safe($phone); ?>" required>
           </div>
 
 
           <div class="form-group">
             <label>Country</label>
             <select name="country">
-              <option <?= $user['country']=='Kenya'?'selected':'' ?>>Kenya</option>
-              <option <?= $user['country']=='Uganda'?'selected':'' ?>>Uganda</option>
-              <option <?= $user['country']=='Tanzania'?'selected':'' ?>>Tanzania</option>
+              <option value="Kenya" <?= $country=='Kenya'?'selected':'' ?>>Kenya</option>
+              <option value="Uganda" <?= $country=='Uganda'?'selected':'' ?>>Uganda</option>
+              <option value="Tanzania" <?= $country=='Tanzania'?'selected':'' ?>>Tanzania</option>
             </select>
           </div>
 
           <div class="form-group">
             <label>Physical Address</label>
-            <input type="text" name="address" value="<?= safe($user['address']); ?>">
+            <input type="text" name="address" value="<?= safe($address); ?>" required>
           </div>
 
           <div class="form-group">
             <label>Bio (max <?= $bioMaxLength ?> characters)</label>
-            <textarea id="bioTextarea" name="bio" maxlength="<?= $bioMaxLength ?>" 
-                      placeholder="Tell something about yourself..."><?= $safeBio ?></textarea>
+            <textarea id="bioTextarea" name="bio" maxlength="<?= $bioMaxLength ?>" placeholder="Tell something about yourself..."><?= safe($bio); ?></textarea>
             <small id="bioCount"><?= strlen($bio) ?>/<?= $bioMaxLength ?> characters</small>
           </div>
           
@@ -421,7 +423,7 @@ if (!empty($user['profile_image'])) {
           <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?>
         </p>
       <?php elseif (!empty($success)): ?>
-        <p class="successMessage">
+        <p class="successMessage" data-redirect="userProfile.php">
           <i class="fa-solid fa-check-circle"></i>
           <?= strip_tags($success, '<span>'); ?>
         </p>
@@ -435,7 +437,7 @@ if (!empty($user['profile_image'])) {
             <label for="profileImage"><i class="fa fa-camera"></i></label>
           </div>
           <div>
-            <h2><?= safe($user['full_name']); ?></h2>
+            <h2><?= htmlspecialchars(ucwords(strtolower($full_name))) ?></h2>
             <p>Edit your Maket Hub details</p>
           </div>
         </div>
@@ -444,36 +446,36 @@ if (!empty($user['profile_image'])) {
 
           <div class="form-group">
             <label>Full Name</label>
-            <input type="text" name="full_name" value="<?= safe($user['full_name']); ?>" required>
+            <input type="text" name="full_name" value="<?= safe($full_name); ?>" required>
           </div>
 
           <div class="form-group">
             <label>Username (read-only)</label>
-            <input type="text" name="username" value="<?= safe($user['username']); ?>" disabled>
+            <input type="text" name="username" value="<?= safe($username); ?>" disabled>
           </div>
 
           <div class="form-group">
             <label>Email (read-only)</label>
-            <input type="email" value="<?= safe($user['email']); ?>" disabled>
+            <input type="email" value="<?= safe($email); ?>" disabled>
           </div>
 
           <div class="form-group">
             <label>Phone</label>
-            <input type="text" name="phone" value="<?= safe($user['phone']); ?>" required>
+            <input type="text" name="phone" value="<?= safe($phone); ?>" required>
           </div>
           
           <div class="form-group">
             <label>Business Name</label>
-            <input type="text" name="busname" value="<?= safe($user['business_name']); ?>" placeholder="" required>
+            <input type="text" name="busname" value="<?= safe($busname); ?>" placeholder="" required>
           </div>
               
           <div class="form-group">
             <label>Business Model</label>
             <select id="busmodel" name="busmodel" required>
               <option value="">-- Select Business Model --</option>
-              <option value="products" <?= $user['business_model']=='products'?'selected':'' ?>>Products</option>
-              <option value="services" <?= $user['business_model']=='services'?'selected':'' ?>>Services</option>
-              <option value="rental" <?= $user['business_model']=='rental'?'selected':'' ?>>Rental</option>
+              <option value="products" <?= $busmodel=='products'?'selected':'' ?>>Products</option>
+              <option value="services" <?= $busmodel=='services'?'selected':'' ?>>Services</option>
+              <option value="rentals" <?= $busmodel=='rentals'?'selected':'' ?>>Rentals</option>
             </select>
           </div>
 
@@ -487,21 +489,21 @@ if (!empty($user['profile_image'])) {
               <option value="kibanda" <?= $user['business_type']=='kibanda'?'selected':'' ?>>Kibanda</option>
               <option value="canteen" <?= $user['business_type']=='canteen'?'selected':'' ?>>Canteen</option>
               <option value="service_provider" <?= $user['business_type']=='service_provider'?'selected':'' ?>>Service Provider</option>
-              <option value="rental" <?= $user['business_type']=='rental'?'selected':'' ?>>Rental</option>
+              <option value="rentals" <?= $user['business_type']=='rentals'?'selected':'' ?>>Rentals</option>
             </select>
           </div>
 
           <div class="form-group">
             <label>Physical Address</label>
-            <input type="text" name="address" value="<?= safe($user['address']); ?>" required>
+            <input type="text" name="address" value="<?= safe($address); ?>" required>
           </div>
 
           <div class="form-group">
             <label>Country</label>
             <select name="country">
-              <option <?= $user['country']=='Kenya'?'selected':'' ?>>Kenya</option>
-              <option <?= $user['country']=='Uganda'?'selected':'' ?>>Uganda</option>
-              <option <?= $user['country']=='Tanzania'?'selected':'' ?>>Tanzania</option>
+              <option value="Kenya" <?= $country=='Kenya'?'selected':'' ?>>Kenya</option>
+              <option value="Uganda" <?= $country=='Uganda'?'selected':'' ?>>Uganda</option>
+              <option value="Tanzania" <?= $country=='Tanzania'?'selected':'' ?>>Tanzania</option>
             </select>
           </div>
               
@@ -535,7 +537,7 @@ if (!empty($user['profile_image'])) {
 
           <div class="form-group">
             <label>Bio (max <?= $bioMaxLength ?> characters)</label>
-            <textarea id="bioTextarea" name="bio" maxlength="<?= $bioMaxLength ?>" placeholder="Tell something about yourself..." required><?= $safeBio ?></textarea>
+            <textarea id="bioTextarea" name="bio" maxlength="<?= $bioMaxLength ?>" placeholder="Tell something about yourself..." required><?= safe($bio); ?></textarea>
             <small id="bioCount"><?= strlen($bio) ?>/<?= $bioMaxLength ?> characters</small>
           </div>
           <div></div>
@@ -550,18 +552,6 @@ if (!empty($user['profile_image'])) {
       <?php if ($accountType === 'sales_agent'): ?>
       <div class="container profile-container">
 
-        <?php if (!empty($error)): ?>
-          <p class="errorMessage">
-            <i class="fa-solid fa-circle-exclamation"></i>
-            <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?>
-          </p>
-        <?php elseif (!empty($success)): ?>
-          <p class="successMessage">
-            <i class="fa-solid fa-check-circle"></i>
-            <?= strip_tags($success, '<span>'); ?>
-          </p>
-        <?php endif; ?>
-
         <div class="profile-header">
           <div class="profile-pic">
             <img id="profilePreview"
@@ -570,39 +560,51 @@ if (!empty($user['profile_image'])) {
             <label for="profileImage"><i class="fa fa-camera"></i></label>
           </div>
           <div>
-            <h2><?= safe($user['full_name']); ?></h2>
+            <h2><?= htmlspecialchars(ucwords(strtolower($full_name))) ?></h2>
             <p>Edit your Maket Hub details</p>
           </div>
         </div>
+
+        <?php if (!empty($error)): ?>
+          <p class="errorMessage">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?>
+          </p>
+        <?php elseif (!empty($success)): ?>
+          <p class="successMessage" data-redirect="userProfile.php">
+            <i class="fa-solid fa-check-circle"></i>
+            <?= strip_tags($success, '<span>'); ?>
+          </p>
+        <?php endif; ?>
 
         <form id="profileForm" class="profile-form" method="POST" enctype="multipart/form-data">
 
           <div class="form-group">
             <label>Full Name</label>
-            <input type="text" name="full_name" value="<?= safe($user['full_name']); ?>">
+            <input type="text" name="full_name" value="<?= safe($full_name); ?>">
           </div>
 
           <div class="form-group">
             <label>Username (read-only)</label>
-            <input type="text" name="username" value="<?= safe($user['username']); ?>" disabled>
+            <input type="text" name="username" value="<?= safe($username); ?>" disabled>
           </div>
 
           <div class="form-group">
             <label>Email (read-only)</label>
-            <input type="email" value="<?= safe($user['email']); ?>" disabled>
+            <input type="email" value="<?= safe($email); ?>" disabled>
           </div>
 
           <div class="form-group">
             <label>Phone</label>
-            <input type="text" name="phone" value="<?= safe($user['phone']); ?>">
+            <input type="text" name="phone" value="<?= safe($phone); ?>" required>
           </div>
 
           <div class="form-group">
             <label>Country</label>
             <select name="country">
-              <option <?= $user['country']=='Kenya'?'selected':'' ?>>Kenya</option>
-              <option <?= $user['country']=='Uganda'?'selected':'' ?>>Uganda</option>
-              <option <?= $user['country']=='Tanzania'?'selected':'' ?>>Tanzania</option>
+              <option value="Kenya" <?= $country=='Kenya'?'selected':'' ?>>Kenya</option>
+              <option value="Uganda" <?= $country=='Uganda'?'selected':'' ?>>Uganda</option>
+              <option value="Tanzania" <?= $country=='Tanzania'?'selected':'' ?>>Tanzania</option>
             </select>
           </div>
           
@@ -617,14 +619,13 @@ if (!empty($user['profile_image'])) {
 
           <div class="form-group">
             <label>Bio (max <?= $bioMaxLength ?> characters)</label>
-            <textarea id="bioTextarea" name="bio" maxlength="<?= $bioMaxLength ?>" 
-                      placeholder="Tell something about yourself..."><?= $safeBio ?></textarea>
+            <textarea id="bioTextarea" name="bio" maxlength="<?= $bioMaxLength ?>" placeholder="Tell something about yourself..." required><?= safe($bio); ?></textarea>
             <small id="bioCount"><?= strlen($bio) ?>/<?= $bioMaxLength ?> characters</small>
           </div>
 
           <div class="form-group">
             <label>Physical Address</label>
-            <input type="text" name="address" value="<?= safe($user['address']); ?>">
+            <input type="text" name="address" value="<?= safe($address); ?>" required>
           </div>
           
           <div class="form-group">
@@ -651,7 +652,7 @@ if (!empty($user['profile_image'])) {
           <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?>
         </p>
       <?php elseif (!empty($success)): ?>
-        <p class="successMessage">
+        <p class="successMessage" data-redirect="userProfile.php">
           <i class="fa-solid fa-check-circle"></i>
           <?= strip_tags($success, '<span>'); ?>
         </p>
@@ -665,7 +666,7 @@ if (!empty($user['profile_image'])) {
             <label for="profileImage"><i class="fa fa-camera"></i></label>
           </div>
           <div>
-            <h2><?= safe($user['full_name']); ?></h2>
+            <h2><?= htmlspecialchars(ucwords(strtolower($full_name))) ?></h2>
             <p>Edit your Maket Hub details</p>
           </div>
         </div>
@@ -674,21 +675,21 @@ if (!empty($user['profile_image'])) {
 
           <div class="form-group">
             <label>Full Name</label>
-            <input type="text" name="full_name" value="<?= safe($user['full_name']); ?>">
+            <input type="text" name="full_name" value="<?= safe($full_name); ?>">
           </div>
 
           <div class="form-group">
             <label>Email (read-only)</label>
-            <input type="email" value="<?= safe($user['email']); ?>" disabled>
+            <input type="email" value="<?= safe($email); ?>" disabled>
           </div>
 
 
           <div class="form-group">
             <label>Country</label>
             <select name="country">
-              <option <?= $user['country']=='Kenya'?'selected':'' ?>>Kenya</option>
-              <option <?= $user['country']=='Uganda'?'selected':'' ?>>Uganda</option>
-              <option <?= $user['country']=='Tanzania'?'selected':'' ?>>Tanzania</option>
+              <option value="Kenya" <?= $country=='Kenya'?'selected':'' ?>>Kenya</option>
+              <option value="Uganda" <?= $country=='Uganda'?'selected':'' ?>>Uganda</option>
+              <option value="Tanzania" <?= $country=='Tanzania'?'selected':'' ?>>Tanzania</option>
             </select>
           </div>
           
@@ -703,24 +704,23 @@ if (!empty($user['profile_image'])) {
 
           <div class="form-group">
             <label>username</label>
-            <input type="text" name="username" value="<?= safe($user['username']); ?>">
+            <input type="text" name="username" value="<?= safe($username); ?>">
           </div>
 
           <div class="form-group">
             <label>Phone</label>
-            <input type="text" name="phone" value="<?= safe($user['phone']); ?>">
+            <input type="text" name="phone" value="<?= safe($phone); ?>" required>
           </div>
 
           <div class="form-group">
             <label>Bio (max <?= $bioMaxLength ?> characters)</label>
-            <textarea id="bioTextarea" name="bio" maxlength="<?= $bioMaxLength ?>" 
-                      placeholder="Tell something about yourself..."><?= $safeBio ?></textarea>
+            <textarea id="bioTextarea" name="bio" maxlength="<?= $bioMaxLength ?>" placeholder="Tell something about yourself..."><?= safe($bio); ?></textarea>
             <small id="bioCount"><?= strlen($bio) ?>/<?= $bioMaxLength ?> characters</small>
           </div>
 
           <div class="form-group">
             <label>Physical Address</label>
-            <input type="text" name="address" value="<?= safe($user['address']); ?>">
+            <input type="text" name="address" value="<?= safe($address); ?>" required>
           </div>
           
           <div class="form-group">
@@ -743,27 +743,28 @@ if (!empty($user['profile_image'])) {
       <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
     </footer>
   </div>
+  
+  <script src="assets/js/general.js" type="text/javascript" defer></script>
 
-<script>
-document.getElementById("profileImage").addEventListener("change", function () {
-  const file = this.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => document.getElementById("profilePreview").src = e.target.result;
-  reader.readAsDataURL(file);
-});
-</script>
+  <script>
+  document.getElementById("profileImage").addEventListener("change", function () {
+    const file = this.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => document.getElementById("profilePreview").src = e.target.result;
+    reader.readAsDataURL(file);
+  });
+  </script>
 
-<script>
-const bioTextarea = document.getElementById("bioTextarea");
-const bioCount = document.getElementById("bioCount");
+  <script>
+  const bioTextarea = document.getElementById("bioTextarea");
+  const bioCount = document.getElementById("bioCount");
 
-bioTextarea.addEventListener("input", () => {
-    const len = bioTextarea.value.length;
-    bioCount.textContent = `${len}/<?= $bioMaxLength ?> characters`;
-});
-</script>
-
+  bioTextarea.addEventListener("input", () => {
+      const len = bioTextarea.value.length;
+      bioCount.textContent = `${len}/<?= $bioMaxLength ?> characters`;
+  });
+  </script>
 
 </body>
 </html>

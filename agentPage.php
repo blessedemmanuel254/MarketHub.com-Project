@@ -213,7 +213,7 @@ if($_SERVER["REQUEST_METHOD"] === "POST"){
   $defaultPassword = "Makethub123#";
 
   if(!$agent_full_name || !$agent_username || !$agent_email || !$agent_phone || !$agent_country || !$agent_county || !$agent_ward || !$agent_address){
-    $agent_error = "All fields are required.";
+    $agent_error = "All fields are required!";
   }
 
   elseif(str_word_count($agent_full_name) < 2){

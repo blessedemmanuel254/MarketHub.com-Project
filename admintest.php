@@ -269,7 +269,7 @@ if ($accountType !== $allowedRole) { */
                     <option value=""><p>-- Select Business Model --</p></option>
                     <option value="products" <?php echo ($busmodel === 'products') ? 'selected' : ''; ?>>Products</option>
                     <option value="services" <?php echo ($busmodel === 'services') ? 'selected' : ''; ?>>Services</option>
-                    <option value="rental" <?php echo ($busmodel === 'rental') ? 'selected' : ''; ?>>Rental</option>
+                    <option value="rentals" <?php echo ($busmodel === 'rentals') ? 'selected' : ''; ?>>Rentals</option>
                   </select>
                 </div>
                 <div class="inp-box">
@@ -283,7 +283,7 @@ if ($accountType !== $allowedRole) { */
                     <option value="kibanda" <?php echo ($bustype === 'kibanda') ? 'selected' : ''; ?>>Kibanda</option>
                     <option value="canteen" <?php echo ($bustype === 'canteen') ? 'selected' : ''; ?>>Canteen</option>
                     <option value="service_provider" <?php echo ($bustype === 'service_provider') ? 'selected' : ''; ?>>Service_provider</option>
-                    <option value="rental" <?php echo ($bustype === 'rental') ? 'selected' : ''; ?>>Rental</option>
+                    <option value="rentals" <?php echo ($bustype === 'rentals') ? 'selected' : ''; ?>>Rentals</option>
                   </select>
                 </div>
                 <div class="inp-box">

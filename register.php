@@ -89,7 +89,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $market = trim($_POST['market'] ?? '');
 
   if (!$full_name || !$username || !$email || !$phone || !$password || !$confirm_password || !$country || !$county || !$ward || !$address || ($accountType === 'seller' && (!$busname || !$busmodel || !$bustype || !$market))) {
-    $error = "All fields are required.";
+    $error = "All fields are required!";
   } else if (!$accountType) {
     $error = 'Visit the <a href="accountTypeSelection.php">account-type selection</a> page to proceed.';
   } elseif (str_word_count($full_name) < 2) {
@@ -152,7 +152,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmt->store_result();
 
         if ($stmt->num_rows > 0) {
-            $error = "Business name already exists.";
+            $error = "Business name already exists!";
         }
 
         $stmt->close();
@@ -560,8 +560,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
               </div>
 
               <div class="selectorBox">
-                <span>Business type</span>
-                <select id="bustype" name="bustype" required>
+                <span>Business type (read-only)</span>
+                <select id="bustype" name="bustype" disabled>
                   <option value="">-- Select Type --</option>
                   <option value="shop" <?= ($bustype ?? '') === 'shop' ? 'selected' : ''; ?>>Shop</option>
                   <option value="supermarket" <?= ($bustype ?? '') === 'supermarket' ? 'selected' : ''; ?>>Supermarket</option>
@@ -569,7 +569,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                   <option value="kibanda" <?= ($bustype ?? '') === 'kibanda' ? 'selected' : ''; ?>>Kibanda</option>
                   <option value="canteen" <?= ($bustype ?? '') === 'canteen' ? 'selected' : ''; ?>>Canteen</option>
                   <option value="service_provider" <?= ($bustype ?? '') === 'service_provider' ? 'selected' : ''; ?>>Service Provider</option>
-                  <option value="rental" <?= ($bustype ?? '') === 'rental' ? 'selected' : ''; ?>>Rental</option>
+                  <option value="rentals" <?= ($bustype ?? '') === 'rentals' ? 'selected' : ''; ?>>Rentals</option>
                 </select>
               </div>
             </div>

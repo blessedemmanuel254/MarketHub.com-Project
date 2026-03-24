@@ -105,7 +105,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   }
 
   if (!$full_name || !$username || !$email || !$phone || !$password || !$confirm_password || !$country || !$county || !$ward || !$address){
-    $error = "All fields are required.";
+    $error = "All fields are required!";
   } else if (!$accountType) {
     $error = 'Visit the <a href="accountTypeSelection.php">account-type selection</a> page to proceed.';
   } elseif (str_word_count($full_name) < 2) {

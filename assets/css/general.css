@@ -1620,7 +1620,7 @@ html body.no-scroll {
   margin-bottom: 20px;
 }
 
-.container main .formContainer form p.errorMessage, .container main .formContainer form p.successMessage, .container main form.actpContainer p.errorMessage, .tab-content .tab-panel p.errorMessage, .tab-content .tab-panel p.successMessage, .tab-panel-admin .form-wrapper form .errorMessage, .container.cmng-sn main .content form .successMessage, .container.cmng-sn main .content form .errorMessage {
+.container main .formContainer form p.errorMessage, .container main .formContainer form p.successMessage, .container main form.actpContainer p.errorMessage, .tab-content .tab-panel p.errorMessage, .tab-content .tab-panel p.successMessage, .tab-panel-admin .form-wrapper form .errorMessage, .container.cmng-sn main .content form .successMessage, .container.cmng-sn main .content form .errorMessage, .container main.profile-main .profile-container .errorMessage, .container main.profile-main .profile-container .successMessage {
   display: flex;
   align-items: center;
   gap: 5px;
@@ -1628,8 +1628,12 @@ html body.no-scroll {
   color: #ff3b3b;
 }
 
-.container main .formContainer form p.successMessage, .tab-content .tab-panel p.successMessage,.tab-panel-admin .form-wrapper form .successMessage, .container.cmng-sn main .content form .successMessage {
+.container main .formContainer form p.successMessage, .tab-content .tab-panel p.successMessage,.tab-panel-admin .form-wrapper form .successMessage, .container.cmng-sn main .content form .successMessage, .container main.profile-main .profile-container .successMessage {
   color: #088000;
+}
+
+.container main.profile-main .profile-container .errorMessage, .container main.profile-main .profile-container .successMessage {
+  margin-bottom: 20px;
 }
 
 .container main .formContainer form input::placeholder {
@@ -1903,21 +1907,11 @@ label.account-type input:checked + .radio-dot::after {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.container main.profile-main .profile-container .success {
-  color:#088000;
-  padding:10px;
-  border-radius:4px;
-  margin-bottom:10px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
 .container main.profile-main .profile-container .profile-header {
   display: flex;
   align-items: center;
   gap: 20px;
-  margin-bottom: 30px;
+  margin-bottom: 10px;
 }
 
 .container main.profile-main .profile-container .profile-header .profile-pic {
