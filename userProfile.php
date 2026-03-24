@@ -679,6 +679,11 @@ if (!empty($user['profile_image'])) {
           </div>
 
           <div class="form-group">
+            <label>Username (read-only)</label>
+            <input type="text" name="username" value="<?= safe($username); ?>" disabled>
+          </div>
+
+          <div class="form-group">
             <label>Email (read-only)</label>
             <input type="email" value="<?= safe($email); ?>" disabled>
           </div>
@@ -700,11 +705,6 @@ if (!empty($user['profile_image'])) {
               <option <?= $user['county']=='Uganda'?'selected':'' ?>>Mombasa</option>
               <option <?= $user['county']=='Tanzania'?'selected':'' ?>>Bungoma</option>
             </select>
-          </div>
-
-          <div class="form-group">
-            <label>username</label>
-            <input type="text" name="username" value="<?= safe($username); ?>">
           </div>
 
           <div class="form-group">
