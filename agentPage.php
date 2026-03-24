@@ -1850,10 +1850,9 @@ if ($isVerified === 1 && $status === 'active') {
 
       <div class="filter-bar">
         <select id="statusFilter">
-          <option value="all">All Orders</option>
-          <option value="Delivered">Delivered</option>
-          <option value="Shipped">Shipped</option>
-          <option value="Processing">Processing</option>
+          <option value="all">All Commissions</option>
+          <option value="Paid">Paid</option>
+          <option value="Pending">Pending</option>
         </select>
       </div>
 
@@ -1978,10 +1977,9 @@ if ($isVerified === 1 && $status === 'active') {
       </div>
       <div class="filter-bar">
         <select id="statusFilter">
-          <option value="all">All Orders</option>
-          <option value="Delivered">Delivered</option>
-          <option value="Shipped">Shipped</option>
-          <option value="Processing">Processing</option>
+          <option value="all">All Commissions</option>
+          <option value="Paid">Paid</option>
+          <option value="Pending">Pending</option>
         </select>
       </div>
       <div class="table-wrapper agentEarningsTrack">
