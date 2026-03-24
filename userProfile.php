@@ -509,11 +509,11 @@ if (!empty($user['profile_image'])) {
               
           <div class="form-group">
             <label>Market Type</label>
-            <select id="market" name="market" disabled>
+            <select id="market" name="market">
               <option value="">-- Select Market Type --</option>
-              <option value="local" <?= $user['market_scope']=='local'?'selected':'' ?>>Local</option>
-              <option value="national" <?= $user['market_scope']=='national'?'selected':'' ?>>National</option>
-              <option value="global" <?= $user['market_scope']=='global'?'selected':'' ?>>Global</option>
+              <option value="Local" <?= $market=='Local'?'selected':'' ?>>Local</option><!-- 
+              <option value="National" <?= $market=='National'?'selected':'' ?>>National</option>
+              <option value="Global" <?= $market=='Global'?'selected':'' ?>>Global</option> -->
             </select>
           </div>
           

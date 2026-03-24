@@ -1294,8 +1294,21 @@ $stmt->close();
                       class="btn-edit" data-user-id="<?= $seller['user_id'] ?>" 
                       data-tab="edit-forms" onclick="editRecord('seller', <?= (int)$seller['user_id'] ?>)">
                       <i class="fa-solid fa-pen"></i>
-                      </button>
-                      <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                      </button>                <?php if ($seller['status'] === 'suspended'): ?>
+
+                      <button class="btn-restore action-btn"
+                      data-action="restore"
+                      data-user-id="<?= $seller['user_id'] ?>">
+                      <i class="fa-solid fa-trash-can-arrow-up"></i></button>
+
+                      <?php else: ?>
+
+                      <button class="btn-suspend action-btn"
+                      data-action="suspend"
+                      data-user-id="<?= $seller['user_id'] ?>">
+                      <i class="fa-solid fa-ban"></i></button>
+
+                      <?php endif; ?>
 
                       <button class="btn-delete action-btn"
                       data-action="delete"
@@ -1434,7 +1447,21 @@ $stmt->close();
                           data-tab="edit-forms" onclick="editRecord('buyer', <?= (int)$buyer['user_id'] ?>)">
                           <i class="fa-solid fa-pen"></i>
                           </button>
-                          <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
+                          <?php if ($buyer['status'] === 'suspended'): ?>
+
+                          <button class="btn-restore action-btn"
+                          data-action="restore"
+                          data-user-id="<?= $buyer['user_id'] ?>">
+                          <i class="fa-solid fa-trash-can-arrow-up"></i></button>
+
+                          <?php else: ?>
+
+                          <button class="btn-suspend action-btn"
+                          data-action="suspend"
+                          data-user-id="<?= $buyer['user_id'] ?>">
+                          <i class="fa-solid fa-ban"></i></button>
+
+                          <?php endif; ?>
 
                           <button class="btn-delete action-btn"
                           data-action="delete"
@@ -1600,8 +1627,27 @@ $stmt->close();
                     data-tab="edit-forms" onclick="editRecord('owner', <?= (int)$owner['user_id'] ?>)">
                     <i class="fa-solid fa-pen"></i>
                     </button>
-                    <button class="btn-suspend"><i class="fa-solid fa-ban"></i></button>
-                    <button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                    <?php if ($owner['status'] === 'suspended'): ?>
+
+                    <button class="btn-restore action-btn"
+                    data-action="restore"
+                    data-user-id="<?= $owner['user_id'] ?>">
+                    <i class="fa-solid fa-trash-can-arrow-up"></i></button>
+
+                    <?php else: ?>
+
+                    <button class="btn-suspend action-btn"
+                    data-action="suspend"
+                    data-user-id="<?= $owner['user_id'] ?>">
+                    <i class="fa-solid fa-ban"></i></button>
+
+                    <?php endif; ?>
+
+                    <button class="btn-delete action-btn"
+                    data-action="delete"
+                    data-user-id="<?= $buyer['user_id'] ?>">
+                    <i class="fa-solid fa-trash-can"></i>
+                    </button>
                   </div>
                 </td>
 

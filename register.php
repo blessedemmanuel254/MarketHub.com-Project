@@ -590,11 +590,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
               <div class="selectorBox">
                 <span>Market Type</span>
-                <select id="market" name="market" required>
+                <select id="market" name="market">
                   <option value="">-- Select Market Type --</option>
-                  <option value="local" <?= ($market ?? '') === 'local' ? 'selected' : ''; ?>>Local</option>
-                  <option value="national" <?= ($market ?? '') === 'national' ? 'selected' : ''; ?>>National</option>
-                  <option value="global" <?= ($market ?? '') === 'global' ? 'selected' : ''; ?>>Global</option>
+                  <option value="Local" <?= ($market ?? '') === 'Local' ? 'selected' : ''; ?>>Local</option><!-- 
+                  <option value="National" <?= ($market ?? '') === 'National' ? 'selected' : ''; ?>>National</option>
+                  <option value="Global" <?= ($market ?? '') === 'Global' ? 'selected' : ''; ?>>Global</option> -->
                 </select>
               </div>
 
