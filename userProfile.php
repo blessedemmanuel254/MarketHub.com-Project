@@ -41,65 +41,228 @@ $user['email'] = decodeField($user['email']);
 $user['phone'] = decodeField($user['phone']);
 
 /* ---------- UPDATE PROFILE ---------- */
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+$error = "";
+$success = "";
+$full_name = "";
+$username = "";
+$email = "";
+$phone = "";
+$country = "";
+$county = "";
+$ward = "";
+$address = "";
+$busname = "";
+$busmodel = "";
+$bustype = "";
+$market = "";
 
-  $full_name    = trim($_POST['full_name']);
-  $phone        = encodeField(trim($_POST['phone']));
-  $bio          = trim($_POST['bio']);
-  $username     = trim($_POST['username']);
-  $country      = trim($_POST['country']);
-  $county       = trim($_POST['county']);
-  $ward         = trim($_POST['ward']);
-  $address      = trim($_POST['address']);
+function validatePassword($password) {
+  // Check all rules, but return only a simple generic message if any fail
+  if (strlen($password) < 8 || 
+    !preg_match('/[A-Z]/', $password) || 
+    !preg_match('/[a-z]/', $password) || 
+    !preg_match('/\d/', $password) || 
+    !preg_match('/[^A-Za-z0-9]/', $password)) {
+    return "Password does not meet requirements.";
+  }
+  return ""; // valid
+}
 
-  $profile_image = $user['profile_image'];
+function normalizePhoneNumber($rawPhone) {
+  // Remove all characters except numbers and plus sign
+  $cleaned = preg_replace('/[^\d+]/', '', $rawPhone);
 
-  /* ---------- IMAGE UPLOAD (SAFE) ---------- */
-  if (!empty($_FILES['profile_image']['name']) && $_FILES['profile_image']['error'] === 0) {
-
-      $allowedExt  = ['jpg', 'jpeg', 'png', 'webp'];
-      $allowedMime = ['image/jpeg', 'image/png', 'image/webp'];
-
-      $ext = strtolower(pathinfo($_FILES['profile_image']['name'], PATHINFO_EXTENSION));
-
-      $finfo = finfo_open(FILEINFO_MIME_TYPE);
-      $mime  = finfo_file($finfo, $_FILES['profile_image']['tmp_name']);
-      finfo_close($finfo);
-
-      if (in_array($ext, $allowedExt) && in_array($mime, $allowedMime)) {
-
-          $dir = "uploads/profiles/";
-          if (!is_dir($dir)) {
-              mkdir($dir, 0755, true);
-          }
-
-          $fileName = "user_{$user_id}_" . time() . "." . $ext;
-          $path = $dir . $fileName;
-
-          if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $path)) {
-              $profile_image = $path;
-          }
-      }
-      // invalid files are silently ignored
+  // Handle various formats
+  if (strpos($cleaned, '+') === 0) {
+      // Already starts with country code
+      return $cleaned;
+  } elseif (strpos($cleaned, '0') === 0 && strlen($cleaned) >= 10) {
+      // Starts with 0 — assume it's local Kenyan-style and convert to +254
+      return '+254' . substr($cleaned, 1);
+  } elseif (strlen($cleaned) >= 9 && !str_starts_with($cleaned, '+')) {
+      // Assume starts directly with country code
+      return '+' . $cleaned;
   }
 
-  /* ---------- SAVE ---------- */
-  $update = $conn->prepare("
-      UPDATE users SET
-          full_name = ?, phone = ?, bio = ?, username = ?, country = ?, county = ?, ward = ?,
-          address = ?, profile_image = ?, updated_at = NOW()
-      WHERE user_id = ?
-  ");
+  // Invalid fallback
+  return '';
+}
 
-  $update->bind_param(
-    "ssssssssssi",
-    $full_name, $phone, $bio, $username, $country, $county, $ward, $address, $profile_image, $user_id
-  );
-  $update->execute();
-  $update->close();
+function normalizeBusinessName($name) {
 
-  header("Location: userProfile.php?updated=1");
-  exit();
+  // Remove leading and trailing spaces
+  $name = trim($name);
+
+  // Convert multiple spaces to a single space
+  $name = preg_replace('/\s+/', ' ', $name);
+
+  // Convert to lowercase for comparison
+  $name = strtolower($name);
+
+  return $name;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+  // Common fields
+  $full_name = trim($_POST['full_name'] ?? '');
+  $phoneRaw  = trim($_POST['phone'] ?? '');
+  $country   = trim($_POST['country'] ?? '');
+  $county    = trim($_POST['county'] ?? '');
+  $ward      = trim($_POST['ward'] ?? '');
+  $address   = trim($_POST['address'] ?? '');
+  $bio       = trim($_POST['bio'] ?? '');
+
+  /* -----------------------------
+      COMMON VALIDATION
+  ----------------------------- */
+
+  if (!$full_name || !$phoneRaw || !$country || !$county || !$ward || !$address) {
+      $error = "All fields are required.";
+  }
+  elseif (str_word_count($full_name) < 2) {
+      $error = "Full name must include at least first and last name!";
+  }
+  elseif (!preg_match('/^[0-9+\-\(\)\s]+$/', $phoneRaw)) {
+      $error = "Phone number contains invalid characters!";
+  }
+  elseif (strlen($address) > 25) {
+      $error = "Address too long!";
+  }
+
+  /* -----------------------------
+      ACCOUNT-TYPE SPECIFIC RULES
+  ----------------------------- */
+
+  if (!$error && $accountType === 'seller') {
+
+      $busname  = trim($_POST['busname'] ?? '');
+      $busmodel = trim($_POST['busmodel'] ?? '');
+      $bustype  = trim($_POST['bustype'] ?? '');
+
+      if (!$busname || !$busmodel || !$bustype) {
+          $error = "All business fields are required.";
+      }
+
+      elseif (strlen($busname) > 25) {
+          $error = "Business name too long!";
+      }
+
+      else {
+          // Normalize business name (same as registration)
+          $normalizedBusname = normalizeBusinessName($busname);
+
+          $stmt = $conn->prepare("
+              SELECT user_id FROM users 
+              WHERE LOWER(business_name)=LOWER(?) 
+              AND user_id != ?
+          ");
+          $stmt->bind_param("si", $normalizedBusname, $user_id);
+          $stmt->execute();
+          $stmt->store_result();
+
+          if ($stmt->num_rows > 0) {
+              $error = "Business name already exists.";
+          }
+          $stmt->close();
+
+          $busname = ucwords($normalizedBusname);
+      }
+  }
+
+  /* -----------------------------
+      PHONE NORMALIZATION
+  ----------------------------- */
+
+  if (!$error) {
+
+      $normalized_phone = normalizePhoneNumber($phoneRaw);
+
+      if (!$normalized_phone || !preg_match('/^(\+254\d{9}|0\d{9})$/', $normalized_phone)) {
+          $error = "Please enter a valid phone number!";
+      } else {
+
+          $encrypted_phone = encodeField($normalized_phone);
+
+          $stmt = $conn->prepare("
+              SELECT user_id FROM users 
+              WHERE phone = ? AND user_id != ?
+          ");
+          $stmt->bind_param("si", $encrypted_phone, $user_id);
+          $stmt->execute();
+          $stmt->store_result();
+
+          if ($stmt->num_rows > 0) {
+              $error = "Phone number already exists!";
+          }
+          $stmt->close();
+      }
+  }
+
+  /* -----------------------------
+      FINAL UPDATE (BASED ON TYPE)
+  ----------------------------- */
+
+  if (!$error) {
+
+      if ($accountType === 'seller') {
+
+          $update = $conn->prepare("
+              UPDATE users SET
+                  full_name=?, phone=?, bio=?, country=?, county=?, ward=?, address=?,
+                  business_name=?, business_model=?, business_type=?,
+                  profile_image=?, updated_at=NOW()
+              WHERE user_id=?
+          ");
+
+          $update->bind_param(
+              "sssssssssssi",
+              $full_name,
+              $encrypted_phone,
+              $bio,
+              $country,
+              $county,
+              $ward,
+              $address,
+              $busname,
+              $busmodel,
+              $bustype,
+              $profile_image,
+              $user_id
+          );
+
+      } else {
+
+          // buyer / agent / property_owner
+          $update = $conn->prepare("
+              UPDATE users SET
+                  full_name=?, phone=?, bio=?, country=?, county=?, ward=?, address=?,
+                  profile_image=?, updated_at=NOW()
+              WHERE user_id=?
+          ");
+
+          $update->bind_param(
+              "ssssssssi",
+              $full_name,
+              $encrypted_phone,
+              $bio,
+              $country,
+              $county,
+              $ward,
+              $address,
+              $profile_image,
+              $user_id
+          );
+      }
+
+      if ($update->execute()) {
+          $success = "Profile updated successfully!";
+      } else {
+          $error = "Update failed.";
+      }
+
+      $update->close();
+  }
 }
 
 /* ---------- BIO ---------- */
@@ -156,9 +319,17 @@ if (!empty($user['profile_image'])) {
       <?php if ($accountType === 'buyer'): ?>
       <div class="container profile-container">
 
-        <?php if (isset($_GET['updated'])): ?>
-          <div class="success"><i class="fa-solid fa-check-circle"></i>Profile updated successfully!</div>
-        <?php endif; ?>
+      <?php if (!empty($error)): ?>
+        <p class="errorMessage">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?>
+        </p>
+      <?php elseif (!empty($success)): ?>
+        <p class="successMessage">
+          <i class="fa-solid fa-check-circle"></i>
+          <?= strip_tags($success, '<span>'); ?>
+        </p>
+      <?php endif; ?>
 
         <div class="profile-header">
           <div class="profile-pic">
@@ -244,9 +415,17 @@ if (!empty($user['profile_image'])) {
       <?php if ($accountType === 'seller'): ?>
       <div class="container profile-container">
 
-        <?php if (isset($_GET['updated'])): ?>
-          <div class="success"><i class="fa-solid fa-check-circle"></i>Profile updated successfully!</div>
-        <?php endif; ?>
+      <?php if (!empty($error)): ?>
+        <p class="errorMessage">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?>
+        </p>
+      <?php elseif (!empty($success)): ?>
+        <p class="successMessage">
+          <i class="fa-solid fa-check-circle"></i>
+          <?= strip_tags($success, '<span>'); ?>
+        </p>
+      <?php endif; ?>
 
         <div class="profile-header">
           <div class="profile-pic">
@@ -300,7 +479,7 @@ if (!empty($user['profile_image'])) {
 
           <div class="form-group">
             <label>Business Type</label>
-            <select id="busmodel" name="busmodel" required>
+            <select id="bustype" name="bustype" required>
               <option value="">-- Select Type --</option>
               <option value="shop" <?= $user['business_type']=='shop'?'selected':'' ?>>Shop</option>
               <option value="supermarket" <?= $user['business_type']=='supermarket'?'selected':'' ?>>Supermarket</option>
@@ -371,8 +550,16 @@ if (!empty($user['profile_image'])) {
       <?php if ($accountType === 'sales_agent'): ?>
       <div class="container profile-container">
 
-        <?php if (isset($_GET['updated'])): ?>
-          <div class="success"><i class="fa-solid fa-check-circle"></i>Profile updated successfully!</div>
+        <?php if (!empty($error)): ?>
+          <p class="errorMessage">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?>
+          </p>
+        <?php elseif (!empty($success)): ?>
+          <p class="successMessage">
+            <i class="fa-solid fa-check-circle"></i>
+            <?= strip_tags($success, '<span>'); ?>
+          </p>
         <?php endif; ?>
 
         <div class="profile-header">
@@ -458,9 +645,17 @@ if (!empty($user['profile_image'])) {
       <?php if ($accountType === 'property_owner'): ?>
       <div class="container profile-container">
 
-        <?php if (isset($_GET['updated'])): ?>
-          <div class="success"><i class="fa-solid fa-check-circle"></i>Profile updated successfully!</div>
-        <?php endif; ?>
+      <?php if (!empty($error)): ?>
+        <p class="errorMessage">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?>
+        </p>
+      <?php elseif (!empty($success)): ?>
+        <p class="successMessage">
+          <i class="fa-solid fa-check-circle"></i>
+          <?= strip_tags($success, '<span>'); ?>
+        </p>
+      <?php endif; ?>
 
         <div class="profile-header">
           <div class="profile-pic">

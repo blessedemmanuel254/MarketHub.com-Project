@@ -977,11 +977,11 @@ if(!actionsUserId || !action) return;
 
 let message = "";
 
-if(action === "suspend") message = "Suspend this agent?";
-if(action === "restore") message = "Restore this agent?";
+if(action === "suspend") message = "Suspend this user?";
+if(action === "restore") message = "Restore this user?";
 if(action === "activate") message = "Activate this agent?";
 if(action === "deactivate") message = "Deactivate this agent?";
-if(action === "delete") message = "Delete this agent permanently?";
+if(action === "delete") message = "Delete this user permanently?";
 
 if(!confirm(message)) return;
 
