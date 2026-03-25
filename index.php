@@ -140,10 +140,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </script>";
 
       } else {
-        $error = "One of the credentials is invalid.";
+        $error = "One of the credentials is invalid!";
       }
     } else {
-      $error = "No account found with those credentials.";
+      $error = "No account found with those credentials!";
     }
     $stmt->close();
   }

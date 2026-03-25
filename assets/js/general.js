@@ -485,6 +485,12 @@ function openAgentMarketSource(sourceTabId = "shops") {
 
 function openMarketType(typeTabId = "products") {
 
+  const toggleAgentTab = document.getElementById("toggleAgentTab");
+  const marketContainer = document.getElementById("toggleMarketTypeTabAgent");
+
+  if (toggleAgentTab) toggleAgentTab.style.display = "none";
+  if (marketContainer) marketContainer.style.display = "block";
+
   const btn = document.querySelector(`.tab-btn-mtype[data-tab="${typeTabId}"]`);
   const panel = document.getElementById(typeTabId);
 
@@ -505,16 +511,34 @@ function openMarketType(typeTabId = "products") {
 
 /* ================= GO BACK TO MARKET TYPES ================= */
 
-function goBackToMarketTypes() {
+function openAgentMarketSource(sourceTabId = "shops") {
 
-  const marketMain = document.getElementById("marketMain");
-  const orderMain = document.getElementById("orderMain");
+  showAgentMarketContainer("source");
 
-  if (marketMain) marketMain.style.display = "flex";
-  if (orderMain) orderMain.style.display = "none";
+  const btn = document.querySelector(`.tab-btn-msource[data-tab="${sourceTabId}"]`);
+  const panel = document.getElementById(sourceTabId);
 
-  showMarketContainer("type");
+  if (!btn || !panel) return;
 
+  const container = btn.closest(".tabs-container");
+
+  /* ✅ Hide other source containers (missing part) */
+  document.querySelectorAll(".toggleMarketSourceTab")
+    .forEach(c => c.style.display = "none");
+
+  /* ✅ Show current container (missing part) */
+  container.style.display = "block";
+
+  /* activate tab */
+  container.querySelectorAll("[data-tab]").forEach(b => b.classList.remove("active"));
+  container.querySelectorAll(".tab-panel-msource").forEach(p => p.classList.remove("active"));
+
+  btn.classList.add("active");
+  panel.classList.add("active");
+
+  /* save tab */
+  const storageKey = container.dataset.tabStorage || "agent-market-source";
+  localStorage.setItem(storageKey, sourceTabId);
 }
 
 
@@ -522,12 +546,11 @@ function goBackToMarketTypes() {
 
 function goBackToAgent() {
 
-  const agentMain = document.getElementById("agentMain");
+  const toggleAgentTab = document.getElementById("toggleAgentTab");
   const productsTab = document.getElementById("toggleMarketTypeTabAgent");
 
-  if (agentMain) agentMain.style.display = "flex";
+  if (toggleAgentTab) toggleAgentTab.style.display = "block";
   if (productsTab) productsTab.style.display = "none";
-
 }
 
 
@@ -962,6 +985,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 });
+
 document.addEventListener("click", function(e){
 
 const btn = e.target.closest(".action-btn");

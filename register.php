@@ -91,7 +91,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   if (!$full_name || !$username || !$email || !$phone || !$password || !$confirm_password || !$country || !$county || !$ward || !$address || ($accountType === 'seller' && (!$busname || !$busmodel || !$bustype || !$market))) {
     $error = "All fields are required!";
   } else if (!$accountType) {
-    $error = 'Visit the <a href="accountTypeSelection.php">account-type selection</a> page to proceed.';
+    $error = 'Visit the <a href="accountTypeSelection.php">account-type selection</a> page to proceed!';
   } elseif (str_word_count($full_name) < 2) {
     $error = "Full name must include at least first and last name!";
   } elseif (strpos($username, ' ') !== false) {
@@ -119,7 +119,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $stmt->store_result();
 
     if ($stmt->num_rows > 0) {
-      $error = "Username or email already exists.";
+      $error = "Username or email already exists!";
     } else {
       $encrypted_phone = base64_encode($normalized_phone);
       $stmt = $conn->prepare("SELECT user_id FROM users WHERE phone = ?");
