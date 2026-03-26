@@ -582,6 +582,7 @@ $mproductError = "";
 $mproductSuccess = "";
 
 $mproductProductName = '';
+$mproductCategory = '';
 $mproductPrice = '';
 $mproductCurrency = '';
 $mproductProductDescription = '';
@@ -606,6 +607,7 @@ if (isset($_GET['edit_id'])) {
         $row = $result->fetch_assoc();
 
         $mproductProductName = $row['product_name'];
+        $mproductCategory = $row['category'];
         $mproductPrice = $row['price'];
         $mproductCurrency = $row['currency'];
         $mproductProductDescription = $row['description'];
@@ -622,197 +624,222 @@ if (isset($_GET['edit_id'])) {
 ========================= */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $mproductProductName = trim($_POST['name']);
-    $mproductPrice = floatval($_POST['price']);
-    $mproductCurrency = $_POST['currency'];
-    $mproductProductDescription = trim($_POST['description']);
-    $mproductIs_active = $_POST['is_active'];
+  $mproductProductName = trim($_POST['name']);
+  $mproductCategory = trim($_POST['category'] ?? '');
+  $mproductPrice = floatval($_POST['price']);
+  $mproductCurrency = $_POST['currency'];
+  $mproductProductDescription = trim($_POST['description']);
+  $mproductIs_active = $_POST['is_active'];
 
-    if ($mproductProductName === '') $mproductError = "Product name required.";
-    elseif ($mproductPrice <= 0) $mproductError = "Invalid price.";
-    elseif ($mproductCurrency === '') $mproductError = "Select currency.";
-    elseif ($mproductProductDescription === '') $mproductError = "Description required.";
-    elseif ($mproductIs_active === '') $mproductError = "Select active status.";
+  if ($mproductProductName === '') {
+    $mproductError = "Product name required!";
+  }
+  elseif ($mproductPrice <= 0) {
+    $mproductError = "Invalid price!";
+  }
+  elseif ($mproductCurrency === '') {
+    $mproductError = "Select currency!";
+  }
+  elseif ($mproductCategory === '') {
+    $mproductError = "Select product category!";
+  }
+  elseif ($mproductProductDescription === '') {
+    $mproductError = "Description required!";
+  }
+  elseif (strlen($mproductProductDescription) < 50) {
+    $mproductError = "Description must be at least 50 characters!";
+  }
+  elseif (strlen($mproductProductDescription) > 150) {
+    $mproductError = "Description must not exceed 150 characters!";
+  }
+  elseif ($mproductIs_active === '') {
+    $mproductError = "Select active status!";
+  }
 
-    /* =========================
-       IMAGE PROCESSING
-    ========================= */
-    $imagePath = null;
+  /* =========================
+      IMAGE PROCESSING
+  ========================= */
+  $imagePath = null;
 
-    if ((!$mproductEditMode) || (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0)) {
+  if ((!$mproductEditMode) || (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0)) {
 
-        if (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== 0) {
-            $mproductError = "Image is required.";
+      if (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== 0) {
+          $mproductError = "Image is required.";
+      } else {
+
+          $tmp = $_FILES['photo']['tmp_name'];
+          $mime = mime_content_type($tmp);
+
+          $allowed = ['image/jpeg','image/png','image/webp'];
+
+          if (!in_array($mime, $allowed)) {
+              $mproductError = "Invalid image format.";
+          }
+
+          $imgInfo = getimagesize($tmp);
+          if (!$imgInfo) {
+              $mproductError = "Invalid image file.";
+          }
+
+          if (empty($mproductError)) {
+
+              list($width, $height) = $imgInfo;
+
+              $ratio = $width / $height;
+
+              /* ✅ RATIO VALIDATION */
+              if ($ratio < 0.65 || $ratio > 0.80) {
+                  $mproductError = "Image must follow portrait ratio (e.g. 500x700).";
+              }
+
+              /* ✅ MIN SIZE */
+              if ($width < 400 || $height < 560) {
+                  $mproductError = "Image too small. Minimum 400x560.";
+              }
+          }
+
+          if (empty($mproductError)) {
+
+              $uploadDir = "uploads/company_products/";
+              if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+              $fileName = uniqid('prod_', true) . ".webp";
+              $filePath = $uploadDir . $fileName;
+
+              /* =========================
+                  FORCE CONSISTENT SIZE (500x700)
+              ========================== */
+              $targetWidth = 500;
+              $targetHeight = 700;
+
+              $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
+
+              switch ($mime) {
+                  case 'image/jpeg':
+                      $src = imagecreatefromjpeg($tmp);
+                      break;
+
+                  case 'image/png':
+                      $src = imagecreatefrompng($tmp);
+                      imagealphablending($canvas, false);
+                      imagesavealpha($canvas, true);
+                      break;
+
+                  case 'image/webp':
+                      $src = imagecreatefromwebp($tmp);
+                      break;
+              }
+
+              imagecopyresampled(
+                  $canvas, $src,
+                  0, 0, 0, 0,
+                  $targetWidth, $targetHeight,
+                  $width, $height
+              );
+
+              imagewebp($canvas, $filePath, 80);
+
+              imagedestroy($canvas);
+              imagedestroy($src);
+
+              $imagePath = $filePath;
+
+              /* DELETE OLD IMAGE (EDIT MODE) */
+              if ($mproductEditMode && $currentImagePath && file_exists($currentImagePath)) {
+                  unlink($currentImagePath);
+              }
+          }
+      }
+  }
+
+  /* =========================
+    INSERT OR UPDATE
+  ========================= */
+  if (empty($mproductError)) {
+
+    if ($mproductEditMode) {
+
+        if ($imagePath) {
+          $stmt = $conn->prepare("
+            UPDATE markethub_products 
+            SET product_name=?, price=?, currency=?, description=?, category=?, image=?, is_active=? 
+            WHERE id=?
+          ");
+
+          $stmt->bind_param("sdssssii",
+            $mproductProductName,
+            $mproductPrice,
+            $mproductCurrency,
+            $mproductProductDescription,
+            $mproductCategory,
+            $imagePath,
+            $mproductIs_active,
+            $mproductEditProductId
+          );
         } else {
+          $stmt = $conn->prepare("
+            UPDATE markethub_products 
+            SET product_name=?, price=?, currency=?, description=?, category=?, is_active=? 
+            WHERE id=?
+          ");
 
-            $tmp = $_FILES['photo']['tmp_name'];
-            $mime = mime_content_type($tmp);
-
-            $allowed = ['image/jpeg','image/png','image/webp'];
-
-            if (!in_array($mime, $allowed)) {
-                $mproductError = "Invalid image format.";
-            }
-
-            $imgInfo = getimagesize($tmp);
-            if (!$imgInfo) {
-                $mproductError = "Invalid image file.";
-            }
-
-            if (empty($mproductError)) {
-
-                list($width, $height) = $imgInfo;
-
-                $ratio = $width / $height;
-
-                /* ✅ RATIO VALIDATION */
-                if ($ratio < 0.65 || $ratio > 0.80) {
-                    $mproductError = "Image must follow portrait ratio (e.g. 500x700).";
-                }
-
-                /* ✅ MIN SIZE */
-                if ($width < 400 || $height < 560) {
-                    $mproductError = "Image too small. Minimum 400x560.";
-                }
-            }
-
-            if (empty($mproductError)) {
-
-                $uploadDir = "uploads/company_products/";
-                if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
-
-                $fileName = uniqid('prod_', true) . ".webp";
-                $filePath = $uploadDir . $fileName;
-
-                /* =========================
-                   FORCE CONSISTENT SIZE (500x700)
-                ========================== */
-                $targetWidth = 500;
-                $targetHeight = 700;
-
-                $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
-
-                switch ($mime) {
-                    case 'image/jpeg':
-                        $src = imagecreatefromjpeg($tmp);
-                        break;
-
-                    case 'image/png':
-                        $src = imagecreatefrompng($tmp);
-                        imagealphablending($canvas, false);
-                        imagesavealpha($canvas, true);
-                        break;
-
-                    case 'image/webp':
-                        $src = imagecreatefromwebp($tmp);
-                        break;
-                }
-
-                imagecopyresampled(
-                    $canvas, $src,
-                    0, 0, 0, 0,
-                    $targetWidth, $targetHeight,
-                    $width, $height
-                );
-
-                imagewebp($canvas, $filePath, 80);
-
-                imagedestroy($canvas);
-                imagedestroy($src);
-
-                $imagePath = $filePath;
-
-                /* DELETE OLD IMAGE (EDIT MODE) */
-                if ($mproductEditMode && $currentImagePath && file_exists($currentImagePath)) {
-                    unlink($currentImagePath);
-                }
-            }
-        }
-    }
-
-    /* =========================
-       INSERT OR UPDATE
-    ========================= */
-    if (empty($mproductError)) {
-
-        if ($mproductEditMode) {
-
-            if ($imagePath) {
-                $stmt = $conn->prepare("
-                    UPDATE markethub_products 
-                    SET product_name=?, price=?, currency=?, description=?, image=?, is_active=? 
-                    WHERE id=?
-                ");
-                $stmt->bind_param("sdsssii",
-                    $mproductProductName,
-                    $mproductPrice,
-                    $mproductCurrency,
-                    $mproductProductDescription,
-                    $imagePath,
-                    $mproductIs_active,
-                    $mproductEditProductId
-                );
-            } else {
-                $stmt = $conn->prepare("
-                    UPDATE markethub_products 
-                    SET product_name=?, price=?, currency=?, description=?, is_active=? 
-                    WHERE id=?
-                ");
-                $stmt->bind_param("sdssii",
-                    $mproductProductName,
-                    $mproductPrice,
-                    $mproductCurrency,
-                    $mproductProductDescription,
-                    $mproductIs_active,
-                    $mproductEditProductId
-                );
-            }
-
-            if ($stmt->execute()) {
-                $mproductSuccess = "Product updated successfully!";
-            } else {
-                $mproductError = "Update failed.";
-            }
-
-        } else {
-
-            $stmt = $conn->prepare("
-                INSERT INTO markethub_products 
-                (product_name, price, currency, description, image, is_active, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, NOW())
-            ");
-
-            $stmt->bind_param("sdsssi",
-                $mproductProductName,
-                $mproductPrice,
-                $mproductCurrency,
-                $mproductProductDescription,
-                $imagePath,
-                $mproductIs_active
-            );
-
-            if ($stmt->execute()) {
-              $mproductSuccess = "Product added successfully! <span class='redirect-msg'></span>";
-
-              // Reset form
-              $mproductProductName = '';
-              $mproductPrice = '';
-              $mproductCurrency = '';
-              $mproductProductDescription = '';
-              $mproductIs_active = '';
-
-            } else {
-                $mproductError = "Insert failed.";
-            }
+          $stmt->bind_param("sdsssii",
+            $mproductProductName,
+            $mproductPrice,
+            $mproductCurrency,
+            $mproductProductDescription,
+            $mproductCategory,
+            $mproductIs_active,
+            $mproductEditProductId
+          );
         }
 
-        $stmt->close();
+        if ($stmt->execute()) {
+          $mproductSuccess = "Product updated successfully!";
+        } else {
+          $mproductError = "Update failed!";
+        }
+
+    } else {
+
+      $stmt = $conn->prepare("
+        INSERT INTO markethub_products 
+        (product_name, price, currency, description, category, image, is_active, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+      ");
+
+      $stmt->bind_param("sdssssi",
+        $mproductProductName,
+        $mproductPrice,
+        $mproductCurrency,
+        $mproductProductDescription,
+        $mproductCategory,
+        $imagePath,
+        $mproductIs_active
+      );
+
+      if ($stmt->execute()) {
+        $mproductSuccess = "Product added successfully! <span class='redirect-msg'></span>";
+
+        // Reset form
+        $mproductProductName = '';
+        $mproductPrice = '';
+        $mproductCurrency = '';
+        $mproductProductDescription = '';
+        $mproductIs_active = '';
+
+      } else {
+          $mproductError = "Insert failed!";
+      }
     }
+
+    $stmt->close();
+  }
 }
 
 /* ---------- BIO ---------- */
 $descMaxLength = 150;
-$productDesc = !empty($mproductProductDescription) ? substr($user['bio'], 0, $descMaxLength) : '';
+$productDesc = !empty($mproductProductDescription) ? substr($mproductProductDescription, 0, $descMaxLength) : '';
 $safeDesc = safe($productDesc);
 ?>
 
@@ -3779,6 +3806,19 @@ $safeDesc = safe($productDesc);
                       <label>Product Name</label>
                       <input type="text" name="name" placeholder="Enter name" 
                           value="<?= htmlspecialchars($mproductProductName, ENT_QUOTES) ?>" required>
+                  </div>
+                  <div class="inp-box">
+
+                    <label>Category</label>
+                    <select name="category">
+                      <option value=""><p>-- Select category --</p></option>
+                      <option value="Beauty" <?php echo ($mproductCategory === 'Beauty') ? 'selected' : ''; ?>>Beauty</option>
+                      <option value="Electronics" <?php echo ($mproductCategory === 'Electronics') ? 'selected' : ''; ?>>Electronics</option>
+                      <option value="Fashions" <?php echo ($mproductCategory === 'Fashions') ? 'selected' : ''; ?>>Fashions</option>
+                      <option value="Food & Snacks" <?php echo ($mproductCategory === 'Food & Snacks') ? 'selected' : ''; ?>>Food & Snacks</option>
+                      <option value="Home Items" <?php echo ($mproductCategory === 'Home Items') ? 'selected' : ''; ?>>Home Items</option>
+                      <option value="Stationery" <?php echo ($mproductCategory === 'Stationery') ? 'selected' : ''; ?>>Stationery</option>
+                    </select>
                   </div>
                   <div class="inp-box">
                     <label>Price (KES)</label>

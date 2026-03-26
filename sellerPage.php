@@ -1229,7 +1229,7 @@ $deliveredOrders  = $row['delivered_orders'];
                   <div class="inp-box">
                       <label>Product Name</label>
                       <input type="text" name="name" placeholder="Enter name" 
-                          value="<?= htmlspecialchars($productName, ENT_QUOTES) ?>" required>
+                      value="<?= htmlspecialchars($productName, ENT_QUOTES) ?>" required>
                   </div>
                   <div class="inp-box">
 
