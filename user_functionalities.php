@@ -207,8 +207,39 @@ elseif ($action === "activate") {
             $level++;
         }
     }
+    
+    /* -----------------------------
+    FETCH UPDATED VALUES
+    ----------------------------- */
+    $stmtFetch = $conn->prepare("
+        SELECT economic_period_count
+        FROM users
+        WHERE user_id = ?
+    ");
+    $stmtFetch->bind_param("i", $userId);
+    $stmtFetch->execute();
+    $stmtFetch->bind_result($newEconomicCount);
+    $stmtFetch->fetch();
+    $stmtFetch->close();
 
-    echo json_encode(["success" => true]);
+    /* ---------- COUNT SUB AGENTS ---------- */
+    $stmtSub = $conn->prepare("
+        SELECT COUNT(*) 
+        FROM users 
+        WHERE referred_by = ?
+    ");
+    $stmtSub->bind_param("i", $userId);
+    $stmtSub->execute();
+    $stmtSub->bind_result($newSubAgents);
+    $stmtSub->fetch();
+    $stmtSub->close();
+
+    /* ✅ RETURN DATA */
+    echo json_encode([
+        "success" => true,
+        "economic_period_count" => $newEconomicCount,
+        "total_sub_agents" => $newSubAgents
+    ]);
     exit;
 }
 

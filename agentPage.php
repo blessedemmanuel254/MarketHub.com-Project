@@ -1134,7 +1134,7 @@ if ($isVerified === 1 && $status === 'active') {
                 <i class="fa-brands fa-renren"></i>
                 <h2>Market</h2>
                 <p>
-                  Also order on Maket Hub like other buyers.
+                  Get to order on Maket Hub like other users.
                 </p>
                 <div class="label">
                   <p>Market</p>

@@ -1,12 +1,169 @@
 <?php
-/* session_start();
-require_once 'connection.php'; */
+session_start();
+require_once 'connection.php';
 
-/* ---------- SESSION SECURITY ---------- *//* 
+/* ---------- SESSION SECURITY ---------- */
 if (!isset($_SESSION['user_id'])) {
     header("Location: index.php");
     exit();
-}  */
+}
+
+/* =========================
+   EDIT MODE FETCH
+========================= */
+if (isset($_GET['edit_id'])) {
+    $mproductEditProductId = intval($_GET['edit_id']);
+
+    $stmt = $conn->prepare("SELECT * FROM markethub_products WHERE id=? LIMIT 1");
+    $stmt->bind_param("i", $mproductEditProductId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 1) {
+        $row = $result->fetch_assoc();
+
+        $mproductProductName = $row['product_name'];
+        $mproductPrice = $row['price'];
+        $mproductCurrency = $row['currency'];
+        $mproductProductDescription = $row['description'];
+        $mproductIs_active = $row['is_active'];
+        $currentImagePath = $row['image'];
+
+        $mproductEditMode = true;
+    }
+    $stmt->close();
+}
+
+/* =========================
+   FORM SUBMIT
+========================= */
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $mproductProductName = trim($_POST['name']);
+    $mproductPrice = floatval($_POST['price']);
+    $mproductCurrency = $_POST['currency'];
+    $mproductProductDescription = trim($_POST['description']);
+    $mproductIs_active = $_POST['is_active'];
+
+    if ($mproductProductName === '') $mproductError = "Product name required.";
+    elseif ($mproductPrice <= 0) $mproductError = "Invalid price.";
+    elseif ($mproductCurrency === '') $mproductError = "Select currency.";
+    elseif ($mproductProductDescription === '') $mproductError = "Description required.";
+    elseif ($mproductIs_active === '') $mproductError = "Select active status.";
+
+    /* =========================
+       IMAGE PROCESSING
+    ========================= */
+    $imagePath = null;
+
+    if ((!$mproductEditMode) || (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0)) {
+
+        $tmp = $_FILES['photo']['tmp_name'];
+        $size = $_FILES['photo']['size'];
+        $mime = mime_content_type($tmp);
+
+        $allowed = ['image/jpeg','image/png','image/webp'];
+
+        if (!in_array($mime, $allowed)) {
+            $mproductError = "Invalid image format.";
+        }
+
+        $imgInfo = getimagesize($tmp);
+        if (!$imgInfo) {
+            $mproductError = "Invalid image.";
+        }
+
+        list($width, $height) = $imgInfo;
+
+        /* ✅ ENFORCE SQUARE IMAGE */
+        if ($width !== $height) {
+            $mproductError = "Image must be square (1:1 ratio).";
+        }
+
+        if ($width < 800 || $height < 800) {
+            $mproductError = "Minimum image size is 800x800.";
+        }
+
+        if (empty($mproductError)) {
+
+            $uploadDir = "uploads/company_products/";
+            if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+            $fileName = uniqid('prod_', true) . ".webp";
+            $filePath = $uploadDir . $fileName;
+
+            /* Convert to WEBP */
+            switch ($mime) {
+                case 'image/jpeg':
+                    $src = imagecreatefromjpeg($tmp);
+                    break;
+                case 'image/png':
+                    $src = imagecreatefrompng($tmp);
+                    break;
+                case 'image/webp':
+                    $src = imagecreatefromwebp($tmp);
+                    break;
+            }
+
+            imagewebp($src, $filePath, 80);
+            imagedestroy($src);
+
+            $imagePath = $filePath;
+
+            $imageSizeKB = round(filesize($filePath)/1024);
+        }
+    }
+
+    /* =========================
+       INSERT OR UPDATE
+    ========================= */
+    if (empty($mproductError)) {
+
+        if ($mproductEditMode) {
+
+            if ($imagePath) {
+                $stmt = $conn->prepare("
+                    UPDATE markethub_products 
+                    SET product_name=?, price=?, currency=?, description=?, image=?, is_active=? 
+                    WHERE id=?
+                ");
+                $stmt->bind_param("sdsssii", $mproductProductName, $mproductPrice, $mproductCurrency, $mproductProductDescription, $imagePath, $mproductIs_active, $mproductEditProductId);
+            } else {
+                $stmt = $conn->prepare("
+                    UPDATE markethub_products 
+                    SET product_name=?, price=?, currency=?, description=?, is_active=? 
+                    WHERE id=?
+                ");
+                $stmt->bind_param("sdssii", $mproductProductName, $mproductPrice, $mproductCurrency, $mproductProductDescription, $mproductIs_active, $mproductEditProductId);
+            }
+
+            if ($stmt->execute()) {
+                $mproductSuccess = "Product updated successfully!";
+            } else {
+                $mproductError = "Update failed.";
+            }
+
+        } else {
+
+            $stmt = $conn->prepare("
+                INSERT INTO markethub_products 
+                (product_name, price, currency, description, image, is_active, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, NOW())
+            ");
+
+            $stmt->bind_param("sdsssi", $mproductProductName, $mproductPrice, $mproductCurrency, $mproductProductDescription, $imagePath, $mproductIs_active);
+
+            if ($stmt->execute()) {
+                $mproductSuccess = "Product added successfully!";
+                $mproductProductName = $mproductPrice = $mproductCurrency = $mproductProductDescription = '';
+            } else {
+                $mproductError = "Insert failed.";
+            }
+        }
+
+        $stmt->close();
+    }
+}
 
 /* Optional: regenerate session ID periodically *//* 
 if (!isset($_SESSION['created'])) {

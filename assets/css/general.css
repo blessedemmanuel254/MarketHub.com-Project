@@ -1959,16 +1959,20 @@ label.account-type input:checked + .radio-dot::after {
 
 .container main.profile-main .profile-container .profile-form .form-group input,
 .container main.profile-main .profile-container .profile-form .form-group select,
-.container main.profile-main .profile-container .profile-form .form-group textarea {
+.container main.profile-main .profile-container .profile-form .form-group textarea, .tab-panel-admin .form-wrapper form .inp-box textarea {
   padding:10px;
   border:1px solid #ccc;
   border-radius:4px;
   outline: none;
 }
 
-.container main.profile-main .profile-container .profile-form .form-group textarea {
+.container main.profile-main .profile-container .profile-form .form-group textarea, .tab-panel-admin .form-wrapper form .inp-box textarea {
   resize: vertical;
   min-height: 100px;
+}
+
+.tab-panel-admin .form-wrapper form .inp-box textarea {
+  width: 100%;
 }
 
 .container main.profile-main .profile-container .profile-form button {

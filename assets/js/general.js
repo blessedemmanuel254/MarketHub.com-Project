@@ -988,52 +988,65 @@ document.addEventListener("DOMContentLoaded", () => {
 
 document.addEventListener("click", function(e){
 
-const btn = e.target.closest(".action-btn");
-if(!btn) return;
+  const btn = e.target.closest(".action-btn");
+  if(!btn) return;
 
-const actionsUserId = btn.dataset.userId;
-const action = btn.dataset.action;
-console.log(actionsUserId, action);
+  const actionsUserId = btn.dataset.userId;
+  const action = btn.dataset.action;
+  console.log(actionsUserId, action);
 
-if(!actionsUserId || !action) return;
+  if(!actionsUserId || !action) return;
 
-/* CONFIRMATION MESSAGE */
+  /* CONFIRMATION MESSAGE */
 
-let message = "";
+  let message = "";
 
-if(action === "suspend") message = "Suspend this user?";
-if(action === "restore") message = "Restore this user?";
-if(action === "activate") message = "Activate this agent?";
-if(action === "deactivate") message = "Deactivate this agent?";
-if(action === "delete") message = "Delete this user permanently?";
+  if(action === "suspend") message = "Suspend this user?";
+  if(action === "restore") message = "Restore this user?";
+  if(action === "activate") message = "Activate this agent?";
+  if(action === "deactivate") message = "Deactivate this agent?";
+  if(action === "delete") message = "Delete this user permanently?";
 
-if(!confirm(message)) return;
+  if(!confirm(message)) return;
 
 
-/* AJAX REQUEST */
+  /* AJAX REQUEST */
 
-fetch("user_functionalities.php",{
-method:"POST",
-headers:{
-"Content-Type":"application/x-www-form-urlencoded",
-"X-Requested-With":"XMLHttpRequest"
-},
-body: new URLSearchParams({
-  user_id: actionsUserId,
-  action: action
-})
-})
-.then(res=>res.json())
-.then(data=>{
+  fetch("user_functionalities.php",{
+  method:"POST",
+  headers:{
+  "Content-Type":"application/x-www-form-urlencoded",
+  "X-Requested-With":"XMLHttpRequest"
+  },
+  body: new URLSearchParams({
+    user_id: actionsUserId,
+    action: action
+  })
+  })
+  .then(res=>res.json())
+  .then(data=>{
 
-if(!data.success){
-alert(data.error || "Action failed");
-return;
+  if(!data.success){
+  alert(data.error || "Action failed");
+  return;
 }
 
 const row = btn.closest("tr");
 const badge = row.querySelector(".badge");
 const actionsCell = row.querySelector(".actions div");
+
+/* ===== UPDATE ECONOMIC + SUB AGENTS ===== */
+
+const subAgentsCell = row.querySelector(".sub-agents");
+const economicCell = row.querySelector(".economic");
+
+if (data.total_sub_agents !== undefined && subAgentsCell) {
+  subAgentsCell.textContent = data.total_sub_agents;
+}
+
+if (data.economic_period_count !== undefined && economicCell) {
+  economicCell.textContent = data.economic_period_count;
+}
 
 /* DELETE ROW */
 
@@ -1104,7 +1117,6 @@ alert("Network error");
 });
 
 });
-
 document.addEventListener("click", function(e){
 
 const btn = e.target.closest(".copy-link-btn");
@@ -1973,3 +1985,13 @@ document.getElementById("alertPopupOverlay").addEventListener("click",function(e
   }
 
 })
+
+// TEXTAREA COUNT JS
+
+const bioTextarea = document.getElementById("bioTextarea");
+const bioCount = document.getElementById("bioCount");
+
+bioTextarea.addEventListener("input", () => {
+    const len = bioTextarea.value.length;
+    bioCount.textContent = `${len}/<?= $bioMaxLength ?> characters`;
+});

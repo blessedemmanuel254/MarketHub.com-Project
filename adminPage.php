@@ -37,6 +37,10 @@ if ($accountType !== $allowedRole) {
 /* ===============================
    HELPER FUNCTIONS
 ================================= */
+function safe($v) {
+  return htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8');
+}
+
 function decodePhone($encodedPhone) {
   if (empty($encodedPhone)) {
       return '';
@@ -573,6 +577,243 @@ $stmt->close();
 
 }
 }
+
+$mproductError = "";
+$mproductSuccess = "";
+
+$mproductProductName = '';
+$mproductPrice = '';
+$mproductCurrency = '';
+$mproductProductDescription = '';
+$mproductIs_active = '';
+
+$mproductEditMode = false;
+$mproductEditProductId = null;
+$currentImagePath = null;
+
+/* =========================
+   EDIT MODE FETCH
+========================= */
+if (isset($_GET['edit_id'])) {
+    $mproductEditProductId = intval($_GET['edit_id']);
+
+    $stmt = $conn->prepare("SELECT * FROM markethub_products WHERE id=? LIMIT 1");
+    $stmt->bind_param("i", $mproductEditProductId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 1) {
+        $row = $result->fetch_assoc();
+
+        $mproductProductName = $row['product_name'];
+        $mproductPrice = $row['price'];
+        $mproductCurrency = $row['currency'];
+        $mproductProductDescription = $row['description'];
+        $mproductIs_active = $row['is_active'];
+        $currentImagePath = $row['image'];
+
+        $mproductEditMode = true;
+    }
+    $stmt->close();
+}
+
+/* =========================
+   FORM SUBMIT
+========================= */
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $mproductProductName = trim($_POST['name']);
+    $mproductPrice = floatval($_POST['price']);
+    $mproductCurrency = $_POST['currency'];
+    $mproductProductDescription = trim($_POST['description']);
+    $mproductIs_active = $_POST['is_active'];
+
+    if ($mproductProductName === '') $mproductError = "Product name required.";
+    elseif ($mproductPrice <= 0) $mproductError = "Invalid price.";
+    elseif ($mproductCurrency === '') $mproductError = "Select currency.";
+    elseif ($mproductProductDescription === '') $mproductError = "Description required.";
+    elseif ($mproductIs_active === '') $mproductError = "Select active status.";
+
+    /* =========================
+       IMAGE PROCESSING
+    ========================= */
+    $imagePath = null;
+
+    if ((!$mproductEditMode) || (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0)) {
+
+        if (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== 0) {
+            $mproductError = "Image is required.";
+        } else {
+
+            $tmp = $_FILES['photo']['tmp_name'];
+            $mime = mime_content_type($tmp);
+
+            $allowed = ['image/jpeg','image/png','image/webp'];
+
+            if (!in_array($mime, $allowed)) {
+                $mproductError = "Invalid image format.";
+            }
+
+            $imgInfo = getimagesize($tmp);
+            if (!$imgInfo) {
+                $mproductError = "Invalid image file.";
+            }
+
+            if (empty($mproductError)) {
+
+                list($width, $height) = $imgInfo;
+
+                $ratio = $width / $height;
+
+                /* ✅ RATIO VALIDATION */
+                if ($ratio < 0.65 || $ratio > 0.80) {
+                    $mproductError = "Image must follow portrait ratio (e.g. 500x700).";
+                }
+
+                /* ✅ MIN SIZE */
+                if ($width < 400 || $height < 560) {
+                    $mproductError = "Image too small. Minimum 400x560.";
+                }
+            }
+
+            if (empty($mproductError)) {
+
+                $uploadDir = "uploads/company_products/";
+                if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+                $fileName = uniqid('prod_', true) . ".webp";
+                $filePath = $uploadDir . $fileName;
+
+                /* =========================
+                   FORCE CONSISTENT SIZE (500x700)
+                ========================== */
+                $targetWidth = 500;
+                $targetHeight = 700;
+
+                $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
+
+                switch ($mime) {
+                    case 'image/jpeg':
+                        $src = imagecreatefromjpeg($tmp);
+                        break;
+
+                    case 'image/png':
+                        $src = imagecreatefrompng($tmp);
+                        imagealphablending($canvas, false);
+                        imagesavealpha($canvas, true);
+                        break;
+
+                    case 'image/webp':
+                        $src = imagecreatefromwebp($tmp);
+                        break;
+                }
+
+                imagecopyresampled(
+                    $canvas, $src,
+                    0, 0, 0, 0,
+                    $targetWidth, $targetHeight,
+                    $width, $height
+                );
+
+                imagewebp($canvas, $filePath, 80);
+
+                imagedestroy($canvas);
+                imagedestroy($src);
+
+                $imagePath = $filePath;
+
+                /* DELETE OLD IMAGE (EDIT MODE) */
+                if ($mproductEditMode && $currentImagePath && file_exists($currentImagePath)) {
+                    unlink($currentImagePath);
+                }
+            }
+        }
+    }
+
+    /* =========================
+       INSERT OR UPDATE
+    ========================= */
+    if (empty($mproductError)) {
+
+        if ($mproductEditMode) {
+
+            if ($imagePath) {
+                $stmt = $conn->prepare("
+                    UPDATE markethub_products 
+                    SET product_name=?, price=?, currency=?, description=?, image=?, is_active=? 
+                    WHERE id=?
+                ");
+                $stmt->bind_param("sdsssii",
+                    $mproductProductName,
+                    $mproductPrice,
+                    $mproductCurrency,
+                    $mproductProductDescription,
+                    $imagePath,
+                    $mproductIs_active,
+                    $mproductEditProductId
+                );
+            } else {
+                $stmt = $conn->prepare("
+                    UPDATE markethub_products 
+                    SET product_name=?, price=?, currency=?, description=?, is_active=? 
+                    WHERE id=?
+                ");
+                $stmt->bind_param("sdssii",
+                    $mproductProductName,
+                    $mproductPrice,
+                    $mproductCurrency,
+                    $mproductProductDescription,
+                    $mproductIs_active,
+                    $mproductEditProductId
+                );
+            }
+
+            if ($stmt->execute()) {
+                $mproductSuccess = "Product updated successfully!";
+            } else {
+                $mproductError = "Update failed.";
+            }
+
+        } else {
+
+            $stmt = $conn->prepare("
+                INSERT INTO markethub_products 
+                (product_name, price, currency, description, image, is_active, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, NOW())
+            ");
+
+            $stmt->bind_param("sdsssi",
+                $mproductProductName,
+                $mproductPrice,
+                $mproductCurrency,
+                $mproductProductDescription,
+                $imagePath,
+                $mproductIs_active
+            );
+
+            if ($stmt->execute()) {
+              $mproductSuccess = "Product added successfully! <span class='redirect-msg'></span>";
+
+              // Reset form
+              $mproductProductName = '';
+              $mproductPrice = '';
+              $mproductCurrency = '';
+              $mproductProductDescription = '';
+              $mproductIs_active = '';
+
+            } else {
+                $mproductError = "Insert failed.";
+            }
+        }
+
+        $stmt->close();
+    }
+}
+
+/* ---------- BIO ---------- */
+$descMaxLength = 150;
+$productDesc = !empty($mproductProductDescription) ? substr($user['bio'], 0, $descMaxLength) : '';
+$safeDesc = safe($productDesc);
 ?>
 
 <!DOCTYPE html>
@@ -1067,8 +1308,8 @@ $stmt->close();
 
               <td><?= $maskedPhone ?></td>
 
-              <td><?= (int)$agent['total_sub_agents'] ?></td>
-              <td><?= (int)$agent['economic_period_count'] ?></td>
+              <td class="sub-agents"><?= (int)$agent['total_sub_agents'] ?></td>
+              <td class="economic"><?= (int)$agent['economic_period_count'] ?></td>
               <td><?= htmlspecialchars($referrer) ?></td>
 
               <td>KES 12,000</td>
@@ -2886,7 +3127,7 @@ $stmt->close();
             <div id="company-products" class="tab-panel-admin">
                 <div class="tab-top">
                     <p>Market Hub Store<br><strong>Your control center for Market Hub products <i class="fa-regular fa-circle-check"></i></strong></p>
-                    <button onclick="toggleProductsAdd(true)">
+                    <button class="btn-edit" data-tab="edit-forms" onclick="editRecord('product', 1">
                     <i class="fa fa-plus"></i>&nbsp;<span>Add&nbsp;Product</span>
                     </button>
 
@@ -3513,23 +3754,23 @@ $stmt->close();
           <div class="form-wrapper" id="product-edit-form">
             <form method="POST" enctype="multipart/form-data">
 
-              <?php if ($editMode): ?>
-                  <input type="hidden" name="edit_product_id" value="<?= $editProductId ?>">
+              <?php if ($mproductEditMode): ?>
+                  <input type="hidden" name="edit_product_id" value="<?= $mproductEditProductId ?>">
               <?php endif; ?>
 
-              <h1><?= $editMode ? 'Edit Product' : 'Add Product' ?></h1>
+              <h1><?= $mproductEditMode ? 'Edit Product' : 'Add Product' ?></h1>
 
-              <?php if (!empty($error)): ?>
+              <?php if (!empty($mproductError)): ?>
                   <p class="errorMessage">
                       <i class="fa-solid fa-circle-exclamation"></i>
-                      <?= htmlspecialchars($error); ?>
+                      <?= htmlspecialchars($mproductError); ?>
                   </p>
               <?php endif; ?>
 
-              <?php if (!empty($success)): ?>
+              <?php if (!empty($mproductSuccess)): ?>
                   <p class="successMessage">
                       <i class="fa-solid fa-check-circle"></i>
-                      <?= $success; ?>
+                      <?= $mproductSuccess; ?>
                   </p>
               <?php endif; ?>
 
@@ -3537,12 +3778,12 @@ $stmt->close();
                   <div class="inp-box">
                       <label>Product Name</label>
                       <input type="text" name="name" placeholder="Enter name" 
-                          value="<?= htmlspecialchars($productName, ENT_QUOTES) ?>" required>
+                          value="<?= htmlspecialchars($mproductProductName, ENT_QUOTES) ?>" required>
                   </div>
                   <div class="inp-box">
                     <label>Price (KES)</label>
                     <input type="number" name="price" step="0.01" placeholder="Enter price"
-                    value="<?= htmlspecialchars($price, ENT_QUOTES) ?>"
+                    value="<?= htmlspecialchars($mproductPrice, ENT_QUOTES) ?>"
                     oninput="this.value = this.value.replace(/[^0-9.]/g, '')" min="0" required>
                   </div>
                   <div class="inp-box">
@@ -3550,26 +3791,21 @@ $stmt->close();
                     <label>Currency :</label>
                     <select name="currency">
                       <option value=""><p>-- Select currency --</p></option>
-                      <option value="KES" <?php echo ($currency === 'KES') ? 'selected' : ''; ?>>KES</option><!-- 
-                      <option value="USD" <?php echo ($currency === 'USD') ? 'selected' : ''; ?>>USD</option>
-                      <option value="TSH" <?php echo ($currency === 'TSH') ? 'selected' : ''; ?>>TSH</option> -->
+                      <option value="KES" <?php echo ($mproductCurrency === 'KES') ? 'selected' : ''; ?>>KES</option><!-- 
+                      <option value="USD" <?php echo ($mproductCurrency === 'USD') ? 'selected' : ''; ?>>USD</option>
+                      <option value="TSH" <?php echo ($mproductCurrency === 'TSH') ? 'selected' : ''; ?>>TSH</option> -->
                     </select>
-                  </div>
-                  <div class="inp-box">
-                    <label>Description</label>
-                    <input type="text" name="description" placeholder="Enter description" 
-                    value="<?= htmlspecialchars($productDescription, ENT_QUOTES) ?>" required>
                   </div>
                   <div class="inp-box">
                     <label>Is Active?</label>
                     <select id="is_active" name="is_active">
                       <option value=""><p>-- Select if active --</p></option>
-                      <option value="1" <?php echo ($is_active === '1') ? 'selected' : ''; ?>>Yes</option>
-                      <option value="0" <?php echo ($is_active === '0') ? 'selected' : ''; ?>>No</option>
+                      <option value="1" <?php echo ($mproductIs_active === '1') ? 'selected' : ''; ?>>Yes</option>
+                      <option value="0" <?php echo ($mproductIs_active === '0') ? 'selected' : ''; ?>>No</option>
                     </select>
                   </div>
 
-                  <?php if ($editMode): ?>
+                  <?php if ($mproductEditMode): ?>
                       <!-- IMAGE PREVIEW ONLY IN EDIT MODE -->
                       <div class="inp-box">
                           <label>Product Image</label>
@@ -3583,27 +3819,32 @@ $stmt->close();
                       </div>
 
                       <div class="inp-box">
-                          <label>Change Product Image (optional)</label>
-                          <input type="file" name="photo" accept="image/png,image/jpeg,image/webp">
-                          <div class="note">
-                              600×600 – 1600×1600 px • Max 5MB<br>
-                              Automatically optimized for buyers
-                          </div>
+                        <label>Change Product Image (optional)</label>
+                        <input type="file" name="photo" accept="image/png,image/jpeg,image/webp">
                       </div>
                   <?php else: ?>
-                      <!-- ONLY FOR ADD MODE -->
-                      <div class="inp-box">
-                        <label>Upload Product Image</label>
-                        <input type="file" name="photo" accept="image/png,image/jpeg,image/webp" required>
-                        <div class="note">
-                          600×600 – 1600×1600 px • Max 5MB<br>
-                          Automatically optimized for buyers
-                        </div>
-                      </div>
+                    <!-- ONLY FOR ADD MODE -->
+                    <div class="inp-box">
+                      <label>Upload Product Image</label>
+                      <input type="file" name="photo" accept="image/png,image/jpeg,image/webp" required>
+                    </div>
                   <?php endif; ?>
+                  <div class="inp-box">
+                    <label>Description (max 150 characters)</label>
+
+                    <textarea 
+                      name="description" 
+                      id="productDescription"
+                      placeholder="Enter product description"
+                      maxlength="<?= $descMaxLength ?>" 
+                      required><?= safe($productDesc); ?></textarea>
+
+                    <div class="char-counter">
+                      <small id="charCount"><?= strlen($productDesc) ?>/<?= $descMaxLength ?> characters</small>
+                  </div>
 
                   <button type="submit">
-                    <?= $editMode ? 'Update Product' : 'Add Product' ?>
+                    <?= $mproductEditMode ? 'Update Product' : 'Add Product' ?>
                   </button>
               </div>
 
@@ -3725,6 +3966,16 @@ $stmt->close();
     });
 
     });
+  </script>
+
+  <script>
+  const productDescription = document.getElementById("productDescription");
+  const charCount = document.getElementById("charCount");
+
+  productDescription.addEventListener("input", () => {
+      const len = productDescription.value.length;
+      charCount.textContent = `${len}/<?= $descMaxLength ?> characters`;
+  });
   </script>
 </body>
 </html>
