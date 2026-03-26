@@ -359,7 +359,6 @@ $error = "Image too small. Minimum size is 600×600 px.";
 
 }
 
-
 /* ---------- RESIZE IMAGE FIRST ---------- */
 
 if (empty($error)) {
@@ -1234,7 +1233,7 @@ $deliveredOrders  = $row['delivered_orders'];
                   <div class="inp-box">
 
                     <label>Category</label>
-                    <select name="category">
+                    <select name="category" required>
                       <option value=""><p>-- Select category --</p></option>
                       <option value="Beauty" <?php echo ($category === 'Beauty') ? 'selected' : ''; ?>>Beauty</option>
                       <option value="Electronics" <?php echo ($category === 'Electronics') ? 'selected' : ''; ?>>Electronics</option>

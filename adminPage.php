@@ -37,6 +37,78 @@ if ($accountType !== $allowedRole) {
 /* ===============================
    HELPER FUNCTIONS
 ================================= */
+
+function smartTitleCase(string $text): string
+{
+  // Normalize spacing & lowercase
+  $text = strtolower(trim(preg_replace('/\s+/', ' ', $text)));
+
+  // Capitalize words & hyphenated parts
+  $text = preg_replace_callback('/\b[\w-]+\b/u', function ($match) {
+      return implode('-', array_map(function ($part) {
+          // Keep acronyms uppercase
+          if (strlen($part) <= 3 && ctype_alpha($part)) {
+              return strtoupper($part);
+          }
+
+          // Handle special brand casing
+          $special = [
+              'iphone' => 'iPhone',
+              'ipad'   => 'iPad',
+              'ipod'   => 'iPod',
+              'macbook'=> 'MacBook',
+              'airpods'=> 'AirPods',
+              'ebay'   => 'eBay',
+              'wifi'   => 'Wi-Fi'
+          ];
+
+          if (isset($special[$part])) {
+              return $special[$part];
+          }
+
+          return ucfirst($part);
+      }, explode('-', $match[0])));
+  }, $text);
+
+  return $text;
+}
+
+function generateImageDHash($filePath)
+{
+  $size = 8;
+
+  $img = imagecreatefromstring(file_get_contents($filePath));
+
+  $resized = imagecreatetruecolor($size + 1, $size);
+
+  imagecopyresampled(
+      $resized,
+      $img,
+      0,0,0,0,
+      $size + 1,
+      $size,
+      imagesx($img),
+      imagesy($img)
+  );
+
+  $hash = '';
+
+  for ($y = 0; $y < $size; $y++) {
+      for ($x = 0; $x < $size; $x++) {
+
+          $left  = imagecolorat($resized, $x, $y);
+          $right = imagecolorat($resized, $x+1, $y);
+
+          $hash .= ($left > $right) ? '1' : '0';
+      }
+  }
+
+  imagedestroy($img);
+  imagedestroy($resized);
+
+  return $hash;
+}
+
 function safe($v) {
   return htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8');
 }
@@ -624,7 +696,7 @@ if (isset($_GET['edit_id'])) {
 ========================= */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-  $mproductProductName = trim($_POST['name']);
+  $mproductProductName = smartTitleCase($_POST['name'] ?? '');
   $mproductCategory = trim($_POST['category'] ?? '');
   $mproductPrice = floatval($_POST['price']);
   $mproductCurrency = $_POST['currency'];
@@ -635,7 +707,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $mproductError = "Product name required!";
   }
   elseif ($mproductPrice <= 0) {
-    $mproductError = "Invalid price!";
+    $mproductError = "Price must be greater than zero.";
   }
   elseif ($mproductCurrency === '') {
     $mproductError = "Select currency!";
@@ -659,6 +731,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   /* =========================
       IMAGE PROCESSING
   ========================= */
+  $fileSize = $_FILES['photo']['size'];
+
+  if ($fileSize > 5 * 1024 * 1024) {
+    $mproductError = "Image too large. Max 5MB.";
+  }
+
   $imagePath = null;
 
   if ((!$mproductEditMode) || (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0)) {
@@ -673,12 +751,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           $allowed = ['image/jpeg','image/png','image/webp'];
 
           if (!in_array($mime, $allowed)) {
-              $mproductError = "Invalid image format.";
+              $mproductError = "Invalid image format!";
+          }
+
+          $fileSize = $_FILES['photo']['size'];
+
+          if ($fileSize > 5 * 1024 * 1024) {
+              $mproductError = "Image too large. Max 5MB!";
           }
 
           $imgInfo = getimagesize($tmp);
           if (!$imgInfo) {
-              $mproductError = "Invalid image file.";
+              $mproductError = "Invalid image file!";
           }
 
           if (empty($mproductError)) {
@@ -689,145 +773,261 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
               /* ✅ RATIO VALIDATION */
               if ($ratio < 0.65 || $ratio > 0.80) {
-                  $mproductError = "Image must follow portrait ratio (e.g. 500x700).";
+                  $mproductError = "Image must follow portrait ratio (e.g. 500x700)!";
               }
 
               /* ✅ MIN SIZE */
               if ($width < 400 || $height < 560) {
-                  $mproductError = "Image too small. Minimum 400x560.";
+                $mproductError = "Image too small. Minimum 400x560!";
               }
           }
 
           if (empty($mproductError)) {
 
-              $uploadDir = "uploads/company_products/";
-              if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+            $uploadDir = "uploads/company_products/";
+            if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
 
-              $fileName = uniqid('prod_', true) . ".webp";
-              $filePath = $uploadDir . $fileName;
+            $fileName = uniqid('prod_', true) . ".webp";
+            $filePath = $uploadDir . $fileName;
 
-              /* =========================
-                  FORCE CONSISTENT SIZE (500x700)
-              ========================== */
-              $targetWidth = 500;
-              $targetHeight = 700;
+            /* =========================
+                FORCE CONSISTENT SIZE (500x700)
+            ========================== */
+            $targetWidth = 500;
+            $targetHeight = 700;
 
-              $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
+            $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
 
-              switch ($mime) {
-                  case 'image/jpeg':
-                      $src = imagecreatefromjpeg($tmp);
-                      break;
+            switch ($mime) {
+                case 'image/jpeg':
+                    $src = imagecreatefromjpeg($tmp);
+                    break;
 
-                  case 'image/png':
-                      $src = imagecreatefrompng($tmp);
-                      imagealphablending($canvas, false);
-                      imagesavealpha($canvas, true);
-                      break;
+                case 'image/png':
+                    $src = imagecreatefrompng($tmp);
+                    imagealphablending($canvas, false);
+                    imagesavealpha($canvas, true);
+                    break;
 
-                  case 'image/webp':
-                      $src = imagecreatefromwebp($tmp);
-                      break;
+                case 'image/webp':
+                    $src = imagecreatefromwebp($tmp);
+                    break;
+            }
+
+            imagecopyresampled(
+              $canvas, $src,
+              0, 0, 0, 0,
+              $targetWidth, $targetHeight,
+              $width, $height
+            );
+
+            /* TEMP FILE FOR HASH */
+            $tempFile = tempnam(sys_get_temp_dir(), 'img_') . '.webp';
+            imagewebp($canvas, $tempFile, 75);
+
+            /* GENERATE HASHES */
+            $imageHash  = md5_file($tempFile);
+            $imagePhash = generateImageDHash($tempFile);
+
+            /* =========================
+              DUPLICATE CHECK
+            ========================= */
+
+            if (empty($mproductError)) {
+
+              // EXACT DUPLICATE
+              $stmt = $conn->prepare("
+                  SELECT id FROM markethub_products 
+                  WHERE image_hash = ?
+                  " . ($mproductEditMode ? "AND id != ?" : "") . "
+                  LIMIT 1
+              ");
+
+              if ($mproductEditMode) {
+                  $stmt->bind_param("si", $imageHash, $mproductEditProductId);
+              } else {
+                  $stmt->bind_param("s", $imageHash);
               }
 
-              imagecopyresampled(
-                  $canvas, $src,
-                  0, 0, 0, 0,
-                  $targetWidth, $targetHeight,
-                  $width, $height
+              $stmt->execute();
+              $stmt->store_result();
+
+              if ($stmt->num_rows > 0) {
+                  $mproductError = "This exact image already exists!";
+              }
+
+              $stmt->close();
+            }
+
+
+            /* VISUAL DUPLICATE (pHash) */
+            if (empty($mproductError)) {
+
+              $stmt = $conn->prepare("
+                SELECT image_phash FROM markethub_products
+                " . ($mproductEditMode ? "WHERE id != ?" : "")
               );
+
+              if ($mproductEditMode) {
+                $stmt->bind_param("i", $mproductEditProductId);
+              }
+
+              $stmt->execute();
+              $result = $stmt->get_result();
+
+              while ($row = $result->fetch_assoc()) {
+                $distance = levenshtein($imagePhash, $row['image_phash']);
+
+                if ($distance <= 5) {
+                  $mproductError = "A visually similar image already exists.";
+                  break;
+                }
+              }
+
+              $stmt->close();
+            }
+            
+            if (empty($mproductError)) {
 
               imagewebp($canvas, $filePath, 80);
 
-              imagedestroy($canvas);
-              imagedestroy($src);
+              $imageSizeKB = round(filesize($tempFile) / 1024);
 
               $imagePath = $filePath;
 
-              /* DELETE OLD IMAGE (EDIT MODE) */
+              // DELETE OLD IMAGE (EDIT MODE)
               if ($mproductEditMode && $currentImagePath && file_exists($currentImagePath)) {
                   unlink($currentImagePath);
               }
-          }
+            }
+
+            imagedestroy($canvas);
+            imagedestroy($src);
+
+            if (isset($tempFile) && file_exists($tempFile)) {
+              unlink($tempFile);
+            }
+
+            /* DELETE OLD IMAGE (EDIT MODE) */
+            if ($mproductEditMode && $currentImagePath && file_exists($currentImagePath)) {
+              unlink($currentImagePath);
+            }
+        }
       }
   }
+  /* =========================
+    LIMIT ACTIVE PRODUCTS (MAX 5)
+  ========================= */
+
+  if (empty($mproductError) && $mproductIs_active == '1') {
+
+    if ($mproductEditMode) {
+        $stmt = $conn->prepare("
+            SELECT COUNT(*) 
+            FROM markethub_products 
+            WHERE is_active = 1 AND id != ?
+        ");
+        $stmt->bind_param("i", $mproductEditProductId);
+    } else {
+        $stmt = $conn->prepare("
+            SELECT COUNT(*) 
+            FROM markethub_products 
+            WHERE is_active = 1
+        ");
+    }
+
+    $stmt->execute();
+    $stmt->bind_result($activeCount);
+    $stmt->fetch();
+    $stmt->close();
+
+    if ($activeCount >= 5) {
+        $mproductError = "There are already 5 active products!";
+    }
+  }
+
 
   /* =========================
-    INSERT OR UPDATE
+    INSERT OR UPDATE (ONLY IF NO ERROR)
   ========================= */
+
   if (empty($mproductError)) {
 
     if ($mproductEditMode) {
 
         if ($imagePath) {
-          $stmt = $conn->prepare("
-            UPDATE markethub_products 
-            SET product_name=?, price=?, currency=?, description=?, category=?, image=?, is_active=? 
-            WHERE id=?
-          ");
+            $stmt = $conn->prepare("
+                UPDATE markethub_products 
+                SET product_name=?, price=?, currency=?, description=?, category=?, image=?, is_active=? 
+                WHERE id=?
+            ");
 
-          $stmt->bind_param("sdssssii",
-            $mproductProductName,
-            $mproductPrice,
-            $mproductCurrency,
-            $mproductProductDescription,
-            $mproductCategory,
-            $imagePath,
-            $mproductIs_active,
-            $mproductEditProductId
-          );
+            $stmt->bind_param("sdssssii",
+                $mproductProductName,
+                $mproductPrice,
+                $mproductCurrency,
+                $mproductProductDescription,
+                $mproductCategory,
+                $imagePath,
+                $mproductIs_active,
+                $mproductEditProductId
+            );
+
         } else {
-          $stmt = $conn->prepare("
-            UPDATE markethub_products 
-            SET product_name=?, price=?, currency=?, description=?, category=?, is_active=? 
-            WHERE id=?
-          ");
+            $stmt = $conn->prepare("
+                UPDATE markethub_products 
+                SET product_name=?, price=?, currency=?, description=?, category=?, is_active=? 
+                WHERE id=?
+            ");
 
-          $stmt->bind_param("sdsssii",
-            $mproductProductName,
-            $mproductPrice,
-            $mproductCurrency,
-            $mproductProductDescription,
-            $mproductCategory,
-            $mproductIs_active,
-            $mproductEditProductId
-          );
+            $stmt->bind_param("sdsssii",
+                $mproductProductName,
+                $mproductPrice,
+                $mproductCurrency,
+                $mproductProductDescription,
+                $mproductCategory,
+                $mproductIs_active,
+                $mproductEditProductId
+            );
         }
 
         if ($stmt->execute()) {
-          $mproductSuccess = "Product updated successfully!";
+            $mproductSuccess = "Product updated successfully! <span class='redirect-msg'></span>";
         } else {
-          $mproductError = "Update failed!";
+            $mproductError = "Update failed!";
         }
 
     } else {
 
       $stmt = $conn->prepare("
         INSERT INTO markethub_products 
-        (product_name, price, currency, description, category, image, is_active, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+        (product_name, price, currency, description, category, image, is_active, created_at, image_hash, image_phash, image_size_kb)
+        VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?)
       ");
 
-      $stmt->bind_param("sdssssi",
+      $stmt->bind_param("sdssssissi",
         $mproductProductName,
         $mproductPrice,
         $mproductCurrency,
         $mproductProductDescription,
         $mproductCategory,
         $imagePath,
-        $mproductIs_active
+        $mproductIs_active,
+        $imageHash,
+        $imagePhash,
+        $imageSizeKB
       );
 
       if ($stmt->execute()) {
-        $mproductSuccess = "Product added successfully! <span class='redirect-msg'></span>";
+          $mproductSuccess = "Product added successfully! <span class='redirect-msg'></span>";
 
-        // Reset form
-        $mproductProductName = '';
-        $mproductPrice = '';
-        $mproductCurrency = '';
-        $mproductProductDescription = '';
-        $mproductIs_active = '';
-
+          // Reset form
+          $mproductProductName = '';
+          $mproductCategory = '';
+          $mproductPrice = '';
+          $mproductCurrency = '';
+          $mproductProductDescription = '';
+          $mproductIs_active = '';
       } else {
           $mproductError = "Insert failed!";
       }
@@ -3810,7 +4010,7 @@ $safeDesc = safe($productDesc);
                   <div class="inp-box">
 
                     <label>Category</label>
-                    <select name="category">
+                    <select name="category" required>
                       <option value=""><p>-- Select category --</p></option>
                       <option value="Beauty" <?php echo ($mproductCategory === 'Beauty') ? 'selected' : ''; ?>>Beauty</option>
                       <option value="Electronics" <?php echo ($mproductCategory === 'Electronics') ? 'selected' : ''; ?>>Electronics</option>
@@ -3829,7 +4029,7 @@ $safeDesc = safe($productDesc);
                   <div class="inp-box">
 
                     <label>Currency :</label>
-                    <select name="currency">
+                    <select name="currency" required>
                       <option value=""><p>-- Select currency --</p></option>
                       <option value="KES" <?php echo ($mproductCurrency === 'KES') ? 'selected' : ''; ?>>KES</option><!-- 
                       <option value="USD" <?php echo ($mproductCurrency === 'USD') ? 'selected' : ''; ?>>USD</option>
@@ -3838,7 +4038,7 @@ $safeDesc = safe($productDesc);
                   </div>
                   <div class="inp-box">
                     <label>Is Active?</label>
-                    <select id="is_active" name="is_active">
+                    <select id="is_active" name="is_active" required>
                       <option value=""><p>-- Select if active --</p></option>
                       <option value="1" <?php echo ($mproductIs_active === '1') ? 'selected' : ''; ?>>Yes</option>
                       <option value="0" <?php echo ($mproductIs_active === '0') ? 'selected' : ''; ?>>No</option>
