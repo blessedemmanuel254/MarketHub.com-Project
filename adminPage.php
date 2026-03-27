@@ -698,10 +698,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   $mproductProductName = smartTitleCase($_POST['name'] ?? '');
   $mproductCategory = trim($_POST['category'] ?? '');
-$mproductPrice = floatval($_POST['price'] ?? 0);
-$mproductCurrency = $_POST['currency'] ?? '';
-$mproductProductDescription = $_POST['description'] ?? '';
-$mproductIs_active = $_POST['is_active'] ?? '';
+  $mproductPrice = floatval($_POST['price']);
+  $mproductCurrency = $_POST['currency'];
+  $mproductProductDescription = trim($_POST['description']);
+  $mproductIs_active = $_POST['is_active'];
 
   if ($mproductProductName === '') {
     $mproductError = "Product name required!";
@@ -768,7 +768,7 @@ $mproductIs_active = $_POST['is_active'] ?? '';
   /* =========================
       IMAGE PROCESSING
   ========================= */
-  $fileSize = $_FILES['photo']['size'];
+  $fileSize = $_FILES['photo']['size'] ?? 0;
 
   if ($fileSize > 5 * 1024 * 1024) {
     $mproductError = "Image too large. Max 5MB.";
