@@ -853,6 +853,108 @@ if ($isVerified === 1 && $status === 'active') {
       'supermarkets' => $supermarketsG
     ]
   ];
+
+$activeProducts = [];
+
+$res = $conn->query("
+  SELECT id, product_name, price, currency, description, image, download_file 
+  FROM markethub_products 
+  WHERE is_active = 1
+  ORDER BY created_at DESC
+");
+
+while ($row = $res->fetch_assoc()) {
+  $activeProducts[] = $row;
+}
+
+// ------------------------
+// HANDLE PRODUCT IMAGE DOWNLOAD
+// ------------------------
+if (isset($_GET['download_product_id'])) {
+
+    $productId = (int)$_GET['download_product_id'];
+
+    $stmt = $conn->prepare("
+        SELECT product_name, price, currency, image 
+        FROM markethub_products 
+        WHERE id = ? 
+        LIMIT 1
+    ");
+    $stmt->bind_param("i", $productId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if (!$product = $result->fetch_assoc()) {
+        die("Product not found");
+    }
+
+    $imagePath = $product['image'];
+    if (!file_exists($imagePath)) {
+        die("Image not found");
+    }
+
+    // ------------------------
+    // Load original image
+    // ------------------------
+    $imgInfo = getimagesize($imagePath);
+    switch ($imgInfo['mime']) {
+        case 'image/jpeg':
+            $image = imagecreatefromjpeg($imagePath);
+            break;
+        case 'image/png':
+            $image = imagecreatefrompng($imagePath);
+            break;
+        case 'image/webp':
+            $image = imagecreatefromwebp($imagePath);
+            break;
+        default:
+            die("Unsupported image type");
+    }
+
+    // ------------------------
+    // Overlay name + price
+    // ------------------------
+    $textColor = imagecolorallocate($image, 255, 255, 255); // white
+    $bgColor   = imagecolorallocatealpha($image, 0, 0, 0, 60); // semi-transparent black
+
+    $fontSize = 5;
+    $padding = 10;
+
+    $name  = $product['product_name'];
+    $price = $product['currency'] . ' ' . $product['price'];
+    $text  = $name . " - " . $price;
+
+    $imgWidth  = imagesx($image);
+    $imgHeight = imagesy($image);
+
+    $textWidth  = imagefontwidth($fontSize) * strlen($text);
+    $textHeight = imagefontheight($fontSize);
+
+    $x = ($imgWidth - $textWidth) / 2;
+    $y = $imgHeight - $textHeight - 20;
+
+    // Background box
+    imagefilledrectangle(
+        $image,
+        $x - $padding,
+        $y - $padding,
+        $x + $textWidth + $padding,
+        $y + $textHeight + $padding,
+        $bgColor
+    );
+
+    // Draw text
+    imagestring($image, $fontSize, $x, $y, $text, $textColor);
+
+    // Output as JPG
+    $filename = preg_replace('/\s+/', '_', $name . '_' . $product['price']) . ".jpg";
+
+    header('Content-Type: image/jpeg');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    imagejpeg($image, null, 90);
+    imagedestroy($image);
+    exit;
+}
 ?>
 
 <!DOCTYPE html>
@@ -2130,7 +2232,19 @@ if ($isVerified === 1 && $status === 'active') {
           <p>Download and post across all platforms today.</p>
         </div>
 
-        <div class="products-grid" id="productsContainer"></div>
+        <div class="products-grid" id="productsContainer">
+        <?php foreach ($activeProducts as $product): ?>
+            <div class="product-card">
+                <img src="<?= htmlspecialchars($product['image'], ENT_QUOTES) ?>" alt="<?= htmlspecialchars($product['product_name'], ENT_QUOTES) ?>">
+                <div class="product-name"><?= htmlspecialchars($product['product_name'], ENT_QUOTES) ?></div>
+                <div class="product-price"><?= htmlspecialchars($product['currency'] . ' ' . $product['price'], ENT_QUOTES) ?></div>
+                <div class="product-description"><?= htmlspecialchars($product['description'], ENT_QUOTES) ?></div>
+                <button class="download-btn" data-id="<?= (int)$product['id'] ?>">
+                    Download for Posting
+                </button>
+            </div>
+        <?php endforeach; ?>
+        </div>
       </div>
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleAgentProductsPage()">Go&nbsp;back</button> to continue with sales.</p>
     </main>

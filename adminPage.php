@@ -698,11 +698,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   $mproductProductName = smartTitleCase($_POST['name'] ?? '');
   $mproductCategory = trim($_POST['category'] ?? '');
-  $mproductPrice = floatval($_POST['price']);
-  $mproductCurrency = $_POST['currency'];
-  $mproductProductDescription = trim($_POST['description']);
-  $mproductIs_active = $_POST['is_active'];
-
+  $mproductPrice = floatval($_POST['price'] ?? 0);
+  $mproductCurrency = $_POST['currency'] ?? '';
+  $mproductProductDescription = $_POST['description'] ?? '';
+  $mproductIs_active = $_POST['is_active'] ?? '';
   if ($mproductProductName === '') {
     $mproductError = "Product name required!";
   }
@@ -1070,6 +1069,133 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $descMaxLength = 150;
 $productDesc = !empty($mproductProductDescription) ? substr($mproductProductDescription, 0, $descMaxLength) : '';
 $safeDesc = safe($productDesc);
+
+/* =========================
+  DAILY ACTIVE PRODUCTS RESET (SMART ROTATION)
+========================= */
+
+date_default_timezone_set('UTC');
+
+$today = date('Y-m-d');
+$yesterday = date('Y-m-d', strtotime('-1 day'));
+
+$resetFile = __DIR__ . '/last_reset.txt';
+$lastReset = file_exists($resetFile) ? trim(file_get_contents($resetFile)) : '';
+
+if ($lastReset !== $today) {
+
+  // 1. Reset all products
+  $conn->query("UPDATE markethub_products SET is_active = 0");
+
+  // 2. Count total products
+  $res = $conn->query("SELECT COUNT(*) as total FROM markethub_products");
+  $total = $res->fetch_assoc()['total'] ?? 0;
+
+  if ($total > 0) {
+
+    // 3. Decide number of active products
+    $limit = rand(1, min(5, $total));
+
+    // 4. Get categories
+    $categories = [];
+    $res = $conn->query("SELECT DISTINCT category FROM markethub_products");
+
+    while ($row = $res->fetch_assoc()) {
+      $categories[] = $row['category'];
+    }
+
+    shuffle($categories);
+
+    $selectedIds = [];
+    $remainingSlots = $limit;
+
+    /* =========================
+      FIRST PASS: BALANCED + SMART PICK
+    ========================= */
+    foreach ($categories as $cat) {
+      if ($remainingSlots <= 0) break;
+
+      $stmt = $conn->prepare("
+        SELECT id FROM markethub_products
+        WHERE category = ?
+          AND (last_activated_at IS NULL OR DATE(last_activated_at) < ?)
+        ORDER BY 
+          (last_activated_at IS NULL) DESC,     -- never used first
+          last_activated_at ASC,                -- oldest first
+          created_at DESC,                      -- newer products boosted
+          RAND()
+        LIMIT 1
+      ");
+
+      $stmt->bind_param("ss", $cat, $yesterday);
+      $stmt->execute();
+      $result = $stmt->get_result();
+
+      if ($row = $result->fetch_assoc()) {
+        $selectedIds[] = (int)$row['id'];
+        $remainingSlots--;
+      }
+    }
+
+    /* =========================
+      SECOND PASS: FILL REMAINING (SMART GLOBAL)
+    ========================= */
+    if ($remainingSlots > 0) {
+
+      $res = $conn->query("
+        SELECT id FROM markethub_products
+        WHERE (last_activated_at IS NULL OR DATE(last_activated_at) < '$yesterday')
+        ORDER BY 
+          (last_activated_at IS NULL) DESC,
+          last_activated_at ASC,
+          created_at DESC,
+          RAND()
+        LIMIT $remainingSlots
+      ");
+
+      while ($row = $res->fetch_assoc()) {
+        if (!in_array($row['id'], $selectedIds)) {
+          $selectedIds[] = (int)$row['id'];
+        }
+      }
+    }
+
+    /* =========================
+      FALLBACK (if everything was used yesterday)
+    ========================= */
+    if (count($selectedIds) < $limit) {
+
+      $needed = $limit - count($selectedIds);
+
+      $res = $conn->query("
+        SELECT id FROM markethub_products
+        ORDER BY RAND()
+        LIMIT $needed
+      ");
+
+      while ($row = $res->fetch_assoc()) {
+        if (!in_array($row['id'], $selectedIds)) {
+          $selectedIds[] = (int)$row['id'];
+        }
+      }
+    }
+
+    /* =========================
+      ACTIVATE + TRACK
+    ========================= */
+    if (!empty($selectedIds)) {
+      $idList = implode(',', $selectedIds);
+
+      $conn->query("
+        UPDATE markethub_products 
+        SET is_active = 1, last_activated_at = NOW()
+        WHERE id IN ($idList)
+      ");
+    }
+  }
+
+  file_put_contents($resetFile, $today);
+}
 
 /* =========================
   PRODUCT STATS
@@ -3503,7 +3629,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_delete_product']
 
                 </div>
                 <!-- PRODUCTS GRID -->
-                <?php if (empty($groupedProducts)) echo "No products found"; ?>
+                <?php if (empty($groupedProducts)): ?>
+                  <p class="mproducts-alert-p">No products found</p>
+                <?php endif; ?>
                 <?php 
                 $first = true;
                 foreach ($groupedProducts as $category => $items): 

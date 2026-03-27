@@ -710,10 +710,14 @@ html body.no-scroll {
   gap: 20px;
 }
 
-.tabs-container .tab-content .tab-panel p,  .tabs-container .tab-content .tab-panel-msource p, .container main .tab-top p, .tabs-container .tab-content .tab-panel-mtype p, .tab-panel-admin .tab-top p {
+.tabs-container .tab-content .tab-panel p,  .tabs-container .tab-content .tab-panel-msource p, .container main .tab-top p, .tabs-container .tab-content .tab-panel-mtype p, .tab-panel-admin .tab-top p, .tab-panel-admin p.mproducts-alert-p {
   font-size: 14px;
   color: #898888;
   line-height: 30px;
+}
+
+.tab-panel-admin p.mproducts-alert-p {
+  font-size: 12px;
 }
 
 .tabs-container .tab-content .tab-panel p i,  .tabs-container .tab-content .tab-panel-msource p i, .container main .tab-top p i, .tabs-container .tab-content .tab-panel-msource p i, .tab-panel-admin .tab-top i {

@@ -1178,14 +1178,13 @@ function openAddProductForm(type) {
   window.location.href = "adminPage.php?type=product";
 }
 
-// Delete Market Hub Products Js
+// Delete Maket Hub Products JS
 document.addEventListener("click", function(e){
 
   const btn = e.target.closest(".delete-product-btn");
   if (!btn) return;
 
   const productId = btn.dataset.productId;
-
   if (!productId) return;
 
   if (!confirm("Delete this product permanently?")) return;
@@ -1201,10 +1200,7 @@ document.addEventListener("click", function(e){
       product_id: productId
     })
   })
-  .then(res => res.text())
-  .then(data => {
-    console.log("RAW:", data);
-  })
+  .then(res => res.json())
   .then(data => {
 
     if (!data.success) {
@@ -1212,20 +1208,33 @@ document.addEventListener("click", function(e){
       return;
     }
 
-    // REMOVE CARD FROM UI
-    const card = btn.closest(".product-card");
-    if (card) card.remove();
+    try {
+      const card = btn.closest(".product-card");
+
+      if (card) {
+        const grid = card.closest(".products-grid-admin");
+
+        card.remove();
+
+        if (grid && grid.querySelectorAll(".product-card").length === 0) {
+          grid.innerHTML = '<p class="noproducts-admin-p">No products in this category.</p>';
+        }
+      }
+
+      // Slight delay before reload
+      setTimeout(() => {
+        location.reload();
+      }, 1000); // 1 second delay
+
+    } catch (err) {
+      console.error("DOM error:", err);
+    }
 
   })
-  .catch(() => {
+  .catch(err => {
+    console.error("FETCH ERROR:", err);
     alert("Network error");
   });
-
-  const grid = btn.closest(".products-grid-admin");
-
-  if (grid && grid.querySelectorAll(".product-card").length === 0) {
-    grid.innerHTML = '<p class="noproducts-admin-p">No products in this category.</p>';
-  }
 
 });
 
@@ -1509,64 +1518,16 @@ const dailyProducts = [
 ];
 
 // ==============================
-// RENDER PRODUCTS
+// DOWNLOAD JS CODE
 // ==============================
 
-document.addEventListener("DOMContentLoaded", () => {
-
-  const container = document.getElementById("productsContainer");
-  if (!container) return;   // ✅ HARD GUARD – prevents crash
-
-  const today = new Date().getDay();
-
-  dailyProducts.forEach(product => {
-
-    const card = document.createElement("div");
-    card.className = "product-card";
-
-    card.innerHTML = `
-      <img src="${product.image}" alt="${product.name}">
-      <div class="product-name">${product.name}</div>
-      <div class="product-price">${product.price}</div>
-      <div class="product-description">${product.description}</div>
-      <button class="download-btn" data-id="${product.id}">
-        Download for Posting
-      </button>
-    `;
-
-    container.appendChild(card);
-  });
-
-});
-
-// ==============================
-// DOWNLOAD + SAVE TO LOCAL STORAGE
-// ==============================
-
-document.addEventListener("click", function(e) {
-
-  if (!e.target.classList.contains("download-btn")) return;
-  if (today === 0) return;
-
-  const id = parseInt(e.target.dataset.id);
-  const product = dailyProducts.find(p => p.id === id);
-
-  // Save individually
-  localStorage.setItem(
-    "marketHubDailyProduct_" + product.id,
-    JSON.stringify(product)
-  );
-
-  // Trigger image download
-  const link = document.createElement("a");
-  link.href = product.image;
-  link.download = product.name.replace(/\s+/g, "_") + ".jpg";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-
-  alert(product.name + " saved locally. Ready for posting.");
-
+document.addEventListener("click", function(e){
+  const btn = e.target.closest(".download-btn");
+  if (!btn) return;
+  const id = btn.dataset.id;
+  if (!id) return;
+  // Redirect to same dashboard file with download param
+  window.location.href = "?download_product_id=" + id;
 });
 
 // PLACE ORDER JS
