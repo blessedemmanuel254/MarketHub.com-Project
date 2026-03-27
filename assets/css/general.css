@@ -3090,7 +3090,7 @@ a.seller-right {
   grid-template-columns: 1fr 1fr;
 }
 
-.products-grid .card .card-actions button, .products-grid .card .card-actions a.edit, .tab-panel-admin .products-grid-admin .product-card .card-actions a.edit, .tab-panel-admin .products-grid-admin .product-card .card-actions button {
+.products-grid .card .card-actions button, .products-grid .card .card-actions a.edit, .tab-panel-admin .products-grid-admin .product-card .card-actions .btn-edit, .tab-panel-admin .products-grid-admin .product-card .card-actions button {
   flex: 1;
   padding: 10px 16px;
   border: none;
@@ -3099,7 +3099,7 @@ a.seller-right {
   font-size: 14px;
 }
 
-.products-grid .card .card-actions a.edit, .tab-panel-admin .products-grid-admin .product-card .card-actions a.edit {
+.products-grid .card .card-actions a.edit, .tab-panel-admin .products-grid-admin .product-card .card-actions .btn-edit {
   text-decoration: none;
   text-align: center;
   color:#088000;
@@ -3110,7 +3110,7 @@ a.seller-right {
   background:#f5f5f5;
 }
 
-.products-grid .card .card-actions button.delete, .tab-panel-admin .products-grid-admin .product-card .card-actions button.delete {
+.products-grid .card .card-actions button.delete, .tab-panel-admin .products-grid-admin .product-card .card-actions button.delete-product-btn {
   color:#ff3b3b;
   width: 100%;
 }

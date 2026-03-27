@@ -1164,6 +1164,71 @@ function editRecord(type, id) {
   window.location.href = "adminPage.php?type=" + type + "&id=" + id;
 }
 
+function openAddProductForm(type) {
+  if (!allowedTypes.includes(type)) return;
+
+  const activePanel = document.querySelector(".admin-tab-panel.active");
+
+  if (activePanel) {
+    localStorage.setItem("previousAdminTab", activePanel.dataset.tab);
+  }
+  localStorage.setItem("activeForm", type);
+  localStorage.removeItem("editId");
+
+  window.location.href = "adminPage.php?type=product";
+}
+
+// Delete Market Hub Products Js
+document.addEventListener("click", function(e){
+
+  const btn = e.target.closest(".delete-product-btn");
+  if (!btn) return;
+
+  const productId = btn.dataset.productId;
+
+  if (!productId) return;
+
+  if (!confirm("Delete this product permanently?")) return;
+
+  fetch("adminPage.php", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "X-Requested-With": "XMLHttpRequest"
+    },
+    body: new URLSearchParams({
+      ajax_delete_product: 1,
+      product_id: productId
+    })
+  })
+  .then(res => res.text())
+  .then(data => {
+    console.log("RAW:", data);
+  })
+  .then(data => {
+
+    if (!data.success) {
+      alert(data.error || "Delete failed");
+      return;
+    }
+
+    // REMOVE CARD FROM UI
+    const card = btn.closest(".product-card");
+    if (card) card.remove();
+
+  })
+  .catch(() => {
+    alert("Network error");
+  });
+
+  const grid = btn.closest(".products-grid-admin");
+
+  if (grid && grid.querySelectorAll(".product-card").length === 0) {
+    grid.innerHTML = '<p class="noproducts-admin-p">No products in this category.</p>';
+  }
+
+});
+
 // RESTORE FORM AFTER PAGE RELOAD
 document.addEventListener("DOMContentLoaded", function () {
   const activeForm = localStorage.getItem("activeForm");

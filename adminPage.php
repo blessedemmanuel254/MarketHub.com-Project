@@ -667,28 +667,28 @@ $currentImagePath = null;
 /* =========================
    EDIT MODE FETCH
 ========================= */
-if (isset($_GET['edit_id'])) {
-    $mproductEditProductId = intval($_GET['edit_id']);
+if (isset($_GET['id']) && $_GET['type'] === 'product') {
+  $mproductEditProductId = intval($_GET['id']);
 
-    $stmt = $conn->prepare("SELECT * FROM markethub_products WHERE id=? LIMIT 1");
-    $stmt->bind_param("i", $mproductEditProductId);
-    $stmt->execute();
-    $result = $stmt->get_result();
+  $stmt = $conn->prepare("SELECT * FROM markethub_products WHERE id=? LIMIT 1");
+  $stmt->bind_param("i", $mproductEditProductId);
+  $stmt->execute();
+  $result = $stmt->get_result();
 
-    if ($result->num_rows === 1) {
-        $row = $result->fetch_assoc();
+  if ($result->num_rows === 1) {
+      $row = $result->fetch_assoc();
 
-        $mproductProductName = $row['product_name'];
-        $mproductCategory = $row['category'];
-        $mproductPrice = $row['price'];
-        $mproductCurrency = $row['currency'];
-        $mproductProductDescription = $row['description'];
-        $mproductIs_active = $row['is_active'];
-        $currentImagePath = $row['image'];
+      $mproductProductName = $row['product_name'];
+      $mproductCategory = $row['category'];
+      $mproductPrice = $row['price'];
+      $mproductCurrency = $row['currency'];
+      $mproductProductDescription = $row['description'];
+      $mproductIs_active = $row['is_active'];
+      $currentImagePath = $row['image'];
 
-        $mproductEditMode = true;
-    }
-    $stmt->close();
+      $mproductEditMode = true;
+  }
+  $stmt->close();
 }
 
 /* =========================
@@ -698,10 +698,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   $mproductProductName = smartTitleCase($_POST['name'] ?? '');
   $mproductCategory = trim($_POST['category'] ?? '');
-  $mproductPrice = floatval($_POST['price']);
-  $mproductCurrency = $_POST['currency'];
-  $mproductProductDescription = trim($_POST['description']);
-  $mproductIs_active = $_POST['is_active'];
+$mproductPrice = floatval($_POST['price'] ?? 0);
+$mproductCurrency = $_POST['currency'] ?? '';
+$mproductProductDescription = $_POST['description'] ?? '';
+$mproductIs_active = $_POST['is_active'] ?? '';
 
   if ($mproductProductName === '') {
     $mproductError = "Product name required!";
@@ -1070,6 +1070,110 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $descMaxLength = 150;
 $productDesc = !empty($mproductProductDescription) ? substr($mproductProductDescription, 0, $descMaxLength) : '';
 $safeDesc = safe($productDesc);
+
+/* =========================
+  PRODUCT STATS
+========================= */
+
+// Total products
+$totalProducts = 0;
+$activeProducts = 0;
+$inactiveProducts = 0;
+$totalValue = 0;
+
+// TOTAL PRODUCTS
+$res = $conn->query("SELECT COUNT(*) AS total FROM markethub_products");
+$totalProducts = $res->fetch_assoc()['total'] ?? 0;
+
+// ACTIVE PRODUCTS
+$res = $conn->query("SELECT COUNT(*) AS total FROM markethub_products WHERE is_active = 1");
+$activeProducts = $res->fetch_assoc()['total'] ?? 0;
+
+// INACTIVE PRODUCTS
+$res = $conn->query("SELECT COUNT(*) AS total FROM markethub_products WHERE is_active = 0");
+$inactiveProducts = $res->fetch_assoc()['total'] ?? 0;
+
+// TOTAL VALUE
+$res = $conn->query("SELECT SUM(price) AS total FROM markethub_products");
+$totalValue = $res->fetch_assoc()['total'] ?? 0;
+
+
+/* =========================
+  FETCH ALL PRODUCTS
+========================= */
+
+$products = [];
+
+$res = $conn->query("SELECT * FROM markethub_products ORDER BY created_at DESC");
+
+while ($row = $res->fetch_assoc()) {
+  $products[] = $row;
+}
+
+/* =========================
+  GROUP PRODUCTS BY CATEGORY
+========================= */
+
+$groupedProducts = [];
+
+foreach ($products as $p) {
+  $cat = strtolower(trim($p['category']));
+  $groupedProducts[$cat][] = $p;
+}
+
+function safeCategoryId($cat) {
+  return strtolower(preg_replace('/[^a-z0-9]/', '-', $cat));
+}
+
+// =========================
+// AJAX DELETE PRODUCT
+// =========================
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_delete_product'])) {
+
+  header('Content-Type: application/json');
+
+  $productId = intval($_POST['product_id'] ?? 0);
+
+  if ($productId <= 0) {
+      echo json_encode(['success' => false, 'error' => 'Invalid product']);
+      exit;
+  }
+
+  // FETCH IMAGE
+  $stmt = $conn->prepare("SELECT image FROM markethub_products WHERE id = ? LIMIT 1");
+  $stmt->bind_param("i", $productId);
+  $stmt->execute();
+  $result = $stmt->get_result();
+
+  if ($result->num_rows !== 1) {
+      echo json_encode(['success' => false, 'error' => 'Product not found']);
+      exit;
+  }
+
+  $product = $result->fetch_assoc();
+  $imagePath = $product['image'];
+
+  $stmt->close();
+
+  // DELETE PRODUCT
+  $stmt = $conn->prepare("DELETE FROM markethub_products WHERE id = ?");
+  $stmt->bind_param("i", $productId);
+
+  if ($stmt->execute()) {
+
+      if (!empty($imagePath) && file_exists($imagePath)) {
+          unlink($imagePath);
+      }
+
+      echo json_encode(['success' => true]);
+  } else {
+      echo json_encode(['success' => false, 'error' => 'Delete failed']);
+  }
+
+  $stmt->close();
+  exit; // VERY IMPORTANT (stops HTML rendering)
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -3330,8 +3434,8 @@ $safeDesc = safe($productDesc);
         <nav>
         <p>Products</p>
         <ul>
-            <a href="#">Admin ~ </a> 
-            <a href="#" class="active">Products</a>
+          <a href="#">Admin ~ </a> 
+          <a href="#" class="active">Products</a>
         </ul>
         </nav>
         <h2>Market Hub Products</h2>
@@ -3341,7 +3445,7 @@ $safeDesc = safe($productDesc);
                 <i class="fa-solid fa-box"></i>
                 <div>
                 <h3>Total Products</h3>
-                <div class="value">245</div>
+                <div class="value"><?= number_format($totalProducts) ?></div>
                 <small>Products in system</small>
                 </div>
             </div>
@@ -3350,261 +3454,117 @@ $safeDesc = safe($productDesc);
                 <i class="fa-solid fa-circle-check"></i>
                 <div>
                 <h3>Active Products</h3>
-                <div class="value">5</div>
+                <div class="value"><?= number_format($activeProducts) ?></div>
                 <small>Currently visible</small>
                 </div>
             </div>
 
             <div class="card sub-card">
-                
-                <i class="fa-solid fa-ban"></i>
-                <div>
-                <h3>Inactive Products</h3>
-                <div class="value">193</div>
-                <small>Disabled or hidden</small>
-                </div>
+              <i class="fa-solid fa-ban"></i>
+              <div>
+              <h3>Inactive Products</h3>
+              <div class="value"><?= number_format($inactiveProducts) ?></div>
+              <small>Disabled or hidden</small>
+              </div>
             </div>
 
             <div class="card sub-card">
-                <i class="fa-solid fa-coins"></i>
-                <div>
+              <i class="fa-solid fa-coins"></i>
+              <div>
                 <h3>Total Product Value</h3>
-                <div class="value">KES 2.4M</div>
+                <div class="value">
+                KES <?= number_format($totalValue, 2) ?>
                 </div>
+              </div>
             </div>
         </div>
         </div>
         <div class="tabs-container">
-            <div class="tabs">
-            <button class="tab-btn-admin active" data-tab="beauty">Beauty</button>
-            <button class="tab-btn-admin" data-tab="electronics">Electronics</button>
-            <button class="tab-btn-admin" data-tab="fashion">Fashion</button>
-            </div>
+          <div class="tabs">
+          <?php 
+          $first = true;
+          foreach ($groupedProducts as $category => $items): 
+          ?>
+            <button 
+              class="tab-btn-admin" data-tab="<?= safeCategoryId($category) ?>">
+              <?= htmlspecialchars(ucwords(strtolower($category))) ?>
+            </button>
+          <?php 
+          $first = false;
+          endforeach; 
+          ?>
+          </div>
             <div id="company-products" class="tab-panel-admin">
                 <div class="tab-top">
-                    <p>Market Hub Store<br><strong>Your control center for Market Hub products <i class="fa-regular fa-circle-check"></i></strong></p>
-                    <button class="btn-edit" data-tab="edit-forms" onclick="editRecord('product', 1">
-                    <i class="fa fa-plus"></i>&nbsp;<span>Add&nbsp;Product</span>
-                    </button>
+                  <p>Market Hub Store<br><strong>Your control center for Market Hub products <i class="fa-regular fa-circle-check"></i></strong></p>
+                  <button class="btn-edit" data-tab="edit-forms" onclick="openAddProductForm('product')">
+                  <i class="fa fa-plus"></i>&nbsp;<span>Add&nbsp;Product</span>
+                  </button>
+
+                </div>
+                <!-- PRODUCTS GRID -->
+                <?php if (empty($groupedProducts)) echo "No products found"; ?>
+                <?php 
+                $first = true;
+                foreach ($groupedProducts as $category => $items): 
+                ?>
+                
+                <div id="<?= safeCategoryId($category) ?>" class="products-grid-admin">
+
+                <?php if (empty($items)): ?>
+                  <p class="noproducts-admin-p">No products in this category.</p>
+                <?php else: ?>
+
+                  <?php foreach ($items as $product): ?>
+                    <div class="product-card">
+
+                      <img src="<?= htmlspecialchars($product['image']) ?>" alt="<?= htmlspecialchars($product['product_name']) ?>" loading="lazy">
+
+                      <div class="product-name">
+                        <?= htmlspecialchars($product['product_name']) ?>
+                      </div>
+
+                      <div class="product-price">
+                        <?= htmlspecialchars($product['currency']) ?> 
+                        <strong><?= number_format($product['price'], 2) ?></strong>
+                      </div>
+
+                      <p class="product-description">
+                        <?= htmlspecialchars($product['description']) ?>
+                      </p>
+
+                      <div class="card-actions">
+
+                        <!-- EDIT -->
+
+                        <button 
+                        class="btn-edit"
+                        data-user-id="<?= $product['id'] ?>"
+                        data-tab="edit-forms"
+                        onclick="editRecord('product', <?= (int)$product['id'] ?>)">
+                        <i class="fa fa-pen"></i> Edit
+                        </button>
+
+                        <!-- DELETE -->
+                      <button 
+                        class="delete-product-btn"
+                        data-product-id="<?= (int)$product['id'] ?>">
+                        <i class="fa fa-trash"></i> Delete
+                      </button>
+
+                      </div>
+
+                    </div>
+                  <?php endforeach; ?>
+
+                <?php endif; ?>
 
                 </div>
 
-                <!-- PRODUCTS GRID -->
-                <div id="beauty" class="products-grid-admin active">
-                    <div class="product-card">
-                        <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
-                        <div class="product-name">Executive Leather Laptop Bag</div>
-                        <div class="product-price">KES 1,300.00</div>
-                        <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
-                        <div class="card-actions">
-                            <a href="#" class="edit">
-                            <i class="fa fa-pen"></i> Edit
-                            </a>
-                            <form method="POST">
-                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
-                            <button type="submit" class="delete">
-                                <i class="fa fa-trash"></i> Delete
-                            </button>
-                            </form>
-                        </div>
-                    </div>
-                    <div class="product-card">
-                        <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
-                        <div class="product-name">Executive Leather Laptop Bag</div>
-                        <div class="product-price">KES 1,300.00</div>
-                        <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
-                        <div class="card-actions">
-                            <a href="#" class="edit">
-                            <i class="fa fa-pen"></i> Edit
-                            </a>
-                            <form method="POST">
-                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
-                            <button type="submit" class="delete">
-                                <i class="fa fa-trash"></i> Delete
-                            </button>
-                            </form>
-                        </div>
-                    </div>
-                    <div class="product-card">
-                        <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
-                        <div class="product-name">Executive Leather Laptop Bag</div>
-                        <div class="product-price">KES 1,300.00</div>
-                        <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
-                        <div class="card-actions">
-                            <a href="#" class="edit">
-                            <i class="fa fa-pen"></i> Edit
-                            </a>
-                            <form method="POST">
-                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
-                            <button type="submit" class="delete">
-                                <i class="fa fa-trash"></i> Delete
-                            </button>
-                            </form>
-                        </div>
-                    </div>
-                    <div class="product-card">
-                        <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
-                        <div class="product-name">Executive Leather Laptop Bag</div>
-                        <div class="product-price">KES 1,300.00</div>
-                        <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
-                        <div class="card-actions">
-                            <a href="#" class="edit">
-                            <i class="fa fa-pen"></i> Edit
-                            </a>
-                            <form method="POST">
-                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
-                            <button type="submit" class="delete">
-                                <i class="fa fa-trash"></i> Delete
-                            </button>
-                            </form>
-                        </div>
-                    </div>
-                    
-                    <!-- 
-                    <p class="noproducts-admin-p">No products uploaded yet. Click "Add Product" to start.</p> -->
-                </div>
-                <!-- PRODUCTS GRID -->
-                <div id="electronics" class="products-grid-admin">
-                    <div class="product-card">
-                        <img src="Images/6 Litre Electric Pressure Cooker.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
-                        <div class="product-name">6 Litre Electric Pressure Cooker</div>
-                        <div class="product-price">KES 5,200.00</div>
-                        <p class="product-description">Fast cooking, energy saving, perfect for family meals.</p>
-                        <div class="card-actions">
-                            <a href="#" class="edit">
-                            <i class="fa fa-pen"></i> Edit
-                            </a>
-                            <form method="POST">
-                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
-                            <button type="submit" class="delete">
-                                <i class="fa fa-trash"></i> Delete
-                            </button>
-                            </form>
-                        </div>
-                    </div>
-                    <div class="product-card">
-                        <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
-                        <div class="product-name">Executive Leather Laptop Bag</div>
-                        <div class="product-price">KES 1,300.00</div>
-                        <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
-                        <div class="card-actions">
-                            <a href="#" class="edit">
-                            <i class="fa fa-pen"></i> Edit
-                            </a>
-                            <form method="POST">
-                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
-                            <button type="submit" class="delete">
-                                <i class="fa fa-trash"></i> Delete
-                            </button>
-                            </form>
-                        </div>
-                    </div>
-                    <div class="product-card">
-                        <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
-                        <div class="product-name">Executive Leather Laptop Bag</div>
-                        <div class="product-price">KES 1,300.00</div>
-                        <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
-                        <div class="card-actions">
-                            <a href="#" class="edit">
-                            <i class="fa fa-pen"></i> Edit
-                            </a>
-                            <form method="POST">
-                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
-                            <button type="submit" class="delete">
-                                <i class="fa fa-trash"></i> Delete
-                            </button>
-                            </form>
-                        </div>
-                    </div>
-                    <div class="product-card">
-                        <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
-                        <div class="product-name">Executive Leather Laptop Bag</div>
-                        <div class="product-price">KES 1,300.00</div>
-                        <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
-                        <div class="card-actions">
-                            <a href="#" class="edit">
-                            <i class="fa fa-pen"></i> Edit
-                            </a>
-                            <form method="POST">
-                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
-                            <button type="submit" class="delete">
-                                <i class="fa fa-trash"></i> Delete
-                            </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                <!-- PRODUCTS GRID -->
-                <div id="fashion" class="products-grid-admin">
-                    <div class="product-card">
-                        <img src="Images/Ipcone 16-inch standing fan.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
-                        <div class="product-name">16-inch Standing Fan</div>
-                        <div class="product-price">KES 2,350.00</div>
-                        <p class="product-description">Powerful airflow with adjustable height.</p>
-                        <div class="card-actions">
-                            <a href="#" class="edit">
-                            <i class="fa fa-pen"></i> Edit
-                            </a>
-                            <form method="POST">
-                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
-                            <button type="submit" class="delete">
-                                <i class="fa fa-trash"></i> Delete
-                            </button>
-                            </form>
-                        </div>
-                    </div>
-                    <div class="product-card">
-                        <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
-                        <div class="product-name">Executive Leather Laptop Bag</div>
-                        <div class="product-price">KES 1,300.00</div>
-                        <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
-                        <div class="card-actions">
-                            <a href="#" class="edit">
-                            <i class="fa fa-pen"></i> Edit
-                            </a>
-                            <form method="POST">
-                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
-                            <button type="submit" class="delete">
-                                <i class="fa fa-trash"></i> Delete
-                            </button>
-                            </form>
-                        </div>
-                    </div>
-                    <div class="product-card">
-                        <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
-                        <div class="product-name">Executive Leather Laptop Bag</div>
-                        <div class="product-price">KES 1,300.00</div>
-                        <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
-                        <div class="card-actions">
-                            <a href="#" class="edit">
-                            <i class="fa fa-pen"></i> Edit
-                            </a>
-                            <form method="POST">
-                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
-                            <button type="submit" class="delete">
-                                <i class="fa fa-trash"></i> Delete
-                            </button>
-                            </form>
-                        </div>
-                    </div>
-                    <div class="product-card">
-                        <img src="Images/Executive Leather Laptop Bag.png" loading="lazy" decoding="async" alt="Executive Leather Laptop Bag">
-                        <div class="product-name">Executive Leather Laptop Bag</div>
-                        <div class="product-price">KES 1,300.00</div>
-                        <p class="product-description">Premium executive laptop bag. Durable and stylish.</p>
-                        <div class="card-actions">
-                            <a href="#" class="edit">
-                            <i class="fa fa-pen"></i> Edit
-                            </a>
-                            <form method="POST">
-                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
-                            <button type="submit" class="delete">
-                                <i class="fa fa-trash"></i> Delete
-                            </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+                <?php 
+                $first = false;
+                endforeach; 
+                ?>
             </div>
         </div>
       </div>
@@ -4069,22 +4029,23 @@ $safeDesc = safe($productDesc);
                     <label>Is Active?</label>
                     <select id="is_active" name="is_active" required>
                       <option value=""><p>-- Select if active --</p></option>
-                      <option value="1" <?php echo ($mproductIs_active === '1') ? 'selected' : ''; ?>>Yes</option>
-                      <option value="0" <?php echo ($mproductIs_active === '0') ? 'selected' : ''; ?>>No</option>
+                      <option value="1" <?php echo ($mproductIs_active == '1') ? 'selected' : ''; ?>>Yes</option>
+                      <option value="0" <?php echo ($mproductIs_active == '0') ? 'selected' : ''; ?>>No</option>
                     </select>
                   </div>
 
                   <?php if ($mproductEditMode): ?>
                       <!-- IMAGE PREVIEW ONLY IN EDIT MODE -->
+                      <div></div>
                       <div class="inp-box">
-                          <label>Product Image</label>
-                          <?php if (!empty($currentImagePath) && file_exists($currentImagePath)): ?>
-                            <div class="edit-preview">
-                              <img src="<?= htmlspecialchars($currentImagePath) ?>" 
-                                  style="">
-                              <p style="font-size:12px;">Current Image</p>
-                            </div>
-                          <?php endif; ?>
+                        <label>Product Image</label>
+                        <?php if (!empty($currentImagePath) && file_exists($currentImagePath)): ?>
+                          <div class="edit-preview">
+                            <img src="<?= htmlspecialchars($currentImagePath) ?>" 
+                                style="">
+                            <p style="font-size:12px;">Current Image</p>
+                          </div>
+                        <?php endif; ?>
                       </div>
 
                       <div class="inp-box">
@@ -4109,7 +4070,7 @@ $safeDesc = safe($productDesc);
                       required><?= safe($productDesc); ?></textarea>
 
                     <div class="char-counter">
-                      <small id="charCount"><?= strlen($productDesc) ?>/<?= $descMaxLength ?> characters</small>
+                    <small id="charCount"><?= strlen($productDesc) ?>/<?= $descMaxLength ?> characters</small>
                   </div>
 
                   <button type="submit">
