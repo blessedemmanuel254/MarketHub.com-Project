@@ -729,6 +729,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
   /* =========================
+    CHECK DUPLICATE PRODUCT NAME
+  ========================= */
+
+  if (empty($mproductError)) {
+
+    if ($mproductEditMode) {
+      // Exclude current product when editing
+      $stmt = $conn->prepare("
+        SELECT id 
+        FROM markethub_products 
+        WHERE product_name = ? AND id != ?
+        LIMIT 1
+      ");
+      $stmt->bind_param("si", $mproductProductName, $mproductEditProductId);
+
+    } else {
+      // Normal insert check
+      $stmt = $conn->prepare("
+        SELECT id 
+        FROM markethub_products 
+        WHERE product_name = ?
+        LIMIT 1
+      ");
+      $stmt->bind_param("s", $mproductProductName);
+    }
+
+    $stmt->execute();
+    $stmt->store_result();
+
+    if ($stmt->num_rows > 0) {
+      $mproductError = "A product with this name already exists!";
+    }
+
+    $stmt->close();
+  }
+
+  /* =========================
       IMAGE PROCESSING
   ========================= */
   $fileSize = $_FILES['photo']['size'];
@@ -1019,17 +1056,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       );
 
       if ($stmt->execute()) {
-          $mproductSuccess = "Product added successfully! <span class='redirect-msg'></span>";
-
-          // Reset form
-          $mproductProductName = '';
-          $mproductCategory = '';
-          $mproductPrice = '';
-          $mproductCurrency = '';
-          $mproductProductDescription = '';
-          $mproductIs_active = '';
+        $mproductSuccess = "Product added successfully! <span class='redirect-msg'></span>";
       } else {
-          $mproductError = "Insert failed!";
+        $mproductError = "Insert failed!";
       }
     }
 
