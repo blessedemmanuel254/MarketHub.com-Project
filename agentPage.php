@@ -864,6 +864,9 @@ $res = $conn->query("
 ");
 
 while ($row = $res->fetch_assoc()) {
+
+  $row['formatted_price'] = number_format((float)$row['price'], 2);
+
   $activeProducts[] = $row;
 }
 
@@ -872,88 +875,111 @@ while ($row = $res->fetch_assoc()) {
 // ------------------------
 if (isset($_GET['download_product_id'])) {
 
-    $productId = (int)$_GET['download_product_id'];
+  $productId = (int)$_GET['download_product_id'];
 
-    $stmt = $conn->prepare("
-        SELECT product_name, price, currency, image 
-        FROM markethub_products 
-        WHERE id = ? 
-        LIMIT 1
-    ");
-    $stmt->bind_param("i", $productId);
-    $stmt->execute();
-    $result = $stmt->get_result();
+  $stmt = $conn->prepare("
+    SELECT product_name, price, currency, image 
+    FROM markethub_products 
+    WHERE id = ? 
+    LIMIT 1
+  ");
+  $stmt->bind_param("i", $productId);
+  $stmt->execute();
+  $result = $stmt->get_result();
 
-    if (!$product = $result->fetch_assoc()) {
-        die("Product not found");
-    }
+  if (!$product = $result->fetch_assoc()) {
+      die("Product not found");
+  }
 
-    $imagePath = $product['image'];
-    if (!file_exists($imagePath)) {
-        die("Image not found");
-    }
+  $imagePath = $product['image'];
+  if (!file_exists($imagePath)) {
+      die("Image not found");
+  }
 
-    // ------------------------
-    // Load original image
-    // ------------------------
-    $imgInfo = getimagesize($imagePath);
-    switch ($imgInfo['mime']) {
-        case 'image/jpeg':
-            $image = imagecreatefromjpeg($imagePath);
-            break;
-        case 'image/png':
-            $image = imagecreatefrompng($imagePath);
-            break;
-        case 'image/webp':
-            $image = imagecreatefromwebp($imagePath);
-            break;
-        default:
-            die("Unsupported image type");
-    }
+  // ------------------------
+  // Load original image
+  // ------------------------
+  $imgInfo = getimagesize($imagePath);
+  switch ($imgInfo['mime']) {
+    case 'image/jpeg':
+      $image = imagecreatefromjpeg($imagePath);
+      break;
+    case 'image/png':
+      $image = imagecreatefrompng($imagePath);
+      break;
+    case 'image/webp':
+      $image = imagecreatefromwebp($imagePath);
+      break;
+    default:
+      die("Unsupported image type");
+  }
 
-    // ------------------------
-    // Overlay name + price
-    // ------------------------
-    $textColor = imagecolorallocate($image, 255, 255, 255); // white
-    $bgColor   = imagecolorallocatealpha($image, 0, 0, 0, 60); // semi-transparent black
+  // ------------------------
+  // Overlay multiple lines
+  // ------------------------
+  $textColor = imagecolorallocate($image, 255, 255, 255); // white
+  $bgColor = imagecolorallocatealpha($image, 0, 0, 0, 60); // semi-transparent black
+  $fontSize = 5;
+  $padding = 4;
 
-    $fontSize = 5;
-    $padding = 10;
+  $imgWidth = imagesx($image);
+  $imgHeight = imagesy($image);
 
-    $name  = $product['product_name'];
-    $price = $product['currency'] . ' ' . $product['price'];
-    $text  = $name . " - " . $price;
+  // ----- Line 1: Name - Price -----
+  $name = $product['product_name'];
 
-    $imgWidth  = imagesx($image);
-    $imgHeight = imagesy($image);
+  $formattedPrice = number_format((float)$product['price'], 2); // <-- FIX
+  $price = $product['currency'] . ' ' . $formattedPrice;
 
-    $textWidth  = imagefontwidth($fontSize) * strlen($text);
-    $textHeight = imagefontheight($fontSize);
+  $line1 = $name . " - " . $price;
 
-    $x = ($imgWidth - $textWidth) / 2;
-    $y = $imgHeight - $textHeight - 20;
+  $textWidth1 = imagefontwidth($fontSize) * strlen($line1);
+  $textHeight1 = imagefontheight($fontSize);
+  $x1 = ($imgWidth - $textWidth1) / 2;
+  $y1 = 10;
 
-    // Background box
-    imagefilledrectangle(
-        $image,
-        $x - $padding,
-        $y - $padding,
-        $x + $textWidth + $padding,
-        $y + $textHeight + $padding,
-        $bgColor
-    );
+  imagefilledrectangle(
+    $image,
+    $x1 - $padding,
+    $y1 - $padding,
+    $x1 + $textWidth1 + $padding,
+    $y1 + $textHeight1 + $padding,
+    $bgColor
+  );
 
-    // Draw text
-    imagestring($image, $fontSize, $x, $y, $text, $textColor);
+  imagestring($image, $fontSize, $x1, $y1, $line1, $textColor);
 
-    // Output as JPG
-    $filename = preg_replace('/\s+/', '_', $name . '_' . $product['price']) . ".jpg";
+  // ----- Line 2: Agent's Name - username (Formatted) -----
+  $formattedUsername = ucfirst(strtolower($username ?? ''));
+  $line3 = "Agent's Name - " . $formattedUsername;
 
-    header('Content-Type: image/jpeg');
-    header('Content-Disposition: attachment; filename="' . $filename . '"');
-    imagejpeg($image, null, 90);
-    imagedestroy($image);
-    exit;
+  $textWidth3 = imagefontwidth($fontSize) * strlen($line3);
+  $textHeight3 = imagefontheight($fontSize);
+  $x3 = ($imgWidth - $textWidth3) / 2;
+  $y3 = $imgHeight - $textHeight3 - 20;
+
+  imagefilledrectangle(
+    $image,
+    $x3 - $padding,
+    $y3 - $padding,
+    $x3 + $textWidth3 + $padding,
+    $y3 + $textHeight3 + $padding,
+    $bgColor
+  );
+
+  imagestring($image, $fontSize, $x3, $y3, $line3, $textColor);
+
+  // ----- Save / Output -----
+  $filename = preg_replace(
+    '/\s+/', 
+    '_', 
+    $name . '_' . $product['currency'] . '_' . $formattedPrice
+  ) . ".jpg";
+  header('Content-Type: image/jpeg');
+  header('Content-Disposition: attachment; filename="' . $filename . '"');
+  imagejpeg($image, null, 90);
+  imagedestroy($image);
+  exit;
 }
 ?>
 
@@ -2235,13 +2261,16 @@ if (isset($_GET['download_product_id'])) {
         <div class="products-grid" id="productsContainer">
         <?php foreach ($activeProducts as $product): ?>
             <div class="product-card">
-                <img src="<?= htmlspecialchars($product['image'], ENT_QUOTES) ?>" alt="<?= htmlspecialchars($product['product_name'], ENT_QUOTES) ?>">
-                <div class="product-name"><?= htmlspecialchars($product['product_name'], ENT_QUOTES) ?></div>
-                <div class="product-price"><?= htmlspecialchars($product['currency'] . ' ' . $product['price'], ENT_QUOTES) ?></div>
-                <div class="product-description"><?= htmlspecialchars($product['description'], ENT_QUOTES) ?></div>
-                <button class="download-btn" data-id="<?= (int)$product['id'] ?>">
-                    Download for Posting
-                </button>
+              <img src="<?= htmlspecialchars($product['image'], ENT_QUOTES) ?>" alt="<?= htmlspecialchars($product['product_name'], ENT_QUOTES) ?>">
+              <div class="product-name"><?= htmlspecialchars($product['product_name'], ENT_QUOTES) ?></div>
+              <div class="product-price">
+                <?= htmlspecialchars($product['currency'], ENT_QUOTES) ?>
+                <strong><?= htmlspecialchars($product['formatted_price'], ENT_QUOTES) ?></strong>
+              </div>
+              <div class="product-description"><?= htmlspecialchars($product['description'], ENT_QUOTES) ?></div>
+              <button class="download-btn" data-id="<?= (int)$product['id'] ?>">
+                Download for Posting
+              </button>
             </div>
         <?php endforeach; ?>
         </div>
