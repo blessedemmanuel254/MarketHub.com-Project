@@ -541,6 +541,17 @@ function openAgentMarketSource(sourceTabId = "shops") {
   localStorage.setItem(storageKey, sourceTabId);
 }
 
+function goBackToMarketTypes() {
+
+  const marketMain = document.getElementById("marketMain");
+  const orderMain = document.getElementById("orderMain");
+
+  if (marketMain) marketMain.style.display = "flex";
+  if (orderMain) orderMain.style.display = "none";
+
+  showMarketContainer("type");
+
+}
 
 /* ================= GO BACK TO AGENT DASHBOARD ================= */
 

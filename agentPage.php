@@ -1220,7 +1220,7 @@ if (isset($_GET['download_product_id'])) {
         <div class="tabs">
           <button class="tab-btn" data-tab="dashboard">Sales&nbsp;Board</button>
           <button class="tab-btn" data-tab="agency">My&nbsp;Agency</button>
-          <button class="tab-btn" data-tab="funds" onclick="togglePaymentOption()">Funds</button>
+          <button class="tab-btn" data-tab="funds">Funds</button>
         </div>
 
         <div class="tab-content">
@@ -1714,7 +1714,7 @@ if (isset($_GET['download_product_id'])) {
                     <div class="inp-box">
                       <label>Withdraw from Sales</label>
                       <input type="number" placeholder="Enter amount" min="0">
-                      <button type="button">Request Withdrawal</button>
+                      <button type="button" onclick="togglePaymentOption()">Request Withdrawal</button>
                     </div>
                   </div>
                 </div>
@@ -1759,7 +1759,7 @@ if (isset($_GET['download_product_id'])) {
                     <div class="inp-box">
                       <label>Withdraw from Agency</label>
                       <input type="number" placeholder="Enter amount" min="0">
-                      <button type="button">Request Withdrawal</button>
+                      <button type="button" onclick="togglePaymentOption()">Request Withdrawal</button>
                     </div>
                   </div>
                 </div>

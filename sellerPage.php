@@ -1061,7 +1061,7 @@ $deliveredOrders  = $row['delivered_orders'];
         <div class="tabs">
           <button class="tab-btn" data-tab="dashboard">Dashboard</button>
           <button class="tab-btn" data-tab="products">Products</button>
-          <button class="tab-btn" data-tab="funds" onclick="togglePaymentOption()">Funds</button>
+          <button class="tab-btn" data-tab="funds">Funds</button>
         </div>
 
         <div class="tab-content">
@@ -1340,7 +1340,7 @@ $deliveredOrders  = $row['delivered_orders'];
                     <div class="inp-box">
                       <label>Withdrawal Amount</label>
                       <input type="number" placeholder="Enter amount">
-                      <button type="button">Request Withdrawal</button>
+                      <button type="button" onclick="togglePaymentOption()">Request Withdrawal</button>
                     </div>
                   </div>
                 </div>

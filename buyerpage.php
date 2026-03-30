@@ -500,7 +500,7 @@ while ($row = $query->fetch_assoc()) {
 
             <div class="cards">
               <!-- LOCAL -->
-              <a class="card" onclick="openMarketSource('shopsL')">
+              <a class="card">
                 <div class="tag">MOST VISITED</div>
                 <i class="fa-solid fa-screwdriver-wrench"></i>
                 <h2>Local Services</h2>
@@ -515,7 +515,7 @@ while ($row = $query->fetch_assoc()) {
               </a>
 
               <!-- NATIONAL (MOST VISITED) -->
-              <a class="card" onclick="openMarketSource('shopsN')">
+              <a class="card">
                 <i class="fa-solid fa-laptop-code"></i>
                 <h2>National Services</h2>
                 <p>
@@ -529,7 +529,7 @@ while ($row = $query->fetch_assoc()) {
               </a>
 
               <!-- GLOBAL -->
-              <a class="card" onclick="openMarketSource('shopsG')">
+              <a class="card">
                 <i class="fa-solid fa-globe"></i>
                 <h2>Global Services</h2>
                 <p>
@@ -549,7 +549,7 @@ while ($row = $query->fetch_assoc()) {
 
             <div class="cards">
               <!-- LOCAL -->
-              <a class="card" onclick="openMarketSource('shopsL')">
+              <a class="card">
                 <div class="tag">MOST VISITED</div>
                 <i class="fa-solid fa-house"></i>
                 <h2>Local Rentals</h2>
@@ -564,7 +564,7 @@ while ($row = $query->fetch_assoc()) {
               </a>
 
               <!-- NATIONAL (MOST VISITED) -->
-              <a class="card" onclick="openMarketSource('shopsN')">
+              <a class="card">
                 <i class="fa-solid fa-building"></i>
                 <h2>National Rentals</h2>
                 <p>
@@ -578,7 +578,7 @@ while ($row = $query->fetch_assoc()) {
               </a>
 
               <!-- GLOBAL -->
-              <a class="card" onclick="openMarketSource('shopsG')">
+              <a class="card">
                 <i class="fa-solid fa-jet-fighter-up"></i>
                 <h2>Global Rentals</h2>
                 <p>
@@ -842,7 +842,7 @@ while ($row = $query->fetch_assoc()) {
 
         <td><?= $order['quantity'] ?></td>
 
-        <td>KES&nbsp;<?= number_format($order['subtotal']) ?></td>
+        <td>KES&nbsp;<?= number_format($order['subtotal'], 2) ?></td>
 
         <td><span class="badge paid">Paid</span></td>
 
@@ -905,22 +905,22 @@ while ($row = $query->fetch_assoc()) {
           </div>
 
           <div class="card-row">
-              <span>Status</span>
-              <span class="badge <?= strtolower($order['order_status']) ?>">
-                  <?= htmlspecialchars($order['order_status']) ?>
-              </span>
+            <span>Status</span>
+            <span class="badge <?= strtolower($order['order_status']) ?>">
+                <?= htmlspecialchars($order['order_status']) ?>
+            </span>
           </div>
 
           <div class="card-actions">
-              <button class="btn-view">
-                  <i class="fa-solid fa-eye"></i>
-              </button>
+            <button class="btn-view">
+                <i class="fa-solid fa-eye"></i>
+            </button>
 
-              <?php if ($order['order_status'] == 'Processing'): ?>
-                  <button class="btn-cancel">Cancel</button>
-              <?php elseif ($order['order_status'] == 'Shipped'): ?>
-                  <button class="btn-track">Track</button>
-              <?php endif; ?>
+            <?php if ($order['order_status'] == 'Processing'): ?>
+                <button class="btn-cancel">Cancel</button>
+            <?php elseif ($order['order_status'] == 'Shipped'): ?>
+                <button class="btn-track">Track</button>
+            <?php endif; ?>
           </div>
 
       </div>
