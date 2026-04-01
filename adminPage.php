@@ -1300,6 +1300,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_delete_product']
   exit; // VERY IMPORTANT (stops HTML rendering)
 }
 
+$withdrawalsQuery = $conn->query("
+  SELECT 
+    w.*,
+    u.full_name,
+    u.phone,
+    u.account_type,
+    u.profile_image,
+    u.email
+  FROM withdrawals w
+  LEFT JOIN users u ON w.user_id = u.user_id
+  ORDER BY w.created_at DESC
+");
+
+// Pending Requests
+$pendingQuery = "SELECT COUNT(*) as total FROM withdrawals WHERE status = 'Pending'";
+$pendingResult = $conn->query($pendingQuery);
+$pendingCount = $pendingResult->fetch_assoc()['total'] ?? 0;
+
+// Approved Today (SUM of net_amount)
+$approvedTodayQuery = "
+    SELECT SUM(net_amount) as total 
+    FROM withdrawals 
+    WHERE status = 'Approved' 
+    AND DATE(processed_at) = CURDATE()
+";
+$approvedTodayResult = $conn->query($approvedTodayQuery);
+$approvedToday = $approvedTodayResult->fetch_assoc()['total'] ?? 0;
+
+// Total Withdrawn (All Approved)
+$totalWithdrawnQuery = "
+    SELECT SUM(net_amount) as total 
+    FROM withdrawals 
+    WHERE status = 'Approved'
+";
+$totalWithdrawnResult = $conn->query($totalWithdrawnQuery);
+$totalWithdrawn = $totalWithdrawnResult->fetch_assoc()['total'] ?? 0;
+
+
+// Format numbers (KES)
+function formatKES($amount) {
+    if ($amount >= 1000000) {
+        return number_format($amount / 1000000, 1) . "M";
+    }
+    return number_format($amount);
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -2423,32 +2469,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_delete_product']
         <h2>Withdrawals Management</h2>
         <div class="admin-tab-content">
           <div class="cards">
+
+            <!-- Pending -->
             <div class="card sub-card">
               <i class="fa-solid fa-hourglass-half"></i>
               <div>
                 <h3>Pending Requests</h3>
-                <div class="value">17</div>
+                <div class="value"><?php echo $pendingCount; ?></div>
               </div>
             </div>
 
+            <!-- Approved Today -->
             <div class="card sub-card">
               <i class="fa-solid fa-check-circle"></i>
               <div>
                 <h3>Approved Today</h3>
-
-                <div class="value">3.1M</div>
-
-                <small>↑ 12% productivity growth this month</small>
+                <div class="value">KES <?php echo formatKES($approvedToday); ?></div>
+                <small>Based on today's processed withdrawals</small>
               </div>
             </div>
 
+            <!-- Total Withdrawn -->
             <div class="card sub-card">
               <i class="fa-solid fa-money-bill"></i>
               <div>
                 <h3>Total Withdrawn</h3>
-                <div class="value">KES 37.1M</div>
+                <div class="value">KES <?php echo formatKES($totalWithdrawn); ?></div>
               </div>
             </div>
+
           </div>
         </div>
         <div class="table-wrapper">
@@ -2469,10 +2518,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_delete_product']
           <table id="withdrawalsTable">
             <thead>
               <tr>
+                <th>#</th>
                 <th>User</th>
                 <th>Type</th>
-                <th>Available</th>
-                <th>Requested</th>
+                <th>Amount</th>
+                <th>Fee</th>
                 <th>Method</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -2481,880 +2531,112 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_delete_product']
                 <th>Updated&nbsp;At:</th>
               </tr>
             </thead>
-            <tbody>
-              <tr data-status="Paid">
+              <tbody>
+              <?php $count = 1; ?>
+              <?php
+              if ($withdrawalsQuery->num_rows > 0):
+
+              while ($row = $withdrawalsQuery->fetch_assoc()):
+
+                // Safe data
+                $name = safe($row['full_name']);
+                $phoneRaw = decodePhone($row['phone']);
+                $phone = maskPhone($phoneRaw);
+                $accountType = ucfirst(str_replace('_', ' ', $row['account_type']));
+                $amount = number_format($row['amount']);
+                $fee = number_format($row['fee']);
+                $method = ucfirst($row['method']);
+                $status = strtolower($row['status']);
+
+                $email = decodeEmail($row['email']);
+
+                // Image
+                $defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+                $profileImage = (!empty($row['profile_image']) && file_exists($row['profile_image']))
+                    ? htmlspecialchars($row['profile_image'], ENT_QUOTES, 'UTF-8')
+                    : $defaultAvatar;
+
+                // Status class
+                $statusClass = "pending";
+                if ($status === "approved") $statusClass = "approved";
+                if ($status === "rejected") $statusClass = "rejected";
+
+              ?>
+              <tr data-status="<?= $status ?>">
+                
+                <td><?= $count++ ?>.</td>
+
+                <!-- USER -->
                 <td>
                   <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=12" style="border-radius:50%">Blessed Emmanuel
+                    <img src="<?= $profileImage ?>" style="border-radius:50%">
+                    <?= $name ?>
                   </div>
-                  <em>+254759578630</em>
+                  <em><?= $phone ?></em>
                 </td>
-                <td>Agent</td>
-                <td>KES 800,000</td>
-                <td>KES 33,489</td>
-                <td>M-pesa</td>
-                <td><span class="badge approved">Approved</span></td>
+
+                <!-- ROLE -->
+                <td><?= $accountType ?></td>
+
+                <!-- AMOUNT -->
+                <td>KES <?= $amount ?></td>
+
+                <!-- FEE -->
+                <td>KES <?= $fee ?></td>
+
+                <!-- METHOD -->
+                <td><?= $method ?></td>
+
+                <!-- STATUS -->
+                <td>
+                  <span class="badge <?= $statusClass ?>">
+                    <?= ucfirst($status) ?>
+                  </span>
+                </td>
+
+                <!-- ACTIONS -->
                 <td class="actions">
                   <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</i></button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
+
+                    <?php if ($status === 'pending'): ?>
+                      <button class="btn-edit" data-id="<?= $row['withdrawal_id'] ?>">Approve</button>
+                      <button class="btn-suspend" data-id="<?= $row['withdrawal_id'] ?>">
+                        Reject <i class="fa-solid fa-ban"></i>
+                      </button>
+                    <?php endif; ?>
                   </div>
                 </td>
+
+                <!-- CONTACT -->
                 <td class="comm-cell">
                   <button class="comm-btn">
                     <i class="fas fa-ellipsis-vertical"></i>
                   </button>
 
                   <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="tel:<?= $phoneRaw ?>"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/<?= preg_replace('/^\+/', '', $phoneRaw) ?>" target="_blank">
+                      <i class="fab fa-whatsapp"></i> WhatsApp
+                    </a>
+                    <a href="mailto:<?= $email ?>"><i class="fas fa-envelope"></i> Email</a>
                     <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
                   </div>
                 </td>
-                <td>2025-01-15</td>
-                <td>2025-01-15</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=13" style="border-radius:50%">John Mwangi
-                  </div>
-                  <em>+254711000001</em>
-                </td>
-                <td>Agent</td>
-                <td>KES 120,000</td>
-                <td>KES 4,800</td>
-                <td>M-pesa</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
 
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-16</td>
-                <td>2025-01-16</td>
+                <!-- DATES -->
+                <td><?= date('Y-m-d', strtotime($row['requested_at'])) ?></td>
+                <td><?= $row['updated_at'] ? date('Y-m-d', strtotime($row['updated_at'])) : '-' ?></td>
+
               </tr>
 
-              <tr data-status="Approved">
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=14" style="border-radius:50%">Mary Wanjiku
-                  </div>
-                  <em>+254711000002</em>
-                </td>
-                <td>Property Owner</td>
-                <td>KES 560,000</td>
-                <td>KES 22,400</td>
-                <td>Bank</td>
-                <td><span class="badge approved">Approved</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
+              <?php endwhile; ?>
 
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-17</td>
-                <td>2025-01-17</td>
+              <?php else: ?>
+              <tr>
+                <td colspan="10">No withdrawals found</td>
               </tr>
-
-              <tr data-status="Rejected">
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=15" style="border-radius:50%">Kevin Otieno
-                  </div>
-                  <em>+254711000003</em>
-                </td>
-                <td>Agent</td>
-                <td>KES 75,000</td>
-                <td>KES 3,000</td>
-                <td>M-pesa</td>
-                <td><span class="badge rejected">Rejected</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-18</td>
-                <td>2025-01-18</td>
-              </tr>
-
-              <tr data-status="Approved">
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=16" style="border-radius:50%">Faith Njeri
-                  </div>
-                  <em>+254711000004</em>
-                </td>
-                <td>Seller</td>
-                <td>KES 310,000</td>
-                <td>KES 12,400</td>
-                <td>M-pesa</td>
-                <td><span class="badge approved">Approved</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-19</td>
-                <td>2025-01-19</td>
-              </tr>
-
-              <tr data-status="Pending">
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=17" style="border-radius:50%">Brian Kiptoo
-                  </div>
-                  <em>+254711000005</em>
-                </td>
-                <td>Property Owner</td>
-                <td>KES 980,000</td>
-                <td>KES 39,200</td>
-                <td>Bank</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-20</td>
-                <td>2025-01-20</td>
-              </tr>
-
-              <tr data-status="Rejected">
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=18" style="border-radius:50%">Lucy Achieng
-                  </div>
-                  <em>+254711000006</em>
-                </td>
-                <td>Seller</td>
-                <td>KES 44,000</td>
-                <td>KES 1,760</td>
-                <td>M-pesa</td>
-                <td><span class="badge rejected">Rejected</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-21</td>
-                <td>2025-01-21</td>
-              </tr>
-              <tr data-status="Approved">
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=19" style="border-radius:50%">Daniel Kariuki
-                  </div>
-                  <em>+254711000007</em>
-                </td>
-                <td>Property Owner</td>
-                <td>KES 250,000</td>
-                <td>KES 10,000</td>
-                <td>M-pesa</td>
-                <td><span class="badge approved">Approved</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-22</td>
-                <td>2025-01-22</td>
-              </tr>
-
-              <tr data-status="Pending">
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=20" style="border-radius:50%">Susan Mutua
-                  </div>
-                  <em>+254711000008</em>
-                </td>
-                <td>Seller</td>
-                <td>KES 680,000</td>
-                <td>KES 27,200</td>
-                <td>Bank</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-23</td>
-                <td>2025-01-23</td>
-              </tr>
-
-              <tr data-status="Rejected">
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=21" style="border-radius:50%">Peter Ndegwa
-                  </div>
-                  <em>+254711000009</em>
-                </td>
-                <td>Agent</td>
-                <td>KES 90,000</td>
-                <td>KES 3,600</td>
-                <td>M-pesa</td>
-                <td><span class="badge rejected">Rejected</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-24</td>
-                <td>2025-01-24</td>
-              </tr>
-
-              <tr data-status="Approved">
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=22" style="border-radius:50%">Janet Kiplagat
-                  </div>
-                  <em>+254711000010</em>
-                </td>
-                <td>Property Owner</td>
-                <td>KES 1,200,000</td>
-                <td>KES 48,000</td>
-                <td>Bank</td>
-                <td><span class="badge approved">Approved</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-25</td>
-                <td>2025-01-25</td>
-              </tr>
-
-              <tr data-status="Pending">
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=23" style="border-radius:50%">Samuel Ouma
-                  </div>
-                  <em>+254711000011</em>
-                </td>
-                <td>Agent</td>
-                <td>KES 340,000</td>
-                <td>KES 13,600</td>
-                <td>M-pesa</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-26</td>
-                <td>2025-01-26</td>
-              </tr>
-
-              <tr data-status="Rejected">
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=24" style="border-radius:50%">Grace Wambui
-                  </div>
-                  <em>+254711000012</em>
-                </td>
-                <td>Seller</td>
-                <td>KES 60,000</td>
-                <td>KES 2,400</td>
-                <td>M-pesa</td>
-                <td><span class="badge rejected">Rejected</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-27</td>
-                <td>2025-01-27</td>
-              </tr>
-
-              <tr data-status="Approved">
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=25" style="border-radius:50%">Dennis Barasa
-                  </div>
-                  <em>+254711000013</em>
-                </td>
-                <td>Agent</td>
-                <td>KES 470,000</td>
-                <td>KES 18,800</td>
-                <td>Bank</td>
-                <td><span class="badge approved">Approved</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-28</td>
-                <td>2025-01-28</td>
-              </tr>
-
-              <tr data-status="Pending">
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=26" style="border-radius:50%">Alice Chebet
-                  </div>
-                  <em>+254711000014</em>
-                </td>
-                <td>Seller</td>
-                <td>KES 150,000</td>
-                <td>KES 6,000</td>
-                <td>M-pesa</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-29</td>
-                <td>2025-01-29</td>
-              </tr>
-              <tr data-status="Approved">
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=27" style="border-radius:50%">Michael Kimani
-                  </div>
-                  <em>+254711000015</em>
-                </td>
-                <td>Agent</td>
-                <td>KES 520,000</td>
-                <td>KES 20,800</td>
-                <td>Bank</td>
-                <td><span class="badge approved">Approved</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-30</td>
-                <td>2025-01-30</td>
-              </tr>
-
-              <tr data-status="Pending">
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=28" style="border-radius:50%">Esther Waithera
-                  </div>
-                  <em>+254711000016</em>
-                </td>
-                <td>Seller</td>
-                <td>KES 210,000</td>
-                <td>KES 8,400</td>
-                <td>M-pesa</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-01-31</td>
-                <td>2025-01-31</td>
-              </tr>
-
-              <tr data-status="Rejected">
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=29" style="border-radius:50%">Paul Onyango
-                  </div>
-                  <em>+254711000017</em>
-                </td>
-                <td>Propery Owner</td>
-                <td>KES 65,000</td>
-                <td>KES 2,600</td>
-                <td>M-pesa</td>
-                <td><span class="badge rejected">Rejected</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-02-01</td>
-                <td>2025-02-01</td>
-              </tr>
-
-              <tr data-status="Approved">
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=30" style="border-radius:50%">Naomi Cherono
-                  </div>
-                  <em>+254711000018</em>
-                </td>
-                <td>Seller</td>
-                <td>KES 890,000</td>
-                <td>KES 35,600</td>
-                <td>Bank</td>
-                <td><span class="badge approved">Approved</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-02-02</td>
-                <td>2025-02-02</td>
-              </tr>
-
-              <tr data-status="Pending">
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=31" style="border-radius:50%">Isaac Muriuki
-                  </div>
-                  <em>+254711000019</em>
-                </td>
-                <td>Agent</td>
-                <td>KES 300,000</td>
-                <td>KES 12,000</td>
-                <td>M-pesa</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-02-03</td>
-                <td>2025-02-03</td>
-              </tr>
-
-              <tr data-status="Rejected">
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=32" style="border-radius:50%">Brenda Atieno
-                  </div>
-                  <em>+254711000020</em>
-                </td>
-                <td>Propery Owner</td>
-                <td>KES 55,000</td>
-                <td>KES 2,200</td>
-                <td>M-pesa</td>
-                <td><span class="badge rejected">Rejected</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-02-04</td>
-                <td>2025-02-04</td>
-              </tr>
-
-              <tr data-status="Approved">
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=33" style="border-radius:50%">Joseph Karanja
-                  </div>
-                  <em>+254711000021</em>
-                </td>
-                <td>Agent</td>
-                <td>KES 760,000</td>
-                <td>KES 30,400</td>
-                <td>Bank</td>
-                <td><span class="badge approved">Approved</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-02-05</td>
-                <td>2025-02-05</td>
-              </tr>
-
-              <tr data-status="Pending">
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=34" style="border-radius:50%">Ruth Jepkosgei
-                  </div>
-                  <em>+254711000022</em>
-                </td>
-                <td>Seller</td>
-                <td>KES 180,000</td>
-                <td>KES 7,200</td>
-                <td>M-pesa</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-02-06</td>
-                <td>2025-02-06</td>
-              </tr>
-
-              <tr data-status="Rejected">
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=35" style="border-radius:50%">Allan Mutiso
-                  </div>
-                  <em>+254711000023</em>
-                </td>
-                <td>Property Owner</td>
-                <td>KES 95,000</td>
-                <td>KES 3,800</td>
-                <td>M-pesa</td>
-                <td><span class="badge rejected">Rejected</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-02-07</td>
-                <td>2025-02-07</td>
-              </tr>
-
-              <tr data-status="Approved">
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="https://i.pravatar.cc/40?img=36" style="border-radius:50%">Lydia Muthoni
-                  </div>
-                  <em>+254711000024</em>
-                </td>
-                <td>Seller</td>
-                <td>KES 640,000</td>
-                <td>KES 25,600</td>
-                <td>Bank</td>
-                <td><span class="badge approved">Approved</span></td>
-                <td class="actions">
-                  <div>
-                    <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-edit">Approve</button>
-                    <button class="btn-suspend">Reject&nbsp;<i class="fa-solid fa-ban"></i></button>
-                  </div>
-                </td>
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
-
-                  <div class="comm-dropdown">
-                    <a href="tel:+254712345678"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/254712345678" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    <a href="mailto:blessed@email.com"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
-                <td>2025-02-08</td>
-                <td>2025-02-08</td>
-              </tr>
-              
-            </tbody>
+              <?php endif; ?>
+              </tbody>
           </table>
         </div>
       </div>
@@ -3375,9 +2657,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_delete_product']
           <div class="filter-bar">
             <select id="statusFilter">
               <option value="all">All Transactions</option>
-              <option value="Delivered">Completed</option>
-              <option value="Shipped">Pending</option>
-              <option value="Processing">Processing</option>
+              <option value="completed">Completed</option>
+              <option value="pending">Pending</option>
+              <option value="rejected">Rejected</option>
             </select>
           </div>
           <table id="transactionsTable">
@@ -3392,170 +2674,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_delete_product']
                 <th>Date</th>
               </tr>
             </thead>
-            <tbody>
-              <tr data-status="Paid">
-                <td>1.</td>
-                <td>#TX20491</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge paid">Completed</span></td>
-                <td>2025-01-15</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>2.</td>
-                <td>#TX20492</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td>2025-01-16</td>
-              </tr>
-              <tr data-status="Paid">
-                <td>3.</td>
-                <td>#TX20493</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge paid">Completed</span></td>
-                <td>2025-01-17</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>4.</td>
-                <td>#TX20494</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge rejected">Rejected</span></td>
-                <td>2025-01-18</td>
-              </tr>
-              <tr data-status="Paid">
-                <td>5.</td>
-                <td>#TX20495</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge paid">Completed</span></td>
-                <td>2025-01-19</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>6.</td>
-                <td>#TX20496</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td>2025-01-20</td>
-              </tr>
-              <tr data-status="Paid">
-                <td>7.</td>
-                <td>#TX20495</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge paid">Completed</span></td>
-                <td>2025-01-19</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>8.</td>
-                <td>#TX20496</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td>2025-01-20</td>
-              </tr>
-              <tr data-status="Paid">
-                <td>9.</td>
-                <td>#TX20495</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge rejected">Rejected</span></td>
-                <td>2025-01-19</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>10.</td>
-                <td>#TX20496</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td>2025-01-20</td>
-              </tr>
-              <tr data-status="Paid">
-                <td>11.</td>
-                <td>#TX20495</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge paid">Completed</span></td>
-                <td>2025-01-19</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>12.</td>
-                <td>#TX20496</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td>2025-01-20</td>
-              </tr>
-              <tr data-status="Paid">
-                <td>13.</td>
-                <td>#TX20495</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge paid">Completed</span></td>
-                <td>2025-01-19</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>14.</td>
-                <td>#TX20496</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge rejected">Rejected</span></td>
-                <td>2025-01-20</td>
-              </tr>
-              <tr data-status="Paid">
-                <td>15.</td>
-                <td>#TX20495</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge paid">Completed</span></td>
-                <td>2025-01-19</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>16.</td>
-                <td>#TX20496</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td>2025-01-20</td>
-              </tr>
-              <tr data-status="Paid">
-                <td>17.</td>
-                <td>#TX20495</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge paid">Completed</span></td>
-                <td>2025-01-19</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>18.</td>
-                <td>#TX20496</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge rejected">Rejected</span></td>
-                <td>2025-01-20</td>
-              </tr>
-            </tbody>
+              <tbody>
+              <?php
+
+              $query = "
+              SELECT 
+                  ft.transaction_id,
+                  ft.transaction_type,
+                  ft.amount,
+                  ft.status,
+                  ft.created_at,
+
+                  payer.account_type AS payer_type,
+                  receiver.account_type AS receiver_type
+
+              FROM financial_transactions ft
+              LEFT JOIN users payer ON ft.payer_id = payer.user_id
+              LEFT JOIN users receiver ON ft.receiver_id = receiver.user_id
+
+              ORDER BY ft.created_at DESC
+              ";
+
+              $result = $conn->query($query);
+
+              $index = 1;
+
+              while ($row = $result->fetch_assoc()) {
+
+                  // Format type
+                  $type = ($row['payer_type'] ?? 'User') . " → " . ($row['receiver_type'] ?? 'User');
+
+                  // Commission (example 10%)
+                  $commission = $row['amount'] * 0.10;
+
+                  // Status class
+                  $status = strtolower($row['status']);
+                  $statusClass = "pending";
+
+                  if ($status === "completed") $statusClass = "paid";
+                  if ($status === "rejected") $statusClass = "rejected";
+
+                  echo "
+                  <tr data-status='{$status}'>
+                      <td>{$index}.</td>
+                      <td>#TX{$row['transaction_id']}</td>
+                      <td>{$type}</td>
+                      <td>KES " . number_format($row['amount']) . "</td>
+                      <td>KES " . number_format($commission) . "</td>
+                      <td><span class='badge {$statusClass}'>" . ucfirst($status) . "</span></td>
+                      <td>" . date('Y-m-d', strtotime($row['created_at'])) . "</td>
+                  </tr>
+                  ";
+
+                  $index++;
+              }
+              ?>
+              </tbody>
           </table>
         </div>
       </div>

@@ -922,6 +922,139 @@ $totalOrders      = $row['total_orders'];
 $processingOrders = $row['processing_orders'];
 $shippedOrders    = $row['shipped_orders'];
 $deliveredOrders  = $row['delivered_orders'];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
+
+  $walletType = 'sales'; // seller always uses sales wallet
+  $error = '';
+  $success = '';
+
+  $withdrawAmount = $_POST['withdraw_sales_amount'] ?? '';
+  $balance = $walletBalance;
+  $min = $minWithdrawal;
+
+  if (empty($withdrawAmount) && $withdrawAmount !== '0') {
+      $error = "Please enter a withdrawal amount.";
+  } else {
+
+    $withdrawAmount = floatval($withdrawAmount);
+
+    // Max limit
+    $maxWithdrawal = 100000.0;
+    if ($withdrawAmount > $maxWithdrawal) {
+        $error = "Maximum withdrawal allowed is KES $maxWithdrawal.";
+    }
+
+    // --- M-Pesa style fee ---
+    if ($withdrawAmount <= 1000) {
+        $fee = 40;
+    } elseif ($withdrawAmount <= 10000) {
+        $fee = 50 + 0.002 * $withdrawAmount;
+    } elseif ($withdrawAmount <= 50000) {
+        $fee = 100 + 0.0015 * $withdrawAmount;
+    } else {
+        $fee = 200 + 0.001 * $withdrawAmount;
+    }
+
+    $fee = round($fee, 2);
+    $netAmount = $withdrawAmount - $fee;
+
+    // Validation
+    if (!$error) {
+        if ($withdrawAmount < $min) {
+            $error = "Minimum withdrawal is KES $min.";
+        } elseif ($withdrawAmount > $balance) {
+            $error = "Insufficient balance. Your wallet balance is KES $balance.";
+        } elseif ($netAmount <= 0) {
+            $error = "Withdrawal amount must be greater than fee (KES $fee).";
+        }
+    }
+  }
+
+  if (!$error) {
+
+    $conn->begin_transaction();
+
+    try {
+
+      // 1️⃣ Deduct wallet
+      $stmt = $conn->prepare("
+        UPDATE wallets 
+        SET balance = balance - ? 
+        WHERE user_id = ? AND wallet_type = 'sales' 
+        LIMIT 1
+      ");
+      $stmt->bind_param("di", $withdrawAmount, $user_id);
+      $stmt->execute();
+      $stmt->close();
+
+      // 2️⃣ financial_transactions
+      $stmt = $conn->prepare("
+        INSERT INTO financial_transactions 
+        (source_type, source_id, wallet_id, payer_id, receiver_id, transaction_type, amount, currency, status, description, created_at)
+        SELECT ?, ?, wallet_id, ?, ?, 'withdrawal', ?, 'KES', 'pending', ?, NOW()
+        FROM wallets 
+        WHERE user_id = ? AND wallet_type = 'sales' 
+        LIMIT 1
+      ");
+
+      $sourceType = 'withdrawal';
+      $description = "Seller withdrawal request";
+
+      $stmt->bind_param(
+        "siiddsi",
+        $sourceType,
+        $user_id,
+        $user_id,
+        $user_id,
+        $withdrawAmount,
+        $description,
+        $user_id
+      );
+
+      $stmt->execute();
+      $transactionId = $stmt->insert_id;
+      $stmt->close();
+
+      // 3️⃣ withdrawals
+      $stmt = $conn->prepare("
+        INSERT INTO withdrawals 
+        (user_id, wallet_id, amount, fee, net_amount, status, transaction_id, requested_at, currency)
+        SELECT user_id, wallet_id, ?, ?, ?, 'pending', ?, NOW(), 'KES'
+        FROM wallets 
+        WHERE user_id = ? AND wallet_type = 'sales' 
+        LIMIT 1
+      ");
+
+      $stmt->bind_param("dddii", $withdrawAmount, $fee, $netAmount, $transactionId, $user_id);
+      $stmt->execute();
+
+      $withdrawalId = $conn->insert_id; // ✅ CORRECT ID
+      $stmt->close();
+
+      // 4️⃣ withdrawal_logs
+      $stmt = $conn->prepare("
+        INSERT INTO withdrawal_logs 
+        (withdrawal_id, performed_by, note, created_at)
+        VALUES (?, ?, ?, NOW())
+      ");
+
+      $note = "Seller requested withdrawal of KES $withdrawAmount, net KES $netAmount, fee KES $fee";
+
+      $stmt->bind_param("iis", $withdrawalId, $user_id, $note);
+      $stmt->execute();
+      $stmt->close();
+
+      $conn->commit();
+
+      $success = "Withdrawal request of KES $withdrawAmount submitted successfully. You will receive KES $netAmount after fees! <span class='redirect-msg'></span>";
+
+    } catch (Exception $e) {
+      $conn->rollback();
+      $error = "Withdrawal failed: " . $e->getMessage();
+    }
+  }
+}
 ?>
 
 <!DOCTYPE html>
@@ -1307,24 +1440,28 @@ $deliveredOrders  = $row['delivered_orders'];
             <div class="form-wrapper">
               <form method="POST" enctype="multipart/form-data">
                 <h1>Withdraw Funds</h1>
-
                 <?php if (!empty($error)): ?>
                   <p class="errorMessage">
                     <i class="fa-solid fa-circle-exclamation"></i>
                     <?= htmlspecialchars($error); ?>
                   </p>
                 <?php endif; ?>
-
                 <?php if (!empty($success)): ?>
-                  <p class="successMessage">
-                    <i class="fa-solid fa-check-circle"></i>
-                    <?= $success; ?>
+                  <p class="successMessage" data-redirect="sellerPage.php">
+                    <i class="fa-solid fa-check-circle"></i> <?= $success ?>
                   </p>
+
+                  <script>
+                    showNotification(
+                      `<i class="fa-solid fa-check-circle"></i> <?= addslashes($success) ?>`,
+                      4000
+                    );
+                  </script>
                 <?php endif; ?>
 
                 <input type="hidden" name="withdraw_wallet" value="sales">
 
-                <div class="formBody">
+                <div class="formBody active">
                   <div class="card">
                     <i class="fa fa-wallet icon"></i>
                     <h3>Wallet Health</h3>
@@ -1555,6 +1692,7 @@ $deliveredOrders  = $row['delivered_orders'];
       <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
     </footer>
   </div>
+  <div id="notification-container"></div>
   
   <script src="assets/js/general.js" type="text/javascript" defer></script>
   <script>

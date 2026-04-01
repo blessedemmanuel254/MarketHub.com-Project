@@ -1069,9 +1069,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
       // Validation
       if (!$error) {
           if ($withdrawAmount < $min) {
-              $error = "Minimum withdrawal for $walletType wallet is KES $min.";
+              $error = "Minimum withdrawal for $walletType wallet is KES $min!";
           } elseif ($withdrawAmount > $balance) {
-              $error = "Insufficient balance. Your $walletType wallet balance is KES $balance.";
+              $error = "Insufficient balance!";
           } elseif ($netAmount <= 0) {
               $error = "Withdrawal amount must be greater than the transaction fee (KES $fee).";
           }
@@ -1106,8 +1106,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
                                   SELECT user_id, wallet_id, ?, ?, ?, 'pending', ?, NOW(), 'KES' 
                                   FROM wallets WHERE user_id = ? AND wallet_type = ? LIMIT 1");
           $stmt->bind_param("dddiis", $withdrawAmount, $fee, $netAmount, $transactionId, $user_id, $walletType);
+          $stmt->execute(); // ✅ REQUIRED
 
-          $withdrawalId = $conn->insert_id; // ✅ get correct withdrawal ID
+          $withdrawalId = $stmt->insert_id; // ✅ CORRECT PLACE
           $stmt->close();
 
           // 4️⃣ Insert into withdrawal_logs
@@ -1129,6 +1130,72 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
           $conn->rollback();
           $error = "Withdrawal failed: " . $e->getMessage();
       }
+  }
+}
+
+// Fetch latest withdrawals (limit for UI)
+$query = "
+  SELECT w.*, u.phone 
+  FROM withdrawals w
+  LEFT JOIN users u ON w.user_id = u.user_id
+  ORDER BY w.created_at DESC
+  LIMIT 10
+";
+
+$result = $conn->query($query);
+
+// Helper: format date
+function formatDate($date) {
+  return date("d M Y", strtotime($date));
+}
+
+function decodePhone($encodedPhone) {
+  if (empty($encodedPhone)) {
+      return '';
+  }
+
+  $decoded = base64_decode($encodedPhone, true);
+
+  // If decoding fails, return original safely
+  if ($decoded === false) {
+      return htmlspecialchars($encodedPhone, ENT_QUOTES, 'UTF-8');
+  }
+
+  return htmlspecialchars($decoded, ENT_QUOTES, 'UTF-8');
+}
+
+// Helper: mask phone
+function maskPhone($phone, $maskChar = '*') {
+  // Ensure the phone has at least 8 characters to mask
+  if (strlen($phone) < 8) {
+      return $phone;
+  }
+
+  // Keep first 6 characters (country code + prefix) and last 3 digits
+  $firstPart = substr($phone, 0, 6);
+  $lastPart = substr($phone, -3);
+
+  // Middle part to be masked
+  $maskedLength = strlen($phone) - strlen($firstPart) - strlen($lastPart);
+  $maskedPart = str_repeat($maskChar, $maskedLength);
+
+  return $firstPart . $maskedPart . $lastPart;
+}
+
+// Helper: status class
+function getStatusClass($status) {
+  return strtolower($status); // paid, pending, rejected etc.
+}
+
+// Helper: status icon
+function getStatusIcon($status) {
+  switch ($status) {
+    case 'Approved': return 'fa-check-circle';
+    case 'Pending': return 'fa-clock';
+    case 'Processing': return 'fa-spinner fa-spin';
+    case 'Rejected': return 'fa-ban';
+    case 'Failed': return 'fa-circle-xmark';
+    default: return 'fa-clock';
   }
 }
 ?>
@@ -1801,16 +1868,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
               <form method="POST" autocomplete="off" enctype="multipart/form-data">
                 <h1>Withdraw Funds</h1>
                 <?php if (!empty($error)): ?>
-                  <p class="errorMessage">
+                  <p class="errorMessage usrWlt">
                     <i class="fa-solid fa-circle-exclamation"></i>
                     <?= htmlspecialchars($error); ?>
                   </p>
                 <?php endif; ?>
                 <?php if (!empty($success)): ?>
-                  <p class="successMessage" data-redirect="agentPage.php">
+                  <p class="successMessage usrWlt" data-redirect="agentPage.php">
                     <i class="fa-solid fa-check-circle"></i> <?= $success ?>
                   </p>
+
+                  <script>
+                    showNotification(
+                      `<i class="fa-solid fa-check-circle"></i> <?= addslashes($success) ?>`,
+                      4000
+                    );
+                  </script>
                 <?php endif; ?>
+                
                 <select name="withdraw_wallet" id="walletSelect" class="walletChange">
                   <option value="sales">Sales Wallet</option>
                   <option value="agency">Agency Wallet</option>
@@ -2548,109 +2623,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
       
       <div class="containerWH">
         <h2>Withdrawal History</h2>
-
         <div class="withdraw-grid">
-          <!-- Paid -->
-          <div class="withdraw-card">
+
+        <?php while($row = $result->fetch_assoc()): ?>
+
+          <div class="withdraw-card <?php echo $row['status']; ?>">
+            
             <div class="withdraw-left">
+              
               <div class="withdraw-title">
-                <i class="fa-solid fa-wallet"></i> Sales Wallet Withdrawal
+                <i class="fa-solid fa-wallet"></i> 
+                Wallet Withdrawal
               </div>
+
               <div class="withdraw-meta">
-                <i class="fa-regular fa-calendar"></i> 24 Feb 2026<br>
-                <i class="fa-solid fa-mobile-screen-button"></i> M-Pesa • 07********
+                <i class="fa-regular fa-calendar"></i> 
+                <?php echo formatDate($row['created_at']); ?><br>
+
+                <?php
+                  $phone = $row['phone'] ?? $row['account_number'];
+                ?>
+
+                <?php if(strtolower($row['method']) == 'mpesa'): ?>
+                  <i class="fa-solid fa-mobile-screen-button"></i> 
+                  M-Pesa • 
+                  <?php 
+                    // Get phone (prefer users.phone)
+                    $rawPhone = $row['phone'] ?? $row['account_number'];
+
+                    // Decode if it's from users table
+                    $decodedPhone = decodePhone($rawPhone);
+
+                    // Fallback if decoding fails
+                    $finalPhone = $decodedPhone ?: $rawPhone;
+
+                    echo maskPhone($finalPhone);
+                  ?>
+                <?php else: ?>
+                  <i class="fa-solid fa-building-columns"></i> 
+                  <?php echo $row['method']; ?>
+                <?php endif; ?>
               </div>
+
               <div class="withdraw-reference">
-                <i class="fa-solid fa-hashtag"></i> TRX89374219
+                <i class="fa-solid fa-hashtag"></i> 
+                <?php echo $row['reference_code'] ?: $row['transaction_id']; ?>
               </div>
+
+              <!-- OPTIONAL: Show user name -->
+              <div style="margin-top:5px; font-size:13px; color:#666;">
+                <?php echo $row['full_name'] ?? $row['account_name']; ?>
+              </div>
+
             </div>
+
             <div class="withdraw-right">
-              <div class="withdraw-amount">KES 3,500</div>
-              <div class="status paid"><i class="fa-solid fa-check-circle"></i> Paid</div>
+              
+              <div class="withdraw-amount">
+                KES <?php echo number_format($row['amount']); ?>
+              </div>
+
+              <div class="status <?php echo getStatusClass($row['status']); ?>">
+                <i class="fa-solid <?php echo getStatusIcon($row['status']); ?>"></i>
+                <?php echo $row['status']; ?>
+              </div>
+
             </div>
+
           </div>
 
-          <!-- Processing -->
-          <div class="withdraw-card">
-            <div class="withdraw-left">
-              <div class="withdraw-title">
-                <i class="fa-solid fa-wallet"></i> Affiliate Wallet Withdrawal
-              </div>
-              <div class="withdraw-meta">
-                <i class="fa-regular fa-calendar"></i> 22 Feb 2026<br>
-                <i class="fa-solid fa-building-columns"></i> Bank Transfer
-              </div>
-              <div class="withdraw-reference">
-                <i class="fa-solid fa-hashtag"></i> TRX20483910
-              </div>
-            </div>
-            <div class="withdraw-right">
-              <div class="withdraw-amount">KES 5,000</div>
-              <div class="status processing"><i class="fa-solid fa-spinner fa-spin"></i> Processing</div>
-            </div>
-          </div>
-
-          <!-- Pending -->
-          <div class="withdraw-card">
-            <div class="withdraw-left">
-              <div class="withdraw-title">
-                <i class="fa-solid fa-wallet"></i> Sales Wallet Withdrawal
-              </div>
-              <div class="withdraw-meta">
-                <i class="fa-regular fa-calendar"></i> 20 Feb 2026<br>
-                <i class="fa-solid fa-mobile-screen-button"></i> M-Pesa
-              </div>
-              <div class="withdraw-reference">
-                <i class="fa-solid fa-hashtag"></i> TRX56473829
-              </div>
-            </div>
-            <div class="withdraw-right">
-              <div class="withdraw-amount">KES 1,800</div>
-              <div class="status pending"><i class="fa-solid fa-clock"></i> Pending</div>
-            </div>
-          </div>
-
-          <!-- Failed -->
-          <div class="withdraw-card">
-            <div class="withdraw-left">
-              <div class="withdraw-title">
-                <i class="fa-solid fa-wallet"></i> Affiliate Wallet Withdrawal
-              </div>
-              <div class="withdraw-meta">
-                <i class="fa-regular fa-calendar"></i> 18 Feb 2026<br>
-                <i class="fa-solid fa-mobile-screen-button"></i> M-Pesa
-              </div>
-              <div class="withdraw-reference">
-                <i class="fa-solid fa-hashtag"></i> TRX99887766
-              </div>
-            </div>
-            <div class="withdraw-right">
-              <div class="withdraw-amount">KES 900</div>
-              <div class="status failed"><i class="fa-solid fa-circle-xmark"></i> Failed</div>
-            </div>
-          </div>
-
-          <!-- Rejected -->
-          <div class="withdraw-card">
-            <div class="withdraw-left">
-              <div class="withdraw-title">
-                <i class="fa-solid fa-wallet"></i> Sales Wallet Withdrawal
-              </div>
-              <div class="withdraw-meta">
-                <i class="fa-regular fa-calendar"></i> 15 Feb 2026<br>
-                <i class="fa-solid fa-triangle-exclamation"></i> Verification issue
-              </div>
-              <div class="withdraw-reference">
-                <i class="fa-solid fa-hashtag"></i> TRX11223344
-              </div>
-            </div>
-            <div class="withdraw-right">
-              <div class="withdraw-amount">KES 2,400</div>
-              <div class="status rejected"><i class="fa-solid fa-ban"></i> Rejected</div>
-            </div>
-          </div>
-        </div>
-      </div>
+        <?php endwhile; ?>
 
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleAgentWithdrawals()">Go&nbsp;back</button> to continue with sales.</p>
     </main>
@@ -2736,6 +2778,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
       <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
     </footer>
   </div>
+  <div id="notification-container"></div>
   
   <script src="assets/js/general.js" type="text/javascript" defer></script>
   <script>

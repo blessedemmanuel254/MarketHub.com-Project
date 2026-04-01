@@ -2130,3 +2130,36 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 });
+
+// ===============================
+// NOTIFICATION JS
+// ===============================
+
+function showNotification(message, duration = 3000) {
+  const notification = document.createElement('div');
+  notification.classList.add('notification');
+  notification.innerHTML = `
+    <div class="message">${message}</div>
+    <div class="progress-bar"></div>
+  `;
+  document.getElementById('notification-container').appendChild(notification);
+
+  const progressBar = notification.querySelector('.progress-bar');
+  let startTime = null;
+
+  function animateProgress(timestamp) {
+    if (!startTime) startTime = timestamp;
+    const elapsed = timestamp - startTime;
+    const progress = Math.max(0, 1 - elapsed / duration);
+    progressBar.style.width = `${progress * 100}%`;
+
+    if (elapsed < duration) {
+      requestAnimationFrame(animateProgress);
+    } else {
+      notification.style.animation = 'slideOutWiggle 0.8s forwards';
+      setTimeout(() => notification.remove(), 800);
+    }
+  }
+
+  requestAnimationFrame(animateProgress);
+}
