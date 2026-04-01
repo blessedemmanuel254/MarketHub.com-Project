@@ -4,8 +4,8 @@ require_once 'connection.php';
 
 /* ---------- SESSION SECURITY ---------- */ 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: index.php");
-    exit();
+  header("Location: index.php");
+  exit();
 }  
 
 /* Optional: regenerate session ID periodically */
@@ -1352,6 +1352,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_delete_product']
   </style>
 </head>
 <body id="adminBody">
+  <div class="confirmation-popup" id="confirmation-popup">
+    <h3 id="popupTitle">Confirm Action</h3>
+    <p id="popupMessage">Are you sure?</p>
+
+    <div class="popup-actions">
+      <button id="confirmAction" class="btn-confirm">Yes, Confirm</button>
+      <button id="cancelAction" class="btn-cancel">Cancel</button>
+    </div>
+  </div>
+
+  <div class="confirmation-popup-overlay" id="confirmation-popup-overlay"></div>
   <div class="containerAdmin">
     <section>
       <h1>ADMIN&nbsp;PANEL<br><span>Maket&nbsp;Hub</span></h1>
@@ -1703,14 +1714,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_delete_product']
                 <div class="value">KES 1.3M</div>
               </div>
             </div>
-
-            <div class="card sub-card">
-              <i class="fa-solid fa-chart-simple"></i>
-              <div>
-                <h3>Total Referrals</h3>
-                <div class="value">587</div>
-              </div>
-            </div>
           </div>
         </div>
         <div class="table-wrapper">
@@ -1810,6 +1813,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_delete_product']
 
                 <td class="actions">
                 <div>
+                <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
 
                 <button 
                 class="btn-edit"
@@ -3590,7 +3594,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_delete_product']
               <div>
               <h3>Inactive Products</h3>
               <div class="value"><?= number_format($inactiveProducts) ?></div>
-              <small>Disabled or hidden</small>
+              <small>Is-Active value = 0</small>
               </div>
             </div>
 

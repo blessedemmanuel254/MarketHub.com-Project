@@ -930,6 +930,42 @@ function toggleNavigationBar() {
   document.querySelector('.navigation-bar')?.classList.toggle('show');
 }
 
+const popup = document.getElementById("confirmation-popup");
+const popupOverlay = document.getElementById("confirmation-popup-overlay");
+const popupTitle = document.getElementById("popupTitle");
+const popupMessage = document.getElementById("popupMessage");
+const confirmBtn = document.getElementById("confirmAction");
+const cancelBtn = document.getElementById("cancelAction");
+popup.onclick = (e) => e.stopPropagation();
+
+function showPopup(title, message, onConfirm) {
+  popupTitle.textContent = title;
+  popupMessage.textContent = message;
+
+  popup.classList.add("active");
+  popupOverlay.classList.add("active");
+
+  // Reset old events
+  confirmBtn.onclick = null;
+  cancelBtn.onclick = null;
+  popupOverlay.onclick = null;
+
+  confirmBtn.onclick = () => {
+    closePopup();
+    onConfirm();
+  };
+
+  cancelBtn.onclick = closePopup;
+
+  // 👇 Overlay click = cancel
+  popupOverlay.onclick = closePopup;
+}
+
+function closePopup() {
+  popup.classList.remove("active");
+  popupOverlay.classList.remove("active");
+}
+
 document.addEventListener("DOMContentLoaded", () => {
 
   // Only run if admin dashboard exists
@@ -1018,8 +1054,15 @@ document.addEventListener("click", function(e){
   if(action === "deactivate") message = "Deactivate this agent?";
   if(action === "delete") message = "Delete this user permanently?";
 
-  if(!confirm(message)) return;
+  let title = "Confirm Action";
 
+  if(action === "delete") title = "Delete User";
+  if(action === "suspend") title = "Suspend User";
+  if(action === "restore") title = "Restore User";
+  if(action === "activate") title = "Activate Agent";
+  if(action === "deactivate") title = "Deactivate Agent";
+
+showPopup(title, message, () => {
 
   /* AJAX REQUEST */
 
@@ -1128,6 +1171,8 @@ alert("Network error");
 });
 
 });
+
+});
 document.addEventListener("click", function(e){
 
 const btn = e.target.closest(".copy-link-btn");
@@ -1198,53 +1243,54 @@ document.addEventListener("click", function(e){
   const productId = btn.dataset.productId;
   if (!productId) return;
 
-  if (!confirm("Delete this product permanently?")) return;
+  showPopup("Delete Product", "Delete this product permanently?", () => {
 
-  fetch("adminPage.php", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      "X-Requested-With": "XMLHttpRequest"
-    },
-    body: new URLSearchParams({
-      ajax_delete_product: 1,
-      product_id: productId
+    fetch("adminPage.php", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-Requested-With": "XMLHttpRequest"
+      },
+      body: new URLSearchParams({
+        ajax_delete_product: 1,
+        product_id: productId
+      })
     })
-  })
-  .then(res => res.json())
-  .then(data => {
+    .then(res => res.json())
+    .then(data => {
 
-    if (!data.success) {
-      alert(data.error || "Delete failed");
-      return;
-    }
-
-    try {
-      const card = btn.closest(".product-card");
-
-      if (card) {
-        const grid = card.closest(".products-grid-admin");
-
-        card.remove();
-
-        if (grid && grid.querySelectorAll(".product-card").length === 0) {
-          grid.innerHTML = '<p class="noproducts-admin-p">No products in this category.</p>';
-        }
+      if (!data.success) {
+        alert(data.error || "Delete failed");
+        return;
       }
 
-      // Slight delay before reload
-      setTimeout(() => {
-        location.reload();
-      }, 1000); // 1 second delay
+      try {
+        const card = btn.closest(".product-card");
 
-    } catch (err) {
-      console.error("DOM error:", err);
-    }
+        if (card) {
+          const grid = card.closest(".products-grid-admin");
 
-  })
-  .catch(err => {
-    console.error("FETCH ERROR:", err);
-    alert("Network error");
+          card.remove();
+
+          if (grid && grid.querySelectorAll(".product-card").length === 0) {
+            grid.innerHTML = '<p class="noproducts-admin-p">No products in this category.</p>';
+          }
+        }
+
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
+
+      } catch (err) {
+        console.error("DOM error:", err);
+      }
+
+    })
+    .catch(err => {
+      console.error("FETCH ERROR:", err);
+      alert("Network error");
+    });
+
   });
 
 });
@@ -1483,8 +1529,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
-
-
 
 // ==============================
 // DAILY PRODUCTS CONFIGURATION

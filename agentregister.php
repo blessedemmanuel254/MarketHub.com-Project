@@ -195,54 +195,136 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
           $newUserId = $stmt->insert_id;
 
-          // Commission structure
+          /* =========================
+            INSERT COMMISSIONS (PENDING - FINANCIAL TRANSACTIONS)
+          ========================= */
+
           $commissionLevels = [
               1 => 100,
               2 => 40,
               3 => 20
           ];
 
-          $currentReferrer = $referrer_id ?? 0;
+          $currentReferrer = $referrer_id;
           $level = 1;
-
-          // If no referrer → assign to company (agent_id = 0)
+          
+          /* -----------------------------
+            NO REFERRER → COMPANY ACCOUNT
+          ----------------------------- */
           if (!$currentReferrer) {
 
-              $stmtCom = $conn->prepare("
-                  INSERT INTO agent_commissions
-                  (agent_id, source_user_id, level, amount, commission_type, created_at, status)
-                  VALUES (0, ?, 1, ?, 'activation', NOW(), 'pending')
-              ");
-              $amount = $commissionLevels[1];
-              $stmtCom->bind_param("id", $newUserId, $amount);
-              $stmtCom->execute();
-              $stmtCom->close();
+              $systemUserId = 1; // 👈 your system/admin account
 
+              /* Get SYSTEM wallet */
+              $walletStmt = $conn->prepare("
+                  SELECT wallet_id 
+                  FROM wallets 
+                  WHERE user_id = ? AND wallet_type = 'main'
+                  LIMIT 1
+              ");
+              $walletStmt->bind_param("i", $systemUserId);
+              $walletStmt->execute();
+              $walletStmt->bind_result($walletId);
+              $walletStmt->fetch();
+              $walletStmt->close();
+
+              if ($walletId) {
+
+                  $amount = $commissionLevels[1];
+
+                  $description = "System commission (no referrer) from agent $newUserId";
+
+                  $stmtTxn = $conn->prepare("
+                      INSERT INTO financial_transactions
+                      (
+                          source_type,
+                          source_id,
+                          wallet_id,
+                          payer_id,
+                          receiver_id,
+                          transaction_type,
+                          amount,
+                          status,
+                          description,
+                          created_at
+                      )
+                      VALUES
+                      ('commission', ?, ?, ?, ?, 'commission', ?, 'pending', ?, NOW())
+                  ");
+
+                  $stmtTxn->bind_param(
+                      "iiiids",
+                      $newUserId,
+                      $walletId,
+                      $newUserId,
+                      $systemUserId,
+                      $amount,
+                      $description
+                  );
+
+                  $stmtTxn->execute();
+                  $stmtTxn->close();
+              }
           } else {
 
               while ($currentReferrer && $level <= 3) {
 
                   $amount = $commissionLevels[$level];
 
-                  // Insert pending commission
-                  $stmtCom = $conn->prepare("
-                      INSERT INTO agent_commissions
-                      (agent_id, source_user_id, level, amount, commission_type, created_at, status)
-                      VALUES (?, ?, ?, ?, 'activation', NOW(), 'pending')
+                  /* -----------------------------
+                    GET SALES WALLET OF REFERRER
+                  ----------------------------- */
+                  $walletStmt = $conn->prepare("
+                      SELECT wallet_id 
+                      FROM wallets 
+                      WHERE user_id = ? AND wallet_type = 'sales'
+                      LIMIT 1
                   ");
+                  $walletStmt->bind_param("i", $currentReferrer);
+                  $walletStmt->execute();
+                  $walletStmt->bind_result($walletId);
+                  $walletStmt->fetch();
+                  $walletStmt->close();
 
-                  $stmtCom->bind_param(
-                      "iiid",
-                      $currentReferrer,
-                      $newUserId,
-                      $level,
-                      $amount
-                  );
+                  if ($walletId) {
 
-                  $stmtCom->execute();
-                  $stmtCom->close();
+                      $description = "Pending Level $level commission from agent $newUserId";
 
-                  // Move up the chain
+                      $stmtTxn = $conn->prepare("
+                          INSERT INTO financial_transactions
+                          (
+                              source_type,
+                              source_id,
+                              wallet_id,
+                              payer_id,
+                              receiver_id,
+                              transaction_type,
+                              amount,
+                              status,
+                              description,
+                              created_at
+                          )
+                          VALUES
+                          ('commission', ?, ?, ?, ?, 'commission', ?, 'pending', ?, NOW())
+                      ");
+
+                      $stmtTxn->bind_param(
+                          "iiiids",
+                          $newUserId,        // source agent
+                          $walletId,
+                          $newUserId,        // payer
+                          $currentReferrer,  // receiver
+                          $amount,
+                          $description
+                      );
+
+                      $stmtTxn->execute();
+                      $stmtTxn->close();
+                  }
+
+                  /* -----------------------------
+                    MOVE TO NEXT LEVEL
+                  ----------------------------- */
                   $stmtRef = $conn->prepare("
                       SELECT referred_by FROM users WHERE user_id = ?
                   ");

@@ -117,14 +117,15 @@ elseif ($action === "activate") {
     }
 
     /* -----------------------------
-       PROCESS COMMISSIONS (ONLY IF PAYMENT)
-       Update pending commissions to completed instead of inserting new
+    PROCESS COMMISSIONS (PRODUCTION - FULL SAFE)
     ----------------------------- */
     if ($shouldPayCommission) {
 
-        $levels = [100, 40, 20]; // Level payouts
+        $SYSTEM_USER_ID = 1; // system account
+        $levels = [100, 40, 20];
         $level = 0;
 
+        // Get first referrer
         $stmt = $conn->prepare("SELECT referred_by FROM users WHERE user_id=?");
         $stmt->bind_param("i", $userId);
         $stmt->execute();
@@ -132,71 +133,158 @@ elseif ($action === "activate") {
         $stmt->fetch();
         $stmt->close();
 
+        /* =====================================================
+        CASE 1: NO REFERRER → SYSTEM EARNS
+        ===================================================== */
+        if (!$referrerId) {
+
+            $amount = $levels[0];
+
+            // Get system wallet
+            $walletStmt = $conn->prepare("
+                SELECT wallet_id 
+                FROM wallets 
+                WHERE user_id=? AND wallet_type='main'
+                LIMIT 1
+            ");
+            $walletStmt->bind_param("i", $SYSTEM_USER_ID);
+            $walletStmt->execute();
+            $walletStmt->bind_result($walletId);
+            $walletStmt->fetch();
+            $walletStmt->close();
+
+            if ($walletId) {
+
+                $description = "System commission (no referrer) from agent $userId";
+
+                $txn = $conn->prepare("
+                    INSERT INTO financial_transactions
+                    (
+                        source_type,
+                        source_id,
+                        wallet_id,
+                        payer_id,
+                        receiver_id,
+                        transaction_type,
+                        amount,
+                        status,
+                        description,
+                        created_at
+                    )
+                    VALUES
+                    ('commission', ?, ?, ?, ?, 'commission', ?, 'completed', ?, NOW())
+                ");
+
+                $txn->bind_param(
+                    "iiiids",
+                    $userId,
+                    $walletId,
+                    $userId,
+                    $SYSTEM_USER_ID,
+                    $amount,
+                    $description
+                );
+
+                $txn->execute();
+                $txn->close();
+
+                // Update wallet
+                $update = $conn->prepare("
+                    UPDATE wallets 
+                    SET balance = balance + ?, 
+                        total_transacted = total_transacted + ?
+                    WHERE wallet_id=?
+                ");
+                $update->bind_param("ddi", $amount, $amount, $walletId);
+                $update->execute();
+                $update->close();
+            }
+
+        }
+
+        /* =====================================================
+        CASE 2: HAS REFERRERS → PAY UPLINE
+        ===================================================== */
         while ($referrerId && $level < 3) {
 
             $amount = $levels[$level];
+            $levelNumber = $level + 1;
 
-            // Ensure wallet exists
-            $walletCheck = $conn->prepare("
-                SELECT wallet_id FROM wallets 
+            /* GET OR CREATE AGENCY WALLET */
+            $walletStmt = $conn->prepare("
+                SELECT wallet_id 
+                FROM wallets 
                 WHERE user_id=? AND wallet_type='agency'
+                LIMIT 1
             ");
-            $walletCheck->bind_param("i", $referrerId);
-            $walletCheck->execute();
-            $walletCheck->store_result();
+            $walletStmt->bind_param("i", $referrerId);
+            $walletStmt->execute();
+            $walletStmt->store_result();
 
-            if ($walletCheck->num_rows === 0) {
-                $create = $conn->prepare("
-                    INSERT INTO wallets (user_id, wallet_type, balance, total_transacted)
-                    VALUES (?, 'agency', 0, 0)
+            if ($walletStmt->num_rows === 0) {
+
+                $createWallet = $conn->prepare("
+                    INSERT INTO wallets 
+                    (user_id, wallet_type, balance, total_transacted, created_at, updated_at)
+                    VALUES (?, 'agency', 0, 0, NOW(), NOW())
                 ");
-                $create->bind_param("i", $referrerId);
-                $create->execute();
-                $walletId = $create->insert_id;
-                $create->close();
-            } else {
-                $walletCheck->bind_result($walletId);
-                $walletCheck->fetch();
-            }
-            $walletCheck->close();
+                $createWallet->bind_param("i", $referrerId);
+                $createWallet->execute();
+                $walletId = $createWallet->insert_id;
+                $createWallet->close();
 
-            // Update wallet balance
+            } else {
+                $walletStmt->bind_result($walletId);
+                $walletStmt->fetch();
+            }
+            $walletStmt->close();
+
+            /* INSERT TRANSACTION */
+            $description = "Level $levelNumber commission from agent $userId";
+
+            $txn = $conn->prepare("
+                INSERT INTO financial_transactions
+                (
+                    source_type,
+                    source_id,
+                    wallet_id,
+                    payer_id,
+                    receiver_id,
+                    transaction_type,
+                    amount,
+                    status,
+                    description,
+                    created_at
+                )
+                VALUES
+                ('commission', ?, ?, ?, ?, 'commission', ?, 'completed', ?, NOW())
+            ");
+
+            $txn->bind_param(
+                "iiiids",
+                $userId,
+                $walletId,
+                $userId,
+                $referrerId,
+                $amount,
+                $description
+            );
+
+            $txn->execute();
+            $txn->close();
+
+            /* UPDATE WALLET */
             $update = $conn->prepare("
                 UPDATE wallets 
-                SET balance = balance + ?, total_transacted = total_transacted + ?
+                SET balance = balance + ?, 
+                    total_transacted = total_transacted + ?
                 WHERE wallet_id=?
             ");
             $update->bind_param("ddi", $amount, $amount, $walletId);
             $update->execute();
             $update->close();
 
-            $desc = "Level " . ($level + 1) . " commission from agent $userId";
-
-            // Log wallet transaction
-            $log = $conn->prepare("
-                INSERT INTO wallet_transactions 
-                (wallet_id, amount, transaction_type, status, description, reference_id)
-                VALUES (?, ?, 'credit', 'completed', ?, ?)
-            ");
-            $log->bind_param("idss", $walletId, $amount, $desc, $userId);
-            $log->execute();
-            $log->close();
-
-            $levelNumber = $level + 1;
-
-            // UPDATE pending commissions to completed
-            $commissionUpdate = $conn->prepare("
-                UPDATE agent_commissions
-                SET status = 'paid',
-                    amount = ?,
-                    created_at = NOW()
-                WHERE source_user_id = ? AND level = ? AND status = 'pending'
-            ");
-            $commissionUpdate->bind_param("dii", $amount, $userId, $levelNumber);
-            $commissionUpdate->execute();
-            $commissionUpdate->close();
-
-            // Move up the chain
+            /* MOVE UP */
             $stmt = $conn->prepare("SELECT referred_by FROM users WHERE user_id=?");
             $stmt->bind_param("i", $referrerId);
             $stmt->execute();

@@ -82,32 +82,46 @@ $stmt = $conn->prepare("
         w.wallet_type,
         w.balance,
         w.total_transacted,
-        -- Agency withdrawals
-        (SELECT COUNT(*) 
-         FROM wallet_transactions wt 
-         WHERE wt.wallet_id = w.wallet_id 
-           AND wt.transaction_type = 'debit' 
-           AND wt.status = 'completed') AS total_withdrawals,
-        (SELECT COALESCE(SUM(wt.amount),0) 
-         FROM wallet_transactions wt 
-         WHERE wt.wallet_id = w.wallet_id 
-           AND wt.transaction_type = 'debit' 
-           AND wt.status = 'completed') AS total_withdrawn,
+
+        -- Total withdrawals count
+        (
+            SELECT COUNT(*) 
+            FROM financial_transactions ft
+            WHERE ft.wallet_id = w.wallet_id 
+              AND ft.transaction_type = 'withdrawal'
+              AND ft.status = 'completed'
+        ) AS total_withdrawals,
+
+        -- Total withdrawn amount
+        (
+            SELECT COALESCE(SUM(ft.amount),0) 
+            FROM financial_transactions ft
+            WHERE ft.wallet_id = w.wallet_id 
+              AND ft.transaction_type = 'withdrawal'
+              AND ft.status = 'completed'
+        ) AS total_withdrawn,
+
         -- Sales earnings (this month)
-        (SELECT COUNT(*) 
-         FROM wallet_transactions wt 
-         WHERE wt.wallet_id = w.wallet_id 
-           AND wt.transaction_type = 'credit' 
-           AND wt.status = 'completed'
-           AND w.wallet_type = 'sales'
-           AND wt.created_at >= DATE_FORMAT(NOW(), '%Y-%m-01')) AS sales_count,
-        (SELECT COALESCE(SUM(wt.amount),0) 
-         FROM wallet_transactions wt 
-         WHERE wt.wallet_id = w.wallet_id 
-           AND wt.transaction_type = 'credit' 
-           AND wt.status = 'completed'
-           AND w.wallet_type = 'sales'
-           AND wt.created_at >= DATE_FORMAT(NOW(), '%Y-%m-01')) AS sales_sum
+        (
+            SELECT COUNT(*) 
+            FROM financial_transactions ft
+            WHERE ft.wallet_id = w.wallet_id 
+              AND ft.transaction_type = 'commission'
+              AND ft.status = 'completed'
+              AND w.wallet_type = 'sales'
+              AND ft.created_at >= DATE_FORMAT(NOW(), '%Y-%m-01')
+        ) AS sales_count,
+
+        (
+            SELECT COALESCE(SUM(ft.amount),0) 
+            FROM financial_transactions ft
+            WHERE ft.wallet_id = w.wallet_id 
+              AND ft.transaction_type = 'commission'
+              AND ft.status = 'completed'
+              AND w.wallet_type = 'sales'
+              AND ft.created_at >= DATE_FORMAT(NOW(), '%Y-%m-01')
+        ) AS sales_sum
+
     FROM wallets w
     WHERE w.user_id = ?
       AND w.wallet_type IN ('agency','sales')
@@ -353,7 +367,7 @@ if($_SERVER["REQUEST_METHOD"] === "POST"){
           $newUserId = $stmt->insert_id;
 
           /* =========================
-              INSERT COMMISSIONS (PENDING)
+            INSERT COMMISSIONS (FINANCIAL TRANSACTIONS)
           ========================= */
 
           $commissionLevels = [
@@ -362,30 +376,58 @@ if($_SERVER["REQUEST_METHOD"] === "POST"){
               3 => 20
           ];
 
-          $currentReferrer = $user_id; // direct referrer (logged-in agent)
+          $currentReferrer = $user_id;
           $level = 1;
 
           while ($currentReferrer && $level <= 3) {
 
               $amount = $commissionLevels[$level];
 
-              // Insert pending commission
-              $stmtCom = $conn->prepare("
-                  INSERT INTO agent_commissions
-                  (agent_id, source_user_id, level, amount, commission_type, created_at, status)
-                  VALUES (?, ?, ?, ?, 'activation', NOW(), 'pending')
+              // 🔹 Get SALES wallet of referrer
+              $walletStmt = $conn->prepare("
+                  SELECT wallet_id 
+                  FROM wallets 
+                  WHERE user_id = ? AND wallet_type = 'sales'
+                  LIMIT 1
               ");
+              $walletStmt->bind_param("i", $currentReferrer);
+              $walletStmt->execute();
+              $walletStmt->bind_result($walletId);
+              $walletStmt->fetch();
+              $walletStmt->close();
 
-              $stmtCom->bind_param(
-                  "iiid",
-                  $currentReferrer,
-                  $newUserId,
-                  $level,
-                  $amount
-              );
+              if ($walletId) {
 
-              $stmtCom->execute();
-              $stmtCom->close();
+                  $stmtCom = $conn->prepare("
+                      INSERT INTO financial_transactions
+                      (
+                          source_type,
+                          source_id,
+                          wallet_id,
+                          payer_id,
+                          receiver_id,
+                          transaction_type,
+                          amount,
+                          status,
+                          description,
+                          created_at
+                      )
+                      VALUES
+                      ('commission', ?, ?, ?, ?, 'commission', ?, 'pending', 'Agent activation commission - Level $level', NOW())
+                  ");
+
+                  $stmtCom->bind_param(
+                      "iiiid",
+                      $newUserId,
+                      $walletId,
+                      $newUserId,
+                      $currentReferrer,
+                      $amount
+                  );
+
+                  $stmtCom->execute();
+                  $stmtCom->close();
+              }
 
               // Move to next upline
               $stmtRef = $conn->prepare("
@@ -705,19 +747,17 @@ if ($isVerified === 1 && $status === 'active') {
 
   $stmt = $conn->prepare("
     SELECT 
-      ac.source_user_id,
-      ac.`level`,
-      ac.amount,
-      ac.status,
-      ac.commission_type,
-      ac.created_at,
-      u.username,
-      u.phone,
-      u.email
-    FROM agent_commissions ac
-    LEFT JOIN users u ON u.user_id = ac.source_user_id
-    WHERE ac.agent_id = ?
-    ORDER BY ac.created_at DESC
+      ft.source_id,
+      ft.amount,
+      ft.status,
+      ft.description,
+      ft.created_at,
+      u.username
+    FROM financial_transactions ft
+    LEFT JOIN users u ON u.user_id = ft.source_id
+    WHERE ft.receiver_id = ?
+    AND ft.transaction_type = 'commission'
+    ORDER BY ft.created_at DESC
   ");
 
   $stmt->bind_param("i", $user_id);
@@ -1196,8 +1236,8 @@ if (isset($_GET['download_product_id'])) {
 
         <?php elseif ($isVerified == 0): ?>
 
-          <span class="unverified">
-            <i class="fa-solid fa-ban"></i>&nbsp;Unverified
+          <span class="no-badge">
+            <i class="fa-solid fa-ban"></i>&nbsp;No&nbsp;Badge
           </span>
 
         <?php elseif ($isExpired): ?>
@@ -1208,8 +1248,8 @@ if (isset($_GET['download_product_id'])) {
 
         <?php else: ?>
 
-          <span class="verified">
-            Verified&nbsp;<i class="fa-solid fa-certificate"></i>
+          <span class="badged">
+            Badged&nbsp;<i class="fa-solid fa-certificate"></i>
           </span>
 
         <?php endif; ?>
@@ -1667,7 +1707,7 @@ if (isset($_GET['download_product_id'])) {
                   <option value="Sales Wallet">Sales Wallet</option>
                   <option value="Agency Wallet">Agency Wallet</option>
                 </select>
-                <div class="formBody agency" id="salesWallet">
+                <div class="formBody sales" id="salesWallet">
                   <!-- ADVERTISING -->
                   <div class="card">
                     <h3>Sales Wallet Balance</h3>
