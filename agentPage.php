@@ -413,7 +413,7 @@ if($_SERVER["REQUEST_METHOD"] === "POST"){
                           created_at
                       )
                       VALUES
-                      ('commission', ?, ?, ?, ?, 'commission', ?, 'pending', 'Agent activation commission - Level $level', NOW())
+                      ('commission', ?, ?, ?, ?, 'Agent activation', ?, 'pending', 'Agent activation commission - Level $level', NOW())
                   ");
 
                   $stmtCom->bind_param(
@@ -748,6 +748,7 @@ if ($isVerified === 1 && $status === 'active') {
   $stmt = $conn->prepare("
     SELECT 
       ft.source_id,
+      ft.source_type,
       ft.amount,
       ft.status,
       ft.description,
@@ -1021,6 +1022,85 @@ if (isset($_GET['download_product_id'])) {
   imagedestroy($image);
   exit;
 }
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
+
+  $walletType = $_POST['withdraw_wallet'];
+  $fee = 40.0;
+  $error = '';
+  $success = '';
+
+  // Pick the correct input field
+  if ($walletType === 'sales') {
+      $withdrawAmount = $_POST['withdraw_sales_amount'] ?? '';
+      $balance = $salesBalance;
+      $min = $salesMin;
+  } else {
+      $withdrawAmount = $_POST['withdraw_agency_amount'] ?? '';
+      $balance = $agencyBalance;
+      $min = $agencyMin;
+  }
+
+  // Check if withdrawal amount is empty
+  if (empty($withdrawAmount) && $withdrawAmount !== '0') {
+      $error = "Please enter a withdrawal amount.";
+  } else {
+      $withdrawAmount = floatval($withdrawAmount);
+      $netAmount = $withdrawAmount - $fee;
+
+      // Validation
+      if (!$error) {
+        if ($withdrawAmount > $balance) {
+            $error = "Insufficient balance. Your $walletType wallet balance is KES $balance.";
+        } elseif ($withdrawAmount < $min) {
+            $error = "Minimum withdrawal for $walletType wallet is KES $min.";
+        } elseif ($netAmount <= 0) {
+            $error = "Withdrawal amount must be greater than the transaction fee (KES $fee).";
+        }
+      }
+  }
+
+  if (!$error) {
+      // Begin transaction
+      $conn->begin_transaction();
+
+      try {
+          // 1️⃣ Update wallet balance
+          $stmt = $conn->prepare("UPDATE wallets SET balance = balance - ? WHERE user_id = ? AND wallet_type = ? LIMIT 1");
+          $stmt->bind_param("dis", $withdrawAmount, $user_id, $walletType);
+          $stmt->execute();
+          $stmt->close();
+
+          // 2️⃣ Insert into financial_transactions
+          $stmt = $conn->prepare("INSERT INTO financial_transactions (source_type, source_id, wallet_id, payer_id, receiver_id, transaction_type, amount, currency, status, description, created_at) 
+                                  SELECT ?, ?, wallet_id, ?, ?, 'withdrawal', ?, 'KES', 'pending', ?, NOW() 
+                                  FROM wallets WHERE user_id = ? AND wallet_type = ? LIMIT 1");
+          $description = ucfirst($walletType) . " wallet withdrawal request";
+          $sourceType = 'withdrawal';
+          $stmt->bind_param("siiddsis", $sourceType, $user_id, $user_id, $user_id, $withdrawAmount, $description, $user_id, $walletType);
+          $stmt->execute();
+          $transactionId = $stmt->insert_id;
+          $stmt->close();
+
+          // 3️⃣ Insert into withdrawals
+          $stmt = $conn->prepare("INSERT INTO withdrawals (user_id, wallet_id, amount, fee, net_amount, status, transaction_id, requested_at, currency) 
+                                  SELECT user_id, wallet_id, ?, ?, ?, 'pending', ?, NOW(), 'KES' 
+                                  FROM wallets WHERE user_id = ? AND wallet_type = ? LIMIT 1");
+          $stmt->bind_param("dddiis", $withdrawAmount, $fee, $netAmount, $transactionId, $user_id, $walletType);
+          $stmt->execute();
+          $stmt->close();
+
+          // Commit transaction
+          $conn->commit();
+
+          $success = "Withdrawal request of KES $withdrawAmount from your $walletType wallet submitted successfully. You will receive KES $netAmount after fees! <span class='redirect-msg'></span>";
+
+      } catch (Exception $e) {
+          $conn->rollback();
+          $error = "Withdrawal failed: " . $e->getMessage();
+      }
+  }
+}
 ?>
 
 <!DOCTYPE html>
@@ -1259,7 +1339,7 @@ if (isset($_GET['download_product_id'])) {
       <div class="tabs-container" id="toggleAgentTab">
         <div class="tabs">
           <button class="tab-btn" data-tab="dashboard">Sales&nbsp;Board</button>
-          <button class="tab-btn" data-tab="agency">My&nbsp;Agency</button>
+          <button class="tab-btn" data-tab="my-agency">My&nbsp;Agency</button>
           <button class="tab-btn" data-tab="funds">Funds</button>
         </div>
 
@@ -1313,7 +1393,7 @@ if (isset($_GET['download_product_id'])) {
             </div>
           </div>
 
-          <div id="agency" class="tab-panel agency">
+          <div id="my-agency" class="tab-panel agency">
             <div class="tab-top">
               <p>Peformance Analytics<br><strong>Monitor your agency and track performance <i class="fa-regular fa-circle-check"></i></strong></p>
               <button onclick="toggleAgentAdd(true)">
@@ -1688,7 +1768,7 @@ if (isset($_GET['download_product_id'])) {
             <p>Access your earnings</em> <br><strong>Withdraw funds you’ve earned from completed sales and agency <i class="fa-regular fa-circle-check"></i></strong></p>
             
             <div class="form-wrapper agency">
-              <form method="POST" enctype="multipart/form-data">
+              <form method="POST" autocomplete="off" enctype="multipart/form-data">
                 <h1>Withdraw Funds</h1>
                 <?php if (!empty($error)): ?>
                   <p class="errorMessage">
@@ -1696,18 +1776,16 @@ if (isset($_GET['download_product_id'])) {
                     <?= htmlspecialchars($error); ?>
                   </p>
                 <?php endif; ?>
-
                 <?php if (!empty($success)): ?>
-                  <p class="successMessage">
-                    <i class="fa-solid fa-check-circle"></i>
-                    <?= $success; ?>
+                  <p class="successMessage" data-redirect="agentPage.php">
+                    <i class="fa-solid fa-check-circle"></i> <?= $success ?>
                   </p>
                 <?php endif; ?>
-                <select name="" id="" class="walletChange">
-                  <option value="Sales Wallet">Sales Wallet</option>
-                  <option value="Agency Wallet">Agency Wallet</option>
+                <select name="withdraw_wallet" id="walletSelect" class="walletChange">
+                  <option value="sales">Sales Wallet</option>
+                  <option value="agency">Agency Wallet</option>
                 </select>
-                <div class="formBody sales" id="salesWallet">
+                <div class="formBody agency" id="salesWallet">
                   <!-- ADVERTISING -->
                   <div class="card">
                     <h3>Sales Wallet Balance</h3>
@@ -1753,8 +1831,8 @@ if (isset($_GET['download_product_id'])) {
                   <div>
                     <div class="inp-box">
                       <label>Withdraw from Sales</label>
-                      <input type="number" placeholder="Enter amount" min="0">
-                      <button type="button" onclick="togglePaymentOption()">Request Withdrawal</button>
+                      <input type="number" name="withdraw_sales_amount" placeholder="Enter amount" min="0" required>
+                      <button type="submit">Request Withdrawal</button>
                     </div>
                   </div>
                 </div>
@@ -1798,8 +1876,8 @@ if (isset($_GET['download_product_id'])) {
                   <div>
                     <div class="inp-box">
                       <label>Withdraw from Agency</label>
-                      <input type="number" placeholder="Enter amount" min="0">
-                      <button type="button" onclick="togglePaymentOption()">Request Withdrawal</button>
+                      <input type="number" name="withdraw_agency_amount" placeholder="Enter amount" min="0" required>
+                      <button type="submit" required>Request Withdrawal</button>
                     </div>
                   </div>
                 </div>
@@ -2216,12 +2294,11 @@ if (isset($_GET['download_product_id'])) {
               $date = date("d M Y", strtotime($row['created_at']));
 
               // Source
-              $source = ($row['commission_type'] === 'activation')
-                  ? 'Agent Activation'
-                  : 'Products Sales';
+              $source = ($row['source_type']);
 
               // Level
-              $level = "Level " . (int)$row['level'];
+              preg_match('/Level (\d+)/', $row['description'], $matches);
+              $level = isset($matches[1]) ? "Level " . $matches[1] : "Level 0";
 
               // Name (fallback if missing)
               $name = !empty($row['username']) 
@@ -2356,12 +2433,11 @@ if (isset($_GET['download_product_id'])) {
               $date = date("d M Y", strtotime($row['created_at']));
 
               // Source
-              $source = ($row['commission_type'] === 'activation')
-                  ? 'Agent Activation'
-                  : 'Products Sales';
+              $source = ($row['source_type']);
 
               // Level
-              $level = "Level " . (int)$row['level'];
+              preg_match('/Level (\d+)/', $row['description'], $matches);
+              $level = isset($matches[1]) ? "Level " . $matches[1] : "Level 0";
 
               // Name (fallback if missing)
               $name = !empty($row['username']) 

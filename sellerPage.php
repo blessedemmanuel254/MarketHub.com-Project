@@ -1219,7 +1219,7 @@ $deliveredOrders  = $row['delivered_orders'];
                     <?= htmlspecialchars($error); ?>
                   </p>
                 <?php elseif ($success): ?>
-                  <p class="successMessage" data-redirect="agentPage.php">
+                  <p class="successMessage" data-redirect="sellerPage.php">
                     <i class="fa-solid fa-check-circle"></i> <?= $success ?>
                   </p>
                 <?php endif; ?>

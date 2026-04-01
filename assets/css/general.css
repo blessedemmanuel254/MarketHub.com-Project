@@ -982,7 +982,7 @@ html body.no-scroll {
   font-size: 12px;
 }
 
-.table-wrapper table tbody tr td .paid, .table-wrapper table tbody tr td .active, .cards .order-card .card-row .paid { background:#e7f6ec; color:#088000; }
+.table-wrapper table tbody tr td .paid, .table-wrapper table tbody tr td .completed, .table-wrapper table tbody tr td .active, .cards .order-card .card-row .paid { background:#e7f6ec; color:#088000; }
 .table-wrapper table tbody tr td .pending, .cards .order-card .card-row .pending { background:#fff3cd; color:#856404; }
 .table-wrapper table tbody tr td .delivered, .table-wrapper table tbody tr td .approved, .cards .order-card .card-row .delivered { background:#e7f6ec; color:#088000; }
 .table-wrapper table tbody tr td .shipped, .cards .order-card .card-row .shipped { background:#e8f0fe; color:#1a4fd8; }
@@ -3184,11 +3184,13 @@ a.seller-right {
 
 }
 
-.form-wrapper.agency .formBody {
+/* Hide only the withdrawal forms by default */
+#funds .form-wrapper .formBody {
   display: none;
 }
 
-.form-wrapper.agency .formBody.active {
+/* Show only the active form */
+#funds .form-wrapper .formBody.active {
   display: grid;
 }
 
@@ -3884,6 +3886,14 @@ body#adminBody .confirmation-popup .popup-actions button:hover {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 20px;
+}
+
+.tab-panel .formBody.agency {
+  display: none !important;
+}
+
+.tab-panel .formBody.agency.active {
+  display: grid !important;
 }
 
 /* CARD */

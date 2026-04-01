@@ -290,13 +290,23 @@ document.addEventListener("DOMContentLoaded", () => {
 /* Order Details Toggle Js */
 document.querySelectorAll(".toggleOrd").forEach(btn => {
   btn.addEventListener("click", () => {
-    const target = document.getElementById(btn.dataset.target);
+  const target = document.getElementById(btn.dataset.target);
+  if (!target) return;
     target.classList.toggle("active");
     btn.textContent = target.classList.contains("active")
       ? "Hide details"
       : "View details";
   });
 });
+
+/* ================== HELPER FUNCTION ================== */
+function resetScrollFor() {
+  window.scrollTo({
+    top: 0,
+    left: 0,
+    behavior: 'auto' // change to 'smooth' if you want smooth scrolling
+  });
+}
 
 function toggleOrderMarket() {
   const orderMain = document.getElementById("orderMain");
@@ -306,6 +316,9 @@ function toggleOrderMarket() {
 
   marketMain.style.display = isMarketVisible ? "none" : "flex";
   orderMain.style.display = isMarketVisible ? "flex" : "none";
+
+  if (!isMarketVisible) resetScrollFor(marketMain);
+  else resetScrollFor(orderMain);
 }
 
 function toggleSellerOrdersTrack() {
@@ -316,6 +329,9 @@ function toggleSellerOrdersTrack() {
 
   sellerMain.style.display = isSellerVisible ? "none" : "flex";
   ordersTrackMain.style.display = isSellerVisible ? "flex" : "none";
+
+  if (!isSellerVisible) resetScrollFor(ordersTrackMain);
+  else resetScrollFor(sellerMain);
 }
 
 function toggleAgentOrdersTrack() {  
@@ -333,6 +349,9 @@ function toggleAgentOrdersTrack() {
   earningsTrackMain.style.display = "none";
   agentWithdrawalH.style.display = "none";
   agentProductMain.style.display = "none";
+
+  if (!isOrderVisible) resetScrollFor(agentMain);
+  else resetScrollFor(orderMain);
 }
 
 function toggleAgentEarningsTrack() {
@@ -350,6 +369,9 @@ function toggleAgentEarningsTrack() {
   orderMain.style.display = "none";
   agentWithdrawalH.style.display = "none";
   agentProductMain.style.display = "none";
+
+  // ✅ Reset scroll
+  if (!isEarningsVisible) resetScrollFor(earningsTrackMain);
 }
 
 function toggleAgentWithdrawals() {
@@ -367,6 +389,9 @@ function toggleAgentWithdrawals() {
   orderMain.style.display = "none";
   earningsTrackMain.style.display = "none";
   agentProductMain.style.display = "none";
+
+  if (!isWithdrawalVisible) resetScrollFor(agentWithdrawalH);
+  else resetScrollFor(agentMain);
 }
 
 function toggleAgentProductsPage() {
@@ -399,11 +424,13 @@ function showMarketContainer(target) {
   if (target === "type") {
     typeTab.style.display = "block";
     sourceTabs.forEach(el => el.style.display = "none");
+    resetScrollFor(typeTab);
   }
 
   if (target === "source") {
     typeTab.style.display = "none";
     sourceTabs.forEach(el => el.style.display = "block");
+    resetScrollFor(...sourceTabs);
   }
 }
 
@@ -418,11 +445,13 @@ function showAgentMarketContainer(target) {
   if (target === "type") {
     typeTab.style.display = "block";
     sourceTabs.forEach(el => el.style.display = "none");
+    resetScrollFor(typeTab);
   }
 
   if (target === "source") {
     typeTab.style.display = "none";
     sourceTabs.forEach(el => el.style.display = "block");
+    resetScrollFor(...sourceTabs);
   }
 }
 
@@ -452,6 +481,11 @@ function openMarketSource(sourceTabId = "shops") {
   btn.classList.add("active");
   panel.classList.add("active");
 
+
+
+  // ✅ Reset scroll when switching tabs
+  resetScrollFor(panel);
+
   /* save tab */
   const storageKey = container.dataset.tabStorage || "market-source";
   localStorage.setItem(storageKey, sourceTabId);
@@ -475,6 +509,8 @@ function openAgentMarketSource(sourceTabId = "shops") {
 
   btn.classList.add("active");
   panel.classList.add("active");
+
+  resetScrollFor(panel);
 
   const storageKey = container.dataset.tabStorage;
   if (storageKey) localStorage.setItem(storageKey, sourceTabId);
@@ -504,42 +540,14 @@ function openMarketType(typeTabId = "products") {
   btn.classList.add("active");
   panel.classList.add("active");
 
+  resetScrollFor(panel);
+
   const storageKey = container.dataset.tabStorage;
   if (storageKey) localStorage.setItem(storageKey, typeTabId);
 }
 
 
 /* ================= GO BACK TO MARKET TYPES ================= */
-
-function openAgentMarketSource(sourceTabId = "shops") {
-
-  showAgentMarketContainer("source");
-
-  const btn = document.querySelector(`.tab-btn-msource[data-tab="${sourceTabId}"]`);
-  const panel = document.getElementById(sourceTabId);
-
-  if (!btn || !panel) return;
-
-  const container = btn.closest(".tabs-container");
-
-  /* ✅ Hide other source containers (missing part) */
-  document.querySelectorAll(".toggleMarketSourceTab")
-    .forEach(c => c.style.display = "none");
-
-  /* ✅ Show current container (missing part) */
-  container.style.display = "block";
-
-  /* activate tab */
-  container.querySelectorAll("[data-tab]").forEach(b => b.classList.remove("active"));
-  container.querySelectorAll(".tab-panel-msource").forEach(p => p.classList.remove("active"));
-
-  btn.classList.add("active");
-  panel.classList.add("active");
-
-  /* save tab */
-  const storageKey = container.dataset.tabStorage || "agent-market-source";
-  localStorage.setItem(storageKey, sourceTabId);
-}
 
 function goBackToMarketTypes() {
 
@@ -575,6 +583,8 @@ function goBackToAgentMarketTypes() {
   if (marketTab) marketTab.style.display = "block";
   sourceTabs.forEach(el => el.style.display = "none");
 
+  resetScrollFor(marketTab, ...sourceTabs);
+
 }
 
 /* =========================
@@ -592,7 +602,7 @@ const deliveryFee = 0;
 
 /* ---------- UPDATE TOTALS ---------- */
 function updateTotals() {
-  if (!subtotalEl || !totalEl) return;
+  if (!cartItemsContainer || !subtotalEl || !totalEl) return;
 
   let subtotal = 0;
   const items = cartItemsContainer.querySelectorAll(".cart-item");
@@ -623,6 +633,7 @@ function updateTotals() {
 
 /* ---------- UPDATE CART COUNT ---------- */
 function updateCartCount() {
+  if (!cartItemsContainer || !cartCountEl) return;
   let count = 0;
 
   document.querySelectorAll(".cart-item").forEach(item => {
@@ -661,13 +672,17 @@ document.querySelectorAll(".add-to-cart-btn").forEach(btn => {
   btn.addEventListener("click", function() {
 
     const card = this.closest(".variable-card");
-    const productId = card.dataset.id;
+    if (!card) return; // ✅ prevent crash
+
+    const productId = card.dataset?.id;
+    if (!productId) return; // ✅ extra safety
 
     addToCart(productId);
   });
 });
 
 function loadCart() {
+  if (!cartItemsContainer || !emptyMsg) return;
 
   fetch("marketDisplay.php", {
     method: "POST",
@@ -893,23 +908,28 @@ function toggleAgentAdd(showAdd) {
   const products = document.getElementById("agency");
   const addProducts = document.getElementById("add-products");
 
+  // ✅ STOP if elements don't exist
+  if (!products || !addProducts) return;
+
   if (showAdd) {
     products.classList.remove("active");
     addProducts.classList.add("active");
-
-    // Save state
     localStorage.setItem("agentAddView", "add");
 
   } else {
     products.classList.add("active");
     addProducts.classList.remove("active");
-
-    // Save state
     localStorage.setItem("agentAddView", "agency");
   }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+
+  const products = document.getElementById("agency");
+  const addProducts = document.getElementById("add-products");
+
+  // ✅ Only run if this page has those elements
+  if (!products || !addProducts) return;
 
   const savedView = localStorage.getItem("agentAddView");
 
@@ -936,16 +956,22 @@ const popupTitle = document.getElementById("popupTitle");
 const popupMessage = document.getElementById("popupMessage");
 const confirmBtn = document.getElementById("confirmAction");
 const cancelBtn = document.getElementById("cancelAction");
-popup.onclick = (e) => e.stopPropagation();
+
+// ✅ Safe event binding
+if (popup) {
+  popup.onclick = (e) => e.stopPropagation();
+}
 
 function showPopup(title, message, onConfirm) {
+
+  if (!popup || !popupOverlay || !popupTitle || !popupMessage || !confirmBtn || !cancelBtn) return;
+
   popupTitle.textContent = title;
   popupMessage.textContent = message;
 
   popup.classList.add("active");
   popupOverlay.classList.add("active");
 
-  // Reset old events
   confirmBtn.onclick = null;
   cancelBtn.onclick = null;
   popupOverlay.onclick = null;
@@ -956,12 +982,12 @@ function showPopup(title, message, onConfirm) {
   };
 
   cancelBtn.onclick = closePopup;
-
-  // 👇 Overlay click = cancel
   popupOverlay.onclick = closePopup;
 }
 
 function closePopup() {
+  if (!popup || !popupOverlay) return;
+
   popup.classList.remove("active");
   popupOverlay.classList.remove("active");
 }
@@ -1508,26 +1534,57 @@ document.getElementById("goBackBtn")?.addEventListener("click", function () {
   window.location.href = "adminPage.php";
 });
 
-// WALLET TOGGLE
+// WALLET TOGGLE + LOCALSTORAGE
 document.addEventListener("DOMContentLoaded", () => {
-  const walletSelect = document.querySelector(".walletChange");
+  const walletSelect = document.querySelector("#funds .walletChange");
   const salesWallet = document.getElementById("salesWallet");
   const agencyWallet = document.getElementById("agencyWallet");
 
-  // Default view
-  salesWallet?.classList.add("active");
+  // Get input fields inside wallets
+  const salesInput = salesWallet.querySelector('input[name="withdraw_amount"]');
+  const agencyInput = agencyWallet.querySelector('input[name="withdraw_amount"]');
 
-  if (walletSelect) {
-    walletSelect.addEventListener("change", () => {
-      if (walletSelect.value === "Sales Wallet") {
+  function showWallet(selected) {
+    if (selected === "sales") {
         salesWallet.classList.add("active");
         agencyWallet.classList.remove("active");
-      } else {
+        salesWallet.querySelector("input").disabled = false;
+        agencyWallet.querySelector("input").disabled = true;
+    } else {
         agencyWallet.classList.add("active");
         salesWallet.classList.remove("active");
-      }
+        agencyWallet.querySelector("input").disabled = false;
+        salesWallet.querySelector("input").disabled = true;
+    }
+    // Save selected wallet to localStorage
+    localStorage.setItem("selectedWallet", selected);
+  }
+
+  // Restore selected wallet from localStorage
+  const savedWallet = localStorage.getItem("selectedWallet") || (walletSelect ? walletSelect.value : "sales");
+  if(walletSelect) {
+    walletSelect.value = savedWallet;
+    showWallet(savedWallet);
+  }
+
+  // Listen for changes
+  if(walletSelect){
+    walletSelect.addEventListener("change", () => {
+      showWallet(walletSelect.value);
     });
   }
+
+  // Restore input values from localStorage
+  if(salesInput) salesInput.value = localStorage.getItem("salesAmount") || "";
+  if(agencyInput) agencyInput.value = localStorage.getItem("agencyAmount") || "";
+
+  // Save input values to localStorage on change
+  if(salesInput) salesInput.addEventListener("input", () => {
+    localStorage.setItem("salesAmount", salesInput.value);
+  });
+  if(agencyInput) agencyInput.addEventListener("input", () => {
+    localStorage.setItem("agencyAmount", agencyInput.value);
+  });
 });
 
 // ==============================
@@ -2031,48 +2088,45 @@ document.addEventListener("click", function(e){
   updateCheckoutSummary();
 });
 
-/* ===============================
-AGENT ALERT VERIFICATION POPUP JS
-================================ */
+document.addEventListener("DOMContentLoaded", () => {
 
+  // ===============================
+  // AGENT ALERT VERIFICATION POPUP
+  // ===============================
 
+  // Show popup after 10 seconds
+/*   setTimeout(() => {
+    const overlay = document.getElementById("alertPopupOverlay");
+    if (overlay) {  // only if the element exists
+      overlay.style.display = "flex";
+      document.body.classList.add("no-scroll");
+    }
+  }, 10000); */
 
-/* SHOW POPUP AFTER 30 SECONDS */
+  // Violent shake if overlay clicked
+/*   const overlay = document.getElementById("alertPopupOverlay");
+  if (overlay) {
+    overlay.addEventListener("click", (e) => {
+      if (e.target.id === "alertPopupOverlay") {
+        const alertPopup = document.getElementById("alert-popup");
+        if (alertPopup) {
+          alertPopup.classList.add("shake");
+          setTimeout(() => {
+            alertPopup.classList.remove("shake");
+          }, 500);
+        }
+      }
+    });
+  } */
 
-/* setTimeout(()=>{
-
-  document.getElementById("alertPopupOverlay").style.display="flex"
-  document.body.classList.add("no-scroll");
-
-},10000) */
-
-
-/* VIOLENT SHAKE IF OVERLAY CLICKED */
-
-document.getElementById("alertPopupOverlay").addEventListener("click",function(e){
-
-  if(e.target.id === "alertPopupOverlay"){
-
-  let alertPopup = document.getElementById("alert-popup")
-
-  alertPopup.classList.add("shake")
-
-  setTimeout(()=>{
-
-  alertPopup.classList.remove("shake")
-
-  },500)
-
+  // Textarea character count
+  const bioTextarea = document.getElementById("bioTextarea");
+  const bioCount = document.getElementById("bioCount");
+  if (bioTextarea && bioCount) {
+    bioTextarea.addEventListener("input", () => {
+      const len = bioTextarea.value.length;
+      bioCount.textContent = `${len}/<?= $bioMaxLength ?> characters`;
+    });
   }
 
-})
-
-// TEXTAREA COUNT JS
-
-const bioTextarea = document.getElementById("bioTextarea");
-const bioCount = document.getElementById("bioCount");
-
-bioTextarea.addEventListener("input", () => {
-    const len = bioTextarea.value.length;
-    bioCount.textContent = `${len}/<?= $bioMaxLength ?> characters`;
 });

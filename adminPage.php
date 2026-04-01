@@ -1027,11 +1027,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
         }
 
-        if ($stmt->execute()) {
+          if ($stmt->execute()) {
             $mproductSuccess = "Product updated successfully! <span class='redirect-msg'></span>";
-        } else {
+          } else {
             $mproductError = "Update failed!";
-        }
+          }
 
     } else {
 
