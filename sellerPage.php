@@ -1307,6 +1307,7 @@ $deliveredOrders  = $row['delivered_orders'];
             <div class="form-wrapper">
               <form method="POST" enctype="multipart/form-data">
                 <h1>Withdraw Funds</h1>
+
                 <?php if (!empty($error)): ?>
                   <p class="errorMessage">
                     <i class="fa-solid fa-circle-exclamation"></i>
@@ -1320,14 +1321,15 @@ $deliveredOrders  = $row['delivered_orders'];
                     <?= $success; ?>
                   </p>
                 <?php endif; ?>
+
+                <input type="hidden" name="withdraw_wallet" value="sales">
+
                 <div class="formBody">
-                  <!-- WALLET HEALTH -->
                   <div class="card">
                     <i class="fa fa-wallet icon"></i>
                     <h3>Wallet Health</h3>
 
                     <div class="stat">KES <?= number_format($walletBalance, 2) ?></div>
-
                     <p class="meta">Available for withdrawal</p>
 
                     <div class="progress">
@@ -1336,15 +1338,15 @@ $deliveredOrders  = $row['delivered_orders'];
 
                     <p class="small">KES 0 pending clearance</p>
                   </div>
+
                   <div>
                     <div class="inp-box">
                       <label>Withdrawal Amount</label>
-                      <input type="number" placeholder="Enter amount">
-                      <button type="button" onclick="togglePaymentOption()">Request Withdrawal</button>
+                      <input type="number" name="withdraw_sales_amount" placeholder="Enter amount" min="0" required>
+                      <button type="submit">Request Withdrawal</button>
                     </div>
                   </div>
                 </div>
-
               </form>
             </div>
           </div>

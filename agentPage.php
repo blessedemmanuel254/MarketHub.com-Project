@@ -1026,11 +1026,10 @@ if (isset($_GET['download_product_id'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
 
   $walletType = $_POST['withdraw_wallet'];
-  $fee = 40.0;
   $error = '';
   $success = '';
 
-  // Pick the correct input field
+  // Pick the correct input field and balance/min
   if ($walletType === 'sales') {
       $withdrawAmount = $_POST['withdraw_sales_amount'] ?? '';
       $balance = $salesBalance;
@@ -1040,23 +1039,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
       $balance = $agencyBalance;
       $min = $agencyMin;
   }
-
   // Check if withdrawal amount is empty
   if (empty($withdrawAmount) && $withdrawAmount !== '0') {
       $error = "Please enter a withdrawal amount.";
   } else {
-      $withdrawAmount = floatval($withdrawAmount);
-      $netAmount = $withdrawAmount - $fee;
+
+    $withdrawAmount = floatval($withdrawAmount);
+
+    // Maximum withdrawal allowed
+    $maxWithdrawal = 100000.0; // KES
+    if ($withdrawAmount > $maxWithdrawal) {
+        $error = "Maximum withdrawal allowed is KES $maxWithdrawal.";
+    }
+
+    // --- Calculate M-Pesa style tiered fee ---
+    if ($withdrawAmount <= 1000) {
+        $fee = 40; // flat minimum fee
+    } elseif ($withdrawAmount <= 10000) {
+        $fee = 50 + 0.002 * $withdrawAmount; // small % + base
+    } elseif ($withdrawAmount <= 50000) {
+        $fee = 100 + 0.0015 * $withdrawAmount;
+    } else { // >50,000
+        $fee = 200 + 0.001 * $withdrawAmount;
+    }
+    $fee = round($fee, 2); // round to 2 decimals
+    $netAmount = $withdrawAmount - $fee;
+
 
       // Validation
       if (!$error) {
-        if ($withdrawAmount > $balance) {
-            $error = "Insufficient balance. Your $walletType wallet balance is KES $balance.";
-        } elseif ($withdrawAmount < $min) {
-            $error = "Minimum withdrawal for $walletType wallet is KES $min.";
-        } elseif ($netAmount <= 0) {
-            $error = "Withdrawal amount must be greater than the transaction fee (KES $fee).";
-        }
+          if ($withdrawAmount < $min) {
+              $error = "Minimum withdrawal for $walletType wallet is KES $min.";
+          } elseif ($withdrawAmount > $balance) {
+              $error = "Insufficient balance. Your $walletType wallet balance is KES $balance.";
+          } elseif ($netAmount <= 0) {
+              $error = "Withdrawal amount must be greater than the transaction fee (KES $fee).";
+          }
       }
   }
 
@@ -1069,6 +1087,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
           $stmt = $conn->prepare("UPDATE wallets SET balance = balance - ? WHERE user_id = ? AND wallet_type = ? LIMIT 1");
           $stmt->bind_param("dis", $withdrawAmount, $user_id, $walletType);
           $stmt->execute();
+          $withdrawalId = $conn->insert_id;
           $stmt->close();
 
           // 2️⃣ Insert into financial_transactions
@@ -1087,6 +1106,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
                                   SELECT user_id, wallet_id, ?, ?, ?, 'pending', ?, NOW(), 'KES' 
                                   FROM wallets WHERE user_id = ? AND wallet_type = ? LIMIT 1");
           $stmt->bind_param("dddiis", $withdrawAmount, $fee, $netAmount, $transactionId, $user_id, $walletType);
+
+          $withdrawalId = $conn->insert_id; // ✅ get correct withdrawal ID
+          $stmt->close();
+
+          // 4️⃣ Insert into withdrawal_logs
+          $stmt = $conn->prepare("INSERT INTO withdrawal_logs (withdrawal_id, performed_by, note, created_at) 
+                                  VALUES (?, ?, ?, NOW())");
+          $action = 'requested';
+          $performedBy = $user_id;
+          $note = "User requested withdrawal of KES $withdrawAmount, net KES $netAmount, fee KES $fee";
+          $stmt->bind_param("iis", $withdrawalId, $performedBy, $note); // use $withdrawalId here
           $stmt->execute();
           $stmt->close();
 
