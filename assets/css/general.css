@@ -4855,6 +4855,7 @@ justify-content: space-between;
   opacity: 0;
   transform: translateX(50px); /* slide in from right */
   animation: slideIn 0.3s forwards;
+  border: 1px solid #0980002c;
 }
 
 /* Slide-in animation from right */
@@ -4893,19 +4894,4 @@ justify-content: space-between;
 /* Stack notifications nicely */
 #notification-container .notification + #notification-container .notification {
   margin-top: 5px;
-}
-
-/* Example button styling */
-#notification-container .btn {
-  padding: 10px 20px;
-  background-color: #088000;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-#notification-container .btn:hover {
-  background-color: #066000;
 }

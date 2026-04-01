@@ -1126,6 +1126,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
 
           $success = "Withdrawal request of KES $withdrawAmount from your $walletType wallet submitted successfully. You will receive KES $netAmount after fees! <span class='redirect-msg'></span>";
 
+          $notificationMessage = "<i class='fa-solid fa-check-circle'></i> Request has been submitted successfully!";
+
+          echo "<script>
+              document.addEventListener('DOMContentLoaded', function() {
+                  showNotification(" . json_encode($notificationMessage) . ", 4000);
+              });
+          </script>";
+
       } catch (Exception $e) {
           $conn->rollback();
           $error = "Withdrawal failed: " . $e->getMessage();
@@ -1133,16 +1141,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
   }
 }
 
-// Fetch latest withdrawals (limit for UI)
+// Prepare SQL with LEFT JOIN to get phone from users table
 $query = "
   SELECT w.*, u.phone 
   FROM withdrawals w
   LEFT JOIN users u ON w.user_id = u.user_id
+  WHERE w.user_id = ?
   ORDER BY w.created_at DESC
   LIMIT 10
 ";
 
-$result = $conn->query($query);
+$stmt = $conn->prepare($query);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
 
 // Helper: format date
 function formatDate($date) {
@@ -2694,6 +2706,8 @@ function getStatusIcon($status) {
 
         <?php endwhile; ?>
 
+
+      </div>
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleAgentWithdrawals()">Go&nbsp;back</button> to continue with sales.</p>
     </main>
 
@@ -2778,6 +2792,8 @@ function getStatusIcon($status) {
       <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
     </footer>
   </div>
+
+  <!-- Notification container -->
   <div id="notification-container"></div>
   
   <script src="assets/js/general.js" type="text/javascript" defer></script>

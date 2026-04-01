@@ -1692,6 +1692,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
       <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
     </footer>
   </div>
+
+  <!-- Notification container -->
   <div id="notification-container"></div>
   
   <script src="assets/js/general.js" type="text/javascript" defer></script>

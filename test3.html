@@ -16,7 +16,7 @@
     }
 
     /* Individual notification */
-    .notification {
+    #notification-container .notification {
       background-color: #ffffff;
       color: #088000;
       padding: 15px 20px;
@@ -51,13 +51,13 @@
     }
 
     /* Message inside notification */
-    .notification .message {
+    #notification-container .notification .message {
       margin-bottom: 16px;
       font-size: 14px;
     }
 
     /* Progress bar */
-    .notification .progress-bar {
+    #notification-container .notification .progress-bar {
       height: 6px;
       background-color: #088000;
       width: 100%;
@@ -66,12 +66,12 @@
     }
 
     /* Stack notifications nicely */
-    .notification + .notification {
+    #notification-container .notification + #notification-container .notification {
       margin-top: 5px;
     }
 
     /* Example button styling */
-    .btn {
+    .notif-btn {
       padding: 10px 20px;
       background-color: #088000;
       color: white;
@@ -81,14 +81,14 @@
       font-size: 14px;
     }
 
-    .btn:hover {
+    .notif-btn:hover {
       background-color: #066000;
     }
   </style>
 </head>
 <body>
   <h1>Notification Demo</h1>
-  <button class="btn" onclick="showNotification(`<i class='fa-solid fa-check-circle'></i> Order placed successfully!`, 3000)">
+  <button class="notif-btn" onclick="showNotification(`<i class='fa-solid fa-check-circle'></i> Order placed successfully!`, 3000)">
     Place Order
   </button>
 
