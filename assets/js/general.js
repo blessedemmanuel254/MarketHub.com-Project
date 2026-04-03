@@ -904,6 +904,16 @@ function toggleProductsAdd(showAdd) {
   }
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+  const savedView = localStorage.getItem("seller:productsView");
+
+  if (savedView === "add") {
+    toggleProductsAdd(true);
+  } else {
+    toggleProductsAdd(false);
+  }
+});
+
 function toggleAgentAdd(showAdd) {
   const products = document.getElementById("agency");
   const addProducts = document.getElementById("add-products");
@@ -1535,58 +1545,64 @@ document.getElementById("goBackBtn")?.addEventListener("click", function () {
 });
 
 // WALLET TOGGLE + LOCALSTORAGE
-document.addEventListener("DOMContentLoaded", () => {
+function initWallets() {
   const walletSelect = document.querySelector("#funds .walletChange");
   const salesWallet = document.getElementById("salesWallet");
   const agencyWallet = document.getElementById("agencyWallet");
 
+  if (!walletSelect || !salesWallet || !agencyWallet) return; // stop if missing
+
   // Get input fields inside wallets
   const salesInput = salesWallet.querySelector('input[name="withdraw_amount"]');
   const agencyInput = agencyWallet.querySelector('input[name="withdraw_amount"]');
-
-  function showWallet(selected) {
-    if (selected === "sales") {
-        salesWallet.classList.add("active");
-        agencyWallet.classList.remove("active");
-        salesWallet.querySelector("input").disabled = false;
-        agencyWallet.querySelector("input").disabled = true;
-    } else {
-        agencyWallet.classList.add("active");
-        salesWallet.classList.remove("active");
-        agencyWallet.querySelector("input").disabled = false;
-        salesWallet.querySelector("input").disabled = true;
+  if (walletSelect && salesWallet && agencyWallet) {
+    
+    function showWallet(selected) {
+      if (selected === "sales") {
+          salesWallet.classList.add("active");
+          agencyWallet.classList.remove("active");
+          salesWallet.querySelector("input").disabled = false;
+          agencyWallet.querySelector("input").disabled = true;
+      } else {
+          agencyWallet.classList.add("active");
+          salesWallet.classList.remove("active");
+          agencyWallet.querySelector("input").disabled = false;
+          salesWallet.querySelector("input").disabled = true;
+      }
+      // Save selected wallet to localStorage
+      localStorage.setItem("selectedWallet", selected);
     }
-    // Save selected wallet to localStorage
-    localStorage.setItem("selectedWallet", selected);
-  }
 
-  // Restore selected wallet from localStorage
-  const savedWallet = localStorage.getItem("selectedWallet") || (walletSelect ? walletSelect.value : "sales");
-  if(walletSelect) {
-    walletSelect.value = savedWallet;
-    showWallet(savedWallet);
-  }
+    // Restore selected wallet from localStorage
+    const savedWallet = localStorage.getItem("selectedWallet") || (walletSelect ? walletSelect.value : "sales");
+    if(walletSelect) {
+      walletSelect.value = savedWallet;
+      showWallet(savedWallet);
+    }
 
-  // Listen for changes
-  if(walletSelect){
-    walletSelect.addEventListener("change", () => {
-      showWallet(walletSelect.value);
+    // Listen for changes
+    if(walletSelect){
+      walletSelect.addEventListener("change", () => {
+        showWallet(walletSelect.value);
+      });
+    }
+
+    // Restore input values from localStorage
+    if(salesInput) salesInput.value = localStorage.getItem("salesAmount") || "";
+    if(agencyInput) agencyInput.value = localStorage.getItem("agencyAmount") || "";
+
+    // Save input values to localStorage on change
+    if(salesInput) salesInput.addEventListener("input", () => {
+      localStorage.setItem("salesAmount", salesInput.value);
     });
+    if(agencyInput) agencyInput.addEventListener("input", () => {
+      localStorage.setItem("agencyAmount", agencyInput.value);
+    });
+
   }
+};
 
-  // Restore input values from localStorage
-  if(salesInput) salesInput.value = localStorage.getItem("salesAmount") || "";
-  if(agencyInput) agencyInput.value = localStorage.getItem("agencyAmount") || "";
-
-  // Save input values to localStorage on change
-  if(salesInput) salesInput.addEventListener("input", () => {
-    localStorage.setItem("salesAmount", salesInput.value);
-  });
-  if(agencyInput) agencyInput.addEventListener("input", () => {
-    localStorage.setItem("agencyAmount", agencyInput.value);
-  });
-});
-
+document.addEventListener("DOMContentLoaded", initWallets);
 // ==============================
 // DAILY PRODUCTS CONFIGURATION
 // ==============================
@@ -1737,7 +1753,7 @@ function buyNow(button) {
           <div class="product-info">
             ${name}
             <div class="product-price">
-              KSh <span class="item-subtotal">${formattedPrice}</span>
+              KES <span class="item-subtotal">${formattedPrice}</span>
             </div>
           </div>
         </div>
@@ -1785,14 +1801,22 @@ function buyNow(button) {
 }
 
 function placeOrder() {
+  const payButton = document.getElementById("payButton");
+
+  if (payButton.disabled) return;
+
+  // 🔄 Loading state
+  payButton.disabled = true;
+  payButton.innerHTML = `<span class="btn-spinner"></span> Processing...`;
+
   const products = document.querySelectorAll(".order-container .product");
 
   if (products.length === 0) {
-      alert("No products selected");
+      showNotification("No products selected", 3000);
+      resetPayButton();
       return;
   }
 
-  // Gather all products into an array
   const orderItems = [];
   let totalAmount = 0;
 
@@ -1803,7 +1827,8 @@ function placeOrder() {
       const price      = parseFloat(productEl.dataset.price);
 
       if (!product_id || !seller_id || quantity < 1) {
-          alert("Invalid product in order");
+          showNotification("Invalid product in order", 3000);
+          resetPayButton();
           return;
       }
 
@@ -1820,7 +1845,6 @@ function placeOrder() {
   const formData = new URLSearchParams();
   formData.append("action", "place_order_multi");
   formData.append("total_amount", totalAmount);
-
   formData.append("items", JSON.stringify(orderItems));
 
   fetch("marketDisplay.php", {
@@ -1831,12 +1855,31 @@ function placeOrder() {
   .then(res => res.json())
   .then(data => {
       if (data.success) {
-          alert("Order placed successfully! Code: " + data.order_code);
-          location.reload();
+
+        // ✅ Success state
+        payButton.innerHTML = `<i class="fa-solid fa-check"></i> Paid`;
+
+        showNotification(
+          `<i class='fa-solid fa-check-circle'></i> Order placed successfully!`,
+          3000
+        );
+
+        setTimeout(() => location.reload(), 3000);
+
       } else {
-          alert(data.error || "Order failed");
+        showNotification(data.error || "Order failed", 3000);
+        resetPayButton();
       }
+  })
+  .catch(() => {
+      showNotification("Network error", 3000);
+      resetPayButton();
   });
+
+  function resetPayButton() {
+    payButton.disabled = false;
+    payButton.innerHTML = "Try Again";
+  }
 }
 
 // ===== Quantity change handler (Buy Now + Cart) =====
@@ -1889,16 +1932,18 @@ function updateOrderSummary() {
   const itemsTotalEl = document.getElementById("itemsTotal");
   const finalTotalEl = document.getElementById("finalTotal");
   const orderCountEl = document.getElementById("orderItemCount");
+  const payButton = document.getElementById("payButton");
 
-  // Format number with commas and 2 decimals
+  // Format price with commas
   const formattedTotal = itemsTotal.toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   });
 
-  if (itemsTotalEl) itemsTotalEl.textContent = `KSh ${formattedTotal}`;
-  if (finalTotalEl) finalTotalEl.textContent = `KSh ${formattedTotal}`;
+  if (itemsTotalEl) itemsTotalEl.textContent = `KES ${formattedTotal}`;
+  if (finalTotalEl) finalTotalEl.textContent = `KES ${formattedTotal}`;
   if (orderCountEl) orderCountEl.textContent = quantity;
+  if (payButton) payButton.textContent = `Pay KES ${formattedTotal}`;
 }
 
 // ===== Update Cart summary =====
@@ -1916,16 +1961,17 @@ function updateCheckoutSummary() {
   const itemsTotalEl = document.getElementById("itemsTotal");
   const finalTotalEl = document.getElementById("finalTotal");
   const orderCountEl = document.getElementById("orderItemCount");
+  const payButton = document.getElementById("payButton");
 
-  // Format grand total with commas and 2 decimals
   const formattedTotal = grandTotal.toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   });
 
-  if (itemsTotalEl) itemsTotalEl.textContent = `KSh ${formattedTotal}`;
-  if (finalTotalEl) finalTotalEl.textContent = `KSh ${formattedTotal}`;
+  if (itemsTotalEl) itemsTotalEl.textContent = `KES ${formattedTotal}`;
+  if (finalTotalEl) finalTotalEl.textContent = `KES ${formattedTotal}`;
   if (orderCountEl) orderCountEl.textContent = totalItems;
+  if (payButton) payButton.textContent = `Pay KES ${formattedTotal}`;
 }
 
 function proceedFromCart() {
@@ -1939,7 +1985,7 @@ function proceedFromCart() {
   .then(res => res.json())
   .then(data => {
     if (!data.success || data.items.length === 0) {
-      alert("Cart is empty");
+      showNotification("Cart is empty", 3000);
       return;
     }
 
@@ -1963,14 +2009,13 @@ function proceedFromCart() {
     // Loop over each seller
     for (let sellerId in grouped) {
       const sellerGroup = grouped[sellerId];
-
       let sellerProductsContent = "";
+
       sellerGroup.items.forEach(product => {
-        const price = parseFloat(product.price) || 0; // convert to number
+        const price = parseFloat(product.price) || 0;
         grandTotal += price * product.quantity;
         totalItems += product.quantity;
 
-        // Format price with commas and 2 decimals
         const formattedPrice = price.toLocaleString('en-US', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
@@ -1982,7 +2027,7 @@ function proceedFromCart() {
               <img src="${product.image_path}" width="60">
               <div class="product-info">
                 ${product.product_name}
-                <div class="product-price">KSh ${formattedPrice}</div>
+                <div class="product-price">KES ${formattedPrice}</div>
               </div>
             </div>
             <div class="qty-and-delete">
@@ -1998,8 +2043,7 @@ function proceedFromCart() {
           </div>
         `;
       });
-      
-      // Wrap this seller's products inside its own seller-box
+
       allSellersContent += `
         <div class="seller-box">
           <div class="seller-header">Seller: ${sellerGroup.seller_name.toUpperCase()}</div>
@@ -2009,37 +2053,29 @@ function proceedFromCart() {
       `;
     }
 
-    // Update the card content
+    // Update the order card
     const card = document.querySelectorAll(".card")[1];
     if (card) {
-      card.innerHTML = `
-        <div class="card-title">
-          <p>
-            Order Summary<br>
-            <span>Item(s): <strong id="orderItemCount">${totalItems}</strong></span>
-          </p>
-        </div>
-
-        <div id="dynamicOrderBox">
-          ${allSellersContent}
-        </div>
-
-        <div class="guarantee">
-          Maket Hub · your number one marketplace.
-        </div>
-      `;
+      card.querySelector("#dynamicOrderBox")?.remove(); // remove old content if exists
+      const dynamicBox = document.createElement("div");
+      dynamicBox.id = "dynamicOrderBox";
+      dynamicBox.innerHTML = allSellersContent;
+      card.appendChild(dynamicBox);
     }
 
-    // Format grand total for display
+    // Update totals in summary section
     const formattedGrandTotal = grandTotal.toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     });
 
-    if (document.getElementById("itemsTotal"))
-      document.getElementById("itemsTotal").textContent = `KSh ${formattedGrandTotal}`;
-    if (document.getElementById("finalTotal"))
-      document.getElementById("finalTotal").textContent = `KSh ${formattedGrandTotal}`;
+    const itemsTotalEl = document.getElementById("itemsTotal");
+    const finalTotalEl = document.getElementById("finalTotal");
+    const payButton   = document.getElementById("payButton");
+
+    if (itemsTotalEl) itemsTotalEl.textContent = `KES ${formattedGrandTotal}`;
+    if (finalTotalEl) finalTotalEl.textContent = `KES ${formattedGrandTotal}`;
+    if (payButton)   payButton.textContent = `Pay KES ${formattedGrandTotal}`;
   });
 }
 

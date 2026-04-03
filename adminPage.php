@@ -1505,7 +1505,7 @@ function formatKES($amount) {
 
             <div class="card">
               <h3>Platform Balance</h3>
-              <div class="value profit">KES 700,500</div>
+              <div class="value profit">KES 13,452</div>
               <div class="sub">Withdrawable Company Balance</div>
               <ul class="list">
                 <li><span>API</span><strong>Online</strong></li>
@@ -1515,7 +1515,7 @@ function formatKES($amount) {
 
             <div class="card">
               <h3>Gross Transaction Volume (GMV)</h3>
-              <div class="value">KES 2,450,000</div>
+              <div class="value">KES 29,276</div>
               <div class="sub">All platform transactions (monthly)</div>
               <div class="progress"><div class="bar" style="width:82%"></div></div>
               <small>↑ 18% growth vs last month</small>
@@ -1523,7 +1523,7 @@ function formatKES($amount) {
 
             <div class="card">
               <h3>Net Profit</h3>
-              <div class="value net-profit">KES 176,500</div>
+              <div class="value net-profit">KES 16,500</div>
               <div class="sub">Commission − Operating Costs</div>
               <div class="progress"><div class="bar" style="width:71%"></div></div>
               <small>↑ This month's net profit</small>
@@ -1531,7 +1531,7 @@ function formatKES($amount) {
 
             <div class="card">
               <h3>Operational Costs</h3>
-              <div class="value loss">KES -68,500</div>
+              <div class="value loss">KES -3,500</div>
               <div class="sub">Monthly expenses</div>
               <ul class="list">
                 <li><span>Hosting & Servers</span><strong>18,000</strong></li>

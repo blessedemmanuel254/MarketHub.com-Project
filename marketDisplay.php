@@ -1025,13 +1025,11 @@ $productStmt->close();
             </div>
 
             <div class="address-name">
-              <?= htmlspecialchars($formattedName) ?> :
+              <?= htmlspecialchars($formattedName) ?> from:
             </div>
 
             <div class="address-text">
-              <?= htmlspecialchars($user['county'] ?? '') ?>,
-              <?= htmlspecialchars($user['ward'] ?? '') ?>,
-              <?= htmlspecialchars($user['address'] ?? '') ?><br>
+              <?= htmlspecialchars($user['county'] ?? '') ?>, <?= htmlspecialchars($user['ward'] ?? '') ?> ward in <?= htmlspecialchars($user['address'] ?? '') ?><br>
               Contact: <?= htmlspecialchars($decodedPhone) ?>
             </div>
           </div>                  
@@ -1048,32 +1046,37 @@ $productStmt->close();
 
         <!-- RIGHT COLUMN -->
         <div>
-            <div class="card">
-              <div class="card-title">Payment Summary</div>
+          <div class="card">
+            <div class="card-title">Payment Summary</div>
 
-              <div class="summary-row">
-                <span>Items Total</span>
-                <span id="itemsTotal">KSh 0.00</span>
-              </div>
+            <div class="summary-row">
+              <span>Items Total</span>
+              <span id="itemsTotal">KSh 0.00</span>
+            </div>
 
-              <div class="summary-row">
-                  <span>Delivery Fees</span>
-                  <span>0</span>
-              </div>
+            <div class="summary-row">
+              <span>Delivery Fees</span>
+              <span>0</span>
+            </div>
 
-              <div class="summary-row">
-                  <span>Promotions</span>
-                  <span>0</span>
-              </div>
+            <div class="summary-row">
+              <span>Promotions</span>
+              <span>0</span>
+            </div>
 
-              <div class="summary-row total">
-                <span>Total to Pay</span>
-                <span id="finalTotal">KSh 0.00</span>
-              </div>
+            <div class="summary-row">
+              <span>Maket Hub Points</span>
+              <span>0</span>
+            </div>
 
-              <button class="place-order" onclick="placeOrder()">
-                Place Order
-              </button>
+            <div class="summary-row total">
+              <span>Total</span>
+              <span id="finalTotal">KSh 0.00</span>
+            </div>
+
+            <button id="payButton" class="place-order" onclick="placeOrder()">
+              Pay KES 0.00
+            </button>
           </div>
         </div>
 
@@ -1084,6 +1087,9 @@ $productStmt->close();
       <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
     </footer>
   </div>
+  
+  <!-- Notification container -->
+  <div id="notification-container"></div>
   
   <script src="assets/js/general.js" type="text/javascript" defer></script>
 

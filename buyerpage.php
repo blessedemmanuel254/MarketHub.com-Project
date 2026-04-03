@@ -118,7 +118,7 @@ if (
 /* ---------- FETCH USER DATA ---------- */
 $user_id = $_SESSION['user_id'];
 
-$query = "SELECT username, profile_image FROM users WHERE user_id = ? LIMIT 1";
+$query = "SELECT username, profile_image, county, ward, country FROM users WHERE user_id = ? LIMIT 1";
 $stmt = $conn->prepare($query);
 
 if (!$stmt) {
@@ -131,17 +131,25 @@ $result = $stmt->get_result();
 
 $username = "User";
 $profileImage = null;
+$county = "Not set";
+$ward = "not set";
+$country = "not set";
 
 if ($result && $result->num_rows === 1) {
-    $user = $result->fetch_assoc();
+  $user = $result->fetch_assoc();
 
-    if (!empty($user['username'])) {
-        $username = $user['username'];
-    }
+  if (!empty($user['username'])) {
+      $username = $user['username'];
+  }
 
-    $profileImage = $user['profile_image'] ?? null;
+  $profileImage = $user['profile_image'] ?? null;
+
+  $county = $user['county'] ?? "Not set";
+
+  // Normalize for matching
+  $ward = strtolower(trim($user['ward'] ?? "not set"));
+  $country = strtolower(trim($user['country'] ?? "not set"));
 }
-
 
 $stmt->close();
 
@@ -181,6 +189,7 @@ $sellerQuery = "
         u.business_type,
         u.market_scope,
         u.ward,
+        u.country,
         u.profile_image,
         u.address,
         (
@@ -238,7 +247,7 @@ while ($row = $result->fetch_assoc()) {
   $scope = strtolower(trim($row['market_scope']));
 
   /* ---------- LOCAL ---------- */
-  if ($scope === "local") {
+  if ($scope === "local" && strtolower(trim($row['ward'])) === $ward) {
 
     if (in_array($type, ['shop','kiosk','canteen','kibanda'])) {
       $shops[] = $row;
@@ -251,7 +260,7 @@ while ($row = $result->fetch_assoc()) {
   }
 
   /* ---------- NATIONAL ---------- */
-  elseif ($scope === "national") {
+  elseif ($scope === "national" && strtolower(trim($row['country'])) === $country) {
 
     if (in_array($type, ['shop','kiosk','canteen','kibanda'])) {
       $shopsN[] = $row;
@@ -294,41 +303,71 @@ $markets = [
   ]
 ];
 
-$buyerId = $_SESSION['user_id'];
+$buyerId = $_SESSION['user_id'] ?? 0;
 
+/* ---------- FETCH BUYER ORDERS ---------- */
 $orders = [];
 
-$query = $conn->query("
-    SELECT 
-        o.order_id,
-        o.order_code,
-        o.order_status,
-        o.total_amount,
-        o.created_at,
+$stmt = $conn->prepare("
+  SELECT 
+    o.order_id,
+    o.order_code,
+    o.order_status,
+    o.total_amount,
+    o.created_at,
 
-        oi.quantity,
-        oi.subtotal,
-        oi.seller_id,
+    oi.quantity,
+    oi.subtotal,
+    oi.seller_id,
 
-        p.product_name,
-        p.image_path,
+    p.product_name,
+    p.image_path,
 
-        s.business_name AS seller_name,
-        s.market_scope
+    s.business_name AS seller_name,
+    s.market_scope
 
-    FROM orders o
-    JOIN order_items oi ON o.order_id = oi.order_id
-    JOIN productservicesrentals p ON oi.product_id = p.product_id
-    JOIN users s ON oi.seller_id = s.user_id
+  FROM orders o
+  JOIN order_items oi ON o.order_id = oi.order_id
+  JOIN productservicesrentals p ON oi.product_id = p.product_id
+  JOIN users s ON oi.seller_id = s.user_id
 
-    WHERE o.buyer_id = '$buyerId'
-
-    ORDER BY o.created_at DESC
-    LIMIT 10
+  WHERE o.buyer_id = ?
+  ORDER BY o.created_at DESC
+  LIMIT 10
 ");
 
-while ($row = $query->fetch_assoc()) {
-    $orders[] = $row;
+if ($stmt) {
+    $stmt->bind_param("i", $buyerId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    while ($row = $result->fetch_assoc()) {
+        $orders[] = $row;
+    }
+
+    $stmt->close();
+}
+
+/* ---------- COUNT PENDING ORDERS ---------- */
+$pendingOrders = 0;
+
+$stmt2 = $conn->prepare("
+  SELECT COUNT(*) AS total_pending 
+  FROM orders 
+  WHERE buyer_id = ? 
+  AND order_status = 'pending'
+");
+
+if ($stmt2) {
+  $stmt2->bind_param("i", $buyerId);
+  $stmt2->execute();
+  $result2 = $stmt2->get_result();
+
+  if ($row = $result2->fetch_assoc()) {
+      $pendingOrders = (int)$row['total_pending'];
+  }
+
+  $stmt2->close();
 }
 ?>
 
@@ -368,17 +407,27 @@ while ($row = $query->fetch_assoc()) {
           </p>
         </div>
         <div class="rhs">
-          <a class="lkOdr" onclick="toggleOrderMarket()">
-            <div class="odrIconDiv">
-              <i class="fa-brands fa-first-order-alt"></i>
-              <p>8</p>
-            </div>
-            <p>Order(s)</p>
-          </a>
-          <select name="" id="ward">
-            <option value="">Kilifi</option>
-            <!--<option value="">Bungoma</option>
-            <option value="">Nairobi</option>-->
+        <?php
+        $displayCount = ($pendingOrders > 9) ? '9+' : $pendingOrders;
+        ?>
+
+        <a class="lkOdr" onclick="toggleOrderMarket()">
+          <div class="odrIconDiv">
+            <i class="fa-brands fa-first-order-alt"></i>
+
+            <?php if ($pendingOrders > 0): ?>
+              <p class="order-count active"><?= $displayCount ?></p>
+            <?php else: ?>
+              <p class="order-count"><?= $displayCount ?></p>
+            <?php endif; ?>
+
+          </div>
+          <p>Order(s)</p>
+        </a>
+          <select id="county">
+            <option value="<?= htmlspecialchars($county) ?>" selected>
+              <?= htmlspecialchars($county) ?>
+            </option>
           </select>
           <a href="helpCentre.php" class="help-icon">
             <i class="fa-regular fa-circle-question"></i>
@@ -614,7 +663,14 @@ while ($row = $query->fetch_assoc()) {
 
             <div class="tab-top">
               <p>
-                Showing markets in <em>Sokoni Ward</em><br>
+                <?php if ($scope === 'L'): ?>
+                  Showing markets in <em><?= htmlspecialchars(ucwords($ward)) ?> Ward</em><br>
+                <?php elseif ($scope === 'N'): ?>
+                  Showing the national market in <em><?= htmlspecialchars(ucwords($country)) ?></em><br>
+                <?php elseif ($scope === 'G'): ?>
+                  Showing global markets available on <em>Maket Hub</em><br>
+                <?php endif; ?>
+                
                 <strong>Please select the market source <i class="fa-regular fa-circle-check"></i></strong>
               </p>
 

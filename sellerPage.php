@@ -1311,7 +1311,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
                         </div>
                       </div>
                       <div class="card-actions">
-                          <a href="?edit_product_id=<?= $product['product_id'] ?>" class="edit">
+                          <a href="?edit_product_id=<?= $product['product_id'] ?>" class="edit" >
                             <i class="fa fa-pen"></i> Edit
                           </a>
                           <form method="POST" onsubmit="return confirm('Are you sure you want to delete this product?')">

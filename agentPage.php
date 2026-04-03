@@ -1790,7 +1790,7 @@ function getStatusIcon($status) {
             </div>
           </div>
           
-          <div id="add-products" class="tab-panel">
+          <div id="add-agent" class="tab-panel">
             <div class="tab-top">
               <p>Add to your Agency</em> <br><strong>Submit new agent's details to be added <i class="fa-regular fa-circle-check"></i></strong></p>
               <button onclick="toggleAgentAdd(false)">
