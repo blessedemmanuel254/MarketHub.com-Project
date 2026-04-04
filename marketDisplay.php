@@ -814,9 +814,7 @@ if ($result) {
 $stmt->close();
 
 
-
 /* ---------- FETCH SELLER PRODUCTS ---------- */
-
 
 $productsByCategory = [];
 

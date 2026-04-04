@@ -127,7 +127,8 @@ function generateImageDHash($filePath)
     return $hash;
 }
 
-$query = "SELECT username, profile_image FROM users WHERE user_id = ? LIMIT 1";
+// Fetch seller's data including county
+$query = "SELECT username, profile_image, county FROM users WHERE user_id = ? LIMIT 1"; 
 $stmt = $conn->prepare($query);
 
 if (!$stmt) {
@@ -140,6 +141,7 @@ $result = $stmt->get_result();
 
 $username = "User";
 $profileImage = null;
+$county = "Kilifi"; // default
 
 if ($result && $result->num_rows === 1) {
     $user = $result->fetch_assoc();
@@ -149,8 +151,8 @@ if ($result && $result->num_rows === 1) {
     }
 
     $profileImage = $user['profile_image'] ?? null;
+    $county = $user['county'] ?? $county; // use DB value if exists
 }
-
 
 $stmt->close();
 /* ---------- DELETE PRODUCT ---------- */
@@ -841,24 +843,28 @@ $stmt->close();
 $sellerOrders = [];
 $stmt = $conn->prepare("
   SELECT 
-      o.order_id,
-      o.order_code,
-      o.created_at,
-      u.full_name AS buyer_name,
+    o.order_id,
+    o.order_code,
+    o.created_at,
+    u.full_name AS buyer_name,
 
-      oi.item_id,
-      oi.quantity,
-      oi.price,
-      oi.order_status,
-      oi.shipped_at,
-      oi.delivered_at,
+    oi.item_id,
+    oi.product_id,
+    oi.quantity,
+    oi.price,
+    oi.subtotal,
+    oi.order_status,
+    oi.shipped_at,
+    oi.delivered_at,
+    oi.payment_status,
 
-      p.product_name,
+    p.product_name,
+    p.image_path,
 
-      (oi.quantity * oi.price) AS seller_total
+    (oi.quantity * oi.price) AS seller_total
 
-  FROM orders o
-  JOIN order_items oi ON o.order_id = oi.order_id
+  FROM order_items oi
+  JOIN orders o ON oi.order_id = o.order_id
   JOIN users u ON o.buyer_id = u.user_id
   JOIN productservicesrentals p ON oi.product_id = p.product_id
 
@@ -871,11 +877,30 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result) {
-    while ($row = $result->fetch_assoc()) {
-        $sellerOrders[] = $row;
-    }
+  while ($row = $result->fetch_assoc()) {
+      $sellerOrders[] = $row;
+  }
 }
 $stmt->close();
+
+// Count seller's active orders (not delivered)
+$countStmt = $conn->prepare("
+    SELECT COUNT(*) AS activeOrders
+    FROM order_items
+    WHERE seller_id = ? AND order_status != 'delivered'
+");
+$countStmt->bind_param("i", $user_id);
+$countStmt->execute();
+$countResult = $countStmt->get_result();
+$activeOrders = 0;
+if ($countResult && $countResult->num_rows === 1) {
+    $row = $countResult->fetch_assoc();
+    $activeOrders = (int)$row['activeOrders'];
+}
+$countStmt->close();
+
+// Prepare display value
+$displayCount = $activeOrders > 9 ? "9+" : $activeOrders;
 
 $walletType = 'seller';
 
@@ -911,39 +936,27 @@ $isEligible = $walletBalance >= $minWithdrawal;
 $withdrawStatus = $isEligible ? "Eligible" : "Not Eligible";
 $withdrawClass = $isEligible ? "green" : "red";
 
+// Fetch seller orders summary
 $stmt = $conn->prepare("
-SELECT 
-COUNT(DISTINCT o.order_id) AS total_orders,
-
-COUNT(DISTINCT CASE 
-    WHEN oi.order_status = 'pending' 
-    THEN oi.item_id 
-END) AS processing_orders,
-
-COUNT(DISTINCT CASE 
-    WHEN oi.order_status = 'shipped' 
-    THEN oi.item_id 
-END) AS shipped_orders,
-
-COUNT(DISTINCT CASE 
-    WHEN oi.order_status = 'delivered' 
-    THEN oi.item_id 
-END) AS delivered_orders
-
-FROM orders o
-JOIN order_items oi ON o.order_id = oi.order_id
-WHERE oi.seller_id = ?
+  SELECT 
+    COUNT(DISTINCT oi.order_id) AS total_orders,
+    COUNT(DISTINCT CASE WHEN oi.order_status = 'pending' THEN oi.order_id END) AS processing_orders,
+    COUNT(DISTINCT CASE WHEN oi.order_status = 'shipped' THEN oi.order_id END) AS shipped_orders,
+    COUNT(DISTINCT CASE WHEN oi.order_status = 'delivered' THEN oi.order_id END) AS delivered_orders
+  FROM order_items oi
+  WHERE oi.seller_id = ?
 ");
-
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 $row = $result->fetch_assoc();
 
-$totalOrders      = $row['total_orders'];
-$processingOrders = $row['processing_orders'];
-$shippedOrders    = $row['shipped_orders'];
-$deliveredOrders  = $row['delivered_orders'];
+$totalOrders      = $row['total_orders'] ?? 0;
+$processingOrders = $row['processing_orders'] ?? 0;
+$shippedOrders    = $row['shipped_orders'] ?? 0;
+$deliveredOrders  = $row['delivered_orders'] ?? 0;
+
+$stmt->close();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
 
@@ -1104,8 +1117,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_order_status']
   $itemId = intval($_POST['item_id']);
   $newStatus = $_POST['status'];
 
+  // Only allow valid statuses
   if (!in_array($newStatus, ['Shipped', 'Delivered'])) {
-      die("Invalid status");
+      echo json_encode(['success' => false, 'message' => 'Invalid status']);
+      exit();
   }
 
   if ($newStatus === 'Shipped') {
@@ -1114,7 +1129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_order_status']
           SET order_status = 'Shipped', shipped_at = NOW()
           WHERE item_id = ? AND seller_id = ?
       ");
-  } else {
+  } else { // Delivered
       $stmt = $conn->prepare("
           UPDATE order_items 
           SET order_status = 'Delivered', delivered_at = NOW()
@@ -1123,11 +1138,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_order_status']
   }
 
   $stmt->bind_param("ii", $itemId, $user_id);
-  $stmt->execute();
-  $stmt->close();
 
-  header("Location: sellerPage.php");
-  exit();
+  if ($stmt->execute()) {
+      echo json_encode(['success' => true, 'order_id' => $itemId, 'new_status' => $newStatus]);
+  } else {
+      echo json_encode(['success' => false, 'message' => 'Failed to update status']);
+  }
+
+  $stmt->close();
+  exit(); // Stop the script so no extra HTML or headers are sent
 }
 ?>
 
@@ -1174,14 +1193,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_order_status']
           <a class="lkOdr" onclick="toggleSellerOrdersTrack()">
             <div class="odrIconDiv">
               <i class="fa-brands fa-first-order-alt"></i>
-              <p>8</p>
+              <p><?= $displayCount ?></p>
             </div>
             <p>Order(s)</p>
           </a>
-          <select name="" id="ward">
-            <option value="">Kilifi</option>
-            <!--<option value="">Bungoma</option>
-            <option value="">Nairobi</option>-->
+          <select name="county" id="ward">
+            <option value="<?= htmlspecialchars($county) ?>" selected>
+              <?= htmlspecialchars($county) ?>
+            </option>
           </select>
           <a href="helpCentre.php" class="help-icon">
             <i class="fa-regular fa-circle-question"></i>
@@ -1293,8 +1312,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_order_status']
                   <p class="small">KES 0 pending clearance</p>
                 </div>
 
-
-
                 <!-- WITHDRAWAL STATUS -->
                 <div class="card">
                   <i class="fa fa-money-bill-wave icon"></i>
@@ -1329,11 +1346,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_order_status']
                   <div class="stat"><?= formatToK($totalOrders) ?> Orders</div>
 
                   <p class="meta">
-                    <span class="badge yellow"><?= $processingOrders ?>&nbsp;Processing</span>
-                    <span class="badge blue"><?= $shippedOrders ?>&nbsp;Shipped</span>
-                    <span class="badge green"><?= $deliveredOrders ?>&nbsp;Delivered</span>
+                    <span class="badge yellow"><?= $processingOrders ?> Processing</span>
+                    <span class="badge blue"><?= $shippedOrders ?> Shipped</span>
+                    <span class="badge green"><?= $deliveredOrders ?> Delivered</span>
                   </p>
-
                 </div>
 
                 <!-- CUSTOMER TRUST -->
@@ -1577,10 +1593,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_order_status']
 
       <!-- DESKTOP TABLE -->
       <div class="table-wrapper">
+
         <table id="ordersTable">
           <thead>
             <tr>
-              <th>#</th>
+              <th>Image</th>
               <th>Order ID</th>
               <th>Buyer</th>
               <th>Product</th>
@@ -1597,30 +1614,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_order_status']
           if (!empty($sellerOrders)) {
               $count = 1;
               foreach ($sellerOrders as $order) {
-                $statusClass = strtolower($order['order_status']); // e.g., "processing"
-                $total = number_format($order['seller_total'], 2);
-                $date = date("d M Y", strtotime($order['created_at']));
-                echo "<tr data-status=\"{$order['order_status']}\">
-                        <td>{$count}.</td>
-                        <td>{$order['order_code']}</td>
-                        <td>".mb_strtoupper(htmlspecialchars($order['buyer_name']), 'UTF-8')."</td>
-                        <td>".htmlspecialchars($order['product_name'])."</td>
-                        <td>{$order['quantity']}</td>
-                        <td>KES {$total}</td>
-                        <td><span class='badge ".($statusClass === 'pending' ? 'pending' : 'paid')."'>".($statusClass === 'pending' ? 'Pending' : 'Paid')."</span></td>
-                        <td><span class='badge {$statusClass}'>".ucfirst($order['order_status'])."</span></td>
-                        <td>{$date}</td>
-                        <td class='actions'>
-                            <div>
-                                <button class='btn-ship'>Mark&nbsp;as&nbsp;Shipped</button>
-                            </div>
-                        </td>
-                      </tr>";
-                $count++;
+
+                  $total = number_format($order['seller_total'], 2);
+                  $date = date("d M Y", strtotime($order['created_at']));
+
+                  // Payment badge
+                  $paymentStatus = strtolower($order['payment_status'] ?? '');
+                  $paymentClass = $paymentStatus === 'paid' ? 'paid' : 'pending';
+                  $paymentLabel = ucfirst($paymentStatus ?: 'Pending');
+
+                  // Order status badge
+                  $statusClass = strtolower($order['order_status'] ?? '');
+                  $statusLabel = ucfirst($order['order_status'] ?? 'Pending');
+
+                  // Optional tooltip for shipped/delivered timestamps
+                  $statusTooltip = '';
+                  if (!empty($order['shipped_at'])) {
+                      $statusTooltip .= "Shipped: " . date("d M Y H:i", strtotime($order['shipped_at']));
+                  }
+                  if (!empty($order['delivered_at'])) {
+                      if ($statusTooltip) $statusTooltip .= "\n";
+                      $statusTooltip .= "Delivered: " . date("d M Y H:i", strtotime($order['delivered_at']));
+                  }
+
+                  // Product image
+                  $productImage = !empty($order['image_path']) && file_exists($order['image_path']) 
+                                  ? htmlspecialchars($order['image_path']) 
+                                  : "Images/Maket Hub Logo.avif"; // default image
+
+                  echo "<tr data-status=\"{$order['order_status']}\">
+                          <td><img src='{$productImage}' alt='Product Image' style='width:50px;height:50px;object-fit:cover;border-radius:4px;'></td>
+                          <td>{$order['order_code']}</td>
+                          <td>".htmlspecialchars($order['buyer_name'])."</td>
+                          <td>".htmlspecialchars($order['product_name'])."</td>
+                          <td>{$order['quantity']}</td>
+                          <td>KES {$total}</td>
+                          <td><span class='badge {$paymentClass}'>{$paymentLabel}</span></td>
+                          <td><span class='badge {$statusClass}' title=\"".htmlspecialchars($statusTooltip)."\">{$statusLabel}</span></td>
+                          <td>{$date}</td>
+                          <td class='actions'>
+                        <div>";
+
+                  // Actions based on status
+                  if ($statusClass === 'pending') {
+                      echo "<button class='btn-ship'>Mark&nbsp;as&nbsp;Shipped</button>";
+                  } elseif ($statusClass === 'shipped') {
+                      echo "<button class='btn-deliver'>Mark&nbsp;as&nbsp;Delivered</button>";
+                  } else {
+                      echo "<span class='text-muted'>No actions</span>";
+                  }
+
+                  echo "      </div>
+                          </td>
+                        </tr>";
+                  $count++;
               }
           } else {
-              echo "<tr><td colspan='10'>No orders yet.</td></tr>";
-          }
+            // Display message when no data
+            echo "<tr>
+                    <td colspan='10' style='text-align:center; color:#888;'>No data available in table</td>
+                  </tr>";
+            }
           ?>
           </tbody>
         </table>
@@ -1678,7 +1732,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_order_status']
           <div class="card-row">
             <span>Status</span>
             <span class="badge <?= $statusClass ?>">
-                <?= ucfirst($order['order_status']) ?>
+              <?= ucfirst($order['order_status']) ?>
             </span>
           </div>
 
@@ -1722,7 +1776,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_order_status']
         <table id="sellerTransactions">
           <thead>
             <tr>
-              <th>#</th>
+              <th>Image</th>
               <th>Order ID</th>
               <th>Buyer</th>
               <th>Product</th>
@@ -1739,23 +1793,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_order_status']
           if (!empty($sellerOrders)) {
               $count = 1;
               foreach ($sellerOrders as $order) {
-                  $statusClass = strtolower($order['order_status']); // e.g., "processing"
+
                   $total = number_format($order['seller_total'], 2);
                   $date = date("d M Y", strtotime($order['created_at']));
+
+                  // Payment badge
+                  $paymentStatus = strtolower($order['payment_status'] ?? '');
+                  $paymentClass = $paymentStatus === 'paid' ? 'paid' : 'pending';
+                  $paymentLabel = ucfirst($paymentStatus ?: 'Pending');
+
+                  // Order status badge
+                  $statusClass = strtolower($order['order_status'] ?? '');
+                  $statusLabel = ucfirst($order['order_status'] ?? 'Pending');
+
+                  // Optional tooltip for shipped/delivered timestamps
+                  $statusTooltip = '';
+                  if (!empty($order['shipped_at'])) {
+                      $statusTooltip .= "Shipped: " . date("d M Y H:i", strtotime($order['shipped_at']));
+                  }
+                  if (!empty($order['delivered_at'])) {
+                      if ($statusTooltip) $statusTooltip .= "\n";
+                      $statusTooltip .= "Delivered: " . date("d M Y H:i", strtotime($order['delivered_at']));
+                  }
+
+                  // Product image
+                  $productImage = !empty($order['image_path']) && file_exists($order['image_path']) 
+                                  ? htmlspecialchars($order['image_path']) 
+                                  : "Images/Maket Hub Logo.avif"; // default image
+
                   echo "<tr data-status=\"{$order['order_status']}\">
-                          <td>{$count}.</td>
+                          <td><img src='{$productImage}' alt='Product Image' style='width:50px;height:50px;object-fit:cover;border-radius:4px;'></td>
                           <td>{$order['order_code']}</td>
                           <td>".htmlspecialchars($order['buyer_name'])."</td>
                           <td>".htmlspecialchars($order['product_name'])."</td>
                           <td>{$order['quantity']}</td>
                           <td>KES {$total}</td>
-                          <td><span class='badge ".($statusClass === 'pending' ? 'pending' : 'paid')."'>".($statusClass === 'pending' ? 'Pending' : 'Paid')."</span></td>
-                          <td><span class='badge {$statusClass}'>".ucfirst($order['order_status'])."</span></td>
+                          <td><span class='badge {$paymentClass}'>{$paymentLabel}</span></td>
+                          <td><span class='badge {$statusClass}' title=\"".htmlspecialchars($statusTooltip)."\">{$statusLabel}</span></td>
                           <td>{$date}</td>
                           <td class='actions'>
-                              <div>
-                                  <button class='btn-ship'>Mark&nbsp;as&nbsp;Shipped</button>
-                              </div>
+                              <div>";
+
+                  // Actions based on status
+                  if ($statusClass === 'pending') {
+                      echo "<button class='btn-ship'>Mark&nbsp;as&nbsp;Shipped</button>";
+                  } elseif ($statusClass === 'shipped') {
+                      echo "<button class='btn-deliver'>Mark&nbsp;as&nbsp;Delivered</button>";
+                  } else {
+                      echo "<span class='text-muted'>No actions</span>";
+                  }
+
+                  echo "      </div>
                           </td>
                         </tr>";
                   $count++;
