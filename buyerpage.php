@@ -922,6 +922,7 @@ $pendingOrders = count($pendingItems);
             </tr>
           </thead>
           <tbody>
+            <?php if (!empty($orders)): ?>
             <?php foreach ($orders as $order): ?>
             <tr data-status="<?= htmlspecialchars($order['order_status']) ?>">
 
@@ -984,6 +985,11 @@ $pendingOrders = count($pendingItems);
 
             </tr>
             <?php endforeach; ?>
+            <?php else: ?>
+              <tr>
+                <td colspan="12" style="text-align:center; color :#898888">No data available in table</td>
+              </tr>
+            <?php endif; ?>
           </tbody>
         </table>
       </div>

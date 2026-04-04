@@ -1343,12 +1343,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_order_status']
                   <i class="fa fa-box icon"></i>
                   <h3>Orders Summary</h3>
 
-                  <div class="stat"><?= formatToK($totalOrders) ?> Orders</div>
+                  <div class="stat">
+                      <?= formatToK($totalOrders) ?> <?= $totalOrders == 1 ? 'Order' : 'Orders' ?>
+                  </div>
 
                   <p class="meta">
-                    <span class="badge yellow"><?= $processingOrders ?> Processing</span>
-                    <span class="badge blue"><?= $shippedOrders ?> Shipped</span>
-                    <span class="badge green"><?= $deliveredOrders ?> Delivered</span>
+                      <span class="badge yellow"><?= $processingOrders ?> <?= $processingOrders == 1 ? 'Processing' : 'Processing' ?></span>
+                      <span class="badge blue"><?= $shippedOrders ?> <?= $shippedOrders == 1 ? 'Shipped' : 'Shipped' ?></span>
+                      <span class="badge green"><?= $deliveredOrders ?> <?= $deliveredOrders == 1 ? 'Delivered' : 'Delivered' ?></span>
                   </p>
                 </div>
 
@@ -1657,11 +1659,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_order_status']
 
                   // Actions based on status
                   if ($statusClass === 'pending') {
-                      echo "<button class='btn-ship'>Mark&nbsp;as&nbsp;Shipped</button>";
-                  } elseif ($statusClass === 'shipped') {
-                      echo "<button class='btn-deliver'>Mark&nbsp;as&nbsp;Delivered</button>";
+                    echo "<button class='btn-ship'>Mark&nbsp;as&nbsp;Shipped</button>";
                   } else {
-                      echo "<span class='text-muted'>No actions</span>";
+                    echo `<button class="btn-view"><i class="fa-solid fa-eye"></i></button>`;
                   }
 
                   echo "      </div>

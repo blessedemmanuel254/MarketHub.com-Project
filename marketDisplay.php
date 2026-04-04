@@ -1178,11 +1178,11 @@ $productStmt->close();
             </div>
 
             <div class="address-name">
-              <?= htmlspecialchars($formattedName) ?> from:
+              <?= htmlspecialchars($formattedName) ?>:
             </div>
 
             <div class="address-text">
-              <?= htmlspecialchars($user['county'] ?? '') ?>, <?= htmlspecialchars($user['ward'] ?? '') ?> ward in <?= htmlspecialchars($user['address'] ?? '') ?><br>
+              From <?= htmlspecialchars($user['address'] ?? '') ?>, <?= htmlspecialchars($user['ward'] ?? '') ?> ward<?= htmlspecialchars($user['county'] ?? '') ?><br>
               Contact: <?= htmlspecialchars($decodedPhone) ?>
             </div>
           </div>                  
