@@ -2272,3 +2272,41 @@ function showNotification(message, duration = 3000, type = "success") {
 
   requestAnimationFrame(animateProgress);
 }
+
+// ===============================
+// MARK AS SHIPPED JS
+// ===============================  
+document.addEventListener("click", function (e) {
+  if (e.target.classList.contains("btn-ship")) {
+
+    const button = e.target;
+    const orderId = button.dataset.id;
+
+    fetch("adminPage.php", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: `action=mark_shipped&order_id=${orderId}`
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+
+            // 🔥 Update UI instantly
+            const row = button.closest("tr");
+            const statusCell = row.querySelector("td:nth-child(8) span");
+
+            statusCell.className = "badge shipped";
+            statusCell.textContent = "Shipped";
+
+            // Replace button with view button
+            button.outerHTML = `<button class="btn-view"><i class="fa-solid fa-eye"></i></button>`;
+
+        } else {
+            alert("Failed to update order.");
+        }
+    })
+    .catch(() => alert("Error processing request."));
+  }
+});

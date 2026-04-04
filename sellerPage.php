@@ -1148,6 +1148,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_order_status']
   $stmt->close();
   exit(); // Stop the script so no extra HTML or headers are sent
 }
+
+if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
+  $orderId = intval($_POST['order_id']);
+
+  // Update DB
+  $stmt = $conn->prepare("UPDATE orders SET order_status = 'shipped', shipped_at = NOW() WHERE order_id = ?");
+  $stmt->bind_param("i", $orderId);
+
+  if ($stmt->execute()) {
+      echo json_encode([
+          'success' => true,
+          'status' => 'Shipped'
+      ]);
+  } else {
+      echo json_encode(['success' => false]);
+  }
+  exit;
+}
 ?>
 
 <!DOCTYPE html>
@@ -1661,7 +1679,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_order_status']
                   if ($statusClass === 'pending') {
                     echo "<button class='btn-ship'>Mark&nbsp;as&nbsp;Shipped</button>";
                   } else {
-                    echo `<button class="btn-view"><i class="fa-solid fa-eye"></i></button>`;
+                    echo "<button class='btn-view'><i class='fa-solid fa-eye'></i></button>";
                   }
 
                   echo "      </div>
