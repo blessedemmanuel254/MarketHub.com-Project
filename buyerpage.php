@@ -202,13 +202,14 @@ $sellerQuery = "
         (
           SELECT COUNT(*)
           FROM user_followers uf
-          WHERE uf.follower_id = u.user_id
-        ) AS following_count,
+          WHERE uf.followed_id = u.user_id
+        ) AS followers_count,
+
         (
           SELECT COUNT(*)
           FROM user_followers uf
-          WHERE uf.followed_id = u.user_id
-        ) AS followers_count,
+          WHERE uf.follower_id = u.user_id
+        ) AS following_count,
         (
           SELECT COUNT(*)
           FROM user_followers uf
@@ -286,6 +287,7 @@ while ($row = $result->fetch_assoc()) {
   }
 
 }
+
 $stmt->close();
 
 $markets = [
@@ -308,67 +310,105 @@ $buyerId = $_SESSION['user_id'] ?? 0;
 /* ---------- FETCH BUYER ORDERS ---------- */
 $orders = [];
 
-$stmt = $conn->prepare("
+$ordersStmt = $conn->prepare("
   SELECT 
-    o.order_id,
-    o.order_code,
-    o.order_status,
-    o.total_amount,
-    o.created_at,
-
-    oi.quantity,
-    oi.subtotal,
-    oi.seller_id,
-
-    p.product_name,
-    p.image_path,
-
-    s.business_name AS seller_name,
-    s.market_scope
-
-  FROM orders o
-  JOIN order_items oi ON o.order_id = oi.order_id
+      o.order_id, 
+      o.order_code,
+      oi.item_id,
+      oi.quantity,
+      oi.subtotal,
+      oi.order_status AS order_status,
+      oi.shipped_at,
+      oi.delivered_at,
+      oi.payment_status,
+      p.product_name,
+      p.image_path,
+      u.business_name AS seller_name,
+      u.user_id AS seller_id,
+      u.market_scope
+  FROM order_items oi
+  JOIN orders o ON oi.order_id = o.order_id
   JOIN productservicesrentals p ON oi.product_id = p.product_id
-  JOIN users s ON oi.seller_id = s.user_id
-
+  JOIN users u ON oi.seller_id = u.user_id
   WHERE o.buyer_id = ?
   ORDER BY o.created_at DESC
-  LIMIT 10
+");
+
+$ordersStmt->bind_param("i", $buyerId);
+$ordersStmt->execute();
+$result = $ordersStmt->get_result();
+
+while ($row = $result->fetch_assoc()) {
+  $orders[] = $row;
+}
+
+$ordersStmt->close();
+
+
+$orderItemsStmt = $conn->prepare("
+  SELECT 
+      oi.item_id,
+      oi.order_id,
+      oi.product_id,
+      oi.seller_id,
+      oi.quantity,
+      oi.price,
+      oi.subtotal,
+      oi.order_status,
+      oi.shipped_at,
+      oi.delivered_at,
+      p.product_name,
+      p.image_path AS product_image,
+      u.business_name AS seller_name
+  FROM order_items oi
+  JOIN productservicesrentals p ON oi.product_id = p.product_id
+  JOIN users u ON oi.seller_id = u.user_id
+  WHERE oi.order_id = ?
+");
+
+/* ---------- COUNT PENDING ORDERS ---------- */
+$pendingItems = [];
+
+$stmt = $conn->prepare("
+  SELECT 
+      oi.item_id,
+      oi.order_id,
+      oi.product_id,
+      oi.quantity,
+      oi.price,
+      oi.subtotal,
+      oi.order_status,
+      p.product_name,
+      p.image_path AS product_image
+  FROM order_items oi
+  JOIN orders o ON oi.order_id = o.order_id
+  JOIN productservicesrentals p ON oi.product_id = p.product_id
+  WHERE o.buyer_id = ?
+    AND oi.order_status = 'pending'
+  ORDER BY o.created_at DESC
 ");
 
 if ($stmt) {
-    $stmt->bind_param("i", $buyerId);
-    $stmt->execute();
-    $result = $stmt->get_result();
+  $stmt->bind_param("i", $buyerId);
+  $stmt->execute();
+  $result = $stmt->get_result();
 
-    while ($row = $result->fetch_assoc()) {
-        $orders[] = $row;
-    }
-
-    $stmt->close();
-}
-
-/* ---------- COUNT PENDING ORDERS ---------- */
-$pendingOrders = 0;
-
-$stmt2 = $conn->prepare("
-  SELECT COUNT(*) AS total_pending 
-  FROM orders 
-  WHERE buyer_id = ? 
-  AND order_status = 'pending'
-");
-
-if ($stmt2) {
-  $stmt2->bind_param("i", $buyerId);
-  $stmt2->execute();
-  $result2 = $stmt2->get_result();
-
-  if ($row = $result2->fetch_assoc()) {
-      $pendingOrders = (int)$row['total_pending'];
+  while ($row = $result->fetch_assoc()) {
+      $pendingItems[] = $row;
   }
 
-  $stmt2->close();
+  $stmt->close();
 }
+
+$pendingOrders = count($pendingItems);
+
+// Example: display pending items
+/* foreach ($pendingItems as $item) {
+  echo "Product: " . htmlspecialchars($item['product_name']) . "<br>";
+  echo "Quantity: " . $item['quantity'] . "<br>";
+  echo "Subtotal: " . number_format($item['subtotal'], 2) . "<br>";
+  echo "<img src='" . (!empty($item['product_image']) && file_exists(__DIR__ . '/' . $item['product_image']) ? $item['product_image'] : 'Images/Maket Hub Logo.avif') . "' width='80'><br><hr>";
+} */
 ?>
 
 <!DOCTYPE html>
@@ -864,125 +904,144 @@ if ($stmt2) {
 
       <!-- DESKTOP TABLE -->
       <div class="table-wrapper">
-      <table id="ordersTable">
-      <thead>
-      <tr>
-        <th>Image</th><th>Order</th><th>Product</th><th>Seller</th>
-        <th>Market</th><th>Quantity</th><th>Subtotal</th>
-        <th>Payment</th><th>Status</th><th>Actions</th>
-      </tr>
-      </thead>
-      <tbody>
-      <?php foreach ($orders as $order): ?>
-      <tr data-status="<?= htmlspecialchars($order['order_status']) ?>">
-        <td>
-            <img src="<?= !empty($order['image_path']) && file_exists($order['image_path']) 
-                ? htmlspecialchars($order['image_path']) 
-                : 'Images/Maket Hub Logo.avif'; ?>" 
-                class="product-img">
-        </td>
+        <table id="ordersTable">
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Order</th>
+              <th>Product</th>
+              <th>Seller</th>
+              <th>Market</th>
+              <th>Quantity</th>
+              <th>Subtotal</th>
+              <th>Payment</th>
+              <th>Status</th>
+              <th>Actions</th>
+              <th>Shipped At</th>
+              <th>Delivered At</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($orders as $order): ?>
+            <tr data-status="<?= htmlspecialchars($order['order_status']) ?>">
 
-        <td><?= htmlspecialchars($order['order_code']) ?></td>
+              <td>
+                <img src="<?= !empty($order['image_path']) && file_exists(__DIR__ . '/' . $order['image_path']) 
+                    ? htmlspecialchars($order['image_path']) 
+                    : 'Images/Maket Hub Logo.avif'; ?>" 
+                    class="product-img">
+              </td>
 
-        <td><?= htmlspecialchars($order['product_name']) ?></td>
+              <td><?= htmlspecialchars($order['order_code']) ?></td>
+              <td><?= htmlspecialchars($order['product_name']) ?></td>
 
-        <td>
-            <?= mb_strtoupper(htmlspecialchars(
-                !empty($order['seller_name']) 
-                ? $order['seller_name'] 
-                : 'Seller #' . $order['seller_id']
-            ), 'UTF-8') ?>
-        </td>
+              <td>
+                <?= mb_strtoupper(htmlspecialchars(
+                    !empty($order['seller_name']) 
+                    ? $order['seller_name'] 
+                    : 'Seller #' . $order['seller_id']
+                ), 'UTF-8') ?>
+              </td>
 
-        <td><?= htmlspecialchars($order['market_scope'] ?? 'National') ?></td>
+              <td><?= htmlspecialchars($order['market_scope'] ?? 'National') ?></td>
+              <td><?= $order['quantity'] ?></td>
+              <td>KES&nbsp;<?= number_format($order['subtotal'], 2) ?></td>
 
-        <td><?= $order['quantity'] ?></td>
+              <!-- PAYMENT STATUS -->
+              <td>
+                <?php
+                  $paymentClass = strtolower($order['payment_status']);
+                  $paymentText  = ucwords($order['payment_status']);
+                ?>
+                <span class="badge <?= $paymentClass ?>"><?= $paymentText ?></span>
+              </td>
 
-        <td>KES&nbsp;<?= number_format($order['subtotal'], 2) ?></td>
+              <!-- ORDER / SHIPMENT STATUS -->
+              <td>
+                <?php
+                  $statusClass = strtolower($order['order_status']);
+                  $statusText  = ucwords($order['order_status']);
+                ?>
+                <span class="badge <?= $statusClass ?>"><?= $statusText ?></span>
+              </td>
 
-        <td><span class="badge paid">Paid</span></td>
+              <!-- ACTIONS -->
+              <td class="actions">
+                <div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
 
-        <td>
-            <span class="badge <?= strtolower($order['order_status']) ?>">
-                <?= htmlspecialchars($order['order_status']) ?>
-            </span>
-        </td>
-
-        <td class="actions">
-            <div>
-                <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
-
-                <?php if ($order['order_status'] == 'Processing'): ?>
+                  <?php if ($order['order_status'] === 'Processing'): ?>
                     <button class="btn-cancel">Cancel</button>
-                <?php elseif ($order['order_status'] == 'Shipped'): ?>
+                  <?php elseif ($order['order_status'] === 'Shipped'): ?>
                     <button class="btn-track">Track</button>
-                <?php endif; ?>
-            </div>
-        </td>
-      </tr>
-      <?php endforeach; ?>
-      </tbody>
-      </table>
+                  <?php endif; ?>
+                </div>
+              </td>
+
+              <!-- SHIPPED & DELIVERED -->
+              <td><?= !empty($order['shipped_at']) ? date("d M Y", strtotime($order['shipped_at'])) : '-' ?></td>
+              <td><?= !empty($order['delivered_at']) ? date("d M Y", strtotime($order['delivered_at'])) : '-' ?></td>
+
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
       </div>
 
       <!-- MOBILE CARDS -->
       <div class="cards" id="orderCards">
+        <?php foreach ($orders as $order): ?>
+          <?php
+            $image = (!empty($order['image_path']) && file_exists(__DIR__ . '/' . $order['image_path']))
+                ? $order['image_path']
+                : "Images/Maket Hub Logo.avif";
 
-      <?php foreach ($orders as $order): ?>
+            $paymentClass = strtolower($order['payment_status']);
+            $paymentText  = ucwords($order['payment_status']);
 
-      <?php
-      $image = (!empty($order['image_path']) && file_exists($order['image_path']))
-          ? $order['image_path']
-          : "Images/Maket Hub Logo.avif";
-      ?>
+            $statusClass = strtolower($order['order_status']);
+            $statusText  = ucwords($order['order_status']);
+          ?>
 
-      <div class="order-card" data-status="<?= htmlspecialchars($order['order_status']) ?>">
+          <div class="order-card" data-status="<?= htmlspecialchars($order['order_status']) ?>">
 
-          <div class="card-header">
+            <div class="card-header">
               <img src="<?= htmlspecialchars($image) ?>" class="product-img">
+
               <div>
-                  <div class="card-title">
-                      <?= htmlspecialchars($order['product_name']) ?>
-                  </div>
-
-                  <div class="card-meta">
-                      Order: <?= htmlspecialchars($order['order_code']) ?>
-                      • <?= htmlspecialchars($order['market_scope'] ?? 'National') ?>
-                  </div>
-                  <div class="card-meta">
-                      Quantity: <?= htmlspecialchars($order['quantity'])?>
-                  </div>
+                <div class="card-title"><?= htmlspecialchars($order['product_name']) ?></div>
+                <div class="card-meta">Order: <?= htmlspecialchars($order['order_code']) ?></div>
+                <div class="card-meta">Quantity: <?= $order['quantity'] ?></div>
               </div>
+            </div>
+
+            <div class="card-row">
+              <span>Subtotal</span>
+              <strong>KES <?= number_format($order['subtotal'], 2) ?></strong>
+            </div>
+
+            <div class="card-row">
+              <span>Payment</span>
+              <span class="badge <?= $paymentClass ?>"><?= $paymentText ?></span>
+            </div>
+
+            <div class="card-row">
+              <span>Status</span>
+              <span class="badge <?= $statusClass ?>"><?= $statusText ?></span>
+            </div>
+
+            <div class="card-row">
+              <span>Shipped</span>
+              <span><?= !empty($order['shipped_at']) ? date("d M Y", strtotime($order['shipped_at'])) : '-' ?></span>
+            </div>
+
+            <div class="card-row">
+              <span>Delivered</span>
+              <span><?= !empty($order['delivered_at']) ? date("d M Y", strtotime($order['delivered_at'])) : '-' ?></span>
+            </div>
+
           </div>
-
-          <div class="card-row">
-              <span>Price</span>
-              <strong>KES <?= number_format($order['subtotal']) ?></strong>
-          </div>
-
-          <div class="card-row">
-            <span>Status</span>
-            <span class="badge <?= strtolower($order['order_status']) ?>">
-                <?= htmlspecialchars($order['order_status']) ?>
-            </span>
-          </div>
-
-          <div class="card-actions">
-            <button class="btn-view">
-                <i class="fa-solid fa-eye"></i>
-            </button>
-
-            <?php if ($order['order_status'] == 'Processing'): ?>
-                <button class="btn-cancel">Cancel</button>
-            <?php elseif ($order['order_status'] == 'Shipped'): ?>
-                <button class="btn-track">Track</button>
-            <?php endif; ?>
-          </div>
-
-      </div>
-
-      <?php endforeach; ?>
-
+        <?php endforeach; ?>
       </div>
       
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleOrderMarket()">View&nbsp;All&nbsp;Orders</button> to access all your orders.</p>

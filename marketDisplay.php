@@ -115,8 +115,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
   }
   $action = $_POST['action'];
 
-  
-
   $stmt = $conn->prepare("
     SELECT full_name, phone, county, ward, address
     FROM users
@@ -133,6 +131,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
   if ($action === 'place_order') {
     // Fetch current stock before committing
     $stockStmt = $conn->prepare("SELECT stock_quantity FROM productservicesrentals WHERE product_id = ? LIMIT 1");
+    $stockStmt->bind_param("i", $productId);
+    $stockStmt->execute();
+    $stockStmt->bind_result($currentStock);
+    $stockStmt->fetch();
+    $stockStmt->close();
+
+    if ($quantity > $currentStock) {
+      echo json_encode(['success' => false, 'error' => 'Not enough stock']);
+      exit();
+    }
 
     foreach ($items as $item) {
       $productId = (int)$item['product_id'];
@@ -187,10 +195,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         // 2️⃣ Insert order
         $orderStmt = $conn->prepare("
-            INSERT INTO orders (buyer_id, total_amount, order_status, created_at, order_code)
-            VALUES (?, ?, 'pending', NOW(), ?)
+            INSERT INTO orders (order_code, buyer_id, total_amount, created_at)
+            VALUES (?, ?, ?, NOW())
         ");
-        $orderStmt->bind_param("ids", $userId, $totalAmount, $orderCode);
+
+        $orderStmt->bind_param("sid", $orderCode, $userId, $totalAmount);
         $orderStmt->execute();
         $orderId = $orderStmt->insert_id;
         $orderStmt->close();
@@ -200,8 +209,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         $itemStmt = $conn->prepare("
           INSERT INTO order_items 
-          (order_id, product_id, seller_id, quantity, price, subtotal)
-          VALUES (?, ?, ?, ?, ?, ?)
+          (order_id, product_id, seller_id, quantity, price, subtotal, payment_status, order_status)
+          VALUES (?, ?, ?, ?, ?, ?, 'pending', 'pending')
         ");
 
         $itemStmt->bind_param(
@@ -210,7 +219,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
           $productId,
           $sellerId,
           $quantity,
-          $realPrice,
+          $price,
           $subtotal
         );
 
@@ -228,7 +237,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         $conn->commit();
 
-        echo json_encode(['success' => true, 'order_code' => $orderCode]);
+        echo json_encode([
+          'success' => true,
+          'order_code' => $orderCode,
+          'order_id' => $orderId // ✅ REQUIRED
+        ]);
 
     } catch (Exception $e) {
         $conn->rollback();
@@ -256,17 +269,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         // Insert order
         $orderStmt = $conn->prepare("
-            INSERT INTO orders (buyer_id, total_amount, order_status, created_at, order_code)
-            VALUES (?, ?, 'pending', NOW(), ?)
+            INSERT INTO orders (order_code, buyer_id, total_amount, created_at)
+            VALUES (?, ?, ?, NOW())
         ");
-        $orderStmt->bind_param("ids", $userId, $totalAmount, $orderCode);
+
+        $orderStmt->bind_param("sid", $orderCode, $userId, $totalAmount);
         $orderStmt->execute();
         $orderId = $orderStmt->insert_id;
         $orderStmt->close();
 
         foreach ($items as $item) {
             $productId = (int)$item['product_id'];
-            $sellerId  = (int)$item['seller_id'];
+            // ✅ ALWAYS GET seller from DB (correct way)
+            $sellerStmt = $conn->prepare("
+                SELECT user_id 
+                FROM productservicesrentals 
+                WHERE product_id = ? 
+                LIMIT 1
+            ");
+            $sellerStmt->bind_param("i", $productId);
+            $sellerStmt->execute();
+            $sellerStmt->bind_result($sellerId);
+            $sellerStmt->fetch();
+            $sellerStmt->close();
+
+            if (!$sellerId || !is_numeric($sellerId) || $sellerId <= 0) {
+              error_log("❌ Invalid seller_id for product {$productId}: " . var_export($sellerId, true));
+              throw new Exception("Seller not found for product ID {$productId}");
+            }
             $quantity  = (int)$item['quantity'];
             $price     = floatval($item['price']);
 
@@ -290,9 +320,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
             if ($quantity > $currentStock) {
               if ($currentStock <= 0) {
-                  throw new Exception("Oops! {$productName} is out of stock.");
+                throw new Exception("Oops! {$productName} is out of stock.");
               } else {
-                  throw new Exception("Sorry, we only have {$currentStock} of {$productName} left.");
+                throw new Exception("Sorry, we only have {$currentStock} of {$productName} left.");
               }
             }
 
@@ -301,8 +331,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
             $itemStmt = $conn->prepare("
               INSERT INTO order_items 
-              (order_id, product_id, seller_id, quantity, price, subtotal)
-              VALUES (?, ?, ?, ?, ?, ?)
+              (order_id, product_id, seller_id, quantity, price, subtotal, payment_status, order_status)
+              VALUES (?, ?, ?, ?, ?, ?, 'pending', 'pending')
             ");
 
             $itemStmt->bind_param(
@@ -336,7 +366,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         }
 
         $conn->commit();
-        echo json_encode(['success' => true, 'order_code' => $orderCode]);
+        echo json_encode([
+          'success' => true,
+          'order_code' => $orderCode,
+          'order_id' => $orderId // ✅ REQUIRED
+        ]);
 
     } catch (Exception $e) {
         $conn->rollback();
@@ -488,8 +522,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $grouped = [];
         while ($row = $result->fetch_assoc()) {
           $grouped[$row['seller_id']][] = $row;
-          if ($item['quantity'] > $item['stock_quantity']) {
-              throw new Exception("Stock exceeded");
+          if ($row['quantity'] > $row['stock_quantity']) {
+            throw new Exception("Stock exceeded");
           }
         }
 
@@ -507,10 +541,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
             // Insert order
             $orderStmt = $conn->prepare("
-                INSERT INTO orders (buyer_id, total_amount, order_status, created_at, order_code)
-                VALUES (?, ?, 'pending', NOW(), ?)
+                INSERT INTO orders (order_code, buyer_id, total_amount, created_at)
+                VALUES (?, ?, ?, NOW())
             ");
-            $orderStmt->bind_param("ids", $userId, $totalAmount, $orderCode);
+
+            $orderStmt->bind_param("sid", $orderCode, $userId, $totalAmount);
             $orderStmt->execute();
             $orderId = $orderStmt->insert_id;
             $orderStmt->close();
@@ -520,20 +555,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $subtotal = $item['price'] * $item['quantity'];
 
             $itemStmt = $conn->prepare("
-                INSERT INTO order_items 
-                (order_id, product_id, seller_id, quantity, price, subtotal)
-                VALUES (?, ?, ?, ?, ?, ?)
+              INSERT INTO order_items 
+              (order_id, product_id, seller_id, quantity, price, subtotal, payment_status, order_status)
+              VALUES (?, ?, ?, ?, ?, ?, 'pending', 'pending')
             ");
 
-            $itemStmt->bind_param(
+              $itemStmt->bind_param(
                 "iiiidd",
                 $orderId,
-                $item['product_id'],
+                $productId,
                 $sellerId,
-                $item['quantity'],
-                $item['price'],
+                $quantity,
+                $price,
                 $subtotal
-            );
+              );
 
               $itemStmt->execute();
               $itemStmt->close();
@@ -552,6 +587,127 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     } catch (Exception $e) {
         $conn->rollback();
         echo json_encode(['success' => false]);
+    }
+
+    exit();
+  }
+
+  /* ================= PROCESS PAYMENT ================= */
+  if ($action === 'process_payment') {
+
+    $orderId = $_POST['order_id'] ?? null;
+
+    if (!$orderId || !is_numeric($orderId)) {
+      echo json_encode([
+          'success' => false,
+          'error' => 'Invalid order ID received: ' . $orderId
+      ]);
+      exit();
+    }
+
+    $orderId = (int)$orderId;
+
+    if ($orderId <= 0) {
+        echo json_encode(['success' => false, 'error' => 'Invalid order']);
+        exit();
+    }
+
+    $conn->begin_transaction();
+
+    try {
+        error_log("PROCESSING ORDER ID: " . $orderId);
+
+        $itemsStmt = $conn->prepare("
+            SELECT item_id, seller_id, subtotal, order_status
+            FROM order_items
+            WHERE order_id = ?
+            FOR UPDATE
+        ");
+        $itemsStmt->bind_param("i", $orderId);
+        $itemsStmt->execute();
+        $result = $itemsStmt->get_result();
+
+        if ($result->num_rows === 0) {
+            throw new Exception("Order not found");
+        }
+
+        $updateItem = $conn->prepare("
+            UPDATE order_items SET payment_status = 'paid' WHERE item_id = ?
+        ");
+
+        $walletCheck = $conn->prepare("
+            SELECT wallet_id FROM wallets WHERE user_id = ? AND wallet_type = 'seller' LIMIT 1
+        ");
+
+        $walletInsert = $conn->prepare("
+            INSERT INTO wallets (user_id, wallet_type, balance, total_transacted, created_at, updated_at)
+            VALUES (?, 'seller', ?, ?, NOW(), NOW())
+        ");
+
+        $walletUpdate = $conn->prepare("
+            UPDATE wallets
+            SET balance = balance + ?, total_transacted = total_transacted + ?, updated_at = NOW()
+            WHERE user_id = ? AND wallet_type = 'seller'
+        ");
+
+        while ($row = $result->fetch_assoc()) {
+
+          $itemId       = (int)$row['item_id'];
+          $itemSellerId = $row['seller_id'];
+          $amount       = (float)$row['subtotal'];
+          $status       = $row['order_status'];
+
+          if (!$itemSellerId || !is_numeric($itemSellerId) || $itemSellerId <= 0) {
+            throw new Exception("Invalid seller ID in order_items (item_id: {$itemId})");
+          }
+
+          $itemSellerId = (int)$itemSellerId;
+
+          $userCheck = $conn->prepare("SELECT user_id FROM users WHERE user_id = ? LIMIT 1");
+          $userCheck->bind_param("i", $itemSellerId);
+          $userCheck->execute();
+          $userCheck->store_result();
+
+          if ($status === 'paid') continue;
+
+          $updateItem->bind_param("i", $itemId);
+          $updateItem->execute();
+
+          if ($userCheck->num_rows === 0) {
+              throw new Exception("Seller does not exist (ID: {$itemSellerId})");
+          }
+          $userCheck->close();
+
+          $walletCheck->bind_param("i", $itemSellerId);
+          $walletCheck->execute();
+          $walletCheck->store_result();
+
+          if ($walletCheck->num_rows === 0) {
+              $walletInsert->bind_param("idd", $itemSellerId, $amount, $amount);
+              if (!$walletInsert->execute()) {
+                  throw new Exception("Failed to create wallet for seller {$itemSellerId}");
+              }
+          } else {
+              $walletUpdate->bind_param("ddi", $amount, $amount, $itemSellerId);
+              $walletUpdate->execute();
+          }
+
+          error_log("Processing item {$itemId} | seller_id: {$itemSellerId} | amount: {$amount}");
+        }
+
+        $conn->commit();
+        echo json_encode(['success' => true]);
+
+    } catch (Exception $e) {
+        $conn->rollback();
+        echo json_encode([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'debug' => [
+                'order_id' => $orderId,
+                'last_error' => $conn->error ?? null
+            ]
+        ]);
     }
 
     exit();
@@ -634,7 +790,6 @@ $stmt = $conn->prepare("
         o.order_id,
         o.order_code,
         o.total_amount,
-        o.order_status,
         o.created_at,
         u.username AS buyer_name,
         oi.quantity,

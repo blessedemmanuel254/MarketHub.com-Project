@@ -840,22 +840,31 @@ $stmt->close();
 // Fetch seller orders
 $sellerOrders = [];
 $stmt = $conn->prepare("
-    SELECT 
-        o.order_id,
-        o.order_code,
-        o.order_status,
-        o.created_at,
-        u.full_name AS buyer_name,
-        oi.quantity,
-        oi.price,
-        p.product_name,
-        (oi.quantity * oi.price) AS seller_total
-    FROM orders o
-    JOIN order_items oi ON o.order_id = oi.order_id
-    JOIN users u ON o.buyer_id = u.user_id
-    JOIN productservicesrentals p ON oi.product_id = p.product_id
-    WHERE oi.seller_id = ?
-    ORDER BY o.created_at DESC
+  SELECT 
+      o.order_id,
+      o.order_code,
+      o.created_at,
+      u.full_name AS buyer_name,
+
+      oi.item_id,
+      oi.quantity,
+      oi.price,
+      oi.order_status,
+      oi.shipped_at,
+      oi.delivered_at,
+
+      p.product_name,
+
+      (oi.quantity * oi.price) AS seller_total
+
+  FROM orders o
+  JOIN order_items oi ON o.order_id = oi.order_id
+  JOIN users u ON o.buyer_id = u.user_id
+  JOIN productservicesrentals p ON oi.product_id = p.product_id
+
+  WHERE oi.seller_id = ?
+
+  ORDER BY o.created_at DESC
 ");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
@@ -868,20 +877,33 @@ if ($result) {
 }
 $stmt->close();
 
+$walletType = 'seller';
+
 $stmt = $conn->prepare("
-SELECT 
-SUM(quantity * price) AS wallet_balance
-FROM order_items
-WHERE seller_id = ?
+  SELECT balance 
+  FROM wallets 
+  WHERE user_id = ? AND wallet_type = ? 
+  LIMIT 1
 ");
-
-$stmt->bind_param("i", $user_id);
+$stmt->bind_param("is", $user_id, $walletType);
 $stmt->execute();
-$result = $stmt->get_result();
-$data = $result->fetch_assoc();
-
-$walletBalance = $data['wallet_balance'] ?? 0;
+$stmt->bind_result($walletBalance);
+$walletExists = $stmt->fetch();
 $stmt->close();
+
+// If wallet does not exist → initialize it
+if (!$walletExists) {
+  $walletBalance = 0;
+
+  $stmt = $conn->prepare("
+      INSERT INTO wallets 
+      (user_id, wallet_type, balance, total_transacted, created_at, updated_at)
+      VALUES (?, ?, 0, 0, NOW(), NOW())
+  ");
+  $stmt->bind_param("is", $user_id, $walletType);
+  $stmt->execute();
+  $stmt->close();
+}
 
 $minWithdrawal = 500;
 
@@ -894,18 +916,18 @@ SELECT
 COUNT(DISTINCT o.order_id) AS total_orders,
 
 COUNT(DISTINCT CASE 
-    WHEN o.order_status = 'Pending' 
-    THEN o.order_id 
+    WHEN oi.order_status = 'pending' 
+    THEN oi.item_id 
 END) AS processing_orders,
 
 COUNT(DISTINCT CASE 
-    WHEN o.order_status = 'Shipped' 
-    THEN o.order_id 
+    WHEN oi.order_status = 'shipped' 
+    THEN oi.item_id 
 END) AS shipped_orders,
 
 COUNT(DISTINCT CASE 
-    WHEN o.order_status = 'Delivered' 
-    THEN o.order_id 
+    WHEN oi.order_status = 'delivered' 
+    THEN oi.item_id 
 END) AS delivered_orders
 
 FROM orders o
@@ -925,13 +947,34 @@ $deliveredOrders  = $row['delivered_orders'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
 
-  $walletType = 'sales'; // seller always uses sales wallet
+  $walletType = 'seller'; // seller always uses seller wallet
   $error = '';
   $success = '';
 
   $withdrawAmount = $_POST['withdraw_sales_amount'] ?? '';
   $balance = $walletBalance;
   $min = $minWithdrawal;
+
+  // 1️⃣ Ensure the seller has a wallet
+  $stmt = $conn->prepare("SELECT wallet_id, balance FROM wallets WHERE user_id = ? AND wallet_type = ? LIMIT 1");
+  $stmt->bind_param("is", $user_id, $walletType);
+  $stmt->execute();
+  $stmt->bind_result($walletId, $walletBalance);
+  $walletExists = $stmt->fetch();
+  $stmt->close();
+
+  if (!$walletExists) {
+      // Create a new wallet
+      $stmt = $conn->prepare("
+        INSERT INTO wallets (user_id, wallet_type, balance, total_transacted, created_at, updated_at)
+        VALUES (?, ?, 0, 0, NOW(), NOW())
+      ");
+      $stmt->bind_param("is", $user_id, $walletType);
+      $stmt->execute();
+      $walletId = $stmt->insert_id;
+      $walletBalance = 0;
+      $stmt->close();
+  }
 
   if (empty($withdrawAmount) && $withdrawAmount !== '0') {
       $error = "Please enter a withdrawal amount.";
@@ -1054,6 +1097,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
       $error = "Withdrawal failed: " . $e->getMessage();
     }
   }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_order_status'])) {
+
+  $itemId = intval($_POST['item_id']);
+  $newStatus = $_POST['status'];
+
+  if (!in_array($newStatus, ['Shipped', 'Delivered'])) {
+      die("Invalid status");
+  }
+
+  if ($newStatus === 'Shipped') {
+      $stmt = $conn->prepare("
+          UPDATE order_items 
+          SET order_status = 'Shipped', shipped_at = NOW()
+          WHERE item_id = ? AND seller_id = ?
+      ");
+  } else {
+      $stmt = $conn->prepare("
+          UPDATE order_items 
+          SET order_status = 'Delivered', delivered_at = NOW()
+          WHERE item_id = ? AND seller_id = ?
+      ");
+  }
+
+  $stmt->bind_param("ii", $itemId, $user_id);
+  $stmt->execute();
+  $stmt->close();
+
+  header("Location: sellerPage.php");
+  exit();
 }
 ?>
 
@@ -1495,9 +1569,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
       <div class="filter-bar">
         <select id="statusFilter">
           <option value="all">All Orders</option>
-          <option value="Delivered">Delivered</option>
-          <option value="Shipped">Shipped</option>
-          <option value="Pending">Processing</option>
+          <option value="pending">Pending</option>
+          <option value="shipped">Shipped</option>
+          <option value="delivered">Delivered</option>
         </select>
       </div>
 
@@ -1523,26 +1597,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
           if (!empty($sellerOrders)) {
               $count = 1;
               foreach ($sellerOrders as $order) {
-                  $statusClass = strtolower($order['order_status']); // e.g., "processing"
-                  $total = number_format($order['seller_total'], 2);
-                  $date = date("d M Y", strtotime($order['created_at']));
-                  echo "<tr data-status=\"{$order['order_status']}\">
-                          <td>{$count}.</td>
-                          <td>{$order['order_code']}</td>
-                          <td>".mb_strtoupper(htmlspecialchars($order['buyer_name']), 'UTF-8')."</td>
-                          <td>".htmlspecialchars($order['product_name'])."</td>
-                          <td>{$order['quantity']}</td>
-                          <td>KES {$total}</td>
-                          <td><span class='badge ".($statusClass === 'pending' ? 'pending' : 'paid')."'>".($statusClass === 'pending' ? 'Pending' : 'Paid')."</span></td>
-                          <td><span class='badge {$statusClass}'>".ucfirst($order['order_status'])."</span></td>
-                          <td>{$date}</td>
-                          <td class='actions'>
-                              <div>
-                                  <button class='btn-ship'>Mark&nbsp;as&nbsp;Shipped</button>
-                              </div>
-                          </td>
-                        </tr>";
-                  $count++;
+                $statusClass = strtolower($order['order_status']); // e.g., "processing"
+                $total = number_format($order['seller_total'], 2);
+                $date = date("d M Y", strtotime($order['created_at']));
+                echo "<tr data-status=\"{$order['order_status']}\">
+                        <td>{$count}.</td>
+                        <td>{$order['order_code']}</td>
+                        <td>".mb_strtoupper(htmlspecialchars($order['buyer_name']), 'UTF-8')."</td>
+                        <td>".htmlspecialchars($order['product_name'])."</td>
+                        <td>{$order['quantity']}</td>
+                        <td>KES {$total}</td>
+                        <td><span class='badge ".($statusClass === 'pending' ? 'pending' : 'paid')."'>".($statusClass === 'pending' ? 'Pending' : 'Paid')."</span></td>
+                        <td><span class='badge {$statusClass}'>".ucfirst($order['order_status'])."</span></td>
+                        <td>{$date}</td>
+                        <td class='actions'>
+                            <div>
+                                <button class='btn-ship'>Mark&nbsp;as&nbsp;Shipped</button>
+                            </div>
+                        </td>
+                      </tr>";
+                $count++;
               }
           } else {
               echo "<tr><td colspan='10'>No orders yet.</td></tr>";
@@ -1608,13 +1682,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
             </span>
           </div>
 
-          <div class="card-actions">
-              <?php if ($order['order_status'] === 'Pending'): ?>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Shipped</button>
-              <?php elseif ($order['order_status'] === 'Shipped'): ?>
-                <button class="btn-ship">Mark&nbsp;as&nbsp;Delivered</button>
-              <?php endif; ?>
-          </div>
+          <form method="POST">
+            <input type="hidden" name="item_id" value="<?= $order['item_id'] ?>">
+            <input type="hidden" name="update_order_status" value="1">
+
+            <?php if ($order['order_status'] === 'Pending'): ?>
+              <input type="hidden" name="status" value="shipped">
+              <button class="btn-ship">Mark as Shipped</button>
+
+            <?php elseif ($order['order_status'] === 'shipped'): ?>
+              <input type="hidden" name="status" value="delivered">
+              <button class="btn-ship">Mark as Delivered</button>
+            <?php endif; ?>
+          </form>
 
       </div>
 

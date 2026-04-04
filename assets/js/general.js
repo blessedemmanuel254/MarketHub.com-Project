@@ -789,6 +789,7 @@ document.addEventListener("click", e => {
   /* Remove item */
   if (e.target.classList.contains("remove-btn")) {
     e.target.closest(".cart-item")?.remove();
+    showNotification(`<i class="fa-solid fa-triangle-exclamation"></i> Item removed from cart`, 2000, "warning");
   }
 
   updateTotals();
@@ -1812,13 +1813,14 @@ function placeOrder() {
   const products = document.querySelectorAll(".order-container .product");
 
   if (products.length === 0) {
-      showNotification("No products selected", 3000);
-      resetPayButton();
-      return;
+    showNotification(`<i class="fa-solid fa-triangle-exclamation"></i> No products selected!`, 3000, "warning");
+    resetPayButton();
+    return;
   }
 
   const orderItems = [];
   let totalAmount = 0;
+  let hasError = false; // ✅ fix: track errors properly
 
   products.forEach(productEl => {
       const product_id = productEl.dataset.product;
@@ -1827,9 +1829,8 @@ function placeOrder() {
       const price      = parseFloat(productEl.dataset.price);
 
       if (!product_id || !seller_id || quantity < 1) {
-          showNotification("Invalid product in order", 3000);
-          resetPayButton();
-          return;
+          hasError = true;
+          return; // ⚠️ this only exits loop, not function
       }
 
       totalAmount += price * quantity;
@@ -1842,38 +1843,108 @@ function placeOrder() {
       });
   });
 
+  // ✅ handle validation AFTER loop (important fix)
+  if (hasError) {
+    showNotification(`<i class="fa-solid fa-circle-exclamation"></i> Invalid product in order!`, 3000, "error");
+    resetPayButton();
+    return;
+  }
+
   const formData = new URLSearchParams();
   formData.append("action", "place_order_multi");
   formData.append("total_amount", totalAmount);
   formData.append("items", JSON.stringify(orderItems));
 
   fetch("marketDisplay.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: formData.toString()
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: formData.toString()
   })
-  .then(res => res.json())
+  .then(async res => {
+    let data;
+    try {
+        data = await res.json();
+    } catch {
+        throw new Error("Invalid server response");
+    }
+    return data;
+  })
   .then(data => {
-      if (data.success) {
+    const duration = 3000;
 
+    if (data.success) {
         // ✅ Success state
         payButton.innerHTML = `<i class="fa-solid fa-check"></i> Paid`;
-
         showNotification(
-          `<i class='fa-solid fa-check-circle'></i> Order placed successfully!`,
-          3000
+            `<i class='fa-solid fa-check-circle'></i> Order placed successfully!`,
+            duration,
+            "success"
         );
+        // 🔥 CALL PAYMENT PROCESSOR
+        // After order creation
+        fetch("marketDisplay.php", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: `action=process_payment&order_id=${data.order_id}`
+        })
+        .then(res => res.json()) // ✅ THIS IS THE FIX
+        .then(payData => {
 
-        setTimeout(() => location.reload(), 3000);
+            console.log("🔥 FULL PAYMENT RESPONSE:", payData);
 
-      } else {
-        showNotification(data.error || "Order failed", 3000);
-        resetPayButton();
-      }
+            if (!payData.success) {
+                console.error("❌ PAYMENT FAILED:", payData);
+
+                showNotification(
+                    `<i class='fa-solid fa-circle-exclamation'></i> ${payData.error}`,
+                    4000,
+                    "error"
+                );
+
+                resetPayButton();
+            }
+
+        })
+        .catch(err => {
+            console.error("🚨 FETCH ERROR:", err);
+        });
+
+        payButton.innerHTML = `<i class="fa-solid fa-check"></i> Paid`;
+        setTimeout(() => location.reload(), 4500);
+    } else if (data.error && data.error.trim() !== "") {
+        // ⚠️ Backend error (e.g., stock issue)
+        showNotification(
+            `<i class="fa-solid fa-triangle-exclamation"></i> ${data.error}`,
+            duration,
+            "warning"
+        );
+        setTimeout(() => {
+            resetPayButton();
+            updateOrderSummary();
+        }, duration);
+    } else {
+        // ❌ Generic failure
+        showNotification(
+            `<i class="fa-solid fa-circle-exclamation"></i> Order failed!`,
+            duration,
+            "error"
+        );
+        setTimeout(() => {
+            resetPayButton();
+            updateOrderSummary();
+        }, duration);
+    }
   })
   .catch(() => {
-      showNotification("Network error", 3000);
-      resetPayButton();
+    // Only triggers if fetch/network fails
+    showNotification(
+        `<i class="fa-solid fa-wifi"></i> Network error!`,
+        3000,
+        "error"
+    );
+    resetPayButton();
   });
 
   function resetPayButton() {
@@ -1985,7 +2056,7 @@ function proceedFromCart() {
   .then(res => res.json())
   .then(data => {
     if (!data.success || data.items.length === 0) {
-      showNotification("Cart is empty", 3000);
+      showNotification(`<i class="fa-solid fa-triangle-exclamation"></i> Cart is empty`, 3000, "warning");
       return;
     }
 
@@ -2171,13 +2242,15 @@ document.addEventListener("DOMContentLoaded", () => {
 // NOTIFICATION JS
 // ===============================
 
-function showNotification(message, duration = 3000) {
+function showNotification(message, duration = 3000, type = "success") {
   const notification = document.createElement('div');
-  notification.classList.add('notification');
+  notification.classList.add('notification', type); // 👈 add type
+
   notification.innerHTML = `
     <div class="message">${message}</div>
     <div class="progress-bar"></div>
   `;
+
   document.getElementById('notification-container').appendChild(notification);
 
   const progressBar = notification.querySelector('.progress-bar');

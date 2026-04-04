@@ -4881,8 +4881,40 @@ justify-content: space-between;
   border: 1px solid #0980002c;
 }
 
+/* SUCCESS NOTIFICATION */
+#notification-container .notification.success {
+  background-color: #ffffff;
+  color: #088000;
+  border: 1px solid #0980002c;
+}
+
+#notification-container .notification.success .progress-bar {
+  background-color: #088000;
+}
+
+/* WARNING NOTIFICATION */
+#notification-container .notification.warning {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #8564042c;
+}
+
+#notification-container .notification.warning .progress-bar {
+  background-color: #856404;
+}
+
+/* ERROR NOTIFICATION */
+#notification-container .notification.error {
+  background-color: #ffe6e6;
+  color: #ff3b3b;
+  border: 1px solid #ff3b3b2c;
+}
+
+#notification-container .notification.error .progress-bar {
+  background-color: #ff3b3b;
+}
+
 /* Slide-in animation from right */
-/* Slide-in animation */
 @keyframes slideIn {
   to {
     opacity: 1;
@@ -4908,7 +4940,6 @@ justify-content: space-between;
 /* Progress bar */
 #notification-container .notification .progress-bar {
   height: 6px;
-  background-color: #088000;
   width: 100%;
   transition: width 0.1s linear;
   border-radius: 6px;

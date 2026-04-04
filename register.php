@@ -560,8 +560,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
               </div>
 
               <div class="selectorBox">
-                <span>Business type (read-only)</span>
-                <select id="bustype" name="bustype" disabled>
+                <span>Business type</span>
+                <select id="bustype" name="bustype">
                   <option value="">-- Select Type --</option>
                   <option value="shop" <?= ($bustype ?? '') === 'shop' ? 'selected' : ''; ?>>Shop</option>
                   <option value="supermarket" <?= ($bustype ?? '') === 'supermarket' ? 'selected' : ''; ?>>Supermarket</option>
@@ -668,7 +668,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                   <option value="Kakamega">Kakamega</option>
                   <option value="Kericho">Kericho</option>
                   <option value="Kiambu">Kiambu</option>-->
-                  <option value="Sokoni Ward" <?php echo ($ward === 'Sokoni Ward') ? 'selected' : ''; ?>>Sokoni Ward</option>
+                  <option value="Sokoni Ward" <?php echo ($ward === 'Sokoni') ? 'selected' : ''; ?>>Sokoni Ward</option>
                   <!--<option value="Kirinyaga">Kirinyaga</option>
                   <option value="Kisii">Kisii</option>
                   <option value="Kisumu">Kisumu</option>
