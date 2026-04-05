@@ -1,3 +1,5 @@
+console.log("General JS loaded");
+
 function toggleWhatsAppChat() {
   var box = document.getElementById("whatsapp-chat-box");
   var overlay = document.getElementById("overlay");
@@ -2195,36 +2197,51 @@ document.addEventListener("click", function(e){
   updateCheckoutSummary();
 });
 
-document.addEventListener("DOMContentLoaded", () => {
+// ===============================
+// AGENT ALERT VERIFICATION POPUP FUNCTION
+// ===============================
+function showAgentAlertPopup() {
+  const overlay = document.getElementById("alertPopupOverlay");
+  const alertPopup = document.getElementById("alert-popup");
 
-  // ===============================
-  // AGENT ALERT VERIFICATION POPUP
-  // ===============================
+  if (!overlay || !alertPopup) return; // exit if elements are missing
 
-  // Show popup after 10 seconds
-/*   setTimeout(() => {
-    const overlay = document.getElementById("alertPopupOverlay");
-    if (overlay) {  // only if the element exists
-      overlay.style.display = "flex";
-      document.body.classList.add("no-scroll");
+  // Show overlay & popup
+  overlay.style.display = "flex";
+  document.body.classList.add("no-scroll");
+
+  // Shake animation on first appearance
+  alertPopup.classList.add("shake");
+  setTimeout(() => {
+    alertPopup.classList.remove("shake");
+  }, 500);
+
+  // Clicking overlay hides popup
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) { // only if overlay itself clicked
+      hideAgentAlertPopup();
     }
-  }, 10000); */
+  });
 
-  // Violent shake if overlay clicked
-/*   const overlay = document.getElementById("alertPopupOverlay");
-  if (overlay) {
-    overlay.addEventListener("click", (e) => {
-      if (e.target.id === "alertPopupOverlay") {
-        const alertPopup = document.getElementById("alert-popup");
-        if (alertPopup) {
-          alertPopup.classList.add("shake");
-          setTimeout(() => {
-            alertPopup.classList.remove("shake");
-          }, 500);
-        }
-      }
+  // Clicking Cancel hides popup
+  const cancelBtn = overlay.querySelector(".cancel");
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", (e) => {
+      e.preventDefault(); // prevent default link
+      hideAgentAlertPopup();
     });
-  } */
+  }
+}
+
+// Function to hide the popup
+function hideAgentAlertPopup() {
+  const overlay = document.getElementById("alertPopupOverlay");
+  if (!overlay) return;
+  overlay.style.display = "none";
+  document.body.classList.remove("no-scroll");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
 
   // Textarea character count
   const bioTextarea = document.getElementById("bioTextarea");
@@ -2282,7 +2299,7 @@ document.addEventListener("click", function (e) {
     const button = e.target;
     const orderId = button.dataset.id;
 
-    fetch("adminPage.php", {
+    fetch("sellerPage.php", {
         method: "POST",
         headers: {
             "Content-Type": "application/x-www-form-urlencoded"

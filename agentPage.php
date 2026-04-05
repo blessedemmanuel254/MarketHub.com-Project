@@ -1258,12 +1258,12 @@ function getStatusIcon($status) {
 <body>
   <div class="container">
     <!-- ALERT POPUP OVERLAY -->
-      <div class="alertPopupOverlay" id="alertPopupOverlay">
+    <div class="alertPopupOverlay" id="alertPopupOverlay">
 
       <div class="alert-popup" id="alert-popup">
 
         <div class="alert-popup-header">
-        ACCOUNT VERIFICATION REQUIRED
+        BADGE REQUIRED
         </div>
 
         <div class="alert-popup-body">
@@ -1271,21 +1271,20 @@ function getStatusIcon($status) {
           <div class="warning-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
 
           <div class="alert-popup-title">
-          Verify Your Agent Account
+          Get Your Agency Badge!
           </div>
 
           <div class="alert-popup-text">
-            Your MarketHub agent account is currently **unverified**.
+            Your Maket Hub agent account currently <em>**does not have a badge**.</em>
 
             To unlock full agent privileges like:
 
-            • Full access to listed products  
-            • Receiving commissions
-            • Making withdrawal requests and
-            • Other premium agent tools  
+            • Earning through agency tools  
+            • Referring other agents  
+            • Accessing agency withdrawals and orders  
+            including other premium agent features,  
 
-            You must activate your account.
-
+            You must have a badge!
           </div>
 
           <div class="buttons">
@@ -1295,7 +1294,7 @@ function getStatusIcon($status) {
             </a>
 
             <a href="agentregister.php" class="activate">
-            Verify Account
+            Get Badge
             </a>
 
           </div>
@@ -1473,17 +1472,25 @@ function getStatusIcon($status) {
               </a>
 
               <!-- WITHDRAWAL HISTORY -->
-              <a class="card" onclick="toggleAgentWithdrawals()">
-                <i class="fa-brands fa-python"></i>
-                <h2>Withrawal</h2>
-                <p>
-                  View your account withdrawal history.
-                </p>
-                <div class="label">
-                  <p>HISTORY</p>
-                  <button>View History</button>
-
-                </div>
+              <a class="card" 
+                onclick="<?php 
+                  if ($isVerified) { 
+                      echo 'toggleAgentWithdrawals()'; 
+                  } else { 
+                      echo 'showAgentAlertPopup()'; 
+                  } 
+                ?>">
+                  <i class="fa-brands fa-python"></i>
+                  <h2>Withdrawal</h2>
+                  <p>
+                    View your account withdrawal history.
+                  </p>
+                  <div class="label">
+                      <p>HISTORY</p>
+                      <button>
+                        View History
+                      </button>
+                  </div>
               </a>
 
               <!-- MARKET -->

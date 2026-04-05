@@ -155,34 +155,24 @@ elseif ($action === "activate") {
 
             if ($walletId) {
 
-                $description = "System commission (no referrer) from agent $userId";
-
                 $txn = $conn->prepare("
-                    INSERT INTO financial_transactions
-                    (
-                        source_type,
-                        source_id,
-                        wallet_id,
-                        payer_id,
-                        receiver_id,
-                        transaction_type,
-                        amount,
-                        status,
-                        description,
-                        created_at
-                    )
-                    VALUES
-                    ('commission', ?, ?, ?, ?, 'commission', ?, 'completed', ?, NOW())
+                    UPDATE financial_transactions
+                    SET status = 'completed'
+                    WHERE source_type = 'commission'
+                    AND source_id = ?
+                    AND payer_id = ?
+                    AND receiver_id = ?
+                    AND amount = ?
+                    AND status = 'pending'
+                    LIMIT 1
                 ");
 
                 $txn->bind_param(
-                    "iiiids",
+                    "iiid",
                     $userId,
-                    $walletId,
                     $userId,
                     $SYSTEM_USER_ID,
-                    $amount,
-                    $description
+                    $amount
                 );
 
                 $txn->execute();
@@ -243,31 +233,23 @@ elseif ($action === "activate") {
             $description = "Level $levelNumber commission from agent $userId";
 
             $txn = $conn->prepare("
-                INSERT INTO financial_transactions
-                (
-                    source_type,
-                    source_id,
-                    wallet_id,
-                    payer_id,
-                    receiver_id,
-                    transaction_type,
-                    amount,
-                    status,
-                    description,
-                    created_at
-                )
-                VALUES
-                ('commission', ?, ?, ?, ?, 'commission', ?, 'completed', ?, NOW())
+                UPDATE financial_transactions
+                SET status = 'completed'
+                WHERE source_type = 'commission'
+                AND source_id = ?
+                AND payer_id = ?
+                AND receiver_id = ?
+                AND amount = ?
+                AND status = 'pending'
+                LIMIT 1
             ");
 
             $txn->bind_param(
-                "iiiids",
+                "iiid",
                 $userId,
-                $walletId,
                 $userId,
                 $referrerId,
-                $amount,
-                $description
+                $amount
             );
 
             $txn->execute();
@@ -276,8 +258,7 @@ elseif ($action === "activate") {
             /* UPDATE WALLET */
             $update = $conn->prepare("
                 UPDATE wallets 
-                SET balance = balance + ?, 
-                    total_transacted = total_transacted + ?
+                SET balance = balance + ?,total_transacted = total_transacted + ?
                 WHERE wallet_id=?
             ");
             $update->bind_param("ddi", $amount, $amount, $walletId);

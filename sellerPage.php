@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once 'connection.php';
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
 /* ---------- SESSION SECURITY ---------- */
 if (!isset($_SESSION['user_id'])) {
@@ -10,8 +12,8 @@ if (!isset($_SESSION['user_id'])) {
 
 /* Optional: regenerate session ID periodically */
 if (!isset($_SESSION['created'])) {
-    session_regenerate_id(true);
-    $_SESSION['created'] = time();
+  session_regenerate_id(true);
+  $_SESSION['created'] = time();
 }
 
 /* ---------- ROLE ACCESS CONTROL ---------- */
@@ -965,8 +967,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
   $success = '';
 
   $withdrawAmount = $_POST['withdraw_sales_amount'] ?? '';
-  $balance = $walletBalance;
-  $min = $minWithdrawal;
 
   // 1️⃣ Ensure the seller has a wallet
   $stmt = $conn->prepare("SELECT wallet_id, balance FROM wallets WHERE user_id = ? AND wallet_type = ? LIMIT 1");
@@ -976,21 +976,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
   $walletExists = $stmt->fetch();
   $stmt->close();
 
+  $balance = $walletBalance;
+  $min = $minWithdrawal;
+
   if (!$walletExists) {
-      // Create a new wallet
-      $stmt = $conn->prepare("
-        INSERT INTO wallets (user_id, wallet_type, balance, total_transacted, created_at, updated_at)
-        VALUES (?, ?, 0, 0, NOW(), NOW())
-      ");
-      $stmt->bind_param("is", $user_id, $walletType);
-      $stmt->execute();
-      $walletId = $stmt->insert_id;
-      $walletBalance = 0;
-      $stmt->close();
+    // Create a new wallet
+    $stmt = $conn->prepare("
+      INSERT INTO wallets (user_id, wallet_type, balance, total_transacted, created_at, updated_at)
+      VALUES (?, ?, 0, 0, NOW(), NOW())
+    ");
+    $stmt->bind_param("is", $user_id, $walletType);
+    $stmt->execute();
+    $walletId = $stmt->insert_id;
+    $walletBalance = 0;
+    $stmt->close();
   }
 
   if (empty($withdrawAmount) && $withdrawAmount !== '0') {
-      $error = "Please enter a withdrawal amount.";
+    $error = "Please enter a withdrawal amount.";
   } else {
 
     $withdrawAmount = floatval($withdrawAmount);
@@ -1019,7 +1022,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
     if (!$error) {
         if ($withdrawAmount < $min) {
             $error = "Minimum withdrawal is KES $min.";
-        } elseif ($withdrawAmount > $balance) {
+        } elseif ($withdrawAmount > (float)$balance) {
             $error = "Insufficient balance. Your wallet balance is KES $balance.";
         } elseif ($netAmount <= 0) {
             $error = "Withdrawal amount must be greater than fee (KES $fee).";
@@ -1032,60 +1035,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
     $conn->begin_transaction();
 
     try {
-
+      
       // 1️⃣ Deduct wallet
       $stmt = $conn->prepare("
         UPDATE wallets 
         SET balance = balance - ? 
-        WHERE user_id = ? AND wallet_type = 'sales' 
-        LIMIT 1
+        WHERE user_id = ? AND wallet_type = ? AND balance >= ? LIMIT 1
       ");
-      $stmt->bind_param("di", $withdrawAmount, $user_id);
+      $stmt->bind_param("disd", $withdrawAmount, $user_id, $walletType, $withdrawAmount);
       $stmt->execute();
+
+      if ($stmt->error) {
+        throw new Exception("Update error: " . $stmt->error);
+      }
+
+      if ($stmt->affected_rows === 0) {
+        throw new Exception("No rows updated. Check wallet_type or balance.");
+      }
       $stmt->close();
+      $sourceType = "seller_withdrawal";
+      $description = "Withdrawal request";
 
       // 2️⃣ financial_transactions
       $stmt = $conn->prepare("
         INSERT INTO financial_transactions 
         (source_type, source_id, wallet_id, payer_id, receiver_id, transaction_type, amount, currency, status, description, created_at)
-        SELECT ?, ?, wallet_id, ?, ?, 'withdrawal', ?, 'KES', 'pending', ?, NOW()
-        FROM wallets 
-        WHERE user_id = ? AND wallet_type = 'sales' 
-        LIMIT 1
+        VALUES (?, ?, ?, ?, ?, 'withdrawal', ?, 'KES', 'pending', ?, NOW())
       ");
-
-      $sourceType = 'withdrawal';
-      $description = "Seller withdrawal request";
-
       $stmt->bind_param(
-        "siiddsi",
+        "siiiids",
         $sourceType,
         $user_id,
+        $walletId,
         $user_id,
         $user_id,
         $withdrawAmount,
-        $description,
-        $user_id
+        $description
       );
-
       $stmt->execute();
-      $transactionId = $stmt->insert_id;
+      $transactionId = $conn->insert_id;
       $stmt->close();
 
       // 3️⃣ withdrawals
       $stmt = $conn->prepare("
-        INSERT INTO withdrawals 
-        (user_id, wallet_id, amount, fee, net_amount, status, transaction_id, requested_at, currency)
-        SELECT user_id, wallet_id, ?, ?, ?, 'pending', ?, NOW(), 'KES'
-        FROM wallets 
-        WHERE user_id = ? AND wallet_type = 'sales' 
-        LIMIT 1
+          INSERT INTO withdrawals (user_id, wallet_id, amount, fee, net_amount, status, transaction_id, requested_at, currency)
+          VALUES (?, ?, ?, ?, ?, 'pending', ?, NOW(), 'KES')
       ");
-
-      $stmt->bind_param("dddii", $withdrawAmount, $fee, $netAmount, $transactionId, $user_id);
+      $stmt->bind_param("iidddi", $user_id, $walletId, $withdrawAmount, $fee, $netAmount, $transactionId);
       $stmt->execute();
-
-      $withdrawalId = $conn->insert_id; // ✅ CORRECT ID
+      $withdrawalId = $stmt->insert_id;
       $stmt->close();
 
       // 4️⃣ withdrawal_logs
@@ -1118,21 +1116,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_order_status']
   $newStatus = $_POST['status'];
 
   // Only allow valid statuses
-  if (!in_array($newStatus, ['Shipped', 'Delivered'])) {
+  if (!in_array($newStatus, ['shipped', 'delivered'])) {
       echo json_encode(['success' => false, 'message' => 'Invalid status']);
       exit();
   }
 
-  if ($newStatus === 'Shipped') {
+  if ($newStatus === 'shipped') {
       $stmt = $conn->prepare("
           UPDATE order_items 
-          SET order_status = 'Shipped', shipped_at = NOW()
+          SET order_status = 'shipped', shipped_at = NOW()
           WHERE item_id = ? AND seller_id = ?
       ");
   } else { // Delivered
       $stmt = $conn->prepare("
           UPDATE order_items 
-          SET order_status = 'Delivered', delivered_at = NOW()
+          SET order_status = 'delivered', delivered_at = NOW()
           WHERE item_id = ? AND seller_id = ?
       ");
   }
@@ -1159,7 +1157,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
   if ($stmt->execute()) {
       echo json_encode([
           'success' => true,
-          'status' => 'Shipped'
+          'status' => 'shipped'
       ]);
   } else {
       echo json_encode(['success' => false]);
@@ -1551,13 +1549,13 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
               <form method="POST" enctype="multipart/form-data">
                 <h1>Withdraw Funds</h1>
                 <?php if (!empty($error)): ?>
-                  <p class="errorMessage">
+                  <p class="errorMessage usrWlt">
                     <i class="fa-solid fa-circle-exclamation"></i>
                     <?= htmlspecialchars($error); ?>
                   </p>
                 <?php endif; ?>
                 <?php if (!empty($success)): ?>
-                  <p class="successMessage" data-redirect="sellerPage.php">
+                  <p class="successMessage usrWlt" data-redirect="sellerPage.php">
                     <i class="fa-solid fa-check-circle"></i> <?= $success ?>
                   </p>
 
@@ -1569,7 +1567,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   </script>
                 <?php endif; ?>
 
-                <input type="hidden" name="withdraw_wallet" value="sales">
+                <input type="hidden" name="withdraw_wallet" value="seller">
 
                 <div class="formBody active">
                   <div class="card">
@@ -1675,9 +1673,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                           <td class='actions'>
                         <div>";
 
-                  // Actions based on status
+                  // Action based on status
                   if ($statusClass === 'pending') {
-                    echo "<button class='btn-ship'>Mark&nbsp;as&nbsp;Shipped</button>";
+                    echo "<button class='btn-ship' data-id='{$order['order_id']}'>Mark&nbsp;as&nbsp;Shipped</button>";
                   } else {
                     echo "<button class='btn-view'><i class='fa-solid fa-eye'></i></button>";
                   }
@@ -1854,7 +1852,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
                   // Actions based on status
                   if ($statusClass === 'pending') {
-                      echo "<button class='btn-ship'>Mark&nbsp;as&nbsp;Shipped</button>";
+                      echo "<button class='btn-ship' data-id='{$order['order_id']}'>Mark&nbsp;as&nbsp;Shipped</button>";
                   } elseif ($statusClass === 'shipped') {
                       echo "<button class='btn-deliver'>Mark&nbsp;as&nbsp;Delivered</button>";
                   } else {

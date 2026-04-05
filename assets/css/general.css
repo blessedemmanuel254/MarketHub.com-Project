@@ -4562,7 +4562,7 @@ AGENT ALERT VERIFICATION POPUP CSS
 
 /* OVERLAY */
 
-.alertPopupOverlay {
+.container .alertPopupOverlay {
 
   position:fixed;
   top: 0;
@@ -4579,7 +4579,7 @@ AGENT ALERT VERIFICATION POPUP CSS
 
 /* ALERT POPUP */
 
-.alert-popup {
+.container .alertPopupOverlay .alert-popup {
 
   width: clamp(250px, 90%, 500px);
   background: white;
@@ -4592,7 +4592,7 @@ AGENT ALERT VERIFICATION POPUP CSS
 
 /* HEADER */
 
-.alert-popup-header{
+.container .alertPopupOverlay .alert-popup-header{
 
   background: #898888;
   color:  white;
@@ -4605,20 +4605,20 @@ AGENT ALERT VERIFICATION POPUP CSS
 
 /* BODY */
 
-.alert-popup-body {
+.container .alertPopupOverlay .alert-popup-body {
 
-  padding: 20px;
+  padding: 10px;
   text-align: center;
 
 }
 
 /* WARNING ICON */
 
-.warning-icon {
+.container .alertPopupOverlay .warning-icon {
 
   width: 70px;
   height: 70px;
-  margin:0 auto 20px;
+  margin:0 auto 10px;
   border-radius:50%;
   background:#dedede;
   display:flex;
@@ -4631,9 +4631,9 @@ AGENT ALERT VERIFICATION POPUP CSS
 
 }
 
-.warning-icon i {
+.container .alertPopupOverlay .warning-icon i {
   color: #afafaf;
-  font-size: 45px;
+  font-size: 40px;
 }
 
 @keyframes pulse{
@@ -4646,31 +4646,31 @@ AGENT ALERT VERIFICATION POPUP CSS
 
 /* TEXT */
 
-.alert-popup-title{
+.container .alertPopupOverlay .alert-popup-title {
 
-font-size:22px;
+font-size:20px;
 margin-bottom:10px;
 font-weight:bold;
 
 }
 
-.alert-popup-text {
+.container .alertPopupOverlay .alert-popup-text {
 font-size: 14px;
 color: #898888;
-margin-bottom: 25px;
+margin-bottom: 15px;
 
 }
 
 /* BUTTONS */
 
-.buttons {
+.container .alertPopupOverlay .buttons {
 display: flex;
 gap: 10px;
 justify-content: space-between;
 
 }
 
-.buttons a {
+.container .alertPopupOverlay .buttons a {
   padding: 8px 16px;
   border: none;
   border-radius: 4px;
@@ -4680,30 +4680,30 @@ justify-content: space-between;
 
 }
 
-.buttons a.activate {
+.container .alertPopupOverlay .buttons a.activate {
   background:black;
   color:white;
 
 }
 
-.buttons a.activate:hover{
+.container .alertPopupOverlay .buttons a.activate:hover{
   background:#222;
 
 }
 
-.buttons a.cancel{
+.container .alertPopupOverlay .buttons a.cancel{
   background:#e5e5e5;
 
 }
 
-.buttons a.cancel:hover{
+.container .alertPopupOverlay .buttons a.cancel:hover{
   background:#d5d5d5;
 
 }
 
 /* VIOLENT SHAKE */
 
-.shake{
+.container .alertPopupOverlay .shake{
   animation:violentShake .6s;
 
 }
