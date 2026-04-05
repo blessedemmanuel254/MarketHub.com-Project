@@ -2198,7 +2198,7 @@ document.addEventListener("click", function(e){
 });
 
 // ===============================
-// AGENT ALERT VERIFICATION POPUP FUNCTION
+// AGENT ALERT VERIFICATION POPUP
 // ===============================
 function showAgentAlertPopup() {
   const overlay = document.getElementById("alertPopupOverlay");

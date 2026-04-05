@@ -1063,7 +1063,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
         VALUES (?, ?, ?, ?, ?, 'withdrawal', ?, 'KES', 'pending', ?, NOW())
       ");
       $stmt->bind_param(
-        "siiiids",
+        "siiids",
         $sourceType,
         $user_id,
         $walletId,
