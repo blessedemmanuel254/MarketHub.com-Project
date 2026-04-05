@@ -1264,7 +1264,6 @@ function getStatusIcon($status) {
 
         <div class="alert-popup-header">
         BADGE REQUIRED
-        BADGE REQUIRED
         </div>
 
         <div class="alert-popup-body">
@@ -1283,13 +1282,8 @@ function getStatusIcon($status) {
             • Earning through agency tools  
             • Referring other agents  
             • Accessing agency withdrawals and orders  
-            including other premium agent features,  
-            • Earning through agency tools  
-            • Referring other agents  
-            • Accessing agency withdrawals and orders  
-            including other premium agent features,  
+            including other premium agent features, 
 
-            You must have a badge!
             You must have a badge!
           </div>
 
@@ -1300,7 +1294,6 @@ function getStatusIcon($status) {
             </a>
 
             <a href="agentregister.php" class="activate">
-            Get Badge
             Get Badge
             </a>
 
