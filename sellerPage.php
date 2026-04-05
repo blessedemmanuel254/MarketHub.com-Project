@@ -1063,7 +1063,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
         VALUES (?, ?, ?, ?, ?, 'withdrawal', ?, 'KES', 'pending', ?, NOW())
       ");
       $stmt->bind_param(
-        "siiids",
+        "siiiids",
         $sourceType,
         $user_id,
         $walletId,
@@ -1148,10 +1148,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_order_status']
 }
 
 if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
+
+  header('Content-Type: application/json'); // ✅ IMPORTANT
+
   $orderId = intval($_POST['order_id']);
 
-  // Update DB
-  $stmt = $conn->prepare("UPDATE orders SET order_status = 'shipped', shipped_at = NOW() WHERE order_id = ?");
+  $stmt = $conn->prepare("
+    UPDATE order_items SET order_status = 'shipped', shipped_at = NOW() 
+    WHERE order_id = ?
+  ");
   $stmt->bind_param("i", $orderId);
 
   if ($stmt->execute()) {
@@ -1160,9 +1165,13 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
           'status' => 'shipped'
       ]);
   } else {
-      echo json_encode(['success' => false]);
+      echo json_encode([
+          'success' => false,
+          'error' => $stmt->error
+      ]);
   }
-  exit;
+
+  exit; // ✅ MUST STOP EVERYTHING
 }
 ?>
 
@@ -1195,6 +1204,15 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
   <title>Seller Page | Maket Hub</title>
 </head>
 <body>
+  <div class="confirmation-popup" id="confirmation-popup">
+    <h3 id="popupTitle">Confirm Action</h3>
+    <p id="popupMessage">Are you sure?</p>
+
+    <div class="popup-actions">
+      <button id="confirmAction" class="btn-confirm">Yes, Confirm</button>
+      <button id="cancelAction" class="btn-cancel">Cancel</button>
+    </div>
+  </div>
   <div class="container">
     <header class="pgHeader">
       <section>
@@ -1610,7 +1628,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
       </div>
 
       <!-- DESKTOP TABLE -->
-      <div class="table-wrapper">
+      <div class="table-wrapper sellerOrdersTrack">
 
         <table id="ordersTable">
           <thead>
@@ -1694,87 +1712,6 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
           ?>
           </tbody>
         </table>
-      </div>
-
-      <!-- MOBILE CARDS -->
-      <div class="cards" id="orderCards">
-
-      <?php
-      if (!empty($sellerOrders)) {
-
-        foreach ($sellerOrders as $order) {
-
-          $statusClass = strtolower($order['order_status']);
-          $total = number_format($order['seller_total'], 2);
-          $date = date("d M Y", strtotime($order['created_at']));
-
-          // Default image (since your query doesn't fetch product image yet)
-          $image = "Images/Maket Hub Logo.avif";
-      ?>
-
-      <div class="order-card" data-status="<?= htmlspecialchars($order['order_status']) ?>">
-
-          <div class="card-header">
-            <img src="<?= $image ?>" class="product-img">
-            <div>
-                <div class="card-title">
-                  <?= htmlspecialchars($order['product_name']) ?>
-                </div>
-
-                <div class="card-meta">
-                  Order: <?= htmlspecialchars($order['order_code']) ?>
-                  • <?= $date ?>
-                </div>
-            </div>
-          </div>
-
-          <div class="card-row">
-            <span>Buyer</span>
-            <strong>
-                <?= mb_strtoupper(htmlspecialchars($order['buyer_name']), 'UTF-8') ?>
-            </strong>
-          </div>
-
-          <div class="card-row">
-            <span>Quantity</span>
-            <strong><?= $order['quantity'] ?></strong>
-          </div>
-
-          <div class="card-row">
-            <span>Total</span>
-            <strong>KES <?= $total ?></strong>
-          </div>
-
-          <div class="card-row">
-            <span>Status</span>
-            <span class="badge <?= $statusClass ?>">
-              <?= ucfirst($order['order_status']) ?>
-            </span>
-          </div>
-
-          <form method="POST">
-            <input type="hidden" name="item_id" value="<?= $order['item_id'] ?>">
-            <input type="hidden" name="update_order_status" value="1">
-
-            <?php if ($order['order_status'] === 'Pending'): ?>
-              <input type="hidden" name="status" value="shipped">
-              <button class="btn-ship">Mark as Shipped</button>
-
-            <?php elseif ($order['order_status'] === 'shipped'): ?>
-              <input type="hidden" name="status" value="delivered">
-              <button class="btn-ship">Mark as Delivered</button>
-            <?php endif; ?>
-          </form>
-
-      </div>
-
-      <?php
-          }
-      } else {
-          echo "<p>No orders yet.</p>";
-      }
-      ?>
-
       </div>
       
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleSellerOrdersTrack()">View&nbsp;All&nbsp;Orders</button> to access all your orders.</p>

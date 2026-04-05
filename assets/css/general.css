@@ -1579,7 +1579,7 @@ html body.no-scroll {
     display: none;
   }
 
-  .container main.buyerMain .table-wrapper.sellerOrdersTrack, .container main.buyerMain .table-wrapper.agentEarningsTrack  {
+  .container main.buyerMain .table-wrapper.sellerOrdersTrack, .container main.buyerMain .table-wrapper.agentEarningsTrack, .container main.buyerMain .table-wrapper.agentOrdersTrack, .container main.buyerMain .table-wrapper.buyerOrdersTrack, .container main.buyerMain .table-wrapper.sellerOrdersTrack  {
     display: block;
   }
   
@@ -3333,7 +3333,7 @@ body#adminBody {
 
 }
 
-body#adminBody .confirmation-popup {
+body .confirmation-popup {
   position: fixed;
   top: 50%;
   left: 50%;
@@ -3351,28 +3351,28 @@ body#adminBody .confirmation-popup {
 
 }
 
-body#adminBody .confirmation-popup.active {
+body .confirmation-popup.active {
   display: flex;
 }
 
-body#adminBody .confirmation-popup h3 {
+body .confirmation-popup h3 {
   font-size: 16px;
   
 }
 
-body#adminBody .confirmation-popup p {
+body .confirmation-popup p {
   font-size: 14px;
   
 }
 
-body#adminBody .confirmation-popup .popup-actions {
+body .confirmation-popup .popup-actions {
   display: flex;
   gap: 10px;
   justify-content: space-between;
   align-items: center;
 }
 
-body#adminBody .confirmation-popup .popup-actions button {
+body .confirmation-popup .popup-actions button {
   flex: 1;
   padding: 8px 16px;
   border: none;
@@ -3384,7 +3384,7 @@ body#adminBody .confirmation-popup .popup-actions button {
 
 }
 
-body#adminBody .confirmation-popup .popup-actions button:hover {
+body .confirmation-popup .popup-actions button:hover {
   opacity: .875;
 }
 

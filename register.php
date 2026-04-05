@@ -561,7 +561,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
               <div class="selectorBox">
                 <span>Business type</span>
-                <select id="bustype" name="bustype">
+                <select id="bustype" name="bustype" required>
                   <option value="">-- Select Type --</option>
                   <option value="shop" <?= ($bustype ?? '') === 'shop' ? 'selected' : ''; ?>>Shop</option>
                   <option value="supermarket" <?= ($bustype ?? '') === 'supermarket' ? 'selected' : ''; ?>>Supermarket</option>
@@ -590,7 +590,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
               <div class="selectorBox">
                 <span>Market Type</span>
-                <select id="market" name="market">
+                <select id="market" name="market" required>
                   <option value="">-- Select Market Type --</option>
                   <option value="Local" <?= ($market ?? '') === 'Local' ? 'selected' : ''; ?>>Local</option><!-- 
                   <option value="National" <?= ($market ?? '') === 'National' ? 'selected' : ''; ?>>National</option>
@@ -668,7 +668,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                   <option value="Kakamega">Kakamega</option>
                   <option value="Kericho">Kericho</option>
                   <option value="Kiambu">Kiambu</option>-->
-                  <option value="Sokoni Ward" <?php echo ($ward === 'Sokoni') ? 'selected' : ''; ?>>Sokoni Ward</option>
+                  <option value="Sokoni" <?php echo ($ward === 'Sokoni') ? 'selected' : ''; ?>>Sokoni Ward</option>
                   <!--<option value="Kirinyaga">Kirinyaga</option>
                   <option value="Kisii">Kisii</option>
                   <option value="Kisumu">Kisumu</option>

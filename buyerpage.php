@@ -433,6 +433,10 @@ $pendingOrders = count($pendingItems);
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,70090000000;1,800;1,900&display=swap" rel="stylesheet">
 
+  <!-- jQuery + DataTables JS -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
   <title>Buyer Page | Maket Hub</title>
 </head>
 <body>
@@ -1060,9 +1064,103 @@ $pendingOrders = count($pendingItems);
         <button onclick="toggleOrderMarket()">
           <i class="fa-solid fa-circle-arrow-left" data-tab="products"></i> <span>Go&nbsp;Back</span>
         </button>
+      </div>      
+      <div class="filter-bar">
+        <select id="statusFilter">
+          <option value="all">All Orders</option>
+          <option value="delivered">Delivered</option>
+          <option value="shipped">Shipped</option>
+          <option value="pending">Processing</option>
+        </select>
       </div>
 
-      <div class="order-group">
+      <!-- DESKTOP TABLE -->
+      <div class="table-wrapper buyerOrdersTrack">
+        <table id="buyerOrdersTable">
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Order</th>
+              <th>Product</th>
+              <th>Seller</th>
+              <th>Market</th>
+              <th>Quantity</th>
+              <th>Subtotal</th>
+              <th>Payment</th>
+              <th>Status</th>
+              <th>Actions</th>
+              <th>Shipped At</th>
+              <th>Delivered At</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($orders as $order): ?>
+            <tr data-status="<?= htmlspecialchars($order['order_status']) ?>">
+
+              <td>
+                <img src="<?= !empty($order['image_path']) && file_exists(__DIR__ . '/' . $order['image_path']) 
+                    ? htmlspecialchars($order['image_path']) 
+                    : 'Images/Maket Hub Logo.avif'; ?>" 
+                    class="product-img">
+              </td>
+
+              <td><?= htmlspecialchars($order['order_code']) ?></td>
+              <td><?= htmlspecialchars($order['product_name']) ?></td>
+
+              <td>
+                <?= mb_strtoupper(htmlspecialchars(
+                    !empty($order['seller_name']) 
+                    ? $order['seller_name'] 
+                    : 'Seller #' . $order['seller_id']
+                ), 'UTF-8') ?>
+              </td>
+
+              <td><?= htmlspecialchars($order['market_scope'] ?? 'National') ?></td>
+              <td><?= $order['quantity'] ?></td>
+              <td>KES&nbsp;<?= number_format($order['subtotal'], 2) ?></td>
+
+              <!-- PAYMENT STATUS -->
+              <td>
+                <?php
+                  $paymentClass = strtolower($order['payment_status']);
+                  $paymentText  = ucwords($order['payment_status']);
+                ?>
+                <span class="badge <?= $paymentClass ?>"><?= $paymentText ?></span>
+              </td>
+
+              <!-- ORDER / SHIPMENT STATUS -->
+              <td>
+                <?php
+                  $statusClass = strtolower($order['order_status']);
+                  $statusText  = ucwords($order['order_status']);
+                ?>
+                <span class="badge <?= $statusClass ?>"><?= $statusText ?></span>
+              </td>
+
+              <!-- ACTIONS -->
+              <td class="actions">
+                <div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+
+                  <?php if ($order['order_status'] === 'Processing'): ?>
+                    <button class="btn-cancel">Cancel</button>
+                  <?php elseif ($order['order_status'] === 'Shipped'): ?>
+                    <button class="btn-track">Track</button>
+                  <?php endif; ?>
+                </div>
+              </td>
+
+              <!-- SHIPPED & DELIVERED -->
+              <td><?= !empty($order['shipped_at']) ? date("d M Y", strtotime($order['shipped_at'])) : '-' ?></td>
+              <td><?= !empty($order['delivered_at']) ? date("d M Y", strtotime($order['delivered_at'])) : '-' ?></td>
+
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+
+<!--       <div class="order-group">
         <div class="order-header">
           <div>
             <strong>Order #ORD-90321</strong><br>
@@ -1072,8 +1170,6 @@ $pendingOrders = count($pendingItems);
         </div>
 
         <div class="order-items-grid">
-
-          <!-- ITEM 1 -->
           <div class="order-item">
             <div class="item-top">
               <div class="item-info">
@@ -1101,8 +1197,6 @@ $pendingOrders = count($pendingItems);
               </div>
             </div>
           </div>
-
-          <!-- ITEM 2 -->
           <div class="order-item">
             <div class="item-top">
               <div class="item-info">
@@ -1125,7 +1219,6 @@ $pendingOrders = count($pendingItems);
               </div>
             </div>
           </div>
-          <!-- ITEM 2 -->
           <div class="order-item">
             <div class="item-top">
               <div class="item-info">
@@ -1148,7 +1241,6 @@ $pendingOrders = count($pendingItems);
               </div>
             </div>
           </div>
-          <!-- ITEM 2 -->
           <div class="order-item">
             <div class="item-top">
               <div class="item-info">
@@ -1171,7 +1263,6 @@ $pendingOrders = count($pendingItems);
               </div>
             </div>
           </div>
-          <!-- ITEM 2 -->
           <div class="order-item">
             <div class="item-top">
               <div class="item-info">
@@ -1196,7 +1287,7 @@ $pendingOrders = count($pendingItems);
           </div>
 
         </div>
-      </div>
+      </div> -->
 
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleOrderMarket()">Go&nbsp;back</button> to continue shopping.</p>
     </main>
@@ -1208,15 +1299,32 @@ $pendingOrders = count($pendingItems);
   <script src="assets/js/general.js" type="text/javascript" defer></script>
 
   <script>
-  document.querySelectorAll(".toggle").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const target = document.getElementById(btn.dataset.target);
-      target.classList.toggle("active");
-      btn.textContent = target.classList.contains("active")
-        ? "Hide details"
-        : "View details";
+    document.querySelectorAll(".toggle").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const target = document.getElementById(btn.dataset.target);
+        target.classList.toggle("active");
+        btn.textContent = target.classList.contains("active")
+          ? "Hide details"
+          : "View details";
+      });
     });
-  });
+    // DataTables Script Js
+    $(document).ready(function () {
+      $('#buyerOrdersTable').DataTable({
+        pagingType: "simple_numbers",
+        pageLength: 15,
+        lengthChange: false,
+        searching: true,
+        ordering: true,
+        stateSave: true,
+        language: {
+          paginate: {
+            previous: "PREV",
+            next: "NEXT"
+          }
+        }
+      });
+    });
   </script>
 </body>
 </html>

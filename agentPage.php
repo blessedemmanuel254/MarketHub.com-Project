@@ -459,10 +459,11 @@ if($_SERVER["REQUEST_METHOD"] === "POST"){
 
 }
 
-$query = "SELECT username, profile_image, agency_code 
+$query = "SELECT username, profile_image, agency_code, ward, county, country 
 FROM users 
 WHERE user_id = ? 
 LIMIT 1";
+
 $stmt = $conn->prepare($query);
 
 if (!$stmt) {
@@ -477,6 +478,11 @@ $username = "User";
 $profileImage = null;
 $agencyCode = "";
 
+// ✅ NEW VARIABLES
+$ward = "";
+$county = "";
+$country = "";
+
 if ($result && $result->num_rows === 1) {
   $user = $result->fetch_assoc();
 
@@ -486,6 +492,11 @@ if ($result && $result->num_rows === 1) {
 
   $profileImage = $user['profile_image'] ?? null;
   $agencyCode = $user['agency_code'] ?? "";
+
+  // ✅ FETCH LOCATION DATA
+  $ward = $user['ward'] ?? "";
+  $county = $user['county'] ?? "";
+  $country = $user['country'] ?? "";
 }
 
 $stmt->close();
@@ -771,129 +782,232 @@ if ($isVerified === 1 && $status === 'active') {
 
   $stmt->close();
 
-  // Current logged in user
-  $currentUserId = $_SESSION['user_id'];
 
-  $sellerQuery = "
-      SELECT 
-          u.user_id,
-          u.username,
-          u.business_name,
-          u.business_type,
-          u.market_scope,
-          u.ward,
-          u.profile_image,
-          u.address,
-          (
-            SELECT COUNT(DISTINCT oi.order_id)
-            FROM order_items oi
-            JOIN orders o ON oi.order_id = o.order_id
-            WHERE oi.seller_id = u.user_id
-            AND o.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-          ) AS total_orders,
-          (
-            SELECT COUNT(*)
-            FROM user_followers uf
-            WHERE uf.follower_id = u.user_id
-          ) AS following_count,
-          (
-            SELECT COUNT(*)
-            FROM user_followers uf
-            WHERE uf.followed_id = u.user_id
-          ) AS followers_count,
-          (
-            SELECT COUNT(*)
-            FROM user_followers uf
-            WHERE uf.follower_id = ?
-            AND uf.followed_id = u.user_id
-          ) AS is_following
+// Current logged in user
+$currentUserId = $_SESSION['user_id'];
+$agentWard = strtolower(trim($ward));
+$agentCountry = strtolower(trim($country));
 
-      FROM users u
-      WHERE u.account_type = 'seller'
+$sellerQuery = "
+    SELECT 
+        u.user_id,
+        u.username,
+        u.business_name,
+        u.business_type,
+        u.market_scope,
+        u.ward,
+        u.country,
+        u.profile_image,
+        u.address,
+        (
+          SELECT COUNT(DISTINCT oi.order_id)
+          FROM order_items oi
+          JOIN orders o ON oi.order_id = o.order_id
+          WHERE oi.seller_id = u.user_id
+          AND o.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        ) AS total_orders,
+        (
+          SELECT COUNT(*)
+          FROM user_followers uf
+          WHERE uf.followed_id = u.user_id
+        ) AS followers_count,
 
-      ORDER BY total_orders DESC
-      LIMIT 50
-  ";
+        (
+          SELECT COUNT(*)
+          FROM user_followers uf
+          WHERE uf.follower_id = u.user_id
+        ) AS following_count,
+        (
+          SELECT COUNT(*)
+          FROM user_followers uf
+          WHERE uf.follower_id = ?
+          AND uf.followed_id = u.user_id
+        ) AS is_following
 
-  $stmt = $conn->prepare($sellerQuery);
-  $stmt->bind_param("i", $currentUserId);
-  $stmt->execute();
-  $result = $stmt->get_result();
+    FROM users u
+    WHERE u.account_type = 'seller'
 
-  $shops = [];
-  $supermarkets = [];
+    ORDER BY total_orders DESC
+    LIMIT 50
+";
 
-  $shopsN = [];
-  $supermarketsN = [];
+$stmt = $conn->prepare($sellerQuery);
+$stmt->bind_param("i", $currentUserId);
+$stmt->execute();
+$result = $stmt->get_result();
 
-  $shopsG = [];
-  $supermarketsG = [];
+$shops = [];
+$supermarkets = [];
 
-  while ($row = $result->fetch_assoc()) {
+$shopsN = [];
+$supermarketsN = [];
 
-    $row['business_name'] = ucwords(strtolower($row['business_name']));
-    $row['business_type'] = ucwords(strtolower($row['business_type']));
-    $row['address'] = ucwords(strtolower($row['address']));
+$shopsG = [];
+$supermarketsG = [];
 
-    $type = strtolower(trim($row['business_type']));
-    $scope = strtolower(trim($row['market_scope']));
+while ($row = $result->fetch_assoc()) {
 
-    /* ---------- LOCAL ---------- */
-    if ($scope === "local") {
+  $row['business_name'] = ucwords(strtolower($row['business_name']));
+  $row['business_type'] = ucwords(strtolower($row['business_type']));
+  $row['address'] = ucwords(strtolower($row['address']));
 
-      if (in_array($type, ['shop','kiosk','canteen','kibanda'])) {
-        $shops[] = $row;
-      }
+  $type = strtolower(trim($row['business_type']));
+  $scope = strtolower(trim($row['market_scope']));
 
-      elseif (in_array($type, ['supermarket','wholesale'])) {
-        $supermarkets[] = $row;
-      }
+/* ---------- LOCAL ---------- */
+if ($scope === "local" && strtolower(trim($row['ward'])) === $agentWard) {
 
+  if (in_array($type, ['shop','kiosk','canteen','kibanda'])) {
+    $shops[] = $row;
+  }
+
+  elseif (in_array($type, ['supermarket','wholesale'])) {
+    $supermarkets[] = $row;
+  }
+
+}
+
+/* ---------- NATIONAL ---------- */
+elseif ($scope === "national" && strtolower(trim($row['country'])) === $agentCountry) {
+
+  if (in_array($type, ['shop','kiosk','canteen','kibanda'])) {
+    $shopsN[] = $row;
+  }
+
+  elseif (in_array($type, ['supermarket','wholesale'])) {
+    $supermarketsN[] = $row;
+  }
+
+}
+
+  /* ---------- GLOBAL ---------- */
+  elseif ($scope === "global") {
+
+    if (in_array($type, ['shop','kiosk','canteen','kibanda'])) {
+      $shopsG[] = $row;
     }
 
-    /* ---------- NATIONAL ---------- */
-    elseif ($scope === "national") {
-
-      if (in_array($type, ['shop','kiosk','canteen','kibanda'])) {
-        $shopsN[] = $row;
-      }
-
-      elseif (in_array($type, ['supermarket','wholesale'])) {
-        $supermarketsN[] = $row;
-      }
-
-    }
-
-    /* ---------- GLOBAL ---------- */
-    elseif ($scope === "global") {
-
-      if (in_array($type, ['shop','kiosk','canteen','kibanda'])) {
-        $shopsG[] = $row;
-      }
-
-      elseif (in_array($type, ['supermarket','wholesale'])) {
-        $supermarketsG[] = $row;
-      }
-
+    elseif (in_array($type, ['supermarket','wholesale'])) {
+      $supermarketsG[] = $row;
     }
 
   }
-  $stmt->close();
 
-  $markets = [
-    'L' => [
-      'shops' => $shops,
-      'supermarkets' => $supermarkets
-    ],
-    'N' => [
-      'shops' => $shopsN,
-      'supermarkets' => $supermarketsN
-    ],
-    'G' => [
-      'shops' => $shopsG,
-      'supermarkets' => $supermarketsG
-    ]
-  ];
+}
+
+$stmt->close();
+
+$markets = [
+  'L' => [
+    'shops' => $shops,
+    'supermarkets' => $supermarkets
+  ],
+  'N' => [
+    'shops' => $shopsN,
+    'supermarkets' => $supermarketsN
+  ],
+  'G' => [
+    'shops' => $shopsG,
+    'supermarkets' => $supermarketsG
+  ]
+];
+
+$agentId = $_SESSION['user_id'] ?? 0;
+
+/* ---------- FETCH BUYER ORDERS ---------- */
+$orders = [];
+
+$ordersStmt = $conn->prepare("
+  SELECT 
+      o.order_id, 
+      o.order_code,
+      oi.item_id,
+      oi.quantity,
+      oi.subtotal,
+      oi.order_status AS order_status,
+      oi.shipped_at,
+      oi.delivered_at,
+      oi.payment_status,
+      p.product_name,
+      p.image_path,
+      u.business_name AS seller_name,
+      u.user_id AS seller_id,
+      u.market_scope
+  FROM order_items oi
+  JOIN orders o ON oi.order_id = o.order_id
+  JOIN productservicesrentals p ON oi.product_id = p.product_id
+  JOIN users u ON oi.seller_id = u.user_id
+  WHERE o.buyer_id = ?
+  ORDER BY o.created_at DESC
+");
+
+$ordersStmt->bind_param("i", $agentId);
+$ordersStmt->execute();
+$result = $ordersStmt->get_result();
+
+while ($row = $result->fetch_assoc()) {
+  $orders[] = $row;
+}
+
+$ordersStmt->close();
+
+
+$orderItemsStmt = $conn->prepare("
+  SELECT 
+      oi.item_id,
+      oi.order_id,
+      oi.product_id,
+      oi.seller_id,
+      oi.quantity,
+      oi.price,
+      oi.subtotal,
+      oi.order_status,
+      oi.shipped_at,
+      oi.delivered_at,
+      p.product_name,
+      p.image_path AS product_image,
+      u.business_name AS seller_name
+  FROM order_items oi
+  JOIN productservicesrentals p ON oi.product_id = p.product_id
+  JOIN users u ON oi.seller_id = u.user_id
+  WHERE oi.order_id = ?
+");
+
+/* ---------- COUNT PENDING ORDERS ---------- */
+$pendingItems = [];
+
+$stmt = $conn->prepare("
+  SELECT 
+      oi.item_id,
+      oi.order_id,
+      oi.product_id,
+      oi.quantity,
+      oi.price,
+      oi.subtotal,
+      oi.order_status,
+      p.product_name,
+      p.image_path AS product_image
+  FROM order_items oi
+  JOIN orders o ON oi.order_id = o.order_id
+  JOIN productservicesrentals p ON oi.product_id = p.product_id
+  WHERE o.buyer_id = ?
+    AND oi.order_status = 'pending'
+  ORDER BY o.created_at DESC
+");
+
+if ($stmt) {
+  $stmt->bind_param("i", $agentId);
+  $stmt->execute();
+  $result = $stmt->get_result();
+
+  while ($row = $result->fetch_assoc()) {
+      $pendingItems[] = $row;
+  }
+
+  $stmt->close();
+}
+
+$pendingOrders = count($pendingItems);
 
 $activeProducts = [];
 
@@ -1314,11 +1428,22 @@ function getStatusIcon($status) {
           </p>
         </div>
         <div class="rhs">
+          <?php
+          $displayCount = ($pendingOrders > 9) ? '9+' : $pendingOrders;
+          ?>
+
           <a class="lkOdr" onclick="toggleAgentOrdersTrack()">
             <div class="odrIconDiv">
               <i class="fa-brands fa-first-order-alt"></i>
-              <p>8</p>
+
+              <?php if ($pendingOrders > 0): ?>
+                <p class="order-count active"><?= $displayCount ?></p>
+              <?php else: ?>
+                <p class="order-count"><?= $displayCount ?></p>
+              <?php endif; ?>
+
             </div>
+            <p>Order(s)</p>
           </a>
           <a class="lkOdr" onclick="toggleAgentEarningsTrack()">
             <div class="odrIconDiv">
@@ -1326,10 +1451,10 @@ function getStatusIcon($status) {
               <p class="agent-not">3</p>
             </div>
           </a>
-          <select name="" id="ward">
-            <option value="">Kilifi</option>
-            <!--<option value="">Bungoma</option>
-            <option value="">Nairobi</option>-->
+          <select id="county">
+            <option value="<?= htmlspecialchars($county) ?>" selected>
+              <?= htmlspecialchars($county) ?>
+            </option>
           </select>
           <a href="helpCentre.php" class="help-icon">
             <i class="fa-regular fa-circle-question"></i>
@@ -1518,10 +1643,10 @@ function getStatusIcon($status) {
 
             </div>
             <div class="dashboard">
+              <?php if ($status === 'active' && !$isExpired && $isVerified): ?>
 
               <!-- TOP CARDS -->
-              <div class="grid">
-
+              <div class="grid"> 
                 <!-- AGENCY WALLET -->
                 <div class="card">
                   <h3>Agency Wallet Balance</h3>
@@ -1657,7 +1782,7 @@ function getStatusIcon($status) {
                     <span class="wStatus">Eligible</span>
                     <div class="sub-info-m">Minimum threshold met</div>
 
-                    <button>Withdraw</button>
+                    <button class="tab-btn" data-tab="funds">Withdraw</button>
 
                   <?php else: ?>
                     <span class="wStatus ineligible">Not Eligible</span>
@@ -1675,15 +1800,6 @@ function getStatusIcon($status) {
 
                   <div class="growth up">▲ Wallet status updated</div>
                 </div>
-
-                <!-- ADVERTISING --><!-- 
-                <div class="card">
-                  <h3>Product Advertising Earnings</h3>
-                  <div class="amount">KES 5,400</div>
-                  <div class="sub-info">32 conversions this month</div>
-                  <div class="growth up">▲ +12% increase</div>
-                  <div class="sub-info">Conversion Rate: 4.8%</div>
-                </div> -->
 
               </div>
 
@@ -1793,6 +1909,76 @@ function getStatusIcon($status) {
                 </div>
 
               </div>
+
+              <?php else: ?>
+              <!-- TOP CARDS -->
+              <div class="grid"> 
+
+                <div class="card">
+                  <h3>Sales Wallet Balance</h3>
+
+                  <div class="amount">
+                    KES <?= number_format($salesBalance, 2) ?>
+                  </div>
+
+                  <div class="sub-info">
+                    <?php if ($totalSales > 0): ?>
+                      Average per sale: KES <?= number_format($totalSalesAmount / $totalSales, 2) ?>
+                    <?php else: ?>
+                      Average per sale: KES 0.00
+                    <?php endif; ?>
+                  </div>
+
+                  <div class="growth up">
+                    ▲ Live sales earnings
+                  </div>
+
+                  <div class="progress">
+                    <div class="progress-fill" 
+                        style="width: <?= htmlspecialchars($progressPercentSales) ?>%">
+                    </div>
+                  </div>
+
+                  <?php if ($salesBalance >= $salesMin): ?>
+                    
+                    <!-- ✅ Milestone reached -->
+                    <div class="sub-info">
+                      🎉 Kudos!
+                    </div>
+
+                  <?php else: ?>
+                    
+                    <!-- ⏳ Still progressing -->
+                    <div class="sub-info">
+                      KES <?= htmlspecialchars(number_format($remainingSales, 2)) ?> to next achievement
+                    </div>
+
+                  <?php endif; ?>
+                </div>
+
+                <!-- WITHDRAWAL HISTORY -->
+                <div class="card">
+                  <h3>Total Withdrawn</h3>
+
+                  <div class="amount">
+                    KES <?= htmlspecialchars(number_format($totalWithdrawn, 2)) ?>
+                  </div>
+
+                  <?php if ($totalWithdrawals > 0): ?>
+                    <div class="sub-info">
+                      <?= htmlspecialchars(
+                        $totalWithdrawals . ' successful withdrawal' . ($totalWithdrawals > 1 ? 's' : '')
+                      ) ?>
+                    </div>
+                  <?php endif; ?>
+
+                  <div class="growth up">▲ Withdrawal history</div>
+
+                  <div class="sub-info">Money you have cashed out</div>
+                </div>
+
+              </div>
+              <?php endif; ?>
 
             </div>
           </div>
@@ -1905,9 +2091,19 @@ function getStatusIcon($status) {
                   </script>
                 <?php endif; ?>
                 
-                <select name="withdraw_wallet" id="walletSelect" class="walletChange">
+                <select 
+                  name="withdraw_wallet" 
+                  id="walletSelect" 
+                  class="walletChange"
+                  <?= ((int)$isVerified !== 1) ? 'onclick="showAgentAlertPopup()"' : '' ?>
+                >
+
                   <option value="sales">Sales Wallet</option>
-                  <option value="agency">Agency Wallet</option>
+
+                  <?php if ((int)$isVerified === 1): ?>
+                    <option value="agency">Agency Wallet</option>
+                  <?php endif; ?>
+
                 </select>
                 <div class="formBody agency" id="salesWallet">
                   <!-- ADVERTISING -->
@@ -2182,6 +2378,7 @@ function getStatusIcon($status) {
         </div>
       </div>
 
+
       <?php foreach ($markets as $scope => $types): ?>
 
       <div class="tabs-container toggleMarketSourceTab" data-tab-storage="marketSource<?= $scope ?>Tabs">
@@ -2202,7 +2399,14 @@ function getStatusIcon($status) {
 
             <div class="tab-top">
               <p>
-                Showing markets in <em>Sokoni Ward</em><br>
+                <?php if ($scope === 'L'): ?>
+                  Showing markets in <em><?= htmlspecialchars(ucwords($ward)) ?> Ward</em><br>
+                <?php elseif ($scope === 'N'): ?>
+                  Showing the national market in <em><?= htmlspecialchars(ucwords($country)) ?></em><br>
+                <?php elseif ($scope === 'G'): ?>
+                  Showing global markets available on <em>Maket Hub</em><br>
+                <?php endif; ?>
+                
                 <strong>Please select the market source <i class="fa-regular fa-circle-check"></i></strong>
               </p>
 
@@ -2724,7 +2928,103 @@ function getStatusIcon($status) {
         <button onclick="toggleAgentOrdersTrack()">
           <i class="fa-solid fa-circle-arrow-left" data-tab="products"></i> <span>Go&nbsp;Back</span>
         </button>
+      </div>      
+      
+      <div class="filter-bar">
+        <select id="statusFilter">
+          <option value="all">All Orders</option>
+          <option value="Delivered">Delivered</option>
+          <option value="Shipped">Shipped</option>
+          <option value="Pending">Processing</option>
+        </select>
       </div>
+
+      <!-- DESKTOP TABLE -->
+      <div class="table-wrapper agentOrdersTrack">
+        <table id="agentOrdersTable">
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Order</th>
+              <th>Product</th>
+              <th>Seller</th>
+              <th>Market</th>
+              <th>Quantity</th>
+              <th>Subtotal</th>
+              <th>Payment</th>
+              <th>Status</th>
+              <th>Actions</th>
+              <th>Shipped At</th>
+              <th>Delivered At</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($orders as $order): ?>
+            <tr data-status="<?= htmlspecialchars($order['order_status']) ?>">
+
+              <td>
+                <img src="<?= !empty($order['image_path']) && file_exists(__DIR__ . '/' . $order['image_path']) 
+                    ? htmlspecialchars($order['image_path']) 
+                    : 'Images/Maket Hub Logo.avif'; ?>" 
+                    class="product-img">
+              </td>
+
+              <td><?= htmlspecialchars($order['order_code']) ?></td>
+              <td><?= htmlspecialchars($order['product_name']) ?></td>
+
+              <td>
+                <?= mb_strtoupper(htmlspecialchars(
+                    !empty($order['seller_name']) 
+                    ? $order['seller_name'] 
+                    : 'Seller #' . $order['seller_id']
+                ), 'UTF-8') ?>
+              </td>
+
+              <td><?= htmlspecialchars($order['market_scope'] ?? 'National') ?></td>
+              <td><?= $order['quantity'] ?></td>
+              <td>KES&nbsp;<?= number_format($order['subtotal'], 2) ?></td>
+
+              <!-- PAYMENT STATUS -->
+              <td>
+                <?php
+                  $paymentClass = strtolower($order['payment_status']);
+                  $paymentText  = ucwords($order['payment_status']);
+                ?>
+                <span class="badge <?= $paymentClass ?>"><?= $paymentText ?></span>
+              </td>
+
+              <!-- ORDER / SHIPMENT STATUS -->
+              <td>
+                <?php
+                  $statusClass = strtolower($order['order_status']);
+                  $statusText  = ucwords($order['order_status']);
+                ?>
+                <span class="badge <?= $statusClass ?>"><?= $statusText ?></span>
+              </td>
+
+              <!-- ACTIONS -->
+              <td class="actions">
+                <div>
+                  <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
+
+                  <?php if ($order['order_status'] === 'Processing'): ?>
+                    <button class="btn-cancel">Cancel</button>
+                  <?php elseif ($order['order_status'] === 'Shipped'): ?>
+                    <button class="btn-track">Track</button>
+                  <?php endif; ?>
+                </div>
+              </td>
+
+              <!-- SHIPPED & DELIVERED -->
+              <td><?= !empty($order['shipped_at']) ? date("d M Y", strtotime($order['shipped_at'])) : '-' ?></td>
+              <td><?= !empty($order['delivered_at']) ? date("d M Y", strtotime($order['delivered_at'])) : '-' ?></td>
+
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+      <!-- 
 
       <div class="order-group">
         <div class="order-header">
@@ -2736,8 +3036,6 @@ function getStatusIcon($status) {
         </div>
 
         <div class="order-items-grid">
-
-          <!-- ITEM 1 -->
           <div class="order-item">
             <div class="item-top">
               <div class="item-info">
@@ -2765,8 +3063,6 @@ function getStatusIcon($status) {
               </div>
             </div>
           </div>
-
-          <!-- ITEM 2 -->
           <div class="order-item">
             <div class="item-top">
               <div class="item-info">
@@ -2791,7 +3087,7 @@ function getStatusIcon($status) {
           </div>
 
         </div>
-      </div>
+      </div> -->
 
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleAgentOrdersTrack()">Go&nbsp;back</button> to continue shopping.</p>
     </main>
@@ -2824,13 +3120,13 @@ function getStatusIcon($status) {
     });
     // DataTables Script Js
     $(document).ready(function () {
-      $('#agentEarnings').DataTable({
-        pagingType: "simple_numbers", // only numbers + prev/next
-        pageLength: 15,               // rows per page
-        lengthChange: false,          // hide "Show X entries"
-        searching: true,              // keep search box
-        ordering: true,               // column sorting
-        stateSave: true,              // ✅ remembers pagination, search & sort
+      $('#agentEarnings, #agentOrdersTable').DataTable({
+        pagingType: "simple_numbers",
+        pageLength: 15,
+        lengthChange: false,
+        searching: true,
+        ordering: true,
+        stateSave: true,
         language: {
           paginate: {
             previous: "PREV",

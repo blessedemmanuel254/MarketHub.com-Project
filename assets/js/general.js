@@ -895,25 +895,27 @@ function toggleProductsAdd(showAdd) {
   if (showAdd) {
     productsPanel.classList.remove("active");
     addPanel.classList.add("active");
-
-    // ✅ persist state
     localStorage.setItem("seller:productsView", "add");
   } else {
     addPanel.classList.remove("active");
     productsPanel.classList.add("active");
-
-    // ✅ persist state
     localStorage.setItem("seller:productsView", "list");
   }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const savedView = localStorage.getItem("seller:productsView");
+  const productsTabBtn = document.querySelector('.tab-btn[data-tab="products"]');
+  const productsTabPanel = document.getElementById("products");
 
-  if (savedView === "add") {
-    toggleProductsAdd(true);
-  } else {
-    toggleProductsAdd(false);
+  // Only restore Products view if Products tab is active
+  if (productsTabBtn?.classList.contains("active")) {
+    const savedView = localStorage.getItem("seller:productsView");
+
+    if (savedView === "add") {
+      toggleProductsAdd(true);
+    } else {
+      toggleProductsAdd(false);
+    }
   }
 });
 
@@ -2291,13 +2293,18 @@ function showNotification(message, duration = 3000, type = "success") {
 }
 
 // ===============================
-// MARK AS SHIPPED JS
+// MARK AS SHIPPED JS (WITH CONFIRMATION)
 // ===============================  
 document.addEventListener("click", function (e) {
   if (e.target.classList.contains("btn-ship")) {
 
     const button = e.target;
     const orderId = button.dataset.id;
+
+    // ✅ Confirmation alert
+    const confirmAction = confirm("Are you sure you want to mark this order as SHIPPED?");
+
+    if (!confirmAction) return; // ❌ Stop if user cancels
 
     fetch("sellerPage.php", {
         method: "POST",
@@ -2306,22 +2313,27 @@ document.addEventListener("click", function (e) {
         },
         body: `action=mark_shipped&order_id=${orderId}`
     })
-    .then(res => res.json())
+    .then(res => res.text())
     .then(data => {
-        if (data.success) {
+        console.log(data);
 
-            // 🔥 Update UI instantly
-            const row = button.closest("tr");
-            const statusCell = row.querySelector("td:nth-child(8) span");
+        try {
+            const json = JSON.parse(data);
 
-            statusCell.className = "badge shipped";
-            statusCell.textContent = "Shipped";
+            if (json.success) {
+                const row = button.closest("tr");
+                const statusCell = row.querySelector("td:nth-child(8) span");
 
-            // Replace button with view button
-            button.outerHTML = `<button class="btn-view"><i class="fa-solid fa-eye"></i></button>`;
+                statusCell.className = "badge shipped";
+                statusCell.textContent = "Shipped";
 
-        } else {
-            alert("Failed to update order.");
+                button.outerHTML = `<button class="btn-view"><i class="fa-solid fa-eye"></i></button>`;
+            } else {
+                alert("Failed: " + (json.error || "Unknown error"));
+            }
+
+        } catch (e) {
+            alert("Invalid JSON response");
         }
     })
     .catch(() => alert("Error processing request."));
