@@ -1263,7 +1263,7 @@ function getStatusIcon($status) {
       <div class="alert-popup" id="alert-popup">
 
         <div class="alert-popup-header">
-        ACCOUNT VERIFICATION REQUIRED
+        BADGE REQUIRED
         </div>
 
         <div class="alert-popup-body">
@@ -1271,21 +1271,20 @@ function getStatusIcon($status) {
           <div class="warning-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
 
           <div class="alert-popup-title">
-          Verify Your Agent Account
+          Get Your Agency Badge
           </div>
 
           <div class="alert-popup-text">
-            Your MarketHub agent account is currently **unverified**.
+            Your MarketHub agent account currently **does not have a badge**.
 
             To unlock full agent privileges like:
 
-            • Full access to listed products  
-            • Receiving commissions
-            • Making withdrawal requests and
-            • Other premium agent tools  
+            • Earning through agency tools  
+            • Referring other agents  
+            • Accessing agency withdrawals and orders  
+            including other premium agent features,  
 
-            You must activate your account.
-
+            You must have a badge!
           </div>
 
           <div class="buttons">
@@ -1295,7 +1294,7 @@ function getStatusIcon($status) {
             </a>
 
             <a href="agentregister.php" class="activate">
-            Verify Account
+            Get Badge
             </a>
 
           </div>

@@ -2202,16 +2202,16 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===============================
 
   // Show popup after 10 seconds
-/*   setTimeout(() => {
+  setTimeout(() => {
     const overlay = document.getElementById("alertPopupOverlay");
     if (overlay) {  // only if the element exists
       overlay.style.display = "flex";
       document.body.classList.add("no-scroll");
     }
-  }, 10000); */
+  }, 10000);
 
   // Violent shake if overlay clicked
-/*   const overlay = document.getElementById("alertPopupOverlay");
+  const overlay = document.getElementById("alertPopupOverlay");
   if (overlay) {
     overlay.addEventListener("click", (e) => {
       if (e.target.id === "alertPopupOverlay") {
@@ -2224,7 +2224,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
     });
-  } */
+  }
 
   // Textarea character count
   const bioTextarea = document.getElementById("bioTextarea");
@@ -2282,7 +2282,7 @@ document.addEventListener("click", function (e) {
     const button = e.target;
     const orderId = button.dataset.id;
 
-    fetch("adminPage.php", {
+    fetch("sellerPage.php", {
         method: "POST",
         headers: {
             "Content-Type": "application/x-www-form-urlencoded"
