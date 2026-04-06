@@ -930,8 +930,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function toggleAgentAdd(showAdd) {
-  const products = document.getElementById("agency");
-  const addProducts = document.getElementById("add-products");
+  const products = document.getElementById("my-agency");
+  const addProducts = document.getElementById("add-agent");
 
   // ✅ STOP if elements don't exist
   if (!products || !addProducts) return;
@@ -944,14 +944,14 @@ function toggleAgentAdd(showAdd) {
   } else {
     products.classList.add("active");
     addProducts.classList.remove("active");
-    localStorage.setItem("agentAddView", "agency");
+    localStorage.setItem("agentAddView", "my-agency");
   }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  const products = document.getElementById("agency");
-  const addProducts = document.getElementById("add-products");
+  const products = document.getElementById("my-agency");
+  const addProducts = document.getElementById("add-agent");
 
   // ✅ Only run if this page has those elements
   if (!products || !addProducts) return;
@@ -962,7 +962,7 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleAgentAdd(true);
   }
 
-  if (savedView === "agency") {
+  if (savedView === "my-agency") {
     toggleAgentAdd(false);
   }
 
@@ -1664,13 +1664,44 @@ const dailyProducts = [
 // DOWNLOAD JS CODE
 // ==============================
 
-document.addEventListener("click", function(e){
+document.addEventListener("click", async function(e){
   const btn = e.target.closest(".download-btn");
   if (!btn) return;
+
   const id = btn.dataset.id;
   if (!id) return;
-  // Redirect to same dashboard file with download param
-  window.location.href = "?download_product_id=" + id;
+
+  try {
+    const res = await fetch("?download_product_id=" + id);
+
+    if (!res.ok) throw new Error("Failed to fetch image");
+
+    const blob = await res.blob();
+
+    // Extract filename from header (VERY IMPORTANT)
+    let filename = "download.jpg";
+    const disposition = res.headers.get("Content-Disposition");
+
+    if (disposition && disposition.includes("filename=")) {
+      filename = disposition.split("filename=")[1].replace(/"/g, '');
+    }
+
+    // Create download link
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = filename;
+
+    document.body.appendChild(a);
+    a.click();
+
+    a.remove();
+    window.URL.revokeObjectURL(url);
+
+  } catch (err) {
+    alert("Download failed");
+  }
 });
 
 // PLACE ORDER JS

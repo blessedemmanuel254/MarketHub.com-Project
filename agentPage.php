@@ -610,7 +610,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
 /* ---------- GENERATE AGENCY LINK ---------- */
 
-$baseAgencyLink = "http://localhost/MaketHub.com-Project/agentRegister.php";
+$baseAgencyLink = "http://localhost/MaketHub.com-Project/agentregister.php";
 
 $agencyLink = $baseAgencyLink . "?ref=" . urlencode($agencyCode);
 
@@ -862,118 +862,128 @@ if ($isVerified === 1 && $status === 'active') {
     $commissions[] = $row;
   }
 
+  // Count pending commissions
+  $pendingCount = 0;
+
+  foreach ($commissions as $c) {
+    if (strtolower($c['status']) === 'pending') {
+        $pendingCount++;
+    }
+  }
+
+  // Format count for header: if > 9, display "9+"
+  $displayCommissionCount = $pendingCount > 9 ? "9+" : $pendingCount;
   $stmt->close();
 
+  // Current logged in user
+  $currentUserId = $_SESSION['user_id'];
+  $agentWard = strtolower(trim($ward));
+  $agentCountry = strtolower(trim($country));
 
-// Current logged in user
-$currentUserId = $_SESSION['user_id'];
-$agentWard = strtolower(trim($ward));
-$agentCountry = strtolower(trim($country));
+  $sellerQuery = "
+      SELECT 
+          u.user_id,
+          u.username,
+          u.business_name,
+          u.business_type,
+          u.market_scope,
+          u.ward,
+          u.country,
+          u.profile_image,
+          u.address,
+          (
+            SELECT COUNT(DISTINCT oi.order_id)
+            FROM order_items oi
+            JOIN orders o ON oi.order_id = o.order_id
+            WHERE oi.seller_id = u.user_id
+            AND o.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+          ) AS total_orders,
+          (
+            SELECT COUNT(*)
+            FROM user_followers uf
+            WHERE uf.followed_id = u.user_id
+          ) AS followers_count,
 
-$sellerQuery = "
-    SELECT 
-        u.user_id,
-        u.username,
-        u.business_name,
-        u.business_type,
-        u.market_scope,
-        u.ward,
-        u.country,
-        u.profile_image,
-        u.address,
-        (
-          SELECT COUNT(DISTINCT oi.order_id)
-          FROM order_items oi
-          JOIN orders o ON oi.order_id = o.order_id
-          WHERE oi.seller_id = u.user_id
-          AND o.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-        ) AS total_orders,
-        (
-          SELECT COUNT(*)
-          FROM user_followers uf
-          WHERE uf.followed_id = u.user_id
-        ) AS followers_count,
+          (
+            SELECT COUNT(*)
+            FROM user_followers uf
+            WHERE uf.follower_id = u.user_id
+          ) AS following_count,
+          (
+            SELECT COUNT(*)
+            FROM user_followers uf
+            WHERE uf.follower_id = ?
+            AND uf.followed_id = u.user_id
+          ) AS is_following
 
-        (
-          SELECT COUNT(*)
-          FROM user_followers uf
-          WHERE uf.follower_id = u.user_id
-        ) AS following_count,
-        (
-          SELECT COUNT(*)
-          FROM user_followers uf
-          WHERE uf.follower_id = ?
-          AND uf.followed_id = u.user_id
-        ) AS is_following
+      FROM users u
+      WHERE u.account_type = 'seller'
 
-    FROM users u
-    WHERE u.account_type = 'seller'
+      ORDER BY total_orders DESC
+      LIMIT 50
+  ";
 
-    ORDER BY total_orders DESC
-    LIMIT 50
-";
+  $stmt = $conn->prepare($sellerQuery);
+  $stmt->bind_param("i", $currentUserId);
+  $stmt->execute();
+  $result = $stmt->get_result();
 
-$stmt = $conn->prepare($sellerQuery);
-$stmt->bind_param("i", $currentUserId);
-$stmt->execute();
-$result = $stmt->get_result();
+  $shops = [];
+  $supermarkets = [];
 
-$shops = [];
-$supermarkets = [];
+  $shopsN = [];
+  $supermarketsN = [];
 
-$shopsN = [];
-$supermarketsN = [];
+  $shopsG = [];
+  $supermarketsG = [];
 
-$shopsG = [];
-$supermarketsG = [];
+  while ($row = $result->fetch_assoc()) {
 
-while ($row = $result->fetch_assoc()) {
+    $row['business_name'] = ucwords(strtolower($row['business_name']));
+    $row['business_type'] = ucwords(strtolower($row['business_type']));
+    $row['address'] = ucwords(strtolower($row['address']));
 
-  $row['business_name'] = ucwords(strtolower($row['business_name']));
-  $row['business_type'] = ucwords(strtolower($row['business_type']));
-  $row['address'] = ucwords(strtolower($row['address']));
+    $type = strtolower(trim($row['business_type']));
+    $scope = strtolower(trim($row['market_scope']));
 
-  $type = strtolower(trim($row['business_type']));
-  $scope = strtolower(trim($row['market_scope']));
+  /* ---------- LOCAL ---------- */
+  if (($scope === "local" && strtolower(trim($row['ward'])) === $agentWard) || (strtolower(trim($row['ward'])) === $agentWard)) {
 
-/* ---------- LOCAL ---------- */
-if (($scope === "local" && strtolower(trim($row['ward'])) === $agentWard) || (strtolower(trim($row['ward'])) === $agentWard)) {
+    if (in_array($type, ['shop','kiosk','canteen','kibanda'])) {
+      $shops[] = $row;
+    }
 
-  if (in_array($type, ['shop','kiosk','canteen','kibanda'])) {
-    $shops[] = $row;
+    elseif (in_array($type, ['supermarket','wholesale'])) {
+      $supermarkets[] = $row;
+    }
+
   }
 
-  elseif (in_array($type, ['supermarket','wholesale'])) {
-    $supermarkets[] = $row;
+  /* ---------- NATIONAL ---------- */
+  if ($scope === "national" && strtolower(trim($row['country'])) === $agentCountry) {
+
+    if (in_array($type, ['shop','kiosk','canteen','kibanda'])) {
+      $shopsN[] = $row;
+    }
+
+    elseif (in_array($type, ['supermarket','wholesale'])) {
+      $supermarketsN[] = $row;
+    }
+
   }
 
-}
+  /* ---------- GLOBAL ---------- */
+  if ($scope === "global") {
 
-/* ---------- NATIONAL ---------- */
-if ($scope === "national" && strtolower(trim($row['country'])) === $agentCountry) {
+    if (in_array($type, ['shop','kiosk','canteen','kibanda'])) {
+      $shopsG[] = $row;
+    }
 
-  if (in_array($type, ['shop','kiosk','canteen','kibanda'])) {
-    $shopsN[] = $row;
+    elseif (in_array($type, ['supermarket','wholesale'])) {
+      $supermarketsG[] = $row;
+    }
+
   }
-
-  elseif (in_array($type, ['supermarket','wholesale'])) {
-    $supermarketsN[] = $row;
-  }
-
-}
-
-/* ---------- GLOBAL ---------- */
-if ($scope === "global") {
-
-  if (in_array($type, ['shop','kiosk','canteen','kibanda'])) {
-    $shopsG[] = $row;
-  }
-
-  elseif (in_array($type, ['supermarket','wholesale'])) {
-    $supermarketsG[] = $row;
-  }
-
-}
 
 }
 
@@ -1237,7 +1247,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
   }
   // Check if withdrawal amount is empty
   if (empty($withdrawAmount) && $withdrawAmount !== '0') {
-      $error = "Please enter a withdrawal amount.";
+      $error = "Please enter a withdrawal amount!";
   } else {
 
     $withdrawAmount = floatval($withdrawAmount);
@@ -1245,7 +1255,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
     // Maximum withdrawal allowed
     $maxWithdrawal = 100000.0; // KES
     if ($withdrawAmount > $maxWithdrawal) {
-        $error = "Maximum withdrawal allowed is KES $maxWithdrawal.";
+        $error = "Maximum withdrawal allowed is KES $maxWithdrawal!";
     }
 
     // --- Calculate M-Pesa style tiered fee ---
@@ -1269,7 +1279,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
           } elseif ($withdrawAmount > $balance) {
               $error = "Insufficient balance!";
           } elseif ($netAmount <= 0) {
-              $error = "Withdrawal amount must be greater than the transaction fee (KES $fee).";
+              $error = "Withdrawal amount must be greater than the transaction fee (KES $fee)!";
           }
       }
   }
@@ -1522,6 +1532,12 @@ function getStatusIcon($status) {
           <?php
           $displayCount = ($pendingOrders > 9) ? '9+' : $pendingOrders;
           ?>
+          <a class="lkOdr" onclick="toggleAgentEarningsTrack()">
+            <div class="odrIconDiv">
+              <i class="fa-solid fa-sack-dollar"></i>
+              <p class="agent-not"><?= $displayCommissionCount ?></p>
+            </div>
+          </a>
 
           <a class="lkOdr" onclick="toggleAgentOrdersTrack()">
             <div class="odrIconDiv">
@@ -1535,12 +1551,6 @@ function getStatusIcon($status) {
 
             </div>
             <p>Order(s)</p>
-          </a>
-          <a class="lkOdr" onclick="toggleAgentEarningsTrack()">
-            <div class="odrIconDiv">
-              <i class="fa-solid fa-sack-dollar"></i>
-              <p class="agent-not">3</p>
-            </div>
           </a>
           <select id="county">
             <option value="<?= htmlspecialchars($county) ?>" selected>
@@ -2683,7 +2693,7 @@ function getStatusIcon($status) {
       <div class="filter-bar">
         <select id="statusFilter">
           <option value="all">All Commissions</option>
-          <option value="Paid">Paid</option>
+          <option value="Completed">Paid</option>
           <option value="Pending">Pending</option>
         </select>
       </div>
@@ -2824,7 +2834,7 @@ function getStatusIcon($status) {
       <div class="filter-bar">
         <select id="statusFilter">
           <option value="all">All Commissions</option>
-          <option value="Paid">Paid</option>
+          <option value="Completed">Paid</option>
           <option value="Pending">Pending</option>
         </select>
       </div>

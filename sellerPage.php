@@ -1006,7 +1006,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
   }
 
   if (empty($withdrawAmount) && $withdrawAmount !== '0') {
-    $error = "Please enter a withdrawal amount.";
+    $error = "Please enter a withdrawal amount!";
   } else {
 
     $withdrawAmount = floatval($withdrawAmount);
@@ -1014,7 +1014,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
     // Max limit
     $maxWithdrawal = 100000.0;
     if ($withdrawAmount > $maxWithdrawal) {
-        $error = "Maximum withdrawal allowed is KES $maxWithdrawal.";
+        $error = "Maximum withdrawal allowed is KES $maxWithdrawal!";
     }
 
     // --- M-Pesa style fee ---
@@ -1033,13 +1033,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
 
     // Validation
     if (!$error) {
-        if ($withdrawAmount < $min) {
-            $error = "Minimum withdrawal is KES $min.";
-        } elseif ($withdrawAmount > (float)$balance) {
-            $error = "Insufficient balance. Your wallet balance is KES $balance.";
-        } elseif ($netAmount <= 0) {
-            $error = "Withdrawal amount must be greater than fee (KES $fee).";
-        }
+      if ($withdrawAmount < $min) {
+        $error = "Minimum withdrawal is KES $min!";
+      } elseif ($withdrawAmount > (float)$balance) {
+        $error = "Insufficient balance. Your wallet balance is KES $balance!";
+      } elseif ($netAmount <= 0) {
+        $error = "Withdrawal amount must be greater than fee (KES $fee)!";
+    }
     }
   }
 
