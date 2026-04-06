@@ -2710,7 +2710,7 @@ function getStatusIcon($status) {
             <?php foreach ($commissions as $row): 
 
               // Format date
-              $date = date("d M Y", strtotime($row['created_at']));
+              $date = formatDate($row['created_at']);
 
               // Source
               $source = ($row['source_type']);
@@ -2849,7 +2849,7 @@ function getStatusIcon($status) {
             <?php foreach ($commissions as $row): 
 
               // Format date
-              $date = date("d M Y", strtotime($row['created_at']));
+              $date = formatDate($row['created_at']); 
 
               // Source
               $source = ($row['source_type']);

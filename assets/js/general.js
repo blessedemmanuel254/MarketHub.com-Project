@@ -910,20 +910,23 @@ function toggleProductsAdd(showAdd) {
   }
 }
 
+function goBackToSellerPage() {
+  toggleProductsAdd(false);
+  setTimeout(() => {
+      window.location.href = 'sellerPage.php';
+  }, 50);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-  const productsTabBtn = document.querySelector('.tab-btn[data-tab="products"]');
-  const productsTabPanel = document.getElementById("products");
+  setTimeout(() => {
+    const productsPanel = document.getElementById("products");
 
-  // Only restore Products view if Products tab is active
-  if (productsTabBtn?.classList.contains("active")) {
-    const savedView = localStorage.getItem("seller:productsView");
+    if (productsPanel?.classList.contains("active")) {
+      const savedView = localStorage.getItem("seller:productsView");
 
-    if (savedView === "add") {
-      toggleProductsAdd(true);
-    } else {
-      toggleProductsAdd(false);
+      toggleProductsAdd(savedView === "add");
     }
-  }
+  }, 50);
 });
 
 function toggleAgentAdd(showAdd) {

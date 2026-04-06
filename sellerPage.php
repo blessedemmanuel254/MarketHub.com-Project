@@ -1471,7 +1471,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
           <div id="add-products" class="tab-panel">
             <div class="tab-top">
               <p>Add products to your catalog</em> <br><strong>Show customers what you offer <i class="fa-regular fa-circle-check"></i></strong></p>
-              <button onclick="toggleProductsAdd(false)">
+              <button onclick="goBackToSellerPage()">
                 <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
               </button>
 
