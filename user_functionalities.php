@@ -264,6 +264,26 @@ elseif ($action === "activate") {
             $update->bind_param("ddi", $amount, $amount, $walletId);
             $update->execute();
             $update->close();
+            /* -----------------------------
+            SEND EMAIL TO REFERRER
+            ----------------------------- */
+            $stmtEmail = $conn->prepare("SELECT email, full_name FROM users WHERE user_id=? LIMIT 1");
+            $stmtEmail->bind_param("i", $referrerId);
+            $stmtEmail->execute();
+            $stmtEmail->bind_result($referrerEmail, $referrerName);
+            $stmtEmail->fetch();
+            $stmtEmail->close();
+
+            if ($referrerEmail) {
+                $referrerEmail = base64_decode($referrerEmail);
+                $subject = "Level $levelNumber Earnings";
+                $body = "Hooray! 🥳 You've just earned KES " . number_format($amount, 2) .
+                        " for inviting " . htmlspecialchars($userId) . ". Let's continue building!";
+                $headers = "From: Market Hub <no-reply@makethub.shop>\r\n";
+                $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+
+                @mail($referrerEmail, $subject, $body, $headers);
+            }
 
             /* MOVE UP */
             $stmt = $conn->prepare("SELECT referred_by FROM users WHERE user_id=?");

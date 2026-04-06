@@ -39,6 +39,19 @@ if ($accountType !== $allowedRole) {
 /* ---------- FETCH USER DATA ---------- */
 $user_id = $_SESSION['user_id'];
 
+function formatDate($date) {
+    if (empty($date)) return '-';
+
+    $timestamp = strtotime($date);
+    $oneYear = 31536000;
+
+    if (time() - $timestamp < $oneYear) {
+        return date("d M, H:i", $timestamp);
+    } else {
+        return date("d M Y", $timestamp);
+    }
+}
+
 function formatToK($number) {
 
   if ($number >= 9950) {
@@ -1652,7 +1665,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
               foreach ($sellerOrders as $order) {
 
                   $total = number_format($order['seller_total'], 2);
-                  $date = date("d M Y", strtotime($order['created_at']));
+                  $date = formatDate($order['created_at']);
 
                   // Payment badge
                   $paymentStatus = strtolower($order['payment_status'] ?? '');
@@ -1748,7 +1761,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
               foreach ($sellerOrders as $order) {
 
                   $total = number_format($order['seller_total'], 2);
-                  $date = date("d M Y", strtotime($order['created_at']));
+                  $date = formatDate($order['created_at']);
 
                   // Payment badge
                   $paymentStatus = strtolower($order['payment_status'] ?? '');
@@ -1787,13 +1800,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                           <td class='actions'>
                               <div>";
 
-                  // Actions based on status
+                  // Action based on status
                   if ($statusClass === 'pending') {
-                      echo "<button class='btn-ship' data-id='{$order['order_id']}'>Mark&nbsp;as&nbsp;Shipped</button>";
-                  } elseif ($statusClass === 'shipped') {
-                      echo "<button class='btn-deliver'>Mark&nbsp;as&nbsp;Delivered</button>";
+                    echo "<button class='btn-ship' data-id='{$order['order_id']}'>Mark&nbsp;as&nbsp;Shipped</button>";
                   } else {
-                      echo "<span class='text-muted'>No actions</span>";
+                    echo "<button class='btn-view'><i class='fa-solid fa-eye'></i></button>";
                   }
 
                   echo "      </div>

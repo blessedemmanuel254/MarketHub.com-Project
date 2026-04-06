@@ -2518,8 +2518,8 @@ a.seller-right {
 ===================== */
 .variables-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit,minmax(250px,1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
+  gap: 10px;
 }
 
 /* =====================
@@ -2530,7 +2530,7 @@ a.seller-right {
   display: flex;
   flex-direction: column;
   border-radius: 4px;
-  width: clamp(200px, 100%, 300px);
+  width: 200px;
   overflow: hidden;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
   border: 1px solid #dedede;
@@ -3044,8 +3044,12 @@ a.seller-right {
 /* PRODUCTS CSS */
 .products-grid, .tab-panel-admin .products-grid-admin {
   display: grid;
-  grid-template-columns: repeat(auto-fit,minmax(250px,1fr));
+  grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
   gap: 20px;
+}
+
+.tab-panel-admin .products-grid-admin {
+  grid-template-columns: repeat(auto-fit,minmax(250px,1fr));
 }
 
 .tab-panel-admin .products-grid-admin .noproducts-admin-p, .tab-panel-admin .products-grid-admin {
@@ -3059,7 +3063,7 @@ a.seller-right {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  width: clamp(200px, 100%, 300px);
+  width: 200px;
   margin: 0 auto;
   border: 1px solid #dedede;
 }
@@ -4213,6 +4217,37 @@ WITHDRAW HISTORY
   color: #0f0f0f;
   border-color: #0f0f0f;
   background: #f0f0f0;
+}
+
+.containerWH .no-withdrawals {
+  text-align: center;
+  padding: 20px;
+  color: #898988;
+  width: fit-content;
+  margin: 0 auto;
+  border: 1px solid #dedede;
+  border-radius: 4px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+}
+
+.containerWH .no-withdrawals:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(-6px);
+}
+
+.containerWH .no-withdrawals p {
+  font-size: 14px;
+}
+
+.containerWH .no-withdrawals small {
+  font-size: 12px;
+}
+
+.containerWH .no-withdrawals i {
+  font-size: 40px;
+  margin-bottom: 10px;
+  display: block;
+  color: #dedede;
 }
 
 @media screen and (max-width: 770px) {

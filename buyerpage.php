@@ -36,83 +36,83 @@ if ($accountType !== $allowedRole) {
 
 /* ---------- AJAX FOLLOW / UNFOLLOW ---------- */
 if (
-    $_SERVER['REQUEST_METHOD'] === 'POST' &&
-    isset($_POST['seller_id']) &&
-    isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
-    strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
+  $_SERVER['REQUEST_METHOD'] === 'POST' &&
+  isset($_POST['seller_id']) &&
+  isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+  strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
 ) {
-    header('Content-Type: application/json');
+  header('Content-Type: application/json');
 
-    if (!isset($_SESSION['user_id'])) {
-        echo json_encode(['error' => 'Not logged in']);
-        exit;
-    }
+  if (!isset($_SESSION['user_id'])) {
+      echo json_encode(['error' => 'Not logged in']);
+      exit;
+  }
 
-    $currentUser = $_SESSION['user_id'];
-    $sellerId = (int) $_POST['seller_id'];
+  $currentUser = $_SESSION['user_id'];
+  $sellerId = (int) $_POST['seller_id'];
 
-    if ($sellerId <= 0 || $sellerId === $currentUser) {
-        echo json_encode(['error' => 'Invalid user']);
-        exit;
-    }
+  if ($sellerId <= 0 || $sellerId === $currentUser) {
+      echo json_encode(['error' => 'Invalid user']);
+      exit;
+  }
 
-    // Check if already following
-    $stmt = $conn->prepare(
-        "SELECT 1 FROM user_followers WHERE follower_id = ? AND followed_id = ?"
-    );
-    $stmt->bind_param("ii", $currentUser, $sellerId);
-    $stmt->execute();
-    $stmt->store_result();
+  // Check if already following
+  $stmt = $conn->prepare(
+      "SELECT 1 FROM user_followers WHERE follower_id = ? AND followed_id = ?"
+  );
+  $stmt->bind_param("ii", $currentUser, $sellerId);
+  $stmt->execute();
+  $stmt->store_result();
 
-    if ($stmt->num_rows > 0) {
-        // UNFOLLOW
-        $stmt->close();
-        $stmt = $conn->prepare(
-            "DELETE FROM user_followers WHERE follower_id = ? AND followed_id = ?"
-        );
-        $stmt->bind_param("ii", $currentUser, $sellerId);
-        $stmt->execute();
-        $isFollowing = false;
-    } else {
-        // FOLLOW
-        $stmt->close();
-        $stmt = $conn->prepare(
-            "INSERT INTO user_followers (follower_id, followed_id, followed_at)
-             VALUES (?, ?, NOW())"
-        );
-        $stmt->bind_param("ii", $currentUser, $sellerId);
-        $stmt->execute();
-        $isFollowing = true;
-    }
+  if ($stmt->num_rows > 0) {
+      // UNFOLLOW
+      $stmt->close();
+      $stmt = $conn->prepare(
+          "DELETE FROM user_followers WHERE follower_id = ? AND followed_id = ?"
+      );
+      $stmt->bind_param("ii", $currentUser, $sellerId);
+      $stmt->execute();
+      $isFollowing = false;
+  } else {
+      // FOLLOW
+      $stmt->close();
+      $stmt = $conn->prepare(
+          "INSERT INTO user_followers (follower_id, followed_id, followed_at)
+            VALUES (?, ?, NOW())"
+      );
+      $stmt->bind_param("ii", $currentUser, $sellerId);
+      $stmt->execute();
+      $isFollowing = true;
+  }
 
-    $stmt->close();
+  $stmt->close();
 
-    // Get updated counts
-    $followersStmt = $conn->prepare(
-        "SELECT COUNT(*) FROM user_followers WHERE followed_id = ?"
-    );
-    $followersStmt->bind_param("i", $sellerId);
-    $followersStmt->execute();
-    $followersStmt->bind_result($followersCount);
-    $followersStmt->fetch();
-    $followersStmt->close();
+  // Get updated counts
+  $followersStmt = $conn->prepare(
+      "SELECT COUNT(*) FROM user_followers WHERE followed_id = ?"
+  );
+  $followersStmt->bind_param("i", $sellerId);
+  $followersStmt->execute();
+  $followersStmt->bind_result($followersCount);
+  $followersStmt->fetch();
+  $followersStmt->close();
 
-    $followingStmt = $conn->prepare(
-        "SELECT COUNT(*) FROM user_followers WHERE follower_id = ?"
-    );
-    $followingStmt->bind_param("i", $sellerId);
-    $followingStmt->execute();
-    $followingStmt->bind_result($followingCount);
-    $followingStmt->fetch();
-    $followingStmt->close();
+  $followingStmt = $conn->prepare(
+      "SELECT COUNT(*) FROM user_followers WHERE follower_id = ?"
+  );
+  $followingStmt->bind_param("i", $sellerId);
+  $followingStmt->execute();
+  $followingStmt->bind_result($followingCount);
+  $followingStmt->fetch();
+  $followingStmt->close();
 
-    echo json_encode([
-        'success' => true,
-        'is_following' => $isFollowing,
-        'followers' => $followersCount,
-        'following' => $followingCount
-    ]);
-    exit;
+  echo json_encode([
+      'success' => true,
+      'is_following' => $isFollowing,
+      'followers' => $followersCount,
+      'following' => $followingCount
+  ]);
+  exit;
 }
 
 /* ---------- FETCH USER DATA ---------- */
@@ -984,8 +984,29 @@ $pendingOrders = count($pendingItems);
               </td>
 
               <!-- SHIPPED & DELIVERED -->
-              <td><?= !empty($order['shipped_at']) ? date("d M Y", strtotime($order['shipped_at'])) : '-' ?></td>
-              <td><?= !empty($order['delivered_at']) ? date("d M Y", strtotime($order['delivered_at'])) : '-' ?></td>
+              <td>
+              <?=
+              !empty($order['shipped_at'])
+                ? (
+                    (time() - strtotime($order['shipped_at']) < 31536000)
+                      ? date("d M, H:i", strtotime($order['shipped_at']))   // recent → show time
+                      : date("d M Y", strtotime($order['shipped_at']))      // old → show year
+                  )
+                : '-'
+              ?>
+              </td>
+
+              <td>
+              <?=
+              !empty($order['delivered_at'])
+                ? (
+                    (time() - strtotime($order['delivered_at']) < 31536000)
+                      ? date("d M, H:i", strtotime($order['delivered_at']))
+                      : date("d M Y", strtotime($order['delivered_at']))
+                  )
+                : '-'
+              ?>
+              </td>
 
             </tr>
             <?php endforeach; ?>
@@ -1151,8 +1172,29 @@ $pendingOrders = count($pendingItems);
               </td>
 
               <!-- SHIPPED & DELIVERED -->
-              <td><?= !empty($order['shipped_at']) ? date("d M Y", strtotime($order['shipped_at'])) : '-' ?></td>
-              <td><?= !empty($order['delivered_at']) ? date("d M Y", strtotime($order['delivered_at'])) : '-' ?></td>
+              <td>
+              <?=
+              !empty($order['shipped_at'])
+                ? (
+                    (time() - strtotime($order['shipped_at']) < 31536000)
+                      ? date("d M, H:i", strtotime($order['shipped_at']))   // recent → show time
+                      : date("d M Y", strtotime($order['shipped_at']))      // old → show year
+                  )
+                : '-'
+              ?>
+              </td>
+
+              <td>
+              <?=
+              !empty($order['delivered_at'])
+                ? (
+                    (time() - strtotime($order['delivered_at']) < 31536000)
+                      ? date("d M, H:i", strtotime($order['delivered_at']))
+                      : date("d M Y", strtotime($order['delivered_at']))
+                  )
+                : '-'
+              ?>
+              </td>
 
             </tr>
             <?php endforeach; ?>

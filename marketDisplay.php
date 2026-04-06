@@ -1149,7 +1149,7 @@ $productStmt->close();
                                     data-seller="<?= $sellerId; ?>"
                                     data-seller-name="<?= htmlspecialchars($seller['business_name']); ?>"
                                   >
-                                    Buy Now
+                                    Buy&nbsp;Now
                                   </button>
                               </div>
                             </div>
@@ -1182,7 +1182,7 @@ $productStmt->close();
             </div>
 
             <div class="address-text">
-              From <?= htmlspecialchars($user['address'] ?? '') ?>, <?= htmlspecialchars($user['ward'] ?? '') ?> ward<?= htmlspecialchars($user['county'] ?? '') ?><br>
+              From <?= htmlspecialchars($user['address'] ?? '') ?>, <?= htmlspecialchars($user['ward'] ?? '') ?> ward in <?= htmlspecialchars($user['county'] ?? '') ?><br>
               Contact: <?= htmlspecialchars($decodedPhone) ?>
             </div>
           </div>                  

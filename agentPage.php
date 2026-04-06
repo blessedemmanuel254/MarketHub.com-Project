@@ -52,6 +52,88 @@ if ($accountType !== $allowedRole) {
 
 /* ---------- USER ID ---------- */
 $user_id = $_SESSION['user_id'];
+
+/* ---------- AJAX FOLLOW / UNFOLLOW ---------- */
+if (
+  $_SERVER['REQUEST_METHOD'] === 'POST' &&
+  isset($_POST['seller_id']) &&
+  isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+  strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
+) {
+  header('Content-Type: application/json');
+
+  if (!isset($_SESSION['user_id'])) {
+      echo json_encode(['error' => 'Not logged in']);
+      exit;
+  }
+
+  $currentUser = $_SESSION['user_id'];
+  $sellerId = (int) $_POST['seller_id'];
+
+  if ($sellerId <= 0 || $sellerId === $currentUser) {
+      echo json_encode(['error' => 'Invalid user']);
+      exit;
+  }
+
+  // Check if already following
+  $stmt = $conn->prepare(
+      "SELECT 1 FROM user_followers WHERE follower_id = ? AND followed_id = ?"
+  );
+  $stmt->bind_param("ii", $currentUser, $sellerId);
+  $stmt->execute();
+  $stmt->store_result();
+
+  if ($stmt->num_rows > 0) {
+      // UNFOLLOW
+      $stmt->close();
+      $stmt = $conn->prepare(
+          "DELETE FROM user_followers WHERE follower_id = ? AND followed_id = ?"
+      );
+      $stmt->bind_param("ii", $currentUser, $sellerId);
+      $stmt->execute();
+      $isFollowing = false;
+  } else {
+      // FOLLOW
+      $stmt->close();
+      $stmt = $conn->prepare(
+          "INSERT INTO user_followers (follower_id, followed_id, followed_at)
+            VALUES (?, ?, NOW())"
+      );
+      $stmt->bind_param("ii", $currentUser, $sellerId);
+      $stmt->execute();
+      $isFollowing = true;
+  }
+
+  $stmt->close();
+
+  // Get updated counts
+  $followersStmt = $conn->prepare(
+      "SELECT COUNT(*) FROM user_followers WHERE followed_id = ?"
+  );
+  $followersStmt->bind_param("i", $sellerId);
+  $followersStmt->execute();
+  $followersStmt->bind_result($followersCount);
+  $followersStmt->fetch();
+  $followersStmt->close();
+
+  $followingStmt = $conn->prepare(
+      "SELECT COUNT(*) FROM user_followers WHERE follower_id = ?"
+  );
+  $followingStmt->bind_param("i", $sellerId);
+  $followingStmt->execute();
+  $followingStmt->bind_result($followingCount);
+  $followingStmt->fetch();
+  $followingStmt->close();
+
+  echo json_encode([
+      'success' => true,
+      'is_following' => $isFollowing,
+      'followers' => $followersCount,
+      'following' => $followingCount
+  ]);
+  exit;
+}
+
 /* Ensure the agent is verified */
 /* if ($isVerified != 1) {
   header("Location: verifyAgent.php");
@@ -855,7 +937,7 @@ while ($row = $result->fetch_assoc()) {
   $scope = strtolower(trim($row['market_scope']));
 
 /* ---------- LOCAL ---------- */
-if ($scope === "local" && strtolower(trim($row['ward'])) === $agentWard) {
+if (($scope === "local" && strtolower(trim($row['ward'])) === $agentWard) || (strtolower(trim($row['ward'])) === $agentWard)) {
 
   if (in_array($type, ['shop','kiosk','canteen','kibanda'])) {
     $shops[] = $row;
@@ -868,7 +950,7 @@ if ($scope === "local" && strtolower(trim($row['ward'])) === $agentWard) {
 }
 
 /* ---------- NATIONAL ---------- */
-elseif ($scope === "national" && strtolower(trim($row['country'])) === $agentCountry) {
+if ($scope === "national" && strtolower(trim($row['country'])) === $agentCountry) {
 
   if (in_array($type, ['shop','kiosk','canteen','kibanda'])) {
     $shopsN[] = $row;
@@ -880,18 +962,18 @@ elseif ($scope === "national" && strtolower(trim($row['country'])) === $agentCou
 
 }
 
-  /* ---------- GLOBAL ---------- */
-  elseif ($scope === "global") {
+/* ---------- GLOBAL ---------- */
+if ($scope === "global") {
 
-    if (in_array($type, ['shop','kiosk','canteen','kibanda'])) {
-      $shopsG[] = $row;
-    }
-
-    elseif (in_array($type, ['supermarket','wholesale'])) {
-      $supermarketsG[] = $row;
-    }
-
+  if (in_array($type, ['shop','kiosk','canteen','kibanda'])) {
+    $shopsG[] = $row;
   }
+
+  elseif (in_array($type, ['supermarket','wholesale'])) {
+    $supermarketsG[] = $row;
+  }
+
+}
 
 }
 
@@ -1272,7 +1354,16 @@ $result = $stmt->get_result();
 
 // Helper: format date
 function formatDate($date) {
-  return date("d M Y", strtotime($date));
+  if (empty($date)) return '-';
+
+  $timestamp = strtotime($date);
+  $oneYear = 31536000; // 1 year in seconds
+
+  if (time() - $timestamp < $oneYear) {
+      return date("d M, H:i", $timestamp); // recent → show time
+  } else {
+      return date("d M Y", $timestamp);    // old → show year
+  }
 }
 
 function decodePhone($encodedPhone) {
@@ -2846,76 +2937,82 @@ function getStatusIcon($status) {
       
       <div class="containerWH">
         <h2>Withdrawal History</h2>
+
+        <?php if ($result->num_rows > 0): ?>
         <div class="withdraw-grid">
 
-        <?php while($row = $result->fetch_assoc()): ?>
+          <?php while($row = $result->fetch_assoc()): ?>
 
-          <div class="withdraw-card <?php echo $row['status']; ?>">
-            
-            <div class="withdraw-left">
+            <div class="withdraw-card <?php echo $row['status']; ?>">
               
-              <div class="withdraw-title">
-                <i class="fa-solid fa-wallet"></i> 
-                Wallet Withdrawal
-              </div>
+              <div class="withdraw-left">
+                
+                <div class="withdraw-title">
+                  <i class="fa-solid fa-wallet"></i> 
+                  Wallet Withdrawal
+                </div>
 
-              <div class="withdraw-meta">
-                <i class="fa-regular fa-calendar"></i> 
-                <?php echo formatDate($row['created_at']); ?><br>
+                <div class="withdraw-meta">
+                  <i class="fa-regular fa-calendar"></i> 
+                  <?php echo formatDate($row['created_at']); ?><br>
 
-                <?php
-                  $phone = $row['phone'] ?? $row['account_number'];
-                ?>
-
-                <?php if(strtolower($row['method']) == 'mpesa'): ?>
-                  <i class="fa-solid fa-mobile-screen-button"></i> 
-                  M-Pesa • 
-                  <?php 
-                    // Get phone (prefer users.phone)
-                    $rawPhone = $row['phone'] ?? $row['account_number'];
-
-                    // Decode if it's from users table
-                    $decodedPhone = decodePhone($rawPhone);
-
-                    // Fallback if decoding fails
-                    $finalPhone = $decodedPhone ?: $rawPhone;
-
-                    echo maskPhone($finalPhone);
+                  <?php
+                    $phone = $row['phone'] ?? $row['account_number'];
                   ?>
-                <?php else: ?>
-                  <i class="fa-solid fa-building-columns"></i> 
-                  <?php echo $row['method']; ?>
-                <?php endif; ?>
+
+                  <?php if(strtolower($row['method']) == 'mpesa'): ?>
+                    <i class="fa-solid fa-mobile-screen-button"></i> 
+                    M-Pesa • 
+                    <?php 
+                      $rawPhone = $row['phone'] ?? $row['account_number'];
+                      $decodedPhone = decodePhone($rawPhone);
+                      $finalPhone = $decodedPhone ?: $rawPhone;
+                      echo maskPhone($finalPhone);
+                    ?>
+                  <?php else: ?>
+                    <i class="fa-solid fa-building-columns"></i> 
+                    <?php echo $row['method']; ?>
+                  <?php endif; ?>
+                </div>
+
+                <div class="withdraw-reference">
+                  <i class="fa-solid fa-hashtag"></i> 
+                  <?php echo $row['reference_code'] ?: $row['transaction_id']; ?>
+                </div>
+
+                <div style="margin-top:5px; font-size:13px; color:#666;">
+                  <?php echo $row['full_name'] ?? $row['account_name']; ?>
+                </div>
+
               </div>
 
-              <div class="withdraw-reference">
-                <i class="fa-solid fa-hashtag"></i> 
-                <?php echo $row['reference_code'] ?: $row['transaction_id']; ?>
-              </div>
+              <div class="withdraw-right">
+                
+                <div class="withdraw-amount">
+                  KES <?php echo number_format($row['amount']); ?>
+                </div>
 
-              <!-- OPTIONAL: Show user name -->
-              <div style="margin-top:5px; font-size:13px; color:#666;">
-                <?php echo $row['full_name'] ?? $row['account_name']; ?>
+                <div class="status <?php echo getStatusClass($row['status']); ?>">
+                  <i class="fa-solid <?php echo getStatusIcon($row['status']); ?>"></i>
+                  <?php echo $row['status']; ?>
+                </div>
+
               </div>
 
             </div>
 
-            <div class="withdraw-right">
-              
-              <div class="withdraw-amount">
-                KES <?php echo number_format($row['amount']); ?>
-              </div>
+          <?php endwhile; ?>
 
-              <div class="status <?php echo getStatusClass($row['status']); ?>">
-                <i class="fa-solid <?php echo getStatusIcon($row['status']); ?>"></i>
-                <?php echo $row['status']; ?>
-              </div>
+          <?php else: ?>
 
+            <!-- ✅ EMPTY STATE -->
+            <div class="no-withdrawals">
+              <i class="fa-regular fa-folder-open"></i>
+              <p>No withdrawals yet</p>
+              <small>Your withdrawal history will appear here once you make a request.</small>
             </div>
 
-          </div>
-
-        <?php endwhile; ?>
+          <?php endif; ?>
 
 
       </div>
@@ -3016,8 +3113,29 @@ function getStatusIcon($status) {
               </td>
 
               <!-- SHIPPED & DELIVERED -->
-              <td><?= !empty($order['shipped_at']) ? date("d M Y", strtotime($order['shipped_at'])) : '-' ?></td>
-              <td><?= !empty($order['delivered_at']) ? date("d M Y", strtotime($order['delivered_at'])) : '-' ?></td>
+              <td>
+              <?=
+              !empty($order['shipped_at'])
+                ? (
+                    (time() - strtotime($order['shipped_at']) < 31536000)
+                      ? date("d M, H:i", strtotime($order['shipped_at']))   // recent → show time
+                      : date("d M Y", strtotime($order['shipped_at']))      // old → show year
+                  )
+                : '-'
+              ?>
+              </td>
+
+              <td>
+              <?=
+              !empty($order['delivered_at'])
+                ? (
+                    (time() - strtotime($order['delivered_at']) < 31536000)
+                      ? date("d M, H:i", strtotime($order['delivered_at']))
+                      : date("d M Y", strtotime($order['delivered_at']))
+                  )
+                : '-'
+              ?>
+              </td>
 
             </tr>
             <?php endforeach; ?>

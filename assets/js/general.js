@@ -506,6 +506,14 @@ function openAgentMarketSource(sourceTabId = "shops") {
 
   const container = btn.closest(".tabs-container");
 
+  /* ✅ FIX: hide all other containers first */
+  document.querySelectorAll(".toggleMarketSourceTab")
+    .forEach(c => c.style.display = "none");
+
+  /* ✅ show only the current one */
+  container.style.display = "block";
+
+  /* activate tab */
   container.querySelectorAll("[data-tab]").forEach(b => b.classList.remove("active"));
   container.querySelectorAll(".tab-panel-msource").forEach(p => p.classList.remove("active"));
 
@@ -517,7 +525,6 @@ function openAgentMarketSource(sourceTabId = "shops") {
   const storageKey = container.dataset.tabStorage;
   if (storageKey) localStorage.setItem(storageKey, sourceTabId);
 }
-
 
 /* ================= OPEN AGENT MARKET TYPE ================= */
 
