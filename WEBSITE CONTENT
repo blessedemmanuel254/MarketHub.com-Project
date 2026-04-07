@@ -1,4 +1,35 @@
 <?php
+// TEMPORARY: show errors while debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/php_errors.log');
+
+// ------------------------
+// CUSTOM SESSION PATH
+// ------------------------
+// Create a folder inside your project, e.g., "sessions"
+$sessionPath = __DIR__ . '/sessions';
+if (!is_dir($sessionPath)) {
+    mkdir($sessionPath, 0777, true); // create if not exists
+}
+
+// ------------------------
+// DATABASE CONNECTION
+// ------------------------
+$servername = "localhost";
+$username = "closdhgq_blessedemmanuel254";
+$database_password = "1745Sjm*1745";
+$dbname = "closdhgq_makethub";
+
+$conn = new mysqli($servername, $username, $database_password, $dbname);
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+?>
+
+<?php
     error_reporting(E_ALL);
     ini_set('display_errors', 1);   // TEMPORARY
     ini_set('log_errors', 1);
