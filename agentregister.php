@@ -200,9 +200,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           ========================= */
 
           $commissionLevels = [
-              1 => 100,
-              2 => 40,
-              3 => 20
+            1 => 100,
+            2 => 40,
+            3 => 20
           ];
 
           $currentReferrer = $referrer_id;
@@ -213,14 +213,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           ----------------------------- */
           if (!$currentReferrer) {
 
-              $systemUserId = 1; // 👈 your system/admin account
+              $systemUserId = 21;
 
-              /* Get SYSTEM wallet */
               $walletStmt = $conn->prepare("
-                  SELECT wallet_id 
-                  FROM wallets 
-                  WHERE user_id = ? AND wallet_type = 'main'
-                  LIMIT 1
+                SELECT wallet_id 
+                FROM wallets 
+                WHERE user_id = ? AND wallet_type = 'administrator' LIMIT 1
               ");
               $walletStmt->bind_param("i", $systemUserId);
               $walletStmt->execute();
@@ -235,31 +233,31 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                   $description = "System commission (no referrer) from agent $newUserId";
 
                   $stmtTxn = $conn->prepare("
-                      INSERT INTO financial_transactions
-                      (
-                          source_type,
-                          source_id,
-                          wallet_id,
-                          payer_id,
-                          receiver_id,
-                          transaction_type,
-                          amount,
-                          status,
-                          description,
-                          created_at
-                      )
-                      VALUES
-                      ('commission', ?, ?, ?, ?, 'commission', ?, 'pending', ?, NOW())
+                    INSERT INTO financial_transactions
+                    (
+                      source_type,
+                      source_id,
+                      wallet_id,
+                      payer_id,
+                      receiver_id,
+                      transaction_type,
+                      amount,
+                      status,
+                      description,
+                      created_at
+                    )
+                    VALUES
+                    ('agency_commission', ?, ?, ?, ?, 'commission', ?, 'pending', ?, NOW())
                   ");
 
                   $stmtTxn->bind_param(
-                      "iiiids",
-                      $newUserId,
-                      $walletId,
-                      $newUserId,
-                      $systemUserId,
-                      $amount,
-                      $description
+                    "iiiids",
+                    $newUserId,
+                    $walletId,
+                    $newUserId,
+                    $systemUserId,
+                    $amount,
+                    $description
                   );
 
                   $stmtTxn->execute();
@@ -293,16 +291,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                       $stmtTxn = $conn->prepare("
                           INSERT INTO financial_transactions
                           (
-                              source_type,
-                              source_id,
-                              wallet_id,
-                              payer_id,
-                              receiver_id,
-                              transaction_type,
-                              amount,
-                              status,
-                              description,
-                              created_at
+                            source_type,
+                            source_id,
+                            wallet_id,
+                            payer_id,
+                            receiver_id,
+                            transaction_type,
+                            amount,
+                            status,
+                            description,
+                            created_at
                           )
                           VALUES
                           ('commission', ?, ?, ?, ?, 'commission', ?, 'pending', ?, NOW())

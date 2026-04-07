@@ -1340,11 +1340,90 @@ $totalWithdrawn = $totalWithdrawnResult->fetch_assoc()['total'] ?? 0;
 
 // Format numbers (KES)
 function formatKES($amount) {
-    if ($amount >= 1000000) {
-        return number_format($amount / 1000000, 1) . "M";
-    }
-    return number_format($amount);
+  if ($amount >= 1000000) {
+    return number_format($amount / 1000000, 1) . "M";
+  }
+  return number_format($amount);
 }
+
+/* =========================
+   PLATFORM WALLET (SYSTEM)
+========================= */
+$SYSTEM_USER_ID = 21;
+
+$stmt = $conn->prepare("
+  SELECT balance, total_transacted
+  FROM wallets
+  WHERE user_id = ? AND wallet_type = 'administrator'
+  LIMIT 1
+");
+$stmt->bind_param("i", $SYSTEM_USER_ID);
+$stmt->execute();
+$stmt->bind_result($platformBalance, $totalTransacted);
+$stmt->fetch();
+$stmt->close();
+
+$platformBalance = $platformBalance ?? 0;
+$totalTransacted = $totalTransacted ?? 0;
+
+/* =========================
+   GMV (ALL COMPLETED MONEY FLOW)
+========================= */
+$stmt = $conn->prepare("
+  SELECT SUM(amount) 
+  FROM financial_transactions
+  WHERE status = 'completed'
+");
+$stmt->execute();
+$stmt->bind_result($gmv);
+$stmt->fetch();
+$stmt->close();
+
+$gmv = $gmv ?? 0;
+
+
+/* =========================
+   TOTAL COMMISSIONS (YOUR PROFIT SOURCE)
+========================= */
+$stmt = $conn->prepare("
+    SELECT SUM(amount)
+    FROM financial_transactions
+    WHERE transaction_type = 'commission'
+    AND status = 'completed'
+");
+$stmt->execute();
+$stmt->bind_result($totalCommission);
+$stmt->fetch();
+$stmt->close();
+
+$totalCommission = $totalCommission ?? 0;
+
+
+/* =========================
+   PENDING TRANSACTIONS
+========================= */
+$stmt = $conn->prepare("
+  SELECT COUNT(*)
+  FROM financial_transactions
+  WHERE status = 'pending'
+");
+$stmt->execute();
+$stmt->bind_result($pendingCount);
+$stmt->fetch();
+$stmt->close();
+
+
+/* =========================
+   NET PROFIT (SIMPLE VERSION)
+========================= */
+$operationalCosts = 3500; // you can later move this to DB
+$netProfit = $totalCommission - $operationalCosts;
+
+
+/* =========================
+   MARGIN %
+========================= */
+$marginPercent = $gmv > 0 ? round(($platformBalance / $gmv) * 100) : 0;
 
 ?>
 
@@ -1505,25 +1584,43 @@ function formatKES($amount) {
 
             <div class="card">
               <h3>Platform Balance</h3>
-              <div class="value profit">KES 13,452</div>
+
+              <div class="value profit">
+                KES <?= number_format($platformBalance, 2) ?>
+              </div>
+
               <div class="sub">Withdrawable Company Balance</div>
+
               <ul class="list">
-                <li><span>API</span><strong>Online</strong></li>
+                <li>
+                  <span>API</span>
+                  <strong>Online</strong>
+                </li>
+
+                <li>
+                  <span>Total Transacted</span>
+                  <strong>KES <?= number_format($totalTransacted, 2) ?></strong>
+                </li>
               </ul>
-              <small>↑ Healthy margin (72%)</small>
+
+              <small>
+                ↑ Healthy margin (<?= $marginPercent ?>%)
+              </small>
             </div>
 
             <div class="card">
               <h3>Gross Transaction Volume (GMV)</h3>
-              <div class="value">KES 29,276</div>
-              <div class="sub">All platform transactions (monthly)</div>
+              <div class="value">KES <?= number_format($gmv, 2) ?></div>
+              <div class="sub">All platform transactions</div>
               <div class="progress"><div class="bar" style="width:82%"></div></div>
               <small>↑ 18% growth vs last month</small>
             </div>
 
             <div class="card">
               <h3>Net Profit</h3>
-              <div class="value net-profit">KES 16,500</div>
+              <div class="value net-profit">
+                KES <?= number_format($netProfit, 2) ?>
+              </div>
               <div class="sub">Commission − Operating Costs</div>
               <div class="progress"><div class="bar" style="width:71%"></div></div>
               <small>↑ This month's net profit</small>
@@ -1531,7 +1628,9 @@ function formatKES($amount) {
 
             <div class="card">
               <h3>Operational Costs</h3>
-              <div class="value loss">KES -3,500</div>
+              <div class="value loss">
+                KES -<?= number_format($operationalCosts, 2) ?>
+              </div>
               <div class="sub">Monthly expenses</div>
               <ul class="list">
                 <li><span>Hosting & Servers</span><strong>18,000</strong></li>
@@ -1541,12 +1640,17 @@ function formatKES($amount) {
             </div>
 
             <div class="card">
-              <h3>Platform Health</h3>
-              <div class="value">Stable</div>
+              <div class="value">
+                <?= $pendingCount > 10 ? 'Busy' : 'Stable' ?>
+              </div>
+
               <ul class="list">
                 <li><span>API</span><strong>Online</strong></li>
                 <li><span>MPESA</span><strong>Connected</strong></li>
-                <li><span>Disputes</span><strong>3 Active</strong></li>
+                <li>
+                  <span>Pending</span>
+                  <strong><?= $pendingCount ?></strong>
+                </li>
               </ul>
             </div>
           </div>
@@ -1557,9 +1661,9 @@ function formatKES($amount) {
           <div class="filter-bar">
             <select id="statusFilter">
               <option value="all">All Transactions</option>
-              <option value="Paid">Completed</option>
-              <option value="Shipped">Pending</option>
-              <option value="Pending">Processing</option>
+              <option value="Completed">Completed</option>
+              <option value="Pending">Pending</option>
+              <option value="Processing">Processing</option>
             </select>
           </div>
           <table id="ordersTable">
@@ -1575,159 +1679,62 @@ function formatKES($amount) {
               </tr>
             </thead>
             <tbody>
-              <tr data-status="Paid">
-                <td>1.</td>
-                <td>#TX20491</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge paid">Completed</span></td>
-                <td>2025-01-15</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>2.</td>
-                <td>#TX20492</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td>2025-01-16</td>
-              </tr>
-              <tr data-status="Paid">
-                <td>3.</td>
-                <td>#TX20493</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge rejected">Rejected</span></td>
-                <td>2025-01-17</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>4.</td>
-                <td>#TX20494</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td>2025-01-18</td>
-              </tr>
-              <tr data-status="Paid">
-                <td>5.</td>
-                <td>#TX20495</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge paid">Completed</span></td>
-                <td>2025-01-19</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>6.</td>
-                <td>#TX20496</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td>2025-01-20</td>
-              </tr>
-              <tr data-status="Paid">
-                <td>5.</td>
-                <td>#TX20495</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge paid">Completed</span></td>
-                <td>2025-01-19</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>6.</td>
-                <td>#TX20496</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td>2025-01-20</td>
-              </tr>
-              <tr data-status="Paid">
-                <td>5.</td>
-                <td>#TX20495</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge paid">Completed</span></td>
-                <td>2025-01-19</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>6.</td>
-                <td>#TX20496</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge rejected">Rejected</span></td>
-                <td>2025-01-20</td>
-              </tr>
-              <tr data-status="Paid">
-                <td>5.</td>
-                <td>#TX20495</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge rejected">Rejected</span></td>
-                <td>2025-01-19</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>6.</td>
-                <td>#TX20496</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td>2025-01-20</td>
-              </tr>
-              <tr data-status="Paid">
-                <td>5.</td>
-                <td>#TX20495</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge paid">Completed</span></td>
-                <td>2025-01-19</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>6.</td>
-                <td>#TX20496</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td>2025-01-20</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>6.</td>
-                <td>#TX20496</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge rejected">Rejected</span></td>
-                <td>2025-01-20</td>
-              </tr>
-              <tr data-status="Paid">
-                <td>5.</td>
-                <td>#TX20495</td>
-                <td>Buyer → Seller</td>
-                <td>KES 45,000</td>
-                <td>KES 4,500</td>
-                <td><span class="badge paid">Completed</span></td>
-                <td>2025-01-19</td>
-              </tr>
-              <tr data-status="Pending">
-                <td>6.</td>
-                <td>#TX20496</td>
-                <td>Tenant → Owner</td>
-                <td>KES 18,000</td>
-                <td>KES 1,800</td>
-                <td><span class="badge pending">Pending</span></td>
-                <td>2025-01-20</td>
-              </tr>
+            <?php
+            $stmt = $conn->prepare("
+                SELECT *
+                FROM financial_transactions
+                ORDER BY created_at DESC
+                LIMIT 50
+            ");
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            $index = 1;
+
+            while ($row = $result->fetch_assoc()):
+                
+                $statusClass = match($row['status']) {
+                    'completed' => 'paid',
+                    'pending'   => 'pending',
+                    'failed'    => 'rejected',
+                    default     => 'pending'
+                };
+
+                $typeLabel = match($row['transaction_type']) {
+                    'commission' => 'Commission',
+                    'payment'    => 'Payment',
+                    default      => ucfirst($row['transaction_type'])
+                };
+            ?>
+            <tr data-status="<?= ucfirst($row['status']) ?>">
+              <td><?= $index++ ?>.</td>
+
+              <td>#TX<?= $row['transaction_id'] ?></td>
+
+              <td><?= $typeLabel ?></td>
+
+              <td>
+                <?= htmlspecialchars($row['currency']) ?>
+                <?= number_format($row['amount'], 2) ?>
+              </td>
+
+              <td>
+                <?= $row['transaction_type'] === 'commission'
+                    ? 'KES ' . number_format($row['amount'], 2)
+                    : '-' ?>
+              </td>
+
+              <td>
+                <span class="badge <?= $statusClass ?>">
+                  <?= ucfirst($row['status']) ?>
+                </span>
+              </td>
+
+              <td>
+                <?= date('Y-m-d', strtotime($row['created_at'])) ?>
+              </td>
+            </tr>
+            <?php endwhile; ?>
             </tbody>
           </table>
         </div>
@@ -2657,9 +2664,9 @@ function formatKES($amount) {
           <div class="filter-bar">
             <select id="statusFilter">
               <option value="all">All Transactions</option>
-              <option value="completed">Completed</option>
-              <option value="pending">Pending</option>
-              <option value="rejected">Rejected</option>
+              <option value="Completed">Completed</option>
+              <option value="Pending">Pending</option>
+              <option value="Rejected">Rejected</option>
             </select>
           </div>
           <table id="transactionsTable">

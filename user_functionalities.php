@@ -121,7 +121,7 @@ elseif ($action === "activate") {
     ----------------------------- */
     if ($shouldPayCommission) {
 
-        $SYSTEM_USER_ID = 1; // system account
+        $SYSTEM_USER_ID = 21; // system account
         $levels = [100, 40, 20];
         $level = 0;
 
@@ -140,17 +140,34 @@ elseif ($action === "activate") {
 
             $amount = $levels[0];
 
-            // Get system wallet
+            /* GET OR CREATE SYSTEM WALLET */
             $walletStmt = $conn->prepare("
                 SELECT wallet_id 
                 FROM wallets 
-                WHERE user_id=? AND wallet_type='main'
-                LIMIT 1
+                WHERE user_id=? AND wallet_type='administrator' LIMIT 1
             ");
             $walletStmt->bind_param("i", $SYSTEM_USER_ID);
             $walletStmt->execute();
-            $walletStmt->bind_result($walletId);
-            $walletStmt->fetch();
+            $walletStmt->store_result();
+
+            if ($walletStmt->num_rows === 0) {
+
+                // 🔥 CREATE SYSTEM WALLET
+                $createWallet = $conn->prepare("
+                    INSERT INTO wallets 
+                    (user_id, wallet_type, balance, total_transacted, created_at, updated_at)
+                    VALUES (?, 'main', 0, 0, NOW(), NOW())
+                ");
+                $createWallet->bind_param("i", $SYSTEM_USER_ID);
+                $createWallet->execute();
+                $walletId = $createWallet->insert_id;
+                $createWallet->close();
+
+            } else {
+                $walletStmt->bind_result($walletId);
+                $walletStmt->fetch();
+            }
+
             $walletStmt->close();
 
             if ($walletId) {
@@ -158,7 +175,7 @@ elseif ($action === "activate") {
                 $txn = $conn->prepare("
                     UPDATE financial_transactions
                     SET status = 'completed'
-                    WHERE source_type = 'commission'
+                    WHERE source_type = 'agency_commission'
                     AND source_id = ?
                     AND payer_id = ?
                     AND receiver_id = ?

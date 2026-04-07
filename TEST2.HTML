@@ -1,267 +1,183 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Makethub Secure Payment</title>
 
-<title>MarketHub Dashboard</title>
-<!-- Font Awesome CDN -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
 <style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
+body{background:#f5f7fb;display:flex;align-items:center;justify-content:center;height:100vh;}
 
-
-/* OVERLAY */
-
-.alertPopupOverlay {
-
-  position:fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background:rgba(0, 0, 0, 0.212);
-  display: none;
-  align-items: center;
-  justify-content:center;
-  z-index: 9999;
-
+.payment-container{
+  width:100%;
+  max-width:420px;
+  background:#fff;
+  border-radius:18px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.08);
+  overflow:hidden;
 }
 
-/* ALERT POPUP */
-
-.alert-popup {
-
-  width: clamp(250px, 90%, 500px);
-  background: white;
-  border-radius: 4px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin: 0 auto;
-
+.header{
+  background:linear-gradient(135deg,#0f9d58,#0c7c45);
+  color:#fff;
+  padding:20px;
+  text-align:center;
 }
 
-/* HEADER */
+.header h2{font-size:18px;font-weight:600;}
+.header p{font-size:13px;opacity:0.9;margin-top:5px;}
 
-.alert-popup-header{
+.content{padding:20px;}
 
-  background: #898888;
-  color:  white;
-  text-align: center;
-  padding: 12px;
-  font-weight: bold;
-  letter-spacing: 1px;
+.amount{
+  text-align:center;
+  margin-bottom:20px;
+}
+.amount h1{font-size:28px;color:#111;}
+.amount span{font-size:13px;color:#777;}
 
+.details{
+  background:#f9fafc;
+  border-radius:12px;
+  padding:15px;
+  margin-bottom:20px;
 }
 
-/* BODY */
-
-.alert-popup-body {
-
-  padding: 20px;
-  text-align: center;
-
+.details div{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:10px;
+  font-size:14px;
 }
 
-/* WARNING ICON */
+.details div:last-child{margin-bottom:0;}
 
-.warning-icon {
+.label{color:#666;}
+.value{font-weight:600;color:#111;}
 
-  width: 70px;
-  height: 70px;
-  margin:0 auto 20px;
-  border-radius:50%;
-  background:#dedede;
+.input-group{margin-bottom:15px;}
+.input-group label{font-size:13px;color:#555;margin-bottom:5px;display:block;}
+.input-group input{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  outline:none;
+  font-size:14px;
+}
+
+.pay-btn{
+  width:100%;
+  background:#0f9d58;
+  color:#fff;
+  border:none;
+  padding:14px;
+  border-radius:12px;
+  font-size:15px;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.pay-btn:hover{background:#0c7c45;}
+
+.footer{
+  text-align:center;
+  font-size:12px;
+  color:#777;
+  padding:15px;
+}
+
+.secure{
   display:flex;
   align-items:center;
   justify-content:center;
-  animation:pulse 1.5s infinite;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
+  gap:6px;
+  margin-top:5px;
 }
 
-.warning-icon i {
-  color: #afafaf;
-  font-size: 45px;
+.spinner{
+  display:none;
+  margin:10px auto;
+  width:24px;height:24px;
+  border:3px solid #ddd;
+  border-top:3px solid #0f9d58;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
 }
 
-@keyframes pulse{
-
-0%{transform:scale(1);}
-50%{transform:scale(1.1);}
-100%{transform:scale(1);}
-
+@keyframes spin{
+  to{transform:rotate(360deg);} 
 }
 
-/* TEXT */
-
-.alert-popup-title{
-
-font-size:22px;
-margin-bottom:10px;
-font-weight:bold;
-
+.success{
+  display:none;
+  text-align:center;
+  padding:20px;
 }
 
-.alert-popup-text {
-font-size: 14px;
-color: #898888;
-margin-bottom: 25px;
-
-}
-
-/* BUTTONS */
-
-.buttons {
-display: flex;
-gap: 10px;
-justify-content: space-between;
-
-}
-
-.buttons a {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  text-decoration: none;
-  color: #0f0f0f;
-
-}
-
-a.activate {
-  background:black;
-  color:white;
-
-}
-
-a.activate:hover{
-  background:#222;
-
-}
-
-a.cancel{
-  background:#e5e5e5;
-
-}
-
-a.cancel:hover{
-  background:#d5d5d5;
-
-}
-
-/* VIOLENT SHAKE */
-
-.shake{
-  animation:violentShake .6s;
-
-}
-
-@keyframes violentShake{
-  0%{transform:translateX(0)}
-  10%{transform:translateX(-5px)}
-  20%{transform:translateX(5px)}
-  30%{transform:translateX(-10px)}
-  40%{transform:translateX(10px)}
-  50%{transform:translateX(-10px)}
-  60%{transform:translateX(10px)}
-  70%{transform:translateX(-5px)}
-  80%{transform:translateX(5px)}
-  90%{transform:translateX(-5px)}
-  100%{transform:translateX(0)}
-
-}
+.success h3{color:#0f9d58;margin-bottom:10px;}
 
 </style>
-
 </head>
-
 <body>
-  <!-- ALERT POPUP OVERLAY -->
-    <div class="alertPopupOverlay" id="alertPopupOverlay">
 
-    <div class="alert-popup" id="alert-popup">
+<div class="payment-container">
 
-      <div class="alert-popup-header">
-      ACCOUNT VERIFICATION REQUIRED
-      </div>
+  <div class="header">
+    <h2>Makethub Payment</h2>
+    <p>Secure M-Pesa Checkout</p>
+  </div>
 
-      <div class="alert-popup-body">
+  <div class="content" id="paymentContent">
 
-        <div class="warning-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
-
-        <div class="alert-popup-title">
-        Verify Your Agent Account
-        </div>
-
-        <div class="alert-popup-text">
-          Your MarketHub agent account is currently **unverified**.
-
-          To unlock full agent privileges like:
-
-          • Full access to listed products  
-          • Receiving commissions
-          • Making withdrawal requests and
-          • Other premium agent tools  
-
-          You must activate your account.
-
-        </div>
-
-        <div class="buttons">
-
-          <a href="logout.php" class="cancel" onclick="logoutUser()">
-          Cancel
-          </a>
-
-          <a href="" class="activate" onclick="activateAccount()">
-          Verify Account
-          </a>
-
-        </div>
-
-      </div>
-
+    <div class="amount">
+      <h1>KES 1,300.00</h1>
+      <span>Stanley Mug</span>
     </div>
+
+    <div class="details">
+      <div><span class="label">Merchant</span><span class="value">Makethub</span></div>
+      <div><span class="label">Order ID</span><span class="value">#MH12345</span></div>
+      <div><span class="label">Payment Method</span><span class="value">M-Pesa</span></div>
+    </div>
+
+    <div class="input-group">
+      <label>Phone Number</label>
+      <input type="text" placeholder="07XXXXXXXX">
+    </div>
+
+    <button class="pay-btn" onclick="simulatePayment()">Pay Now</button>
+
+    <div class="spinner" id="spinner"></div>
 
   </div>
 
+  <div class="success" id="successBox">
+    <h3>Payment Request Sent</h3>
+    <p>Check your phone and enter your M-Pesa PIN.</p>
+  </div>
+
+  <div class="footer">
+    Powered by Makethub
+    <div class="secure">🔒 Secure Payment</div>
+  </div>
+
+</div>
 
 <script>
+function simulatePayment(){
+  document.querySelector('.pay-btn').style.display='none';
+  document.getElementById('spinner').style.display='block';
 
-/* SHOW POPUP AFTER 30 SECONDS */
-
-setTimeout(()=>{
-
-document.getElementById("alertPopupOverlay").style.display="flex"
-
-},10000)
-
-
-
-/* VIOLENT SHAKE IF OVERLAY CLICKED */
-
-document.getElementById("alertPopupOverlay").addEventListener("click",function(e){
-
-if(e.target.id === "alertPopupOverlay"){
-
-let alertPopup = document.getElementById("alert-popup")
-
-alertPopup.classList.add("shake")
-
-setTimeout(()=>{
-
-alertPopup.classList.remove("shake")
-
-},500)
-
+  setTimeout(()=>{
+    document.getElementById('paymentContent').style.display='none';
+    document.getElementById('successBox').style.display='block';
+  },2000);
 }
-
-})
-
 </script>
 
 </body>

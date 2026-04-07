@@ -1297,20 +1297,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
           $stmt->close();
 
           // 2️⃣ Insert into financial_transactions
-          $stmt = $conn->prepare("INSERT INTO financial_transactions (source_type, source_id, wallet_id, payer_id, receiver_id, transaction_type, amount, currency, status, description, created_at) 
-                                  SELECT ?, ?, wallet_id, ?, ?, 'withdrawal', ?, 'KES', 'pending', ?, NOW() 
-                                  FROM wallets WHERE user_id = ? AND wallet_type = ? LIMIT 1");
+          $stmt = $conn->prepare("INSERT INTO financial_transactions (source_type, source_id, wallet_id, payer_id, receiver_id, transaction_type, amount, currency, status, description, created_at) SELECT ?, ?, wallet_id, ?, ?, 'withdrawal', ?, 'KES', 'pending', ?, NOW() FROM wallets WHERE user_id = ? AND wallet_type = ? LIMIT 1");
           $description = ucfirst($walletType) . " wallet withdrawal request";
-          $sourceType = 'withdrawal';
+          $sourceType = 'agent_withdrawal';
           $stmt->bind_param("siiddsis", $sourceType, $user_id, $user_id, $user_id, $withdrawAmount, $description, $user_id, $walletType);
           $stmt->execute();
           $transactionId = $stmt->insert_id;
           $stmt->close();
 
           // 3️⃣ Insert into withdrawals
-          $stmt = $conn->prepare("INSERT INTO withdrawals (user_id, wallet_id, amount, fee, net_amount, status, transaction_id, requested_at, currency) 
-                                  SELECT user_id, wallet_id, ?, ?, ?, 'pending', ?, NOW(), 'KES' 
-                                  FROM wallets WHERE user_id = ? AND wallet_type = ? LIMIT 1");
+          $stmt = $conn->prepare("INSERT INTO withdrawals (user_id, wallet_id, amount, fee, net_amount, status, transaction_id, requested_at, currency)  SELECT user_id, wallet_id, ?, ?, ?, 'pending', ?, NOW(), 'KES' FROM wallets WHERE user_id = ? AND wallet_type = ? LIMIT 1");
           $stmt->bind_param("dddiis", $withdrawAmount, $fee, $netAmount, $transactionId, $user_id, $walletType);
           $stmt->execute(); // ✅ REQUIRED
 
@@ -1318,8 +1314,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
           $stmt->close();
 
           // 4️⃣ Insert into withdrawal_logs
-          $stmt = $conn->prepare("INSERT INTO withdrawal_logs (withdrawal_id, performed_by, note, created_at) 
-                                  VALUES (?, ?, ?, NOW())");
+          $stmt = $conn->prepare("INSERT INTO withdrawal_logs (withdrawal_id, performed_by, note, created_at) (?, ?, ?, NOW())");
           $action = 'requested';
           $performedBy = $user_id;
           $note = "User requested withdrawal of KES $withdrawAmount, net KES $netAmount, fee KES $fee";

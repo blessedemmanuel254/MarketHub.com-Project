@@ -1091,8 +1091,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
 
       // 3️⃣ withdrawals
       $stmt = $conn->prepare("
-          INSERT INTO withdrawals (user_id, wallet_id, amount, fee, net_amount, status, transaction_id, requested_at, currency)
-          VALUES (?, ?, ?, ?, ?, 'pending', ?, NOW(), 'KES')
+        INSERT INTO withdrawals (user_id, wallet_id, amount, fee, net_amount, status, transaction_id, requested_at, currency)
+        VALUES (?, ?, ?, ?, ?, 'pending', ?, NOW(), 'KES')
       ");
       $stmt->bind_param("iidddi", $user_id, $walletId, $withdrawAmount, $fee, $netAmount, $transactionId);
       $stmt->execute();
