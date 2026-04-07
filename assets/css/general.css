@@ -1630,9 +1630,7 @@ html body.no-scroll {
 }
 
 .container main .formContainer form p.errorMessage, .container main .formContainer form p.successMessage, .container main form.actpContainer p.errorMessage, .tab-content .tab-panel p.errorMessage, .tab-content .tab-panel p.successMessage, .tab-panel-admin .form-wrapper form .errorMessage, .container.cmng-sn main .content form .successMessage, .container.cmng-sn main .content form .errorMessage, .container main.profile-main .profile-container .errorMessage, .container main.profile-main .profile-container .successMessage {
-  display: flex;
-  align-items: center;
-  gap: 5px;
+  text-align: start;
   font-size: 14px;
   color: #ff3b3b;
 }

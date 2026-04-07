@@ -252,7 +252,7 @@ elseif ($action === "activate") {
             $txn = $conn->prepare("
                 UPDATE financial_transactions
                 SET status = 'completed'
-                WHERE source_type = 'commission'
+                WHERE source_type = 'agency_commission'
                 AND source_id = ?
                 AND payer_id = ?
                 AND receiver_id = ?

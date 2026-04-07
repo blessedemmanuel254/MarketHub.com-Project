@@ -1314,7 +1314,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
           $stmt->close();
 
           // 4️⃣ Insert into withdrawal_logs
-          $stmt = $conn->prepare("INSERT INTO withdrawal_logs (withdrawal_id, performed_by, note, created_at) (?, ?, ?, NOW())");
+          $stmt = $conn->prepare("INSERT INTO withdrawal_logs (withdrawal_id, performed_by, note, created_at) VALUES (?, ?, ?, NOW())");
           $action = 'requested';
           $performedBy = $user_id;
           $note = "User requested withdrawal of KES $withdrawAmount, net KES $netAmount, fee KES $fee";

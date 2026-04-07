@@ -930,41 +930,34 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function toggleAgentAdd(showAdd) {
-  const products = document.getElementById("my-agency");
-  const addProducts = document.getElementById("add-agent");
+  const agencyPanel = document.getElementById("my-agency");
+  const addAgentPanel = document.getElementById("add-agent");
 
   // ✅ STOP if elements don't exist
-  if (!products || !addProducts) return;
+  if (!agencyPanel || !addAgentPanel) return;
 
   if (showAdd) {
-    products.classList.remove("active");
-    addProducts.classList.add("active");
+    agencyPanel.classList.remove("active");
+    addAgentPanel.classList.add("active");
     localStorage.setItem("agentAddView", "add");
 
   } else {
-    products.classList.add("active");
-    addProducts.classList.remove("active");
+    agencyPanel.classList.add("active");
+    addAgentPanel.classList.remove("active");
     localStorage.setItem("agentAddView", "my-agency");
   }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(() => {
+    const agencyPanel = document.getElementById("my-agency");
 
-  const products = document.getElementById("my-agency");
-  const addProducts = document.getElementById("add-agent");
+    if (agencyPanel?.classList.contains("active")) {
+      const savedView = localStorage.getItem("agentAddView");
 
-  // ✅ Only run if this page has those elements
-  if (!products || !addProducts) return;
-
-  const savedView = localStorage.getItem("agentAddView");
-
-  if (savedView === "add") {
-    toggleAgentAdd(true);
-  }
-
-  if (savedView === "my-agency") {
-    toggleAgentAdd(false);
-  }
+      toggleAgentAdd(savedView === "add");
+    }
+  }, 50);
 
 });
 

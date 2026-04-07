@@ -303,7 +303,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             created_at
                           )
                           VALUES
-                          ('commission', ?, ?, ?, ?, 'commission', ?, 'pending', ?, NOW())
+                          ('agency_commission', ?, ?, ?, ?, 'commission', ?, 'pending', ?, NOW())
                       ");
 
                       $stmtTxn->bind_param(
