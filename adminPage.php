@@ -909,7 +909,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               }
 
               $stmt->execute();
-              $result = $stmt->get_result();
+              $result = $stmt->get_result();/* 
 
               while ($row = $result->fetch_assoc()) {
                 $distance = levenshtein($imagePhash, $row['image_phash']);
@@ -918,7 +918,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   $mproductError = "A visually similar image already exists.";
                   break;
                 }
-              }
+              } */
 
               $stmt->close();
             }

@@ -1224,7 +1224,7 @@ if(!btn) return;
 
 const ref = btn.dataset.ref;
 
-const link = `http://localhost/MaketHub.com-Project/agentRegister.php?ref=${ref}`;
+const link = `https://makethub.shop/agentregister.php?ref=${ref}`;
 
 navigator.clipboard.writeText(link)
 .then(()=>{
@@ -1657,44 +1657,13 @@ const dailyProducts = [
 // DOWNLOAD JS CODE
 // ==============================
 
-document.addEventListener("click", async function(e){
+document.addEventListener("click", function(e){
   const btn = e.target.closest(".download-btn");
   if (!btn) return;
-
   const id = btn.dataset.id;
   if (!id) return;
-
-  try {
-    const res = await fetch("?download_product_id=" + id);
-
-    if (!res.ok) throw new Error("Failed to fetch image");
-
-    const blob = await res.blob();
-
-    // Extract filename from header (VERY IMPORTANT)
-    let filename = "download.jpg";
-    const disposition = res.headers.get("Content-Disposition");
-
-    if (disposition && disposition.includes("filename=")) {
-      filename = disposition.split("filename=")[1].replace(/"/g, '');
-    }
-
-    // Create download link
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-
-    a.href = url;
-    a.download = filename;
-
-    document.body.appendChild(a);
-    a.click();
-
-    a.remove();
-    window.URL.revokeObjectURL(url);
-
-  } catch (err) {
-    alert("Download failed");
-  }
+  // Redirect to same dashboard file with download param
+  window.location.href = "?download_product_id=" + id;
 });
 
 // PLACE ORDER JS
@@ -2372,4 +2341,35 @@ document.addEventListener("click", function (e) {
     })
     .catch(() => alert("Error processing request."));
   }
+});
+
+// ===============================
+// FETCH WARDS JS
+// ===============================
+
+document.getElementById("county").addEventListener("change", function() {
+  const countyId = this.value;
+  const wardSelect = document.getElementById("ward");
+
+  wardSelect.innerHTML = '<option value="">Loading...</option>';
+
+  fetch("fetch_wards.php", {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: "county_id=" + countyId
+  })
+  .then(res => res.json())
+  .then(data => {
+      wardSelect.innerHTML = '<option value="">-- Select Ward --</option>';
+
+      data.forEach(ward => {
+          wardSelect.innerHTML += `
+              <option value="${ward.location_id}">
+                  ${ward.name}
+              </option>
+          `;
+      });
+  });
 });

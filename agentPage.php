@@ -1,5 +1,8 @@
 <?php
 session_start();
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_WARNING);
+ini_set('display_errors', 0);
+
 // Dynamic OG data based on page content
 $pageTitle = "Agent Page | Maket Hub";
 $pageDescription = "Verify your Maket Hub agent account to unlock full agent privileges; receiving commissions, Making withdrawal requests and manage your agency efficiently.";
@@ -610,7 +613,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
 /* ---------- GENERATE AGENCY LINK ---------- */
 
-$baseAgencyLink = "http://localhost/MaketHub.com-Project/agentregister.php";
+$baseAgencyLink = "https://makethub.shop/agentregister.php";
 
 $agencyLink = $baseAgencyLink . "?ref=" . urlencode($agencyCode);
 
@@ -1135,12 +1138,14 @@ if (isset($_GET['download_product_id'])) {
   $result = $stmt->get_result();
 
   if (!$product = $result->fetch_assoc()) {
-      die("Product not found");
+    die("Product not found");
   }
 
-  $imagePath = $product['image'];
+  $imageFile = basename($product['image']);
+  $imagePath = __DIR__ . '/uploads/company_products/' . $imageFile;
+
   if (!file_exists($imagePath)) {
-      die("Image not found");
+    die("Image not found: " . $imagePath);
   }
 
   // ------------------------
@@ -1182,15 +1187,15 @@ if (isset($_GET['download_product_id'])) {
 
   $textWidth1 = imagefontwidth($fontSize) * strlen($line1);
   $textHeight1 = imagefontheight($fontSize);
-  $x1 = ($imgWidth - $textWidth1) / 2;
-  $y1 = 10;
+  $x1 = (int)(($imgWidth - $textWidth1) / 2);
+  $y1 = (int)10;
 
   imagefilledrectangle(
     $image,
-    $x1 - $padding,
-    $y1 - $padding,
-    $x1 + $textWidth1 + $padding,
-    $y1 + $textHeight1 + $padding,
+    (int)($x1 - $padding),
+    (int)($y1 - $padding),
+    (int)($x1 + $textWidth1 + $padding),
+    (int)($y1 + $textHeight1 + $padding),
     $bgColor
   );
 
@@ -1202,15 +1207,15 @@ if (isset($_GET['download_product_id'])) {
 
   $textWidth3 = imagefontwidth($fontSize) * strlen($line3);
   $textHeight3 = imagefontheight($fontSize);
-  $x3 = ($imgWidth - $textWidth3) / 2;
-  $y3 = $imgHeight - $textHeight3 - 20;
+  $x3 = (int)(($imgWidth - $textWidth3) / 2);
+  $y3 = (int)($imgHeight - $textHeight3 - 20);
 
   imagefilledrectangle(
     $image,
-    $x3 - $padding,
-    $y3 - $padding,
-    $x3 + $textWidth3 + $padding,
-    $y3 + $textHeight3 + $padding,
+    (int)($x3 - $padding),
+    (int)($y3 - $padding),
+    (int)($x3 + $textWidth3 + $padding),
+    (int)($y3 + $textHeight3 + $padding),
     $bgColor
   );
 
@@ -1499,11 +1504,11 @@ function getStatusIcon($status) {
 
           <div class="buttons">
 
-            <a href="logout.php" class="cancel">
+            <a href="index.php" class="cancel">
             Cancel
             </a>
 
-            <a href="agentregister.php" class="activate">
+            <a href="paypage.php" class="activate">
             Get Badge
             </a>
 
@@ -2131,11 +2136,17 @@ function getStatusIcon($status) {
                   <div class="inp-box">
 
                     <label>County</label>
-                    <select name="county" required>
-                      <option value=""><p>-- Select County --</p></option>
-                      <option value="Kilifi" <?php echo ($agent_county === 'Kilifi') ? 'selected' : ''; ?>>Kilifi</option><!-- 
-                      <option value="Kenya" <?php echo ($agent_county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
-                      <option value="Kenya" <?php echo ($agent_county === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+
+                    <select id="county" name="county" required>
+                      <option value="">-- Select County --</option>
+                      <?php
+                        $result = $conn->query("SELECT location_id, name FROM locations WHERE type = 'county' ORDER BY name ASC");
+                        while ($row = $result->fetch_assoc()):
+                      ?>
+                        <option value="<?= $row['location_id']; ?>">
+                          <?= htmlspecialchars($row['name']); ?>
+                        </option>
+                      <?php endwhile; ?>
                     </select>
                   </div>
                   <div class="inp-box">
@@ -2145,11 +2156,8 @@ function getStatusIcon($status) {
                   <div class="inp-box">
 
                     <label>Ward</label>
-                    <select name="ward" required>
-                      <option value=""><p>-- Select Ward --</p></option>
-                      <option value="Sokoni Ward" <?php echo ($agent_ward === 'Sokoni Ward') ? 'selected' : ''; ?>>Sokoni Ward</option><!-- 
-                      <option value="Kenya" <?php echo ($agent_ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
-                      <option value="Kenya" <?php echo ($agent_ward === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                    <select id="ward" name="ward" required>
+                      <option value="">-- Select Ward --</option>
                     </select>
                   </div>
                   <div></div>

@@ -152,7 +152,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmt->store_result();
 
         if ($stmt->num_rows > 0) {
-            $error = "Business name already exists!";
+          $error = "Business name already exists!";
         }
 
         $stmt->close();
@@ -326,19 +326,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <span>Country</span>
                 <select id="country" name="country" required>
                   <option value=""><p>-- Select Country --</p></option>
-                  <!--<option value="Baringo">Baringo</option>
-                  <option value="Bomet">Bomet</option>
-                  <option value="Bungoma">Bungoma</option>
-                  <option value="Busia">Busia</option>
-                  <option value="Elgeyo-Marakwet">Elgeyo-Marakwet</option>
-                  <option value="Embu">Embu</option>
-                  <option value="Garissa">Garissa</option>
-                  <option value="Homa Bay">Homa Bay</option>
-                  <option value="Isiolo">Isiolo</option>
-                  <option value="Kajiado">Kajiado</option>
-                  <option value="Kakamega">Kakamega</option>
-                  <option value="Kericho">Kericho</option>
-                  <option value="Kiambu">Kiambu</option>-->
                   <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
                   <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
                   <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
@@ -353,107 +340,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
               <div class="selectorBox">
                 <span>County</span>
                 <select id="county" name="county" required>
-                  <option value=""><p>-- Select County --</p></option>
-                  <!--<option value="Baringo">Baringo</option>
-                  <option value="Bomet">Bomet</option>
-                  <option value="Bungoma">Bungoma</option>
-                  <option value="Busia">Busia</option>
-                  <option value="Elgeyo-Marakwet">Elgeyo-Marakwet</option>
-                  <option value="Embu">Embu</option>
-                  <option value="Garissa">Garissa</option>
-                  <option value="Homa Bay">Homa Bay</option>
-                  <option value="Isiolo">Isiolo</option>
-                  <option value="Kajiado">Kajiado</option>
-                  <option value="Kakamega">Kakamega</option>
-                  <option value="Kericho">Kericho</option>
-                  <option value="Kiambu">Kiambu</option>-->
-                  <option value="Kilifi" <?php echo ($county === 'Kilifi') ? 'selected' : ''; ?>>Kilifi</option>
-                  <!--<option value="Kirinyaga">Kirinyaga</option>
-                  <option value="Kisii">Kisii</option>
-                  <option value="Kisumu">Kisumu</option>
-                  <option value="Kitui">Kitui</option>
-                  <option value="Kwale">Kwale</option> 
-                  <option value="Laikipia">Laikipia</option>
-                  <option value="Lamu">Lamu</option>
-                  <option value="Machakos">Machakos</option>
-                  <option value="Makueni">Makueni</option>
-                  <option value="Mandera">Mandera</option>
-                  <option value="Marsabit">Marsabit</option>
-                  <option value="Meru">Meru</option>
-                  <option value="Migori">Migori</option>
-                  <option value="Mombasa">Mombasa</option>
-                  <option value="Murang'a">Murang'a</option>
-                  <option value="Nairobi">Nairobi</option>
-                  <option value="Nakuru">Nakuru</option>
-                  <option value="Nandi">Nandi</option>
-                  <option value="Narok">Narok</option>
-                  <option value="Nyamira">Nyamira</option>
-                  <option value="Nyandarua">Nyandarua</option>
-                  <option value="Nyeri">Nyeri</option>
-                  <option value="Samburu">Samburu</option>
-                  <option value="Siaya">Siaya</option>
-                  <option value="Taita Taveta">Taita Taveta</option>
-                  <option value="Tana River">Tana River</option>
-                  <option value="Tharaka-Nithi">Tharaka-Nithi</option>
-                  <option value="Trans Nzoia">Trans Nzoia</option>
-                  <option value="Turkana">Turkana</option>
-                  <option value="Uasin Gishu">Uasin Gishu</option>
-                  <option value="Vihiga">Vihiga</option>
-                  <option value="Wajir">Wajir</option>
-                  <option value="West Pokot">West Pokot</option>-->
+                  <option value="">-- Select County --</option>
+                  <?php
+                    $result = $conn->query("SELECT location_id, name FROM locations WHERE type = 'county' ORDER BY name ASC");
+                    while ($row = $result->fetch_assoc()):
+                  ?>
+                    <option value="<?= $row['location_id']; ?>">
+                      <?= htmlspecialchars($row['name']); ?>
+                    </option>
+                  <?php endwhile; ?>
                 </select>
               </div>
               <div class="selectorBox">
                 <span>Ward</span>
                 <select id="ward" name="ward" required>
-                  <option value=""><p>-- Select Ward --</p></option>
-                  <!--<option value="Sokoni Ward">Sokoni Ward</option>
-                  <option value="Bomet">Bomet</option>
-                  <option value="Bungoma">Bungoma</option>
-                  <option value="Busia">Busia</option>
-                  <option value="Elgeyo-Marakwet">Elgeyo-Marakwet</option>
-                  <option value="Embu">Embu</option>
-                  <option value="Garissa">Garissa</option>
-                  <option value="Homa Bay">Homa Bay</option>
-                  <option value="Isiolo">Isiolo</option>
-                  <option value="Kajiado">Kajiado</option>
-                  <option value="Kakamega">Kakamega</option>
-                  <option value="Kericho">Kericho</option>
-                  <option value="Kiambu">Kiambu</option>-->
-                  <option value="Sokoni Ward" <?php echo ($ward === 'Sokoni Ward') ? 'selected' : ''; ?>>Sokoni Ward</option>
-                  <!--<option value="Kirinyaga">Kirinyaga</option>
-                  <option value="Kisii">Kisii</option>
-                  <option value="Kisumu">Kisumu</option>
-                  <option value="Kitui">Kitui</option>
-                  <option value="Kwale">Kwale</option> 
-                  <option value="Laikipia">Laikipia</option>
-                  <option value="Lamu">Lamu</option>
-                  <option value="Machakos">Machakos</option>
-                  <option value="Makueni">Makueni</option>
-                  <option value="Mandera">Mandera</option>
-                  <option value="Marsabit">Marsabit</option>
-                  <option value="Meru">Meru</option>
-                  <option value="Migori">Migori</option>
-                  <option value="Mombasa">Mombasa</option>
-                  <option value="Murang'a">Murang'a</option>
-                  <option value="Nairobi">Nairobi</option>
-                  <option value="Nakuru">Nakuru</option>
-                  <option value="Nandi">Nandi</option>
-                  <option value="Narok">Narok</option>
-                  <option value="Nyamira">Nyamira</option>
-                  <option value="Nyandarua">Nyandarua</option>
-                  <option value="Nyeri">Nyeri</option>
-                  <option value="Samburu">Samburu</option>
-                  <option value="Siaya">Siaya</option>
-                  <option value="Taita Taveta">Taita Taveta</option>
-                  <option value="Tana River">Tana River</option>
-                  <option value="Tharaka-Nithi">Tharaka-Nithi</option>
-                  <option value="Trans Nzoia">Trans Nzoia</option>
-                  <option value="Turkana">Turkana</option>
-                  <option value="Uasin Gishu">Uasin Gishu</option>
-                  <option value="Vihiga">Vihiga</option>
-                  <option value="Wajir">Wajir</option>
-                  <option value="West Pokot">West Pokot</option>-->
+                  <option value="">-- Select Ward --</option>
                 </select>
               </div>
               <div class="inpBox">
@@ -592,116 +493,30 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <span>Market Type</span>
                 <select id="market" name="market" required>
                   <option value="">-- Select Market Type --</option>
-                  <option value="Local" <?= ($market ?? '') === 'Local' ? 'selected' : ''; ?>>Local</option><!-- 
+                  <option value="Local" <?= ($market ?? '') === 'Local' ? 'selected' : ''; ?>>Local</option>
                   <option value="National" <?= ($market ?? '') === 'National' ? 'selected' : ''; ?>>National</option>
-                  <option value="Global" <?= ($market ?? '') === 'Global' ? 'selected' : ''; ?>>Global</option> -->
+                  <option value="Global" <?= ($market ?? '') === 'Global' ? 'selected' : ''; ?>>Global</option>
                 </select>
               </div>
 
               <div class="selectorBox">
                 <span>County</span>
                 <select id="county" name="county" required>
-                  <option value=""><p>-- Select County --</p></option>
-                  <!--<option value="Baringo">Baringo</option>
-                  <option value="Bomet">Bomet</option>
-                  <option value="Bungoma">Bungoma</option>
-                  <option value="Busia">Busia</option>
-                  <option value="Elgeyo-Marakwet">Elgeyo-Marakwet</option>
-                  <option value="Embu">Embu</option>
-                  <option value="Garissa">Garissa</option>
-                  <option value="Homa Bay">Homa Bay</option>
-                  <option value="Isiolo">Isiolo</option>
-                  <option value="Kajiado">Kajiado</option>
-                  <option value="Kakamega">Kakamega</option>
-                  <option value="Kericho">Kericho</option>
-                  <option value="Kiambu">Kiambu</option>-->
-                  <option value="Kilifi" <?php echo ($county === 'Kilifi') ? 'selected' : ''; ?>>Kilifi</option>
-                  <!--<option value="Kirinyaga">Kirinyaga</option>
-                  <option value="Kisii">Kisii</option>
-                  <option value="Kisumu">Kisumu</option>
-                  <option value="Kitui">Kitui</option>
-                  <option value="Kwale">Kwale</option> 
-                  <option value="Laikipia">Laikipia</option>
-                  <option value="Lamu">Lamu</option>
-                  <option value="Machakos">Machakos</option>
-                  <option value="Makueni">Makueni</option>
-                  <option value="Mandera">Mandera</option>
-                  <option value="Marsabit">Marsabit</option>
-                  <option value="Meru">Meru</option>
-                  <option value="Migori">Migori</option>
-                  <option value="Mombasa">Mombasa</option>
-                  <option value="Murang'a">Murang'a</option>
-                  <option value="Nairobi">Nairobi</option>
-                  <option value="Nakuru">Nakuru</option>
-                  <option value="Nandi">Nandi</option>
-                  <option value="Narok">Narok</option>
-                  <option value="Nyamira">Nyamira</option>
-                  <option value="Nyandarua">Nyandarua</option>
-                  <option value="Nyeri">Nyeri</option>
-                  <option value="Samburu">Samburu</option>
-                  <option value="Siaya">Siaya</option>
-                  <option value="Taita Taveta">Taita Taveta</option>
-                  <option value="Tana River">Tana River</option>
-                  <option value="Tharaka-Nithi">Tharaka-Nithi</option>
-                  <option value="Trans Nzoia">Trans Nzoia</option>
-                  <option value="Turkana">Turkana</option>
-                  <option value="Uasin Gishu">Uasin Gishu</option>
-                  <option value="Vihiga">Vihiga</option>
-                  <option value="Wajir">Wajir</option>
-                  <option value="West Pokot">West Pokot</option>-->
+                  <option value="">-- Select County --</option>
+                  <?php
+                    $result = $conn->query("SELECT location_id, name FROM locations WHERE type = 'county' ORDER BY name ASC");
+                    while ($row = $result->fetch_assoc()):
+                  ?>
+                    <option value="<?= $row['location_id']; ?>">
+                      <?= htmlspecialchars($row['name']); ?>
+                    </option>
+                  <?php endwhile; ?>
                 </select>
               </div>
               <div class="selectorBox">
                 <span>Ward</span>
-                <select id="ward" name="ward" required>
-                  <option value=""><p>-- Select Ward --</p></option>
-                  <!--<option value="Sokoni Ward">Sokoni Ward</option>
-                  <option value="Bomet">Bomet</option>
-                  <option value="Bungoma">Bungoma</option>
-                  <option value="Busia">Busia</option>
-                  <option value="Elgeyo-Marakwet">Elgeyo-Marakwet</option>
-                  <option value="Embu">Embu</option>
-                  <option value="Garissa">Garissa</option>
-                  <option value="Homa Bay">Homa Bay</option>
-                  <option value="Isiolo">Isiolo</option>
-                  <option value="Kajiado">Kajiado</option>
-                  <option value="Kakamega">Kakamega</option>
-                  <option value="Kericho">Kericho</option>
-                  <option value="Kiambu">Kiambu</option>-->
-                  <option value="Sokoni" <?php echo ($ward === 'Sokoni') ? 'selected' : ''; ?>>Sokoni Ward</option>
-                  <!--<option value="Kirinyaga">Kirinyaga</option>
-                  <option value="Kisii">Kisii</option>
-                  <option value="Kisumu">Kisumu</option>
-                  <option value="Kitui">Kitui</option>
-                  <option value="Kwale">Kwale</option> 
-                  <option value="Laikipia">Laikipia</option>
-                  <option value="Lamu">Lamu</option>
-                  <option value="Machakos">Machakos</option>
-                  <option value="Makueni">Makueni</option>
-                  <option value="Mandera">Mandera</option>
-                  <option value="Marsabit">Marsabit</option>
-                  <option value="Meru">Meru</option>
-                  <option value="Migori">Migori</option>
-                  <option value="Mombasa">Mombasa</option>
-                  <option value="Murang'a">Murang'a</option>
-                  <option value="Nairobi">Nairobi</option>
-                  <option value="Nakuru">Nakuru</option>
-                  <option value="Nandi">Nandi</option>
-                  <option value="Narok">Narok</option>
-                  <option value="Nyamira">Nyamira</option>
-                  <option value="Nyandarua">Nyandarua</option>
-                  <option value="Nyeri">Nyeri</option>
-                  <option value="Samburu">Samburu</option>
-                  <option value="Siaya">Siaya</option>
-                  <option value="Taita Taveta">Taita Taveta</option>
-                  <option value="Tana River">Tana River</option>
-                  <option value="Tharaka-Nithi">Tharaka-Nithi</option>
-                  <option value="Trans Nzoia">Trans Nzoia</option>
-                  <option value="Turkana">Turkana</option>
-                  <option value="Uasin Gishu">Uasin Gishu</option>
-                  <option value="Vihiga">Vihiga</option>
-                  <option value="Wajir">Wajir</option>
-                  <option value="West Pokot">West Pokot</option>-->
+                  <select id="ward" name="ward" required>
+                  <option value="">-- Select Ward --</option>
                 </select>
               </div>
               <div class="inpBox">

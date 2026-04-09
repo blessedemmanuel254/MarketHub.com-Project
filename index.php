@@ -118,21 +118,31 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $accountType = strtolower($user['account_type']);
 
         switch ($accountType) {
+
           case 'seller':
-              $redirectPage = 'sellerPage.php';
-              break;
+            $redirectPage = 'sellerPage.php';
+            break;
+
           case 'buyer':
-              $redirectPage = 'buyerPage.php';
-              break;
+            $redirectPage = 'buyerPage.php';
+            break;
+
           case 'administrator':
-              $redirectPage = 'adminPage.php';  // adjust page as needed
-              break;
-          case 'agent':
-              $redirectPage = 'agentPage.php';  // adjust page as needed
-              break;
+            $redirectPage = 'adminPage.php';
+            break;
+
+          case 'sales_agent':
+            $redirectPage = 'agentPage.php';
+
+            break;
+
+          case 'property_owner':
+            $redirectPage = 'propertyOwnerPage.php';
+            break;
+
           default:
-              $redirectPage = 'index.php'; // fallback if something unexpected
-              break;
+            $redirectPage = 'index.php';
+            break;
         }
 
         echo "<script>

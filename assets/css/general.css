@@ -41,6 +41,13 @@ html body.no-scroll {
   padding-bottom: 20px;
 }
 
+.container h1.paypage-H1 {
+  font-size: 25px;
+  color: #0f0f0f;
+  letter-spacing: 1px;
+  margin: 20px auto 10px;
+}
+
 .container header {
   display: flex;
   justify-content: space-between;

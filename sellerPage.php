@@ -1406,7 +1406,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   <i class="fa fa-star icon"></i>
                   <h3>Customer Trust</h3>
                   <div class="stat">4.7 ★</div>
-                  <p class="meta">From 213 reviews</p>
+                  <p class="meta">From 1 review</p>
                   <span class="badge green">Excellent</span>
                 </div>
 
