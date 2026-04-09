@@ -1360,7 +1360,7 @@ $query = "
 $stmt = $conn->prepare($query);
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
-$result = $stmt->get_result();
+$wResult = $stmt->get_result();
 
 // Helper: format date
 function formatDate($date) {
@@ -2951,10 +2951,10 @@ function getStatusIcon($status) {
       <div class="containerWH">
         <h2>Withdrawal History</h2>
 
-        <?php if ($result->num_rows > 0): ?>
+        <?php if ($wResult->num_rows > 0): ?>
         <div class="withdraw-grid">
 
-          <?php while($row = $result->fetch_assoc()): ?>
+          <?php while($row = $wResult->fetch_assoc()): ?>
 
             <div class="withdraw-card <?php echo $row['status']; ?>">
               

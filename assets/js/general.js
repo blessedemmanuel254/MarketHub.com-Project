@@ -1808,13 +1808,13 @@ function buyNow(button) {
   });
 }
 
-function placeOrder() {
+/* function placeOrder() {
   const payButton = document.getElementById("payButton");
 
-  if (payButton.disabled) return;
+  if (payButton.disabled) return; */
 
   // 🔄 Loading state
-  payButton.disabled = true;
+/*   payButton.disabled = true;
   payButton.innerHTML = `<span class="btn-spinner"></span> Processing...`;
 
   const products = document.querySelectorAll(".order-container .product");
@@ -1823,13 +1823,13 @@ function placeOrder() {
     showNotification(`<i class="fa-solid fa-triangle-exclamation"></i> No products selected!`, 3000, "warning");
     resetPayButton();
     return;
-  }
+  } */
 
-  const orderItems = [];
+ /*  const orderItems = [];
   let totalAmount = 0;
-  let hasError = false; // ✅ fix: track errors properly
+  let hasError = false; */ // ✅ fix: track errors properly
 
-  products.forEach(productEl => {
+/*   products.forEach(productEl => {
       const product_id = productEl.dataset.product;
       const seller_id  = productEl.dataset.seller;
       const quantity   = parseInt(productEl.querySelector(".qty-number").textContent);
@@ -1848,10 +1848,10 @@ function placeOrder() {
           quantity,
           price
       });
-  });
+  }); */
 
   // ✅ handle validation AFTER loop (important fix)
-  if (hasError) {
+/*   if (hasError) {
     showNotification(`<i class="fa-solid fa-circle-exclamation"></i> Invalid product in order!`, 3000, "error");
     resetPayButton();
     return;
@@ -1879,25 +1879,25 @@ function placeOrder() {
   .then(data => {
     const duration = 3000;
 
-    if (data.success) {
+    if (data.success) { */
         // ✅ Success state
-        payButton.innerHTML = `<i class="fa-solid fa-check"></i> Paid`;
+/*         payButton.innerHTML = `<i class="fa-solid fa-check"></i> Paid`;
         showNotification(
             `<i class='fa-solid fa-check-circle'></i> Order placed successfully!`,
             duration,
             "success"
-        );
+        ); */
         // 🔥 CALL PAYMENT PROCESSOR
         // After order creation
-        fetch("marketDisplay.php", {
+/*         fetch("marketDisplay.php", {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded"
             },
             body: `action=process_payment&order_id=${data.order_id}`
         })
-        .then(res => res.json()) // ✅ THIS IS THE FIX
-        .then(payData => {
+        .then(res => res.json())  */// ✅ THIS IS THE FIX
+/*         .then(payData => {
 
             console.log("🔥 FULL PAYMENT RESPONSE:", payData);
 
@@ -1920,9 +1920,9 @@ function placeOrder() {
 
         payButton.innerHTML = `<i class="fa-solid fa-check"></i> Paid`;
         setTimeout(() => location.reload(), 4500);
-    } else if (data.error && data.error.trim() !== "") {
+    } else if (data.error && data.error.trim() !== "") { */
         // ⚠️ Backend error (e.g., stock issue)
-        showNotification(
+/*         showNotification(
             `<i class="fa-solid fa-triangle-exclamation"></i> ${data.error}`,
             duration,
             "warning"
@@ -1931,9 +1931,9 @@ function placeOrder() {
             resetPayButton();
             updateOrderSummary();
         }, duration);
-    } else {
+    } else { */
         // ❌ Generic failure
-        showNotification(
+/*         showNotification(
             `<i class="fa-solid fa-circle-exclamation"></i> Order failed!`,
             duration,
             "error"
@@ -1944,9 +1944,9 @@ function placeOrder() {
         }, duration);
     }
   })
-  .catch(() => {
+  .catch(() => { */
     // Only triggers if fetch/network fails
-    showNotification(
+/*     showNotification(
         `<i class="fa-solid fa-wifi"></i> Network error!`,
         3000,
         "error"
@@ -1958,7 +1958,7 @@ function placeOrder() {
     payButton.disabled = false;
     payButton.innerHTML = "Try Again";
   }
-}
+} */
 
 // ===== Quantity change handler (Buy Now + Cart) =====
 document.addEventListener("click", function(e){

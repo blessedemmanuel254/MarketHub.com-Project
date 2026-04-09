@@ -2538,112 +2538,104 @@ $marginPercent = $gmv > 0 ? round(($platformBalance / $gmv) * 100) : 0;
                 <th>Updated&nbsp;At:</th>
               </tr>
             </thead>
-              <tbody>
-              <?php $count = 1; ?>
-              <?php
-              if ($withdrawalsQuery->num_rows > 0):
+            <tbody>
+            <?php $count = 1; ?>
+            <?php 
+            while ($row = $withdrawalsQuery->fetch_assoc()):
 
-              while ($row = $withdrawalsQuery->fetch_assoc()):
+              // Safe data
+              $name = safe($row['full_name']);
+              $phoneRaw = decodePhone($row['phone']);
+              $phone = maskPhone($phoneRaw);
+              $accountType = ucfirst(str_replace('_', ' ', $row['account_type']));
+              $amount = number_format($row['amount']);
+              $fee = number_format($row['fee']);
+              $method = ucfirst($row['method']);
+              $status = strtolower($row['status']);
 
-                // Safe data
-                $name = safe($row['full_name']);
-                $phoneRaw = decodePhone($row['phone']);
-                $phone = maskPhone($phoneRaw);
-                $accountType = ucfirst(str_replace('_', ' ', $row['account_type']));
-                $amount = number_format($row['amount']);
-                $fee = number_format($row['fee']);
-                $method = ucfirst($row['method']);
-                $status = strtolower($row['status']);
+              $email = decodeEmail($row['email']);
 
-                $email = decodeEmail($row['email']);
+              // Image
+              $defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+              $profileImage = (!empty($row['profile_image']) && file_exists($row['profile_image']))
+                  ? htmlspecialchars($row['profile_image'], ENT_QUOTES, 'UTF-8')
+                  : $defaultAvatar;
 
-                // Image
-                $defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-                $profileImage = (!empty($row['profile_image']) && file_exists($row['profile_image']))
-                    ? htmlspecialchars($row['profile_image'], ENT_QUOTES, 'UTF-8')
-                    : $defaultAvatar;
+              // Status class
+              $statusClass = "pending";
+              if ($status === "approved") $statusClass = "approved";
+              if ($status === "rejected") $statusClass = "rejected";
 
-                // Status class
-                $statusClass = "pending";
-                if ($status === "approved") $statusClass = "approved";
-                if ($status === "rejected") $statusClass = "rejected";
+            ?>
+            <tr data-status="<?= $status ?>">
+              
+              <td><?= $count++ ?>.</td>
 
-              ?>
-              <tr data-status="<?= $status ?>">
-                
-                <td><?= $count++ ?>.</td>
+              <!-- USER -->
+              <td>
+                <div class="adm-user-profile">
+                  <img src="<?= $profileImage ?>" style="border-radius:50%">
+                  <?= $name ?>
+                </div>
+                <em><?= $phone ?></em>
+              </td>
 
-                <!-- USER -->
-                <td>
-                  <div class="adm-user-profile">
-                    <img src="<?= $profileImage ?>" style="border-radius:50%">
-                    <?= $name ?>
-                  </div>
-                  <em><?= $phone ?></em>
-                </td>
+              <!-- ROLE -->
+              <td><?= $accountType ?></td>
 
-                <!-- ROLE -->
-                <td><?= $accountType ?></td>
+              <!-- AMOUNT -->
+              <td>KES <?= $amount ?></td>
 
-                <!-- AMOUNT -->
-                <td>KES <?= $amount ?></td>
+              <!-- FEE -->
+              <td>KES <?= $fee ?></td>
 
-                <!-- FEE -->
-                <td>KES <?= $fee ?></td>
+              <!-- METHOD -->
+              <td><?= $method ?></td>
 
-                <!-- METHOD -->
-                <td><?= $method ?></td>
+              <!-- STATUS -->
+              <td>
+                <span class="badge <?= $statusClass ?>">
+                  <?= ucfirst($status) ?>
+                </span>
+              </td>
 
-                <!-- STATUS -->
-                <td>
-                  <span class="badge <?= $statusClass ?>">
-                    <?= ucfirst($status) ?>
-                  </span>
-                </td>
+              <!-- ACTIONS -->
+              <td class="actions">
+                <div>
 
-                <!-- ACTIONS -->
-                <td class="actions">
-                  <div>
+                  <?php if ($status === 'pending'): ?>
+                    <button class="btn-edit" data-id="<?= $row['withdrawal_id'] ?>">Approve</button>
+                    <button class="btn-suspend" data-id="<?= $row['withdrawal_id'] ?>">
+                      Reject <i class="fa-solid fa-ban"></i>
+                    </button>
+                  <?php endif; ?>
+                </div>
+              </td>
 
-                    <?php if ($status === 'pending'): ?>
-                      <button class="btn-edit" data-id="<?= $row['withdrawal_id'] ?>">Approve</button>
-                      <button class="btn-suspend" data-id="<?= $row['withdrawal_id'] ?>">
-                        Reject <i class="fa-solid fa-ban"></i>
-                      </button>
-                    <?php endif; ?>
-                  </div>
-                </td>
+              <!-- CONTACT -->
+              <td class="comm-cell">
+                <button class="comm-btn">
+                  <i class="fas fa-ellipsis-vertical"></i>
+                </button>
 
-                <!-- CONTACT -->
-                <td class="comm-cell">
-                  <button class="comm-btn">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                  </button>
+                <div class="comm-dropdown">
+                  <a href="tel:<?= $phoneRaw ?>"><i class="fas fa-phone"></i> Call</a>
+                  <a href="https://wa.me/<?= preg_replace('/^\+/', '', $phoneRaw) ?>" target="_blank">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                  </a>
+                  <a href="mailto:<?= $email ?>"><i class="fas fa-envelope"></i> Email</a>
+                  <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                </div>
+              </td>
 
-                  <div class="comm-dropdown">
-                    <a href="tel:<?= $phoneRaw ?>"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/<?= preg_replace('/^\+/', '', $phoneRaw) ?>" target="_blank">
-                      <i class="fab fa-whatsapp"></i> WhatsApp
-                    </a>
-                    <a href="mailto:<?= $email ?>"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
-                  </div>
-                </td>
+              <!-- DATES -->
+              <td><?= date('Y-m-d', strtotime($row['requested_at'])) ?></td>
+              <td><?= $row['updated_at'] ? date('Y-m-d', strtotime($row['updated_at'])) : '-' ?></td>
 
-                <!-- DATES -->
-                <td><?= date('Y-m-d', strtotime($row['requested_at'])) ?></td>
-                <td><?= $row['updated_at'] ? date('Y-m-d', strtotime($row['updated_at'])) : '-' ?></td>
+            </tr>
 
-              </tr>
-
-              <?php endwhile; ?>
-
-              <?php else: ?>
-              <tr>
-                <td colspan="10">No withdrawals found</td>
-              </tr>
-              <?php endif; ?>
-              </tbody>
+            <?php endwhile; ?>
+            </tbody>
           </table>
         </div>
       </div>
