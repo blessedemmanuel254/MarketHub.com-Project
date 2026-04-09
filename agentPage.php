@@ -841,21 +841,23 @@ if ($isVerified === 1 && $status === 'active') {
 
   $commissions = [];
 
-  $stmt = $conn->prepare("
-    SELECT 
-      ft.source_id,
-      ft.source_type,
-      ft.amount,
-      ft.status,
-      ft.description,
-      ft.created_at,
-      u.username
-    FROM financial_transactions ft
-    LEFT JOIN users u ON u.user_id = ft.source_id
-    WHERE ft.receiver_id = ?
-    AND ft.transaction_type = 'commission'
-    ORDER BY ft.created_at DESC
-  ");
+$stmt = $conn->prepare("
+  SELECT 
+    ft.source_id,
+    ft.source_type,
+    ft.amount,
+    ft.status,
+    ft.description,
+    ft.created_at,
+    u.username,
+    u.phone,
+    u.email
+  FROM financial_transactions ft
+  LEFT JOIN users u ON u.user_id = ft.source_id
+  WHERE ft.receiver_id = ?
+  AND ft.transaction_type = 'commission'
+  ORDER BY ft.created_at DESC
+");
 
   $stmt->bind_param("i", $user_id);
   $stmt->execute();
@@ -2746,6 +2748,13 @@ function getStatusIcon($status) {
 
               $phone = !empty($row['phone']) ? base64_decode($row['phone']) : '';
               $email = !empty($row['email']) ? base64_decode($row['email']) : '';
+
+              $cleanPhone = preg_replace('/\D/', '', $phone);
+
+              // Convert 07XXXXXXXX → 2547XXXXXXXX
+              if (strpos($cleanPhone, '0') === 0) {
+                  $cleanPhone = '254' . substr($cleanPhone, 1);
+              }
               
             ?>
 
@@ -2767,9 +2776,11 @@ function getStatusIcon($status) {
                   </button>
                   <div class="comm-dropdown">
                     <a href="tel:<?= htmlspecialchars($phone) ?>"><i class="fas fa-phone"></i> Call</a>
-                    <a href="https://wa.me/<?= preg_replace('/\D/', '', $phone) ?>" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="https://wa.me/<?= $cleanPhone ?>" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
                     <a href="mailto:<?= htmlspecialchars($email) ?>"><i class="fas fa-envelope"></i> Email</a>
-                    <a href="#"><i class="fas fa-comment-dots"></i> SMS</a>
+                    <a href="sms:<?= $cleanPhone ?>">
+                      <i class="fas fa-comment-dots"></i> SMS
+                    </a>
                   </div>
                 </td>
                 <td><?php echo htmlspecialchars($date); ?></td>
