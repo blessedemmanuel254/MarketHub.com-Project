@@ -72,7 +72,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   } elseif (!preg_match('/^[0-9+\-\(\)\s]+$/', $phone)) {
     $error = "Phone number contains invalid characters!";
   } else {
-    $encrypted_email = base64_encode($email);
+    $encrypted_email = base64_encode(strtolower($email));
     $normalized_phone = normalizePhoneNumber($phone);
 
     $checkUserQuery = "SELECT * FROM users WHERE email = ? OR username = ?";
@@ -147,7 +147,7 @@ $accountType = isset($_SESSION['accountType']) ? ucfirst($_SESSION['accountType'
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 
-  <title>Register Account ~ Maket Hub</title>
+  <title>Register Account ~ Makethub</title>
 </head>
 <body>
   <div class="container">
@@ -155,13 +155,13 @@ $accountType = isset($_SESSION['accountType']) ? ucfirst($_SESSION['accountType'
       <div class="formContainer">
         <section>
           <div class="top">
-            <img src="Images/Maket Hub Logo.avif" alt="Maket Hub Logo" width="40">
-            <h1 class="login">Maket&nbsp;Hub</h1>
+            <img src="Images/Makethub Logo.avif" alt="Makethub Logo" width="40">
+            <h1 class="login">Makethub</h1>
           </div>
           <h3>Find Local. Shop Without Limits.</h3>
         </section>
         <form action="" method="POST">
-          <h2>Register account on Maket Hub</h2>
+          <h2>Register account on Makethub</h2>
           <div class="account-type">
             <div class="account-icon">🛒</div>
             <div class="regInfo">
@@ -355,24 +355,16 @@ $accountType = isset($_SESSION['accountType']) ? ucfirst($_SESSION['accountType'
             </div>
           </div>
           <p class="reDctor">Already have an account? <a href="index.php">Login</a></p>
-          <div class="or-divider">or</div>
-          <div class="socialRegister">
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google" width="20">
-            <p>Register with google</p>
-          </div>
-          <div class="socialRegister">
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg" alt="Apple" width="20">
-            <p>Register with apple</p>
-          </div>
-          <div class="socialRegister">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft" width="20">
-            <p>Register with microsoft account</p>
-          </div>
         </form>
       </div>
     </main>
-    <footer>
-      <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
+        <footer>
+      <p>&copy; 2025/2026, Makethub.shop, All Rights Reserved.</p><br>
+      <p>
+        <a href="privacy.php">Privacy Policy</a> |
+        <a href="terms.php">Terms & Conditions</a> |
+        <a href="contact.php">Contact Us</a>
+      </p>
     </footer>
   </div>
   

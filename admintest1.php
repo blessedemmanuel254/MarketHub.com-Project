@@ -131,7 +131,7 @@ $fullNameFormatted = strtoupper($fullName);
 $accountTypeFormatted = ucfirst(strtolower($accountType));
 
 // Default avatar if profile image does not exist
-$defaultAvatar = "Images/Maket Hub Logo.avif";
+$defaultAvatar = "Images/Makethub Logo.avif";
 $safeProfileImage = (!empty($profileImage) && file_exists($profileImage)) ? htmlspecialchars($profileImage, ENT_QUOTES, 'UTF-8') : $defaultAvatar;
 
 /* ===============================
@@ -167,7 +167,7 @@ $agentData = $agentQuery->fetch_assoc();
    SALES AGENTS TABLE DATA
 ================================= */
 
-$defaultAvatar = "Images/Maket Hub Logo.avif";
+$defaultAvatar = "Images/Makethub Logo.avif";
 
 $agentsStmt = $conn->prepare("
     SELECT user_id, full_name, username, email, phone, profile_image, 
@@ -288,13 +288,13 @@ $totalOwners = count($propertyOwners);
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,70090000000;1,800;1,900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 
   <!-- jQuery + DataTables JS -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   
-  <title>ADMIN Page | Maket Hub</title>
+  <title>ADMIN Page | Makethub</title>
   <style>
     /* Pagination buttons */
     .dataTables_wrapper .dataTables_paginate .paginate_button{
@@ -320,7 +320,7 @@ $totalOwners = count($propertyOwners);
 <body id="adminBody">
   <div class="containerAdmin">
     <section>
-      <h1>ADMIN&nbsp;PANEL<br><span>Maket&nbsp;Hub</span></h1>
+      <h1>ADMIN&nbsp;PANEL<br><span>Makethub</span></h1>
       <div class="admin-rhs">
         <div class="notfy-wrapper">
           <i class="fa-solid fa-bell"></i>
@@ -914,7 +914,7 @@ $totalOwners = count($propertyOwners);
                   // Default profile image
                   $img = (!empty($seller['profile_image']) && file_exists($seller['profile_image']))
                       ? $seller['profile_image']
-                      : "Images/Maket Hub Logo.avif";
+                      : "Images/Makethub Logo.avif";
                   $phone = decodePhone($seller['phone']);
                   $maskedPhone = maskPhone($phone);
 
@@ -1038,7 +1038,7 @@ $totalOwners = count($propertyOwners);
                   // Default profile image
                   $img = (!empty($buyer['profile_image']) && file_exists($buyer['profile_image']))
                       ? $buyer['profile_image']
-                      : "Images/Maket Hub Logo.avif"; 
+                      : "Images/Makethub Logo.avif"; 
                   $phone = decodePhone($buyer['phone']);
                   $maskedPhone = maskPhone($phone);
 
@@ -1182,7 +1182,7 @@ $totalOwners = count($propertyOwners);
                 // Default profile image
                 $img = (!empty($owner['profile_image']) && file_exists($owner['profile_image']))
                     ? $owner['profile_image']
-                    : "Images/Maket Hub Logo.avif";
+                    : "Images/Makethub Logo.avif";
 
                 $email = decodeEmail($owner['email']);
                 $maskedEmail = maskEmail($email);
@@ -1362,8 +1362,13 @@ $totalOwners = count($propertyOwners);
       </div>
 
     </main>
-    <footer>
-      <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
+        <footer>
+      <p>&copy; 2025/2026, Makethub.shop, All Rights Reserved.</p><br>
+      <p>
+        <a href="privacy.php">Privacy Policy</a> |
+        <a href="terms.php">Terms & Conditions</a> |
+        <a href="contact.php">Contact Us</a>
+      </p>
     </footer>
   </div>
   <script src="assets/js/general.js" type="text/javascript" defer></script>
@@ -1441,7 +1446,7 @@ $totalOwners = count($propertyOwners);
         e.stopPropagation();
       }
     });
-    // Maket Hub PRODUCTS GRID SWITCH JS
+    // Makethub PRODUCTS GRID SWITCH JS
 
     document.addEventListener("DOMContentLoaded", function () {
 

@@ -62,7 +62,7 @@ $profileLetter = strtoupper(substr($formattedUsername, 0, 1));
 $safeUsername = htmlspecialchars($formattedUsername, ENT_QUOTES, 'UTF-8');
 $safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
 
-$defaultAvatar = "Images/Maket Hub Logo.avif";
+$defaultAvatar = "Images/Makethub Logo.avif";
 
 if (!empty($profileImage) && file_exists($profileImage)) {
     $safeProfileImage = htmlspecialchars($profileImage, ENT_QUOTES, 'UTF-8');
@@ -92,9 +92,9 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,70090000000;1,800;1,900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 
-  <title>Buyer Page | Maket Hub</title>
+  <title>Buyer Page | Makethub</title>
 </head>
 <body>
   <div class="container">
@@ -145,14 +145,14 @@ if (!empty($profileImage) && file_exists($profileImage)) {
     </header>
     <div class="overlay" onclick="toggleWhatsAppChat()" id="overlay"></div>
     <div id="whatsapp-button" onclick="toggleWhatsAppChat()">
-      <img src="Images/Maket Hub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
+      <img src="Images/Makethub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
     </div>
 
     <div id="whatsapp-chat-box">
       <div class="chat-header">
         <div class="top">
-          <img src="Images/Maket Hub Logo.avif" alt="Maket Hub Logo" width="35">
-          <p><strong>Maket Hub</strong><br>
+          <img src="Images/Makethub Logo.avif" alt="Makethub Logo" width="35">
+          <p><strong>Makethub</strong><br>
           <small>online</small></p>
         </div>
         <i class="fa-solid fa-xmark" onclick="toggleWhatsAppChat()"></i>
@@ -160,7 +160,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       <div class="chat-body">
         <div class="chat-container">
           <div class="chat-bubble">
-            <div class="sender">Maket Hub</div>
+            <div class="sender">Makethub</div>
             <div class="message">
               Hello there! 😊<br>
               How can we help?
@@ -332,8 +332,13 @@ if (!empty($profileImage) && file_exists($profileImage)) {
         </div>
       </div>
     </main>
-    <footer>
-      <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
+        <footer>
+      <p>&copy; 2025/2026, Makethub.shop, All Rights Reserved.</p><br>
+      <p>
+        <a href="privacy.php">Privacy Policy</a> |
+        <a href="terms.php">Terms & Conditions</a> |
+        <a href="contact.php">Contact Us</a>
+      </p>
     </footer>
   </div>
   

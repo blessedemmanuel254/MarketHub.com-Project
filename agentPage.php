@@ -1,13 +1,10 @@
 <?php
 session_start();
-error_reporting(E_ALL & ~E_DEPRECATED & ~E_WARNING);
-ini_set('display_errors', 0);
-
 // Dynamic OG data based on page content
-$pageTitle = "Agent Page | Maket Hub";
-$pageDescription = "Verify your Maket Hub agent account to unlock full agent privileges; receiving commissions, Making withdrawal requests and manage your agency efficiently.";
+$pageTitle = "Agent Page | Makethub";
+$pageDescription = "Verify your Makethub agent account to unlock full agent privileges; receiving commissions, Making withdrawal requests and manage your agency efficiently.";
 $pageUrl = "agentregister.php";
-$pageImage = "Images/Maket Hub Logo.avif"; // Use a clear visual for verification
+$pageImage = "Images/Makethub Logo.avif"; // Use a clear visual for verification
 require_once 'connection.php';
 
 /* ---------- SESSION SECURITY ---------- */
@@ -242,9 +239,6 @@ $remaining = max($agencyMin - $agencyBalance, 0);
 $progressPercentSales = min(($salesBalance / $salesMin) * 100, 100);
 $remainingSales = max($salesMin - $salesBalance, 0);
 
-$country = "";
-$county = "";
-$ward = "";
 /* =====================================================
 ADD NEW AGENT FROM DASHBOARD
 ===================================================== */
@@ -255,9 +249,7 @@ $agent_full_name = "";
 $agent_username = "";
 $agent_email = "";
 $agent_phone = "";
-$agent_country = "";
-$agent_county = "";
-$agent_ward = "";
+$agent_location_id = "";
 $agent_address = "";
 $agent_accountType = "";
 
@@ -303,15 +295,13 @@ if($_SERVER["REQUEST_METHOD"] === "POST"){
   $agent_username = trim($_POST['username'] ?? '');
   $agent_email = trim($_POST['email'] ?? '');
   $agent_phone = trim($_POST['phone'] ?? '');
-  $agent_country = trim($_POST['country'] ?? '');
-  $agent_county = trim($_POST['county'] ?? '');
-  $agent_ward = trim($_POST['ward'] ?? '');
+  $agent_location_id = intval($_POST['ward'] ?? 0); // ward = final location
   $agent_address = trim($_POST['address'] ?? '');
 
   $agent_accountType = "sales_agent";
   $defaultPassword = "Makethub123#";
 
-  if(!$agent_full_name || !$agent_username || !$agent_email || !$agent_phone || !$agent_country || !$agent_county || !$agent_ward || !$agent_address){
+  if(!$agent_full_name || !$agent_username || !$agent_email || !$agent_phone || !$agent_location_id || !$agent_address){
     $agent_error = "All fields are required!";
   }
 
@@ -401,43 +391,39 @@ if($_SERVER["REQUEST_METHOD"] === "POST"){
         $empty = "";
 
         $stmt = $conn->prepare("
-        INSERT INTO users
-        (
-        account_type,
-        full_name,
-        username,
-        email,
-        phone,
-        password,
-        country,
-        county,
-        ward,
-        address,
-        business_name,
-        business_model,
-        business_type,
-        market_scope,
-        agency_code,
-        referred_by,
-        created_at,
-        updated_at,
-        economic_period_count, must_change_password
-        )
-        VALUES
-        (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?,NOW(),NOW(),0,1)
+          INSERT INTO users
+          (
+          account_type,
+          full_name,
+          username,
+          email,
+          phone,
+          password,
+          location_id,
+          address,
+          business_name,
+          business_model,
+          business_type,
+          market_scope,
+          agency_code,
+          referred_by,
+          created_at,
+          updated_at,
+          economic_period_count, must_change_password
+          )
+          VALUES
+          (?,?,?,?,?,?,?,?,?,?,?,?,?, ?,NOW(),NOW(),0,1)
         ");
 
         $stmt->bind_param(
-        "ssssssssssssssss",
-        $accountType,
+        "ssssssissssssi",
+        $agent_accountType,
         $agent_full_name,
         $agent_username,
         $encrypted_email,
         $encrypted_phone,
         $hashedPassword,
-        $agent_country,
-        $agent_county,
-        $agent_ward,
+        $agent_location_id,
         $agent_address,
         $empty,
         $empty,
@@ -544,10 +530,12 @@ if($_SERVER["REQUEST_METHOD"] === "POST"){
 
 }
 
-$query = "SELECT username, profile_image, agency_code, ward, county, country 
+$query = "
+SELECT username, profile_image, agency_code, location_id
 FROM users 
 WHERE user_id = ? 
-LIMIT 1";
+LIMIT 1
+";
 
 $stmt = $conn->prepare($query);
 
@@ -563,25 +551,100 @@ $username = "User";
 $profileImage = null;
 $agencyCode = "";
 
-// ✅ NEW VARIABLES
+// location labels (names)
 $ward = "";
 $county = "";
 $country = "";
 
 if ($result && $result->num_rows === 1) {
+
   $user = $result->fetch_assoc();
 
-  if (!empty($user['username'])) {
-      $username = $user['username'];
-  }
-
+  $username = $user['username'] ?? $username;
   $profileImage = $user['profile_image'] ?? null;
   $agencyCode = $user['agency_code'] ?? "";
 
-  // ✅ FETCH LOCATION DATA
-  $ward = $user['ward'] ?? "";
-  $county = $user['county'] ?? "";
-  $country = $user['country'] ?? "";
+  $location_id = $user['location_id'] ?? null;
+
+  if ($location_id) {
+
+    // =============================
+    // STEP 1: WARD
+    // =============================
+    $stmt1 = $conn->prepare("
+      SELECT name, parent_id 
+      FROM locations 
+      WHERE location_id = ? AND type = 'ward'
+      LIMIT 1
+    ");
+    $stmt1->bind_param("i", $location_id);
+    $stmt1->execute();
+    $res1 = $stmt1->get_result()->fetch_assoc();
+    $stmt1->close();
+
+    if ($res1) {
+
+      $ward = $res1['name'];
+      $county_id = $res1['parent_id'];
+
+      // =============================
+      // STEP 2: COUNTY
+      // =============================
+      $stmt2 = $conn->prepare("
+        SELECT name, parent_id 
+        FROM locations 
+        WHERE location_id = ? AND type = 'county'
+        LIMIT 1
+      ");
+      $stmt2->bind_param("i", $county_id);
+      $stmt2->execute();
+      $res2 = $stmt2->get_result()->fetch_assoc();
+      $stmt2->close();
+
+      if ($res2) {
+
+        $county = $res2['name'];
+        $region_id = $res2['parent_id']; // ✅ THIS IS REGION
+
+        // =============================
+        // STEP 3: REGION
+        // =============================
+        $stmt3 = $conn->prepare("
+          SELECT parent_id 
+          FROM locations 
+          WHERE location_id = ? AND type = 'region'
+          LIMIT 1
+        ");
+        $stmt3->bind_param("i", $region_id);
+        $stmt3->execute();
+        $res3 = $stmt3->get_result()->fetch_assoc();
+        $stmt3->close();
+
+        if ($res3) {
+
+          $country_id = $res3['parent_id']; // ✅ NOW THIS IS COUNTRY
+
+          // =============================
+          // STEP 4: COUNTRY
+          // =============================
+          $stmt4 = $conn->prepare("
+            SELECT name 
+            FROM locations 
+            WHERE location_id = ? AND type = 'country'
+            LIMIT 1
+          ");
+          $stmt4->bind_param("i", $country_id);
+          $stmt4->execute();
+          $res4 = $stmt4->get_result()->fetch_assoc();
+          $stmt4->close();
+
+          if ($res4) {
+            $country = $res4['name'];
+          }
+        }
+      }
+    }
+  }
 }
 
 $stmt->close();
@@ -886,46 +949,64 @@ $stmt = $conn->prepare("
   $agentCountry = strtolower(trim($country));
 
   $sellerQuery = "
-      SELECT 
-          u.user_id,
-          u.username,
-          u.business_name,
-          u.business_type,
-          u.market_scope,
-          u.ward,
-          u.country,
-          u.profile_image,
-          u.address,
-          (
-            SELECT COUNT(DISTINCT oi.order_id)
-            FROM order_items oi
-            JOIN orders o ON oi.order_id = o.order_id
-            WHERE oi.seller_id = u.user_id
-            AND o.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-          ) AS total_orders,
-          (
-            SELECT COUNT(*)
-            FROM user_followers uf
-            WHERE uf.followed_id = u.user_id
-          ) AS followers_count,
+  SELECT 
+    u.user_id,
+    u.username,
+    u.business_name,
+    u.business_type,
+    u.market_scope,
+    u.profile_image,
+    u.address,
 
-          (
-            SELECT COUNT(*)
-            FROM user_followers uf
-            WHERE uf.follower_id = u.user_id
-          ) AS following_count,
-          (
-            SELECT COUNT(*)
-            FROM user_followers uf
-            WHERE uf.follower_id = ?
-            AND uf.followed_id = u.user_id
-          ) AS is_following
+    wardLoc.name AS ward,
+    countyLoc.name AS county,
+    countryLoc.name AS country,
 
-      FROM users u
-      WHERE u.account_type = 'seller'
+    (
+      SELECT COUNT(DISTINCT oi.order_id)
+      FROM order_items oi
+      JOIN orders o ON oi.order_id = o.order_id
+      WHERE oi.seller_id = u.user_id
+      AND o.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+    ) AS total_orders,
 
-      ORDER BY total_orders DESC
-      LIMIT 50
+    (
+      SELECT COUNT(*)
+      FROM user_followers uf
+      WHERE uf.followed_id = u.user_id
+    ) AS followers_count,
+
+    (
+      SELECT COUNT(*)
+      FROM user_followers uf
+      WHERE uf.follower_id = u.user_id
+    ) AS following_count,
+
+    (
+      SELECT COUNT(*)
+      FROM user_followers uf
+      WHERE uf.follower_id = ?
+      AND uf.followed_id = u.user_id
+    ) AS is_following
+
+  FROM users u
+
+  LEFT JOIN locations wardLoc 
+    ON wardLoc.location_id = u.location_id 
+    AND wardLoc.type = 'ward'
+
+  LEFT JOIN locations countyLoc 
+    ON countyLoc.location_id = wardLoc.parent_id 
+    AND countyLoc.type = 'county'
+
+  LEFT JOIN locations countryLoc 
+    ON countryLoc.location_id = countyLoc.parent_id 
+    AND countryLoc.type = 'country'
+
+  WHERE u.account_type = 'seller'
+
+  ORDER BY total_orders DESC
+  LIMIT 50
   ";
 
   $stmt = $conn->prepare($sellerQuery);
@@ -951,6 +1032,9 @@ $stmt = $conn->prepare("
     $type = strtolower(trim($row['business_type']));
     $scope = strtolower(trim($row['market_scope']));
 
+    $row['ward'] = strtolower(trim($row['ward'] ?? ''));
+    $row['country'] = strtolower(trim($row['country'] ?? ''));
+    $row['county'] = strtolower(trim($row['county'] ?? ''));
   /* ---------- LOCAL ---------- */
   if (($scope === "local" && strtolower(trim($row['ward'])) === $agentWard) || (strtolower(trim($row['ward'])) === $agentWard)) {
 
@@ -1327,7 +1411,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_wallet'])) {
           $note = "User requested withdrawal of KES $withdrawAmount, net KES $netAmount, fee KES $fee";
           $stmt->bind_param("iis", $withdrawalId, $performedBy, $note); // use $withdrawalId here
           $stmt->execute();
-          $stmt->close();
 
           // Commit transaction
           $conn->commit();
@@ -1449,7 +1532,7 @@ function getStatusIcon($status) {
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,70090000000;1,800;1,900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 
   <!-- jQuery + DataTables JS -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -1492,7 +1575,7 @@ function getStatusIcon($status) {
           </div>
 
           <div class="alert-popup-text">
-            Your Maket Hub agent account currently <em>**does not have a badge**.</em>
+            Your Makethub agent account currently <em>**does not have a badge**.</em>
 
             To unlock full agent privileges like:
 
@@ -1554,7 +1637,7 @@ function getStatusIcon($status) {
             </div>
             <p>Order(s)</p>
           </a>
-          <select id="county">
+          <select id="hCounty">
             <option value="<?= htmlspecialchars($county) ?>" selected>
               <?= htmlspecialchars($county) ?>
             </option>
@@ -1607,14 +1690,14 @@ function getStatusIcon($status) {
     </form>
     <div class="overlay" onclick="toggleWhatsAppChat()" id="overlay"></div>
     <div id="whatsapp-button" onclick="toggleWhatsAppChat()">
-      <img src="Images/Maket Hub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
+      <img src="Images/Makethub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
     </div>
 
     <div id="whatsapp-chat-box">
       <div class="chat-header">
         <div class="top">
-          <img src="Images/Maket Hub Logo.avif" alt="Maket Hub Logo" width="35">
-          <p><strong>Maket Hub</strong><br>
+          <img src="Images/Makethub Logo.avif" alt="Makethub Logo" width="35">
+          <p><strong>Makethub</strong><br>
           <small>online</small></p>
         </div>
         <i class="fa-solid fa-xmark" onclick="toggleWhatsAppChat()"></i>
@@ -1622,7 +1705,7 @@ function getStatusIcon($status) {
       <div class="chat-body">
         <div class="chat-container">
           <div class="chat-bubble">
-            <div class="sender">Maket Hub</div>
+            <div class="sender">Makethub</div>
             <div class="message">
               Hello there! 😊<br>
               How can we help?
@@ -1726,7 +1809,7 @@ function getStatusIcon($status) {
                 <i class="fa-brands fa-renren"></i>
                 <h2>Market</h2>
                 <p>
-                  Get to order on Maket Hub like other users.
+                  Get to order on Makethub like other users.
                 </p>
                 <div class="label">
                   <p>Market</p>
@@ -2128,27 +2211,25 @@ function getStatusIcon($status) {
                   <div class="inp-box">
 
                     <label>Country</label>
-                    <select name="country" required>
-                      <option value=""><p>-- Select Country --</p></option>
-                      <option value="Kenya" <?php echo ($agent_country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
-                      <option value="Kenya" <?php echo ($agent_country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
-                      <option value="Kenya" <?php echo ($agent_country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+
+                    <select id="country" name="country" required>
+                      <option value="">-- Select Country --</option>
+                      <?php
+                        $countries = $conn->query("SELECT location_id, name FROM locations WHERE type='country' ORDER BY name ASC");
+                        while ($row = $countries->fetch_assoc()):
+                      ?>
+                        <option value="<?= $row['location_id']; ?>" 
+                          <?= ($country == $row['location_id']) ? 'selected' : ''; ?>>
+                          <?= htmlspecialchars($row['name']); ?>
+                        </option>
+                      <?php endwhile; ?>
                     </select>
                   </div>
                   <div class="inp-box">
 
                     <label>County</label>
-
                     <select id="county" name="county" required>
                       <option value="">-- Select County --</option>
-                      <?php
-                        $result = $conn->query("SELECT location_id, name FROM locations WHERE type = 'county' ORDER BY name ASC");
-                        while ($row = $result->fetch_assoc()):
-                      ?>
-                        <option value="<?= $row['location_id']; ?>">
-                          <?= htmlspecialchars($row['name']); ?>
-                        </option>
-                      <?php endwhile; ?>
                     </select>
                   </div>
                   <div class="inp-box">
@@ -2158,7 +2239,7 @@ function getStatusIcon($status) {
                   <div class="inp-box">
 
                     <label>Ward</label>
-                    <select id="ward" name="ward" required>
+                    <select id="ward" name="ward" required data-selected="<?= htmlspecialchars($location_id ?? '') ?>">
                       <option value="">-- Select Ward --</option>
                     </select>
                   </div>
@@ -2168,6 +2249,8 @@ function getStatusIcon($status) {
                   </button>
                 </div>
 
+                <input type="hidden" id="old_country" value="<?= htmlspecialchars($_POST['country'] ?? '') ?>">
+                <input type="hidden" id="old_county" value="<?= htmlspecialchars($_POST['county'] ?? '') ?>">
               </form>
             </div>
           </div>
@@ -2510,7 +2593,7 @@ function getStatusIcon($status) {
                 <?php elseif ($scope === 'N'): ?>
                   Showing the national market in <em><?= htmlspecialchars(ucwords($country)) ?></em><br>
                 <?php elseif ($scope === 'G'): ?>
-                  Showing global markets available on <em>Maket Hub</em><br>
+                  Showing global markets available on <em>Makethub</em><br>
                 <?php endif; ?>
                 
                 <strong>Please select the market source <i class="fa-regular fa-circle-check"></i></strong>
@@ -2814,7 +2897,7 @@ function getStatusIcon($status) {
       </div>
       <div class="table-wrapper sellerOrdersTrack active">
         <div class="header">
-          <h1>Maket Hub Daily Products</h1>
+          <h1>Makethub Daily Products</h1>
           <p>Download and post across all platforms today.</p>
         </div>
 
@@ -3086,7 +3169,7 @@ function getStatusIcon($status) {
               <td>
                 <img src="<?= !empty($order['image_path']) && file_exists(__DIR__ . '/' . $order['image_path']) 
                     ? htmlspecialchars($order['image_path']) 
-                    : 'Images/Maket Hub Logo.avif'; ?>" 
+                    : 'Images/Makethub Logo.avif'; ?>" 
                     class="product-img">
               </td>
 
@@ -3187,7 +3270,7 @@ function getStatusIcon($status) {
                 <p>Status: <span class="status shipped">Shipped</span></p>
                 <span class="market-badge">National</span>
               </div>
-              <img src="Images/Maket Hub Logo.avif" alt="Product">
+              <img src="Images/Makethub Logo.avif" alt="Product">
             </div>
 
             <div class="item-actions">
@@ -3214,7 +3297,7 @@ function getStatusIcon($status) {
                 <p>Status: <span class="status processing">Processing</span></p>
                 <span class="market-badge">Local</span>
               </div>
-              <img src="Images/Maket Hub Logo.avif" alt="Product">
+              <img src="Images/Makethub Logo.avif" alt="Product">
             </div>
 
             <div class="item-actions">
@@ -3233,8 +3316,13 @@ function getStatusIcon($status) {
 
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleAgentOrdersTrack()">Go&nbsp;back</button> to continue shopping.</p>
     </main>
-    <footer>
-      <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
+        <footer>
+      <p>&copy; 2025/2026, Makethub.shop, All Rights Reserved.</p><br>
+      <p>
+        <a href="privacy.php">Privacy Policy</a> |
+        <a href="terms.php">Terms & Conditions</a> |
+        <a href="contact.php">Contact Us</a>
+      </p>
     </footer>
   </div>
 

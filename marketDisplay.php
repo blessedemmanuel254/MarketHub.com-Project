@@ -1,52 +1,75 @@
 <?php
 session_start();
 require_once 'connection.php';
-
-ini_set('display_errors', 0); // prevent HTML error output
+// -----------------------------
+// DEBUG MODE (SHOW ALL ERRORS)
+// -----------------------------
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-/* ---------- SESSION SECURITY ---------- */
-if (!isset($_SESSION['user_id'])) {
-  header("Location: index.php");
-  exit();
-}
 
-$userId = $_SESSION['user_id'];
+// Show MySQLi errors clearly
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+/* ---------- SESSION SECURITY ---------- */
+$isLoggedIn = isset($_SESSION['user_id']);
+$userId = $isLoggedIn ? $_SESSION['user_id'] : null;
 
 /* ---------- FETCH BUYER DELIVERY DETAILS ---------- */
 $stmt = $conn->prepare("
-  SELECT full_name, phone, county, ward, address
-  FROM users
-  WHERE user_id = ?
+  SELECT 
+    u.full_name,
+    u.phone,
+    u.address,
+    w.name AS ward,
+    c.name AS county
+  FROM users u
+
+  LEFT JOIN locations w 
+    ON u.location_id = w.location_id AND w.type = 'ward'
+
+  LEFT JOIN locations c 
+    ON w.parent_id = c.location_id AND c.type = 'county'
+
+  WHERE u.user_id = ?
   LIMIT 1
 ");
+
 $stmt->bind_param("i", $userId);
 $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 $stmt->close();
 
-// Format full name (First letter capital, rest small)
+
+// ===============================
+// FORMAT DATA
+// ===============================
+
+// Format full name
 $formattedName = isset($user['full_name']) 
   ? ucwords(strtolower($user['full_name'])) 
   : 'Not Provided';
 
-// Decode phone from Base64
+// Decode phone
 $decodedPhone = isset($user['phone']) 
-    ? base64_decode($user['phone']) 
-    : 'No Phone';
+  ? base64_decode($user['phone']) 
+  : 'No Phone';
 
-/* Optional: regenerate session ID periodically */
-if (!isset($_SESSION['created'])) {
-    session_regenerate_id(true);
-    $_SESSION['created'] = time();
-}
+// Location names
+$ward   = $user['ward']   ?? 'Not set';
+$county = $user['county'] ?? 'Not set';
 
 /* ---------- HANDLE FOLLOW / UNFOLLOW AJAX ---------- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'toggle_follow') {
 
-    if (!isset($_SESSION['user_id'])) {
-        echo json_encode(['success' => false, 'error' => 'Not logged in']);
-        exit();
+    if (!$isLoggedIn) {
+      echo json_encode([
+        'success' => false,
+        'error' => 'Login Required',
+        'redirect' => 'login.php?redirect=' . urlencode($_SERVER['REQUEST_URI'])
+      ]);
+      exit();
     }
 
     $followerId = $_SESSION['user_id'];
@@ -59,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
     /* Check if already following */
     $check = $conn->prepare(
-        "SELECT 1 FROM user_followers WHERE follower_id = ? AND followed_id = ?"
+      "SELECT 1 FROM user_followers WHERE follower_id = ? AND followed_id = ?"
     );
     $check->bind_param("ii", $followerId, $followedId);
     $check->execute();
@@ -108,27 +131,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 /* ---------- HANDLE CART AJAX ---------- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-
-  if (!isset($_SESSION['user_id'])) {
-      echo json_encode(['success' => false, 'error' => 'Not logged in']);
-      exit();
-  }
   $action = $_POST['action'];
-
-  $stmt = $conn->prepare("
-    SELECT full_name, phone, county, ward, address
-    FROM users
-    WHERE user_id = ?
-    LIMIT 1
-  ");
-  $stmt->bind_param("i", $userId);
-  $stmt->execute();
-  $result = $stmt->get_result();
-  $user = $result->fetch_assoc();
-  $stmt->close();
 
   /* ================= PLACE ORDER ================= */
   if ($action === 'place_order') {
+    if (!$isLoggedIn) {
+      echo json_encode(['success' => false, 'error' => 'Login Required']);
+      exit();
+    }
     // Fetch current stock before committing
     $stockStmt = $conn->prepare("SELECT stock_quantity FROM productservicesrentals WHERE product_id = ? LIMIT 1");
     $stockStmt->bind_param("i", $productId);
@@ -252,6 +262,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
   }
 
   if ($action === 'place_order_multi') {
+    
+    if (!$isLoggedIn) {
+      echo json_encode(['success' => false, 'error' => 'Login Required']);
+      exit();
+    }
     $items = json_decode($_POST['items'] ?? '[]', true);
     $totalAmount = floatval($_POST['total_amount'] ?? 0);
 
@@ -382,119 +397,139 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
   /* ================= ADD TO CART ================= */
   if ($action === 'add_to_cart') {
-
-      $productId = (int)($_POST['product_id'] ?? 0);
-
-      if ($productId <= 0) {
-          echo json_encode(['success' => false]);
-          exit();
-      }
-
-      // Check if already in cart
-      $check = $conn->prepare("
-          SELECT quantity FROM user_cart
-          WHERE user_id = ? AND product_id = ?
-      ");
-      $check->bind_param("ii", $userId, $productId);
-      $check->execute();
-      $check->bind_result($qty);
-
-      if ($check->fetch()) {
-          $check->close();
-
-          $update = $conn->prepare("
-              UPDATE user_cart
-              SET quantity = quantity + 1
-              WHERE user_id = ? AND product_id = ?
-          ");
-          $update->bind_param("ii", $userId, $productId);
-          $update->execute();
-          $update->close();
-
-      } else {
-          $check->close();
-
-          $insert = $conn->prepare("
-              INSERT INTO user_cart (user_id, product_id, quantity)
-              VALUES (?, ?, 1)
-          ");
-          $insert->bind_param("ii", $userId, $productId);
-          $insert->execute();
-          $insert->close();
-      }
-
-      echo json_encode(['success' => true]);
+    
+    if (!$isLoggedIn) {
+      echo json_encode(['success' => false, 'error' => 'Login Required']);
       exit();
+    }
+
+    $productId = (int)($_POST['product_id'] ?? 0);
+
+    if ($productId <= 0) {
+        echo json_encode(['success' => false]);
+        exit();
+    }
+
+    // Check if already in cart
+    $check = $conn->prepare("
+        SELECT quantity FROM user_cart
+        WHERE user_id = ? AND product_id = ?
+    ");
+    $check->bind_param("ii", $userId, $productId);
+    $check->execute();
+    $check->bind_result($qty);
+
+    if ($check->fetch()) {
+        $check->close();
+
+        $update = $conn->prepare("
+            UPDATE user_cart
+            SET quantity = quantity + 1
+            WHERE user_id = ? AND product_id = ?
+        ");
+        $update->bind_param("ii", $userId, $productId);
+        $update->execute();
+        $update->close();
+
+    } else {
+      $check->close();
+
+      $insert = $conn->prepare("
+          INSERT INTO user_cart (user_id, product_id, quantity)
+          VALUES (?, ?, 1)
+      ");
+      $insert->bind_param("ii", $userId, $productId);
+      $insert->execute();
+      $insert->close();
+    }
+
+    echo json_encode(['success' => true]);
+    exit();
   }
 
   /* ================= FETCH CART ================= */
   if ($action === 'fetch_cart') {
-
-      $stmt = $conn->prepare("
-          SELECT 
-              uc.product_id,
-              uc.quantity,
-              p.product_name,
-              p.price,
-              p.image_path,
-              p.user_id AS seller_id,
-              u.business_name
-          FROM user_cart uc
-          JOIN productservicesrentals p 
-              ON uc.product_id = p.product_id
-          JOIN users u
-              ON p.user_id = u.user_id
-          WHERE uc.user_id = ?
-      ");
-      $stmt->bind_param("i", $userId);
-      $stmt->execute();
-      $result = $stmt->get_result();
-
-      $items = [];
-      while ($row = $result->fetch_assoc()) {
-          $items[] = $row;
-      }
-
-      echo json_encode(['success' => true, 'items' => $items]);
+    
+    if (!$isLoggedIn) {
+      echo json_encode(['success' => false, 'error' => 'Login Required']);
       exit();
+    }
+
+    $stmt = $conn->prepare("
+        SELECT 
+            uc.product_id,
+            uc.quantity,
+            p.product_name,
+            p.price,
+            p.image_path,
+            p.user_id AS seller_id,
+            u.business_name
+        FROM user_cart uc
+        JOIN productservicesrentals p 
+            ON uc.product_id = p.product_id
+        JOIN users u
+            ON p.user_id = u.user_id
+        WHERE uc.user_id = ?
+    ");
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $items = [];
+    while ($row = $result->fetch_assoc()) {
+        $items[] = $row;
+    }
+
+    echo json_encode(['success' => true, 'items' => $items]);
+    exit();
   }
 
   /* ================= REMOVE ================= */
   if ($action === 'remove_from_cart') {
-
-      $productId = (int)($_POST['product_id'] ?? 0);
-
-      $stmt = $conn->prepare("
-          DELETE FROM user_cart
-          WHERE user_id = ? AND product_id = ?
-      ");
-      $stmt->bind_param("ii", $userId, $productId);
-      $stmt->execute();
-      $stmt->close();
-
-      echo json_encode(['success' => true]);
+    
+    if (!$isLoggedIn) {
+      echo json_encode(['success' => false, 'error' => 'Login Required']);
       exit();
+    }
+
+    $productId = (int)($_POST['product_id'] ?? 0);
+
+    $stmt = $conn->prepare("
+        DELETE FROM user_cart
+        WHERE user_id = ? AND product_id = ?
+    ");
+    $stmt->bind_param("ii", $userId, $productId);
+    $stmt->execute();
+    $stmt->close();
+
+    echo json_encode(['success' => true]);
+    exit();
   }
 
   /* ================= UPDATE QUANTITY ================= */
   if ($action === 'update_quantity') {
-
-      $productId = (int)($_POST['product_id'] ?? 0);
-      $quantity  = (int)($_POST['quantity'] ?? 1);
-
-      if ($quantity <= 0) $quantity = 1;
-
-      $stmt = $conn->prepare("
-          UPDATE user_cart
-          SET quantity = ?
-          WHERE user_id = ? AND product_id = ?
-      ");
-      $stmt->bind_param("iii", $quantity, $userId, $productId);
-      $stmt->execute();
-      $stmt->close();
-
-      echo json_encode(['success' => true]);
+    
+    if (!$isLoggedIn) {
+      echo json_encode(['success' => false, 'error' => 'Login Required']);
       exit();
+    }
+
+    $productId = (int)($_POST['product_id'] ?? 0);
+    $quantity  = (int)($_POST['quantity'] ?? 1);
+
+    if ($quantity <= 0) $quantity = 1;
+
+    $stmt = $conn->prepare("
+        UPDATE user_cart
+        SET quantity = ?
+        WHERE user_id = ? AND product_id = ?
+    ");
+    $stmt->bind_param("iii", $quantity, $userId, $productId);
+    $stmt->execute();
+    $stmt->close();
+
+    echo json_encode(['success' => true]);
+    exit();
   }
 
   if ($action === 'checkout_cart') {
@@ -594,8 +629,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
   /* ================= PROCESS PAYMENT ================= */
   if ($action === 'process_payment') {
+    
+    if (!$isLoggedIn) {
+      echo json_encode(['success' => false, 'error' => 'Login Required']);
+      exit();
+    }
+    
 
     $orderId = $_POST['order_id'] ?? null;
+    
+    $orderCheck = $conn->prepare("
+      SELECT buyer_id FROM orders WHERE order_id = ? LIMIT 1
+    ");
+    $orderCheck->bind_param("i", $orderId);
+    $orderCheck->execute();
+    $orderCheck->bind_result($orderOwner);
+    $orderCheck->fetch();
+    $orderCheck->close();
+
+    if ($orderOwner !== $userId) {
+      throw new Exception("Unauthorized payment attempt");
+    }
 
     if (!$orderId || !is_numeric($orderId)) {
       echo json_encode([
@@ -722,23 +776,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
 }
 
-$buyerId  = $_SESSION['user_id'];
-$sellerId = (int)$_GET['seller'];
+$buyerId = $userId;
+$sellerId = (int)($_GET['seller'] ?? 0);
 
 /* ---------- FETCH SELLER PROFILE ---------- */
 $sellerStmt = $conn->prepare("
-    SELECT 
-      user_id,
-      business_name,
-      business_type,
-      market_scope,
-      address,
-      ward,
-      profile_image
-    FROM users
-    WHERE user_id = ? AND account_type = 'seller'
-    LIMIT 1
+  SELECT 
+    u.user_id,
+    u.business_name,
+    u.business_type,
+    u.market_scope,
+    u.address,
+    u.profile_image,
+    w.name AS ward,
+    c.name AS county
+
+  FROM users u
+
+  LEFT JOIN locations w 
+    ON u.location_id = w.location_id AND w.type = 'ward'
+
+  LEFT JOIN locations c 
+    ON w.parent_id = c.location_id AND c.type = 'county'
+
+  WHERE u.user_id = ? 
+  AND u.account_type = 'seller'
+  LIMIT 1
 ");
+
 $sellerStmt->bind_param("i", $sellerId);
 $sellerStmt->execute();
 $seller = $sellerStmt->get_result()->fetch_assoc();
@@ -866,9 +931,9 @@ $productStmt->close();
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,70090000000;1,800;1,900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 
-  <title>Seller's shelf | Maket Hub</title>
+  <title>Seller's shelf | Makethub</title>
 </head>
 <body>
   <div class="container">
@@ -913,7 +978,7 @@ $productStmt->close();
           </div>
 
           <div class="summary-row">
-            <span>Maket Hub Points</span>
+            <span>Makethub Points</span>
             <span>KES 0</span>
           </div>
 
@@ -952,14 +1017,14 @@ $productStmt->close();
     </form>
     <div class="overlay" onclick="toggleWhatsAppChat()" id="overlay"></div>
     <div id="whatsapp-button" onclick="toggleWhatsAppChat()">
-      <img src="Images/Maket Hub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
+      <img src="Images/Makethub WhatsApp Icon.avif" width="45" alt="Chat with us on WhatsApp">
     </div>
 
     <div id="whatsapp-chat-box">
       <div class="chat-header">
         <div class="top">
-          <img src="Images/Maket Hub Logo.avif" alt="Maket Hub Logo" width="35">
-          <p><strong>Maket Hub</strong><br>
+          <img src="Images/Makethub Logo.avif" alt="Makethub Logo" width="35">
+          <p><strong>Makethub</strong><br>
           <small>online</small></p>
         </div>
         <i class="fa-solid fa-xmark" onclick="toggleWhatsAppChat()"></i>
@@ -967,7 +1032,7 @@ $productStmt->close();
       <div class="chat-body">
         <div class="chat-container">
           <div class="chat-bubble">
-            <div class="sender">Maket Hub</div>
+            <div class="sender">Makethub</div>
             <div class="message">
               Hello there! 😊<br>
               How can we help?
@@ -1168,24 +1233,44 @@ $productStmt->close();
 
         <!-- LEFT COLUMN -->
         <div>
-          <!-- Shipping -->
-          <div class="card">
-            <div class="card-title">
-              Delivery Details
+        <!-- Shipping -->
+        <div class="card">
+          <div class="card-title">
+            Delivery Details
+
+            <?php if ($isLoggedIn): ?>
               <a href="userProfile.php" class="update-btn">
-                <i class="fa-solid fa-cloud-arrow-up"></i>Update
+                <i class="fa-solid fa-cloud-arrow-up"></i> Update
               </a>
-            </div>
+            <?php endif; ?>
+          </div>
+
+          <?php if ($isLoggedIn): ?>
 
             <div class="address-name">
               <?= htmlspecialchars($formattedName) ?>:
             </div>
 
             <div class="address-text">
-              From <?= htmlspecialchars($user['address'] ?? '') ?>, <?= htmlspecialchars($user['ward'] ?? '') ?> ward in <?= htmlspecialchars($user['county'] ?? '') ?><br>
+              From <?= htmlspecialchars($user['address'] ?? '') ?>,
+              <?= htmlspecialchars($user['ward'] ?? '') ?> ward in
+              <?= htmlspecialchars($user['county'] ?? '') ?><br>
               Contact: <?= htmlspecialchars($decodedPhone) ?>
             </div>
-          </div>                  
+
+          <?php else: ?>
+
+            <div class="address-text" style="padding: 12px 0;">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              You are not logged in. Please
+              <a href="index.php" style="color:#0f0f0f; font-weight:600;">
+                log in
+              </a>
+              to view or set delivery details!
+            </div>
+
+          <?php endif; ?>
+        </div>                 
 
           <br>
           
@@ -1218,7 +1303,7 @@ $productStmt->close();
             </div>
 
             <div class="summary-row">
-              <span>Maket Hub Points</span>
+              <span>Makethub Points</span>
               <span>0</span>
             </div>
 
@@ -1236,8 +1321,13 @@ $productStmt->close();
       </div>
     </main>
   
-    <footer>
-      <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
+        <footer>
+      <p>&copy; 2025/2026, Makethub.shop, All Rights Reserved.</p><br>
+      <p>
+        <a href="privacy.php">Privacy Policy</a> |
+        <a href="terms.php">Terms & Conditions</a> |
+        <a href="contact.php">Contact Us</a>
+      </p>
     </footer>
   </div>
   
@@ -1258,63 +1348,93 @@ $productStmt->close();
   });
   </script>
   <script>
-  document.addEventListener("DOMContentLoaded", () => {
-      document.addEventListener("click", (e) => {
-          // Handle clicks on both followBtn and followingBtn
-          const button = e.target.closest(".followBtn, .followingBtn");
-          if (!button) return;
+    document.addEventListener("DOMContentLoaded", () => {
+        document.addEventListener("click", (e) => {
+            // Handle clicks on both followBtn and followingBtn
+            const button = e.target.closest(".followBtn, .followingBtn");
+            if (!button) return;
 
-          e.preventDefault();
+            e.preventDefault();
 
-          const sellerId = button.dataset.seller;
-          if (!sellerId) return;
+            const sellerId = button.dataset.seller;
+            if (!sellerId) return;
 
-          // Disable button briefly to prevent double-click
-          button.style.pointerEvents = "none";
+            // Disable button briefly to prevent double-click
+            button.style.pointerEvents = "none";
 
-          fetch("marketDisplay.php", {
-              method: "POST",
-              headers: {
-                  "Content-Type": "application/x-www-form-urlencoded",
-                  "X-Requested-With": "XMLHttpRequest"
-              },
-              body: `action=toggle_follow&seller_id=${sellerId}`
-          })
-          .then(res => res.json())
-          .then(data => {
-              if (!data.success) {
-                  alert(data.error || "Action failed");
+            fetch("marketDisplay.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                body: `action=toggle_follow&seller_id=${sellerId}`
+            })
+            .then(res => res.json())
+            .then(data => {
+
+                const duration = 3000;
+
+                if (!data.success) {
+                  showNotification(
+                    `<i class="fa-solid fa-triangle-exclamation"></i> ${data.error || "Action failed"}`,
+                    duration,
+                    "warning"
+                  );
                   return;
-              }
+                }
+                // Animate button (Instagram-style pop)
+                button.classList.add("follow-animate");
+                setTimeout(() => {
+                    button.classList.remove("follow-animate");
+                }, 200);
 
-              // Toggle text
-              button.textContent = data.is_following ? "Following" : "Follow";
+                // Toggle text
+                button.textContent = data.is_following ? "Following" : "Follow";
 
-              // Toggle class
-              if (data.is_following) {
+                // Toggle class
+                if (data.is_following) {
                   button.classList.remove("followBtn");
                   button.classList.add("followingBtn");
-              } else {
+
+                  showNotification(
+                    `<i class="fa-solid fa-user-check"></i> You are now following this seller!`,
+                    duration,
+                    "success"
+                  );
+                } else {
                   button.classList.remove("followingBtn");
                   button.classList.add("followBtn");
-              }
 
-              // Update followers count
-              const followersCountEl = document.querySelector(
-                  `.followers-count[data-seller="${sellerId}"]`
-              );
+                  showNotification(
+                    `<i class="fa-solid fa-user-minus"></i> You unfollowed this seller!`,
+                    duration,
+                    "warning"
+                  );
+                }
 
-              if (followersCountEl) {
-                  followersCountEl.innerHTML = `${data.followers}&nbsp;<span>followers</span>`;
-              }
-          })
-          .catch(() => alert("Network error"))
-          .finally(() => {
-              // Re-enable button
-              button.style.pointerEvents = "auto";
-          });
-      });
-  });
+                // Update followers count
+                const followersCountEl = document.querySelector(
+                    `.followers-count[data-seller="${sellerId}"]`
+                );
+
+                if (followersCountEl) {
+                    followersCountEl.innerHTML = `${data.followers}&nbsp;<span>followers</span>`;
+                }
+            })
+            .catch(() => {
+                showNotification(
+                    `<i class="fa-solid fa-wifi"></i> Network error`,
+                    3000,
+                    "error"
+                );
+            })
+            .finally(() => {
+                // Re-enable button
+                button.style.pointerEvents = "auto";
+            });
+        });
+    });
   </script>
   
 </body>

@@ -671,9 +671,40 @@ function addToCart(productId) {
   })
   .then(res => res.json())
   .then(data => {
+
+    const duration = 3000;
+
     if (data.success) {
+      showNotification(
+        `<i class="fa-solid fa-cart-plus"></i> Added to cart successfully!`,
+        duration,
+        "success"
+      );
+
       loadCart();
+
+    } else if (data.error && data.error.trim() !== "") {
+      showNotification(
+        `<i class="fa-solid fa-triangle-exclamation"></i> ${data.error}`,
+        duration,
+        "warning"
+      );
+
+    } else {
+      showNotification(
+        `<i class="fa-solid fa-triangle-exclamation"></i> Failed to add to cart!`,
+        duration,
+        "warning"
+      );
     }
+
+  })
+  .catch(() => {
+    showNotification(
+      `<i class="fa-solid fa-wifi"></i> Network error!`,
+      3000,
+      "error"
+    );
   });
 }
 
@@ -753,6 +784,38 @@ function loadCart() {
       cartItemsContainer.appendChild(div);
     });
 
+    // 👉 Handle minus button state for all cart items
+    const cartItems = cartItemsContainer.querySelectorAll(".cart-item");
+
+    cartItems.forEach(item => {
+      const minusBtn = item.querySelector(".qty-btn.minus");
+      const plusBtn  = item.querySelector(".qty-btn.plus");
+      const qtyDisplay = item.querySelector(".qty-number");
+
+      function syncMinusState() {
+        if (parseInt(qtyDisplay.textContent) <= 1) {
+          minusBtn.classList.add("disabled");
+          minusBtn.disabled = true;
+        } else {
+          minusBtn.classList.remove("disabled");
+          minusBtn.disabled = false;
+        }
+      }
+
+      // Initial check
+      syncMinusState();
+
+      // After clicking minus
+      minusBtn.addEventListener("click", () => {
+        setTimeout(syncMinusState, 0);
+      });
+
+      // After clicking plus
+      plusBtn.addEventListener("click", () => {
+        setTimeout(syncMinusState, 0);
+      });
+    });
+
     updateTotals();
     updateCartCount();
   });
@@ -798,7 +861,7 @@ document.addEventListener("click", e => {
   /* Remove item */
   if (e.target.classList.contains("remove-btn")) {
     e.target.closest(".cart-item")?.remove();
-    showNotification(`<i class="fa-solid fa-triangle-exclamation"></i> Item removed from cart`, 2000, "warning");
+    showNotification(`<i class="fa-solid fa-triangle-exclamation"></i> Item removed from cart!`, 2000, "warning");
   }
 
   updateTotals();
@@ -1278,7 +1341,7 @@ function openAddProductForm(type) {
   window.location.href = "adminPage.php?type=product";
 }
 
-// Delete Maket Hub Products JS
+// Delete Makethub Products JS
 document.addEventListener("click", function(e){
 
   const btn = e.target.closest(".delete-product-btn");
@@ -1431,7 +1494,7 @@ function shareWhatsApp(){
   const link = getAgencyLink();
 
   const message =
-  "Join Maket Hub as an Agent and start earning commissions! 🚀\n\n" + link;
+  "Join Makethub as an Agent and start earning commissions! 🚀\n\n" + link;
 
   const url =
   "https://wa.me/?text=" + encodeURIComponent(message);
@@ -1469,7 +1532,7 @@ function shareTwitter(){
   const link = getAgencyLink();
 
   const text =
-  "Join Maket Hub as an agent and earn commissions!";
+  "Join Makethub as an agent and earn commissions!";
 
   const url =
   "https://twitter.com/intent/tweet?text=" +
@@ -1492,10 +1555,10 @@ function shareEmail(){
   const link = getAgencyLink();
 
   const subject =
-  "Join Maket Hub Agent Program";
+  "Join Makethub Agent Program";
 
   const body =
-  "I invite you to join Maket Hub and earn commissions.\n\nRegister here:\n" +
+  "I invite you to join Makethub and earn commissions.\n\nRegister here:\n" +
   link;
 
   window.location.href =
@@ -1517,12 +1580,12 @@ function shareNative(){
   const link = getAgencyLink();
 
   const text =
-  "Join Maket Hub and start earning commissions.";
+  "Join Makethub and start earning commissions.";
 
   if(navigator.share){
 
     navigator.share({
-      title: "Maket Hub Agent",
+      title: "Makethub Agent",
       text: text,
       url: link
     });
@@ -1786,9 +1849,39 @@ function buyNow(button) {
     </div>
     ${sellerContent}
     <div class="guarantee">
-      Maket Hub · your number one marketplace.
+      Makethub · your number one marketplace.
     </div>
   `;
+
+  const minusBtn = card.querySelector(".qty-btn.minus");
+  const plusBtn = card.querySelector(".qty-btn.plus");
+  const qtyDisplay = card.querySelector(".qty-number");
+
+  function syncMinusState() {
+    if (parseInt(qtyDisplay.textContent) <= 1) {
+      minusBtn.classList.add("disabled");
+      minusBtn.disabled = true;
+    } else {
+      minusBtn.classList.remove("disabled");
+      minusBtn.disabled = false;
+    }
+  }
+
+  // Initial state
+  syncMinusState();
+
+  // ➕ PLUS button
+  plusBtn.addEventListener("click", () => {
+    // let your existing logic increase the number FIRST
+    // (important: this must happen before sync)
+
+    setTimeout(syncMinusState, 0); // ensures DOM updated first
+  });
+
+  // ➖ MINUS button
+  minusBtn.addEventListener("click", () => {
+    setTimeout(syncMinusState, 0);
+  });
 
   // Store selected order globally
   window.selectedOrder = {
@@ -1806,15 +1899,16 @@ function buyNow(button) {
     headers: {"Content-Type":"application/x-www-form-urlencoded"},
     body: `action=add_to_cart&product_id=${productId}`
   });
+  resetScrollFor();
 }
 
-/* function placeOrder() {
+function placeOrder() {
   const payButton = document.getElementById("payButton");
 
-  if (payButton.disabled) return; */
+  if (payButton.disabled) return;
 
   // 🔄 Loading state
-/*   payButton.disabled = true;
+  payButton.disabled = true;
   payButton.innerHTML = `<span class="btn-spinner"></span> Processing...`;
 
   const products = document.querySelectorAll(".order-container .product");
@@ -1823,13 +1917,13 @@ function buyNow(button) {
     showNotification(`<i class="fa-solid fa-triangle-exclamation"></i> No products selected!`, 3000, "warning");
     resetPayButton();
     return;
-  } */
+  }
 
- /*  const orderItems = [];
+  const orderItems = [];
   let totalAmount = 0;
-  let hasError = false; */ // ✅ fix: track errors properly
+  let hasError = false; // ✅ fix: track errors properly
 
-/*   products.forEach(productEl => {
+  products.forEach(productEl => {
       const product_id = productEl.dataset.product;
       const seller_id  = productEl.dataset.seller;
       const quantity   = parseInt(productEl.querySelector(".qty-number").textContent);
@@ -1848,10 +1942,10 @@ function buyNow(button) {
           quantity,
           price
       });
-  }); */
+  });
 
   // ✅ handle validation AFTER loop (important fix)
-/*   if (hasError) {
+  if (hasError) {
     showNotification(`<i class="fa-solid fa-circle-exclamation"></i> Invalid product in order!`, 3000, "error");
     resetPayButton();
     return;
@@ -1879,25 +1973,25 @@ function buyNow(button) {
   .then(data => {
     const duration = 3000;
 
-    if (data.success) { */
+    if (data.success) {
         // ✅ Success state
-/*         payButton.innerHTML = `<i class="fa-solid fa-check"></i> Paid`;
+        payButton.innerHTML = `<i class="fa-solid fa-check"></i> Paid`;
         showNotification(
             `<i class='fa-solid fa-check-circle'></i> Order placed successfully!`,
             duration,
             "success"
-        ); */
+        );
         // 🔥 CALL PAYMENT PROCESSOR
         // After order creation
-/*         fetch("marketDisplay.php", {
+        fetch("marketDisplay.php", {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded"
             },
             body: `action=process_payment&order_id=${data.order_id}`
         })
-        .then(res => res.json())  */// ✅ THIS IS THE FIX
-/*         .then(payData => {
+        .then(res => res.json()) // ✅ THIS IS THE FIX
+        .then(payData => {
 
             console.log("🔥 FULL PAYMENT RESPONSE:", payData);
 
@@ -1920,20 +2014,18 @@ function buyNow(button) {
 
         payButton.innerHTML = `<i class="fa-solid fa-check"></i> Paid`;
         setTimeout(() => location.reload(), 4500);
-    } else if (data.error && data.error.trim() !== "") { */
+    } else if (data.error && data.error.trim() !== "") {
         // ⚠️ Backend error (e.g., stock issue)
-/*         showNotification(
-            `<i class="fa-solid fa-triangle-exclamation"></i> ${data.error}`,
-            duration,
-            "warning"
+        showNotification(
+          `<i class="fa-solid fa-triangle-exclamation"></i> ${data.error}`, duration, "warning"
         );
         setTimeout(() => {
-            resetPayButton();
-            updateOrderSummary();
+          resetPayButton();
+          updateOrderSummary();
         }, duration);
-    } else { */
+    } else {
         // ❌ Generic failure
-/*         showNotification(
+        showNotification(
             `<i class="fa-solid fa-circle-exclamation"></i> Order failed!`,
             duration,
             "error"
@@ -1944,9 +2036,9 @@ function buyNow(button) {
         }, duration);
     }
   })
-  .catch(() => { */
+  .catch(() => {
     // Only triggers if fetch/network fails
-/*     showNotification(
+    showNotification(
         `<i class="fa-solid fa-wifi"></i> Network error!`,
         3000,
         "error"
@@ -1958,7 +2050,8 @@ function buyNow(button) {
     payButton.disabled = false;
     payButton.innerHTML = "Try Again";
   }
-} */
+  resetScrollFor();
+}
 
 // ===== Quantity change handler (Buy Now + Cart) =====
 document.addEventListener("click", function(e){
@@ -2134,12 +2227,54 @@ function proceedFromCart() {
     // Update the order card
     const card = document.querySelectorAll(".card")[1];
     if (card) {
-      card.querySelector("#dynamicOrderBox")?.remove(); // remove old content if exists
-      const dynamicBox = document.createElement("div");
-      dynamicBox.id = "dynamicOrderBox";
-      dynamicBox.innerHTML = allSellersContent;
-      card.appendChild(dynamicBox);
+      card.innerHTML = `
+        <div class="card-title">
+          <p>
+            Order Summary<br>
+            <span>Item(s): <strong id="orderItemCount">${totalItems}</strong></span>
+          </p>
+        </div>
+
+        <div id="dynamicOrderBox">
+          ${allSellersContent}
+        </div>
+
+        <div class="guarantee">
+          Makethub · your number one marketplace.
+        </div>
+      `;
     }
+
+    const allProducts = card.querySelectorAll("#dynamicOrderBox .product");
+
+    allProducts.forEach(productEl => {
+      const minusBtn = productEl.querySelector(".qty-btn.minus");
+      const plusBtn  = productEl.querySelector(".qty-btn.plus");
+      const qtyDisplay = productEl.querySelector(".qty-number");
+
+      function syncMinusState() {
+        if (parseInt(qtyDisplay.textContent) <= 1) {
+          minusBtn.classList.add("disabled");
+          minusBtn.disabled = true;
+        } else {
+          minusBtn.classList.remove("disabled");
+          minusBtn.disabled = false;
+        }
+      }
+
+      // Initial state
+      syncMinusState();
+
+      // ➕ PLUS
+      plusBtn.addEventListener("click", () => {
+        setTimeout(syncMinusState, 0);
+      });
+
+      // ➖ MINUS
+      minusBtn.addEventListener("click", () => {
+        setTimeout(syncMinusState, 0);
+      });
+    });
 
     // Update totals in summary section
     const formattedGrandTotal = grandTotal.toLocaleString('en-US', {
@@ -2155,6 +2290,7 @@ function proceedFromCart() {
     if (finalTotalEl) finalTotalEl.textContent = `KES ${formattedGrandTotal}`;
     if (payButton)   payButton.textContent = `Pay KES ${formattedGrandTotal}`;
   });
+  resetScrollFor();
 }
 
 function updateQuantity(productId, newQty) {
@@ -2182,8 +2318,16 @@ document.addEventListener("click", function(e){
 
   const productId = productEl.dataset.product;
 
-  // Remove visually
+  // 👉 Get seller box BEFORE removing product
+  const sellerBox = productEl.closest(".seller-box");
+
+  // Remove product
   productEl.remove();
+
+  // 👉 If no products left inside this seller, remove seller box too
+  if (sellerBox && sellerBox.querySelectorAll(".product").length === 0) {
+    sellerBox.remove();
+  }
 
   // Clear Buy Now order if matches
   if (window.selectedOrder && productId == window.selectedOrder.product_id) {
@@ -2344,32 +2488,147 @@ document.addEventListener("click", function (e) {
 });
 
 // ===============================
-// FETCH WARDS JS
+// LOCATION DROPDOWNS (UNIFIED API FIXED)
 // ===============================
 
-document.getElementById("county").addEventListener("change", function() {
-  const countyId = this.value;
-  const wardSelect = document.getElementById("ward");
+const countrySelect = document.getElementById("country");
+const countySelect = document.getElementById("county");
+const wardSelect = document.getElementById("ward");
 
-  wardSelect.innerHTML = '<option value="">Loading...</option>';
+const oldCountry = document.getElementById("old_country")?.value;
+const oldCounty = document.getElementById("old_county")?.value;
+const oldWard = wardSelect?.dataset.selected;
 
-  fetch("fetch_wards.php", {
-      method: "POST",
-      headers: {
-          "Content-Type": "application/x-www-form-urlencoded"
-      },
-      body: "county_id=" + countyId
+// store latest loaded structure
+let locationTree = [];
+
+// ===============================
+// SORT HELPER (A → Z)
+// ===============================
+function sortByName(arr) {
+  return arr.sort((a, b) =>
+    (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base" })
+  );
+}
+
+// ===============================
+// LOAD FULL LOCATION TREE
+// ===============================
+function loadLocations(countryId, selectedCounty = null, selectedWard = null) {
+
+  countySelect.innerHTML = '<option value="">Loading...</option>';
+  wardSelect.innerHTML = '<option value="">-- Select Ward --</option>';
+
+  fetch("fetch_locations.php", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: "country_id=" + countryId
   })
   .then(res => res.json())
   .then(data => {
-      wardSelect.innerHTML = '<option value="">-- Select Ward --</option>';
 
-      data.forEach(ward => {
-          wardSelect.innerHTML += `
-              <option value="${ward.location_id}">
-                  ${ward.name}
-              </option>
-          `;
+    locationTree = data || [];
+
+    countySelect.innerHTML = '<option value="">-- Select County --</option>';
+    wardSelect.innerHTML = '<option value="">-- Select Ward --</option>';
+
+    let counties = [];
+
+    // ===============================
+    // EXTRACT ALL COUNTIES
+    // ===============================
+    locationTree.forEach(region => {
+      const regionCounties = region.counties || {};
+
+      Object.values(regionCounties).forEach(county => {
+        counties.push({
+          location_id: county.location_id,
+          name: county.name,
+          wards: county.wards || []
+        });
       });
+    });
+
+    // SORT COUNTIES A-Z
+    counties = sortByName(counties);
+
+    // ===============================
+    // POPULATE COUNTIES
+    // ===============================
+    counties.forEach(county => {
+      const selected = selectedCounty == county.location_id ? "selected" : "";
+      countySelect.innerHTML += `
+        <option value="${county.location_id}" ${selected}>
+          ${county.name}
+        </option>
+      `;
+    });
+
+    // ===============================
+    // AUTO LOAD WARDS
+    // ===============================
+    if (selectedCounty) {
+      loadWardsFromTree(selectedCounty, selectedWard);
+    }
+  })
+  .catch(err => {
+    console.error("Location load error:", err);
   });
+}
+
+// ===============================
+// COUNTY → WARDS (FROM MEMORY TREE)
+// ===============================
+function loadWardsFromTree(countyId, selectedWard = null) {
+
+  wardSelect.innerHTML = '<option value="">Loading...</option>';
+
+  let wards = [];
+
+  locationTree.forEach(region => {
+    const counties = region.counties || {};
+
+    Object.values(counties).forEach(county => {
+      if (county.location_id == countyId) {
+        wards = county.wards || [];
+      }
+    });
+  });
+
+  // SORT WARDS A-Z
+  wards = sortByName(wards);
+
+  wardSelect.innerHTML = '<option value="">-- Select Ward --</option>';
+
+  wards.forEach(ward => {
+    const selected = selectedWard == ward.location_id ? "selected" : "";
+    wardSelect.innerHTML += `
+      <option value="${ward.location_id}" ${selected}>
+        ${ward.name}
+      </option>
+    `;
+  });
+}
+
+// ===============================
+// EVENTS
+// ===============================
+countrySelect.addEventListener("change", function () {
+  loadLocations(this.value);
+});
+
+countySelect.addEventListener("change", function () {
+  loadWardsFromTree(this.value);
+});
+
+// ===============================
+// RESTORE ON PAGE LOAD
+// ===============================
+window.addEventListener("DOMContentLoaded", () => {
+  if (oldCountry) {
+    countrySelect.value = oldCountry;
+    loadLocations(oldCountry, oldCounty, oldWard);
+  }
 });

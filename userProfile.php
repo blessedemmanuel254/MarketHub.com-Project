@@ -28,7 +28,7 @@ $stmt = $conn->prepare("SELECT * FROM users WHERE user_id = ? LIMIT 1");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
-$stmt->close();
+
 
 if (!$user) {
     session_destroy();
@@ -167,7 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           if ($stmt->num_rows > 0) {
               $error = "Business name already exists!";
           }
-          $stmt->close();
+          
 
           $busname = ucwords($normalizedBusname);
       }
@@ -198,7 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           if ($stmt->num_rows > 0) {
               $error = "Phone number already exists!";
           }
-          $stmt->close();
+          
       }
   }
 
@@ -303,9 +303,9 @@ if (!empty($user['profile_image'])) {
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,70090000000;1,800;1,900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 
-  <title>My Profile | Maket Hub</title>
+  <title>My Profile | Makethub</title>
 </head>
 <body>
   <div class="container">
@@ -313,10 +313,10 @@ if (!empty($user['profile_image'])) {
       <div class="formContainer">
         <section>
           <div class="top">
-            <img src="Images/Maket Hub Logo.avif" alt="Maket Hub Logo" width="40">
-            <h1 class="login">Maket&nbsp;Hub</h1>
+            <img src="Images/Makethub Logo.avif" alt="Makethub Logo" width="40">
+            <h1 class="login">Makethub</h1>
           </div>
-          <h3>Update your Maket Hub Profile!</h3>
+          <h3>Update your Makethub Profile!</h3>
         </section>
       </div>
       <?php if ($accountType === 'buyer'): ?>
@@ -343,7 +343,7 @@ if (!empty($user['profile_image'])) {
           </div>
           <div>
             <h2><?= htmlspecialchars(ucwords(strtolower($full_name))) ?></h2>
-            <p>Edit your Maket Hub profile details</p>
+            <p>Edit your Makethub profile details</p>
           </div>
         </div>
 
@@ -438,7 +438,7 @@ if (!empty($user['profile_image'])) {
           </div>
           <div>
             <h2><?= htmlspecialchars(ucwords(strtolower($full_name))) ?></h2>
-            <p>Edit your Maket Hub details</p>
+            <p>Edit your Makethub details</p>
           </div>
         </div>
 
@@ -561,7 +561,7 @@ if (!empty($user['profile_image'])) {
           </div>
           <div>
             <h2><?= htmlspecialchars(ucwords(strtolower($full_name))) ?></h2>
-            <p>Edit your Maket Hub details</p>
+            <p>Edit your Makethub details</p>
           </div>
         </div>
 
@@ -667,7 +667,7 @@ if (!empty($user['profile_image'])) {
           </div>
           <div>
             <h2><?= htmlspecialchars(ucwords(strtolower($full_name))) ?></h2>
-            <p>Edit your Maket Hub details</p>
+            <p>Edit your Makethub details</p>
           </div>
         </div>
 
@@ -739,8 +739,13 @@ if (!empty($user['profile_image'])) {
       </div>
       <?php endif; ?>
     </main>
-    <footer>
-      <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
+        <footer>
+      <p>&copy; 2025/2026, Makethub.shop, All Rights Reserved.</p><br>
+      <p>
+        <a href="privacy.php">Privacy Policy</a> |
+        <a href="terms.php">Terms & Conditions</a> |
+        <a href="contact.php">Contact Us</a>
+      </p>
     </footer>
   </div>
   

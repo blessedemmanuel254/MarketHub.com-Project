@@ -8,17 +8,15 @@ if (!isset($_SESSION['accountType'])) {
   exit();
 }
 
+$country = "";
 $accountType = $_SESSION['accountType'];
-
 $error = "";
 $success = "";
 $full_name = "";
 $username = "";
 $email = "";
 $phone = "";
-$country = "";
-$county = "";
-$ward = "";
+$location_id = "";
 $address = "";
 $busname = "";
 $busmodel = "";
@@ -78,9 +76,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $phone = trim($_POST['phone'] ?? '');
   $password = $_POST['password'] ?? '';
   $confirm_password = $_POST['confirm_password'] ?? '';
-  $country = trim($_POST['country'] ?? '');
-  $county = trim($_POST['county'] ?? '');
-  $ward = trim($_POST['ward'] ?? '');
+  $location_id = intval($_POST['ward'] ?? 0); // ward is the final level
   $address = trim($_POST['address'] ?? '');
   $busname = trim($_POST['busname'] ?? '');
   $normalizedBusname = normalizeBusinessName($busname);
@@ -88,7 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $bustype = trim($_POST['bustype'] ?? '');
   $market = trim($_POST['market'] ?? '');
 
-  if (!$full_name || !$username || !$email || !$phone || !$password || !$confirm_password || !$country || !$county || !$ward || !$address || ($accountType === 'seller' && (!$busname || !$busmodel || !$bustype || !$market))) {
+  if (!$full_name || !$username || !$email || !$phone || !$password || !$confirm_password || !$location_id || !$address || ($accountType === 'seller' && (!$busname || !$busmodel || !$bustype || !$market))) {
     $error = "All fields are required!";
   } else if (!$accountType) {
     $error = 'Visit the <a href="accountTypeSelection.php">account-type selection</a> page to proceed!';
@@ -109,7 +105,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   } elseif (strlen($address) > 25) {
     $error = "Address too long!";
   } else {
-    $encrypted_email = base64_encode($email);
+    $encrypted_email = base64_encode(strtolower($email));
     $normalized_phone = normalizePhoneNumber($phone);
 
     $checkUserQuery = "SELECT * FROM users WHERE email = ? OR username = ?";
@@ -180,27 +176,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
           // Insert into database
           $stmt = $conn->prepare("
-              INSERT INTO users 
-              (account_type, full_name, username, email, phone, password, country, county, ward, address, business_name, business_model, business_type, market_scope, created_at, updated_at)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+            INSERT INTO users 
+            (account_type, full_name, username, email, phone, password, location_id, address, business_name, business_model, business_type, market_scope, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
           ");
 
           $stmt->bind_param(
-              "ssssssssssssss",
-              $accountType,
-              $full_name,
-              $username,
-              $encrypted_email,
-              $encrypted_phone,
-              $hashedPassword,
-              $country,
-              $county,
-              $ward,
-              $address,
-              $busname,
-              $busmodel,
-              $bustype,
-              $market
+            "ssssssisssss",
+            $accountType,
+            $full_name,
+            $username,
+            $encrypted_email,
+            $encrypted_phone,
+            $hashedPassword,
+            $location_id,
+            $address,
+            $busname,
+            $busmodel,
+            $bustype,
+            $market
           );
 
           if ($stmt->execute()) {
@@ -273,7 +266,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 
-  <title>Register Account ~ Maket Hub</title>
+  <title>Register Account ~ Makethub</title>
 </head>
 <body>
   <div class="container">
@@ -282,13 +275,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       <div class="formContainer">
         <section>
           <div class="top">
-            <img src="Images/Maket Hub Logo.avif" alt="Maket Hub Logo" width="40">
-            <h1 class="login">Maket&nbsp;Hub</h1>
+            <img src="Images/Makethub Logo.avif" alt="Makethub Logo" width="40">
+            <h1 class="login">Makethub</h1>
           </div>
           <h3>Find Local. Shop Without Limits!</h3>
         </section>
         <form action="" method="POST">
-          <h2>Register account on Maket Hub</h2>
+          <h2>Register account on Makethub</h2>
+          <p style="font-size:13px; color:#555; margin-bottom:10px;">
+            Your information is securely stored and used only to create your Makethub account. 
+            We do not share your data with third parties.
+          </p>
           <div class="account-type">
             <div class="account-icon">🛒</div>
             <div class="regInfo">
@@ -325,10 +322,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
               <div class="selectorBox">
                 <span>Country</span>
                 <select id="country" name="country" required>
-                  <option value=""><p>-- Select Country --</p></option>
-                  <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
-                  <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
-                  <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                  <option value="">-- Select Country --</option>
+                  <?php
+                    $countries = $conn->query("SELECT location_id, name FROM locations WHERE type='country' ORDER BY name ASC");
+                    while ($row = $countries->fetch_assoc()):
+                  ?>
+                    <option value="<?= $row['location_id']; ?>" 
+                      <?= ($country == $row['location_id']) ? 'selected' : ''; ?>>
+                      <?= htmlspecialchars($row['name']); ?>
+                    </option>
+                  <?php endwhile; ?>
                 </select>
               </div>
             </div>
@@ -341,19 +344,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <span>County</span>
                 <select id="county" name="county" required>
                   <option value="">-- Select County --</option>
-                  <?php
-                    $result = $conn->query("SELECT location_id, name FROM locations WHERE type = 'county' ORDER BY name ASC");
-                    while ($row = $result->fetch_assoc()):
-                  ?>
-                    <option value="<?= $row['location_id']; ?>">
-                      <?= htmlspecialchars($row['name']); ?>
-                    </option>
-                  <?php endwhile; ?>
                 </select>
               </div>
               <div class="selectorBox">
                 <span>Ward</span>
-                <select id="ward" name="ward" required>
+                <select id="ward" name="ward" required data-selected="<?= htmlspecialchars($location_id ?? '') ?>">
                   <option value="">-- Select Ward --</option>
                 </select>
               </div>
@@ -385,19 +380,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             </div>
           </div>
           <p class="reDctor">Already have an account? <a href="index.php">Login</a></p>
-          <div class="or-divider">or</div>
-          <div class="socialRegister">
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google" width="20">
-            <p>Register with google</p>
-          </div>
-          <div class="socialRegister">
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg" alt="Apple" width="20">
-            <p>Register with apple</p>
-          </div>
-          <div class="socialRegister">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft" width="20">
-            <p>Register with microsoft account</p>
-          </div>
+          <input type="hidden" id="old_country" value="<?= htmlspecialchars($_POST['country'] ?? '') ?>">
+          <input type="hidden" id="old_county" value="<?= htmlspecialchars($_POST['county'] ?? '') ?>">
         </form>
       </div>
     </main>
@@ -407,13 +391,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       <div class="formContainer">
         <section>
           <div class="top">
-            <img src="Images/Maket Hub Logo.avif" alt="Maket Hub Logo" width="40">
-            <h1 class="login">Maket&nbsp;Hub</h1>
+            <img src="Images/Makethub Logo.avif" alt="Makethub Logo" width="40">
+            <h1 class="login">Makethub</h1>
           </div>
           <h3>List Once. Sell Everywhere!</h3>
         </section>
         <form action="" method="POST">
-          <h2>Register account on Maket Hub</h2>
+          <h2>Register account on Makethub</h2>
+          <p style="font-size:13px; color:#555; margin-bottom:10px;">
+            Your information is securely stored and used only to create your Makethub account. 
+            We do not share your data with third parties.
+          </p>
           <div class="account-type">
             <div class="account-icon">📦</div>
             <div class="regInfo">
@@ -481,12 +469,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
               </div>
               <div class="selectorBox">
                 <span>Country</span>
-                <select id="country" name="country" required>
-                  <option value=""><p>-- Select Country --</p></option>
-                  <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option><!-- 
-                  <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
-                  <option value="Kenya" <?php echo ($country === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
-                </select>
+                  <select id="country" name="country" required>
+                    <option value="">-- Select Country --</option>
+                    <?php
+                      $countries = $conn->query("SELECT location_id, name FROM locations WHERE type='country' ORDER BY name ASC");
+                      while ($row = $countries->fetch_assoc()):
+                    ?>
+                      <option value="<?= $row['location_id']; ?>" 
+                        <?= ($country == $row['location_id']) ? 'selected' : ''; ?>>
+                        <?= htmlspecialchars($row['name']); ?>
+                      </option>
+                    <?php endwhile; ?>
+                  </select>
               </div>
 
               <div class="selectorBox">
@@ -503,19 +497,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <span>County</span>
                 <select id="county" name="county" required>
                   <option value="">-- Select County --</option>
-                  <?php
-                    $result = $conn->query("SELECT location_id, name FROM locations WHERE type = 'county' ORDER BY name ASC");
-                    while ($row = $result->fetch_assoc()):
-                  ?>
-                    <option value="<?= $row['location_id']; ?>">
-                      <?= htmlspecialchars($row['name']); ?>
-                    </option>
-                  <?php endwhile; ?>
                 </select>
               </div>
               <div class="selectorBox">
                 <span>Ward</span>
-                  <select id="ward" name="ward" required>
+                <select id="ward" name="ward" required data-selected="<?= htmlspecialchars($location_id ?? '') ?>">
                   <option value="">-- Select Ward --</option>
                 </select>
               </div>
@@ -547,25 +533,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             </div>
           </div>
           <p class="reDctor">Already have an account? <a href="index.php">Login</a></p>
-          <div class="or-divider">or</div>
-          <div class="socialRegister">
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google" width="20">
-            <p>Register with google</p>
-          </div>
-          <div class="socialRegister">
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg" alt="Apple" width="20">
-            <p>Register with apple</p>
-          </div>
-          <div class="socialRegister">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft" width="20">
-            <p>Register with microsoft account</p>
-          </div>
+
+          <input type="hidden" id="old_country" value="<?= htmlspecialchars($_POST['country'] ?? '') ?>">
+          <input type="hidden" id="old_county" value="<?= htmlspecialchars($_POST['county'] ?? '') ?>">
         </form>
       </div>
     </main>
     <?php endif; ?>
     <footer>
-      <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
+      <p>&copy; 2025/2026, Makethub.shop, All Rights Reserved.</p><br>
+      <p>
+        <a href="privacy.php">Privacy Policy</a> |
+        <a href="terms.php">Terms & Conditions</a> |
+        <a href="contact.php">Contact Us</a>
+      </p>
     </footer>
   </div>
   

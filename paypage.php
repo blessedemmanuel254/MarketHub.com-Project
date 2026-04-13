@@ -18,13 +18,13 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,70090000000;1,800;1,900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 
   <!-- jQuery + DataTables JS -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   
-  <title>Manual Payment | Maket Hub</title>
+  <title>Manual Payment | Makethub</title>
 <style>
 
   .payPageContainer {
@@ -114,7 +114,7 @@
     <h1 class="paypage-H1">AGENT BADGE PAYMENT</h1>
 
     <div class="payPageContainer">
-      <h1>Maket Hub</h1>
+      <h1>Makethub</h1>
       <p>Agent Badge Payment</p>
 
       <div class="mpesa">Lipa na M-PESA</div>
@@ -136,8 +136,13 @@
 
       <div class="warning">After payment, click the button above and send your screenshot.</div>
     </div>
-    <footer>
-      <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
+        <footer>
+      <p>&copy; 2025/2026, Makethub.shop, All Rights Reserved.</p><br>
+      <p>
+        <a href="privacy.php">Privacy Policy</a> |
+        <a href="terms.php">Terms & Conditions</a> |
+        <a href="contact.php">Contact Us</a>
+      </p>
     </footer>
   </div>
   
@@ -156,7 +161,7 @@
 
   function goWhatsApp() {
     const name = document.getElementById('name').value.trim();
-    const message = `Hello, I have paid KES 200 for Maket Hub badge. Name: ${name}`;
+    const message = `Hello, I have paid KES 200 for Makethub badge. Name: ${name}`;
 
     const phone = '254773029440';
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;

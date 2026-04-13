@@ -13,6 +13,14 @@ if (!isset($_SESSION['user_id']) && isset($_COOKIE['user_id'])) {
   REDIRECT IF ALREADY LOGGED IN
 ================================ */
 if (isset($_SESSION['user_id'], $_SESSION['account_type'])) {
+
+  if (!empty($_SESSION['redirect_after_login'])) {
+    $redirect = $_SESSION['redirect_after_login'];
+    unset($_SESSION['redirect_after_login']);
+    header("Location: " . $redirect);
+    exit();
+  }
+
   switch (strtolower($_SESSION['account_type'])) {
     case 'seller': header("Location: sellerPage.php"); exit;
     case 'buyer':  header("Location: buyerPage.php");  exit;
@@ -118,33 +126,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $accountType = strtolower($user['account_type']);
 
         switch ($accountType) {
-
-          case 'seller':
-            $redirectPage = 'sellerPage.php';
-            break;
-
-          case 'buyer':
-            $redirectPage = 'buyerPage.php';
-            break;
-
-          case 'administrator':
-            $redirectPage = 'adminPage.php';
-            break;
-
-          case 'sales_agent':
-            $redirectPage = 'agentPage.php';
-
-            break;
-
-          case 'property_owner':
-            $redirectPage = 'propertyOwnerPage.php';
-            break;
-
-          default:
-            $redirectPage = 'index.php';
-            break;
+          case 'seller': $redirectPage = 'sellerPage.php'; break;
+          case 'buyer': $redirectPage = 'buyerPage.php'; break;
+          case 'administrator': $redirectPage = 'adminPage.php'; break;
+          case 'sales_agent': $redirectPage = 'agentPage.php'; break;
+          case 'property_owner': $redirectPage = 'propertyOwnerPage.php'; break;
+          default: $redirectPage = 'index.php'; break;
         }
 
+        // 🔥 Override if coming from shop
+        if (!empty($_SESSION['redirect_after_login'])) {
+            $redirectPage = $_SESSION['redirect_after_login'];
+            unset($_SESSION['redirect_after_login']);
+        }
+
+        // ✅ Show success + delayed redirect (SAFE WAY)
         echo "<script>
           setTimeout(() => window.location.href = '$redirectPage', 3500);
         </script>";
@@ -182,7 +178,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 
-  <title>Login | Maket Hub</title>
+  <title>Login | Makethub</title>
 </head>
 <body>
   <div class="container">
@@ -190,13 +186,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       <div class="formContainer">
         <section>
           <div class="top">
-            <img src="Images/Maket Hub Logo.avif" alt="Maket Hub Logo" width="40">
-            <h1 class="login">Maket&nbsp;Hub</h1>
+            <img src="Images/Makethub Logo.avif" alt="Makethub Logo" width="40">
+            <h1 class="login">Makethub</h1>
           </div>
           <h3>Buy Local. Order Global!</h3>
+          <p class="about">
+            Makethub is a global marketplace platform that connects buyers, sellers, and property owners.
+          </p>
         </section>
         <form action="index.php" method="POST">
-          <h2>Login to Maket Hub</h2>
+          <h2>Login to Makethub</h2>
+          <p style="font-size:13px; color:#555; margin-bottom:10px;">
+            Your information is securely processed. Makethub does not share your login details with any third party.
+          </p>
           <?php if (!empty($error)): ?>
             <p class="errorMessage">
               <i class="fa-solid fa-circle-exclamation"></i>
@@ -275,26 +277,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             </div>
             <div class="form-content">
               <p class="reDctor">Don't have an account? <a href="accountTypeSelection.php">Register</a></p>
-              <div class="or-divider">or</div>
-              <div class="socialLogin">
-                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google" width="20">
-                <p>Login with google</p>
-              </div>
-              <div class="socialLogin">
-                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg" alt="Apple" width="20">
-                <p>Login with apple</p>
-              </div>
-              <div class="socialLogin">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft" width="20">
-                <p>Login with microsoft account</p>
-              </div>
             </div>
           </div>
         </form>
       </div>
     </main>
     <footer>
-      <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
+      <p>&copy; 2025/2026, Makethub.shop, All Rights Reserved.</p><br>
+      <p>
+        <a href="privacy.php">Privacy Policy</a> |
+        <a href="terms.php">Terms & Conditions</a> |
+        <a href="contact.php">Contact Us</a>
+      </p>
     </footer>
   </div>
 

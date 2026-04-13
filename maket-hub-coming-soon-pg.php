@@ -63,15 +63,15 @@ if (isset($_POST['subscribe'])) {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 
-  <title>Coming Soon ~ Maket Hub</title>
+  <title>Coming Soon ~ Makethub</title>
 </head>
 <body>
   <div class="container cmng-sn">
     <main>
       <section>
         <div class="top">
-          <img src="Images/Maket Hub Logo.avif" alt="Maket Hub Logo" width="40">
-          <h1 class="login">Maket&nbsp;Hub</h1>
+          <img src="Images/Makethub Logo.avif" alt="Makethub Logo" width="40">
+          <h1 class="login">Makethub</h1>
         </div>
         <h3>Buy Local. Order Global!</h3>
       </section>
@@ -117,8 +117,13 @@ if (isset($_POST['subscribe'])) {
         <img src="Images/rocket.png" alt="Coming Soon Plane" class="rocket">
       </div>
     </main>
-    <footer>
-      <p>&copy; 2025/2026, Maket Hub.shop, All Rights reserved.</p>
+        <footer>
+      <p>&copy; 2025/2026, Makethub.shop, All Rights Reserved.</p><br>
+      <p>
+        <a href="privacy.php">Privacy Policy</a> |
+        <a href="terms.php">Terms & Conditions</a> |
+        <a href="contact.php">Contact Us</a>
+      </p>
     </footer>
   </div>
   

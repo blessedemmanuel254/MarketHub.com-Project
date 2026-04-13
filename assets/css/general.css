@@ -1620,6 +1620,13 @@ html body.no-scroll {
   text-align: center;
 }
 
+.container main .formContainer section p{
+  text-align: center;
+  font-size: 14px;
+  color: #898888;
+
+}
+
 .container main .formContainer .top, .container.cmng-sn section .top {
   flex-direction: row;
 }
@@ -1633,7 +1640,7 @@ html body.no-scroll {
 .container main .formContainer form h2 {
   text-align: left;
   font-size: 20px;
-  margin-bottom: 20px;
+  margin-bottom: 5px;
 }
 
 .container main .formContainer form p.errorMessage, .container main .formContainer form p.successMessage, .container main form.actpContainer p.errorMessage, .tab-content .tab-panel p.errorMessage, .tab-content .tab-panel p.successMessage, .tab-panel-admin .form-wrapper form .errorMessage, .container.cmng-sn main .content form .successMessage, .container.cmng-sn main .content form .errorMessage, .container main.profile-main .profile-container .errorMessage, .container main.profile-main .profile-container .successMessage {
@@ -1908,6 +1915,7 @@ label.account-type input:checked + .radio-dot::after {
   box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
   padding: 10px;
   margin-top: 40px;
+  flex-direction: column;
 }
 
 .containerAdmin footer {
@@ -1919,6 +1927,11 @@ label.account-type input:checked + .radio-dot::after {
   color: #898888;
   font-size: 14px;
   text-align: center;
+}
+
+.container footer p a, .containerAdmin footer p a {
+  text-decoration: none;
+  color: #898888;
 }
 
 /* Buyer profile page */
@@ -2221,6 +2234,18 @@ label.account-type input:checked + .radio-dot::after {
   width: fit-content;
   font-size: 12px;
   cursor: pointer;
+  transition: all 0.25s ease;
+  transform: scale(1);
+}
+
+/* click animation (Instagram-like pop) */
+.follow-animate {
+  transform: scale(1.15);
+}
+
+/* optional press effect */
+.follow-press {
+  transform: scale(0.95);
 }
 
 .meta h2.followingBtn {
@@ -2868,9 +2893,16 @@ a.seller-right {
   width: 30px;
   height: 30px;
   border-radius: 6px;
-  border: 1px solid #000;
+  border: 1px solid #dedede;
   background: #ffffff;
   cursor: pointer;
+}
+
+.container .cart-container .inner-cart-container .cart-items .cart-item .quantity-control .qty-btn.disabled, .order-container .card .seller-box .product .quantity-control .qty-btn.disabled {
+  background: #dedede83;
+  border: none;
+  color: #898888;
+  cursor: not-allowed;
 }
 
 .container .cart-container .inner-cart-container .cart-items .cart-item .quantity-control .qty-number, .order-container .card .seller-box .product .quantity-control .qty-number {
@@ -4504,10 +4536,9 @@ AGENTS' PRODUCTS CSS
 
 /* ===== Guarantee ===== */
 .order-container .card .guarantee {
-    margin-top: 15px;
-    font-size: 13px;
-    font-weight: bold;
-    color: #898888;
+  margin-top: 15px;
+  font-size: 13px;
+  color: #898888;
 }
 
 /* ===== Summary ===== */

@@ -1,3 +1,44 @@
+
+<div class="or-divider">or</div>
+<div class="socialRegister">
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google" width="20">
+  <p>Register with google</p>
+</div>
+<div class="socialRegister">
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg" alt="Apple" width="20">
+  <p>Register with apple</p>
+</div>
+<div class="socialRegister">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft" width="20">
+  <p>Register with microsoft account</p>
+</div>
+
+<!-- 
+<div class="or-divider">or</div>
+<div class="socialLogin">
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google" width="20">
+  <p>Login with google</p>
+</div>
+<div class="socialLogin">
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg" alt="Apple" width="20">
+  <p>Login with apple</p>
+</div>
+<div class="socialLogin">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft" width="20">
+  <p>Login with microsoft account</p>
+</div> -->
+
+// -----------------------------
+// DEBUG MODE (SHOW ALL ERRORS)
+// -----------------------------
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// Show MySQLi errors clearly
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+
 <?php
 // TEMPORARY: show errors while debugging
 error_reporting(E_ALL);
@@ -101,3 +142,14 @@ ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/php_errors.log');
 
 I had a folder named database which had sql files in it; I have deleted it. I also had some sql files inside the main folder but I have removed all of them and did some adjustments on forms inputs and error/success display logic.
+
+SEARCH CONSOLE
+Request Review text:
+This website is being used for educational purpose and for practical, and we don't allow any illegal action. Kindly review and get my website back online.
+
+IF YOU UNDERSTAND RESPOND YES;
+
+This is the idea;
+I want local shops in my area to gain online visibility (and the local shops allover the nation as well as we advance). That is why I came up with my ecommerce website under the company name; Makethub (website is makethub.shop).
+
+The real concept is; the seller gets a sticker with qr code that redirects the buyer to their shop. This sticker can be downloaded to the seller's device then printed and put as display just at the entrance of the shop. Buyers can be able to access and view the online seller's shelf of products just by scanning the qr code even without having to login. But for them to place order, they must login first. They can add products to cart even without login and the products are saved in local storage so that once they login the products in the cart are immediately transfered into cart database for syncing accross devices.
