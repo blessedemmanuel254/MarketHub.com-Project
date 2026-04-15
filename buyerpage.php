@@ -407,7 +407,7 @@ $pendingOrders = count($pendingItems);
   echo "Product: " . htmlspecialchars($item['product_name']) . "<br>";
   echo "Quantity: " . $item['quantity'] . "<br>";
   echo "Subtotal: " . number_format($item['subtotal'], 2) . "<br>";
-  echo "<img src='" . (!empty($item['product_image']) && file_exists(__DIR__ . '/' . $item['product_image']) ? $item['product_image'] : 'Images/Makethub Logo.avif') . "' width='80'><br><hr>";
+  echo "<img src='" . (!empty($item['product_image']) && file_exists(__DIR__ . '/' . $item['product_image']) ? $item['product_image'] : 'Images/Makethub Logo.png') . "' width='80'><br><hr>";
 } */
 ?>
 
@@ -504,7 +504,7 @@ $pendingOrders = count($pendingItems);
     <div id="whatsapp-chat-box">
       <div class="chat-header">
         <div class="top">
-          <img src="Images/Makethub Logo.avif" alt="Makethub Logo" width="35">
+          <img src="Images/Makethub Logo.png" alt="Makethub Logo" width="35">
           <p><strong>Makethub</strong><br>
           <small>online</small></p>
         </div>
@@ -933,7 +933,7 @@ $pendingOrders = count($pendingItems);
               <td>
                 <img src="<?= !empty($order['image_path']) && file_exists(__DIR__ . '/' . $order['image_path']) 
                     ? htmlspecialchars($order['image_path']) 
-                    : 'Images/Makethub Logo.avif'; ?>" 
+                    : 'Images/Makethub Logo.png'; ?>" 
                     class="product-img">
               </td>
 
@@ -1025,7 +1025,7 @@ $pendingOrders = count($pendingItems);
           <?php
             $image = (!empty($order['image_path']) && file_exists(__DIR__ . '/' . $order['image_path']))
                 ? $order['image_path']
-                : "Images/Makethub Logo.avif";
+                : "Images/Makethub Logo.png";
 
             $paymentClass = strtolower($order['payment_status']);
             $paymentText  = ucwords($order['payment_status']);
@@ -1121,7 +1121,7 @@ $pendingOrders = count($pendingItems);
               <td>
                 <img src="<?= !empty($order['image_path']) && file_exists(__DIR__ . '/' . $order['image_path']) 
                     ? htmlspecialchars($order['image_path']) 
-                    : 'Images/Makethub Logo.avif'; ?>" 
+                    : 'Images/Makethub Logo.png'; ?>" 
                     class="product-img">
               </td>
 
@@ -1221,7 +1221,7 @@ $pendingOrders = count($pendingItems);
                 <p>Status: <span class="status shipped">Shipped</span></p>
                 <span class="market-badge">National</span>
               </div>
-              <img src="Images/Makethub Logo.avif" alt="Product">
+              <img src="Images/Makethub Logo.png" alt="Product">
             </div>
 
             <div class="item-actions">
@@ -1248,7 +1248,7 @@ $pendingOrders = count($pendingItems);
                 <p>Status: <span class="status processing">Processing</span></p>
                 <span class="market-badge">Local</span>
               </div>
-              <img src="Images/Makethub Logo.avif" alt="Product">
+              <img src="Images/Makethub Logo.png" alt="Product">
             </div>
 
             <div class="item-actions">
@@ -1270,7 +1270,7 @@ $pendingOrders = count($pendingItems);
                 <p>Status: <span class="status processing">Processing</span></p>
                 <span class="market-badge">Local</span>
               </div>
-              <img src="Images/Makethub Logo.avif" alt="Product">
+              <img src="Images/Makethub Logo.png" alt="Product">
             </div>
 
             <div class="item-actions">
@@ -1292,7 +1292,7 @@ $pendingOrders = count($pendingItems);
                 <p>Status: <span class="status processing">Processing</span></p>
                 <span class="market-badge">Local</span>
               </div>
-              <img src="Images/Makethub Logo.avif" alt="Product">
+              <img src="Images/Makethub Logo.png" alt="Product">
             </div>
 
             <div class="item-actions">
@@ -1314,7 +1314,7 @@ $pendingOrders = count($pendingItems);
                 <p>Status: <span class="status processing">Processing</span></p>
                 <span class="market-badge">Local</span>
               </div>
-              <img src="Images/Makethub Logo.avif" alt="Product">
+              <img src="Images/Makethub Logo.png" alt="Product">
             </div>
 
             <div class="item-actions">

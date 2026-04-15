@@ -60,7 +60,7 @@ $profileLetter = strtoupper(substr($formattedUsername, 0, 1));
 $safeUsername = htmlspecialchars($formattedUsername, ENT_QUOTES, 'UTF-8');
 $safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
 
-$defaultAvatar = "Images/Makethub Logo.avif";
+$defaultAvatar = "Images/Makethub Logo.png";
 
 if (!empty($profileImage) && file_exists($profileImage)) {
     $safeProfileImage = htmlspecialchars($profileImage, ENT_QUOTES, 'UTF-8');
@@ -149,7 +149,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
     <div id="whatsapp-chat-box">
       <div class="chat-header">
         <div class="top">
-          <img src="Images/Makethub Logo.avif" alt="Makethub Logo" width="35">
+          <img src="Images/Makethub Logo.png" alt="Makethub Logo" width="35">
           <p><strong>Makethub</strong><br>
           <small>online</small></p>
         </div>
@@ -523,7 +523,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       <tbody>
 
       <tr data-status="Delivered">
-        <td><img src="Images/Makethub Logo.avif" class="product-img"></td>
+        <td><img src="Images/Makethub Logo.png" class="product-img"></td>
         <td>MH-10231</td>
         <td>Wireless Headphones</td>
         <td>SoundTech</td>
@@ -541,7 +541,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       </tr>
 
       <tr data-status="Processing">
-        <td><img src="Images/Makethub Logo.avif" class="product-img"></td>
+        <td><img src="Images/Makethub Logo.png" class="product-img"></td>
         <td>MH-10702</td>
         <td>Smart Watch</td>
         <td>Global Gadgets</td>
@@ -559,7 +559,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       </tr>
 
       <tr data-status="Processing">
-        <td><img src="Images/Makethub Logo.avif" class="product-img"></td>
+        <td><img src="Images/Makethub Logo.png" class="product-img"></td>
         <td>MH-10702</td>
         <td>Smart Watch</td>
         <td>Global Gadgets</td>
@@ -577,7 +577,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       </tr>
 
       <tr data-status="Processing">
-        <td><img src="Images/Makethub Logo.avif" class="product-img"></td>
+        <td><img src="Images/Makethub Logo.png" class="product-img"></td>
         <td>MH-10702</td>
         <td>Smart Watch</td>
         <td>Global Gadgets</td>
@@ -595,7 +595,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       </tr>
 
       <tr data-status="Processing">
-        <td><img src="Images/Makethub Logo.avif" class="product-img"></td>
+        <td><img src="Images/Makethub Logo.png" class="product-img"></td>
         <td>MH-10702</td>
         <td>Smart Watch</td>
         <td>Global Gadgets</td>
@@ -613,7 +613,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       </tr>
 
       <tr data-status="Processing">
-        <td><img src="Images/Makethub Logo.avif" class="product-img"></td>
+        <td><img src="Images/Makethub Logo.png" class="product-img"></td>
         <td>MH-10702</td>
         <td>Smart Watch</td>
         <td>Global Gadgets</td>
@@ -631,7 +631,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
       </tr>
 
       <tr data-status="Processing">
-        <td><img src="Images/Makethub Logo.avif" class="product-img"></td>
+        <td><img src="Images/Makethub Logo.png" class="product-img"></td>
         <td>MH-10702</td>
         <td>Smart Watch</td>
         <td>Global Gadgets</td>
@@ -657,7 +657,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
       <div class="order-card" data-status="Delivered">
         <div class="card-header">
-          <img src="Images/Makethub Logo.avif" class="product-img">
+          <img src="Images/Makethub Logo.png" class="product-img">
           <div>
             <div class="card-title">Wireless Headphones</div>
             <div class="card-meta">Order: MH-10231 • National</div>
@@ -683,7 +683,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
       <div class="order-card" data-status="Processing">
         <div class="card-header">
-          <img src="Images/Makethub Logo.avif" class="product-img">
+          <img src="Images/Makethub Logo.png" class="product-img">
           <div>
             <div class="card-title">Smart Watch</div>
             <div class="card-meta">Order: MH-10702 • Global</div>
@@ -708,7 +708,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
       <div class="order-card" data-status="Processing">
         <div class="card-header">
-          <img src="Images/Makethub Logo.avif" class="product-img">
+          <img src="Images/Makethub Logo.png" class="product-img">
           <div>
             <div class="card-title">Smart Watch</div>
             <div class="card-meta">Order: MH-10702 • Global</div>
@@ -733,7 +733,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
       <div class="order-card" data-status="Delivered">
         <div class="card-header">
-          <img src="Images/Makethub Logo.avif" class="product-img">
+          <img src="Images/Makethub Logo.png" class="product-img">
           <div>
             <div class="card-title">Wireless Headphones</div>
             <div class="card-meta">Order: MH-10231 • National</div>
@@ -760,7 +760,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
       <div class="order-card" data-status="Delivered">
         <div class="card-header">
-          <img src="Images/Makethub Logo.avif" class="product-img">
+          <img src="Images/Makethub Logo.png" class="product-img">
           <div>
             <div class="card-title">Wireless Headphones</div>
             <div class="card-meta">Order: MH-10231 • National</div>
@@ -787,7 +787,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
       <div class="order-card" data-status="Processing">
         <div class="card-header">
-          <img src="Images/Makethub Logo.avif" class="product-img">
+          <img src="Images/Makethub Logo.png" class="product-img">
           <div>
             <div class="card-title">Smart Watch</div>
             <div class="card-meta">Order: MH-10702 • Global</div>
@@ -812,7 +812,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
       <div class="order-card" data-status="Processing">
         <div class="card-header">
-          <img src="Images/Makethub Logo.avif" class="product-img">
+          <img src="Images/Makethub Logo.png" class="product-img">
           <div>
             <div class="card-title">Smart Watch</div>
             <div class="card-meta">Order: MH-10702 • Global</div>
@@ -864,7 +864,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                 <p>Status: <span class="status shipped">Shipped</span></p>
                 <span class="market-badge">National</span>
               </div>
-              <img src="Images/Makethub Logo.avif" alt="Product">
+              <img src="Images/Makethub Logo.png" alt="Product">
             </div>
 
             <div class="item-actions">
@@ -893,7 +893,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
                 <p>Status: <span class="status processing">Processing</span></p>
                 <span class="market-badge">Local</span>
               </div>
-              <img src="Images/Makethub Logo.avif" alt="Product">
+              <img src="Images/Makethub Logo.png" alt="Product">
             </div>
 
             <div class="item-actions">

@@ -70,7 +70,7 @@ if (isset($_POST['subscribe'])) {
     <main>
       <section>
         <div class="top">
-          <img src="Images/Makethub Logo.avif" alt="Makethub Logo" width="40">
+          <img src="Images/Makethub Logo.png" alt="Makethub Logo" width="40">
           <h1 class="login">Makethub</h1>
         </div>
         <h3>Buy Local. Order Global!</h3>

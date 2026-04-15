@@ -250,6 +250,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- ✅ BASIC SEO -->
+  <meta name="description" content="Create your Makethub account and start buying, selling, or listing properties globally.">
+
+  <!-- ✅ OPEN GRAPH (WHATSAPP, FACEBOOK) -->
+  <meta property="og:title" content="Register on Makethub!" />
+  <meta property="og:description" content="Join Makethub today — connect as a buyer, seller, or property owner in a global marketplace." />
+  <meta property="og:image" content="https://makethub.shop/Images/Makethub%20Logo.png" />
+  <meta property="og:url" content="https://makethub.shop/register.php" />
+  <meta property="og:type" content="website" />
+
+  <!-- ✅ TWITTER -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Register on Makethub">
+  <meta name="twitter:description" content="Create your Makethub account and start trading globally.">
+  <meta name="twitter:image" content="https://makethub.shop/Images/Makethub%20Logo.png">
+
   <link rel="apple-touch-icon" sizes="180x180" href="Images/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="Images/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="Images/favicon-16x16.png">
@@ -275,7 +291,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       <div class="formContainer">
         <section>
           <div class="top">
-            <img src="Images/Makethub Logo.avif" alt="Makethub Logo" width="40">
+            <img src="Images/Makethub Logo.png" alt="Makethub Logo" width="40">
             <h1 class="login">Makethub</h1>
           </div>
           <h3>Find Local. Shop Without Limits!</h3>
@@ -391,7 +407,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       <div class="formContainer">
         <section>
           <div class="top">
-            <img src="Images/Makethub Logo.avif" alt="Makethub Logo" width="40">
+            <img src="Images/Makethub Logo.png" alt="Makethub Logo" width="40">
             <h1 class="login">Makethub</h1>
           </div>
           <h3>List Once. Sell Everywhere!</h3>

@@ -48,6 +48,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- ✅ PRIMARY SEO -->
+  <meta name="description" content="Join Makethub — Buy, Sell, and grow your business locally and globally. Choose your account type and get started today.">
+
+  <!-- ✅ OPEN GRAPH (WHATSAPP, FACEBOOK, LINK PREVIEW) -->
+  <meta property="og:title" content="Join Makethub - Buy Local. Order Global!" />
+  <meta property="og:description" content="Create your Makethub account as a buyer, seller or property owner and access a powerful global marketplace." />
+  <meta property="og:image" content="https://makethub.shop/Images/Makethub%20Logo.png" />
+  <meta property="og:url" content="https://makethub.shop/accountTypeSelection.php" />
+  <meta property="og:type" content="website" />
+
+  <!-- ✅ TWITTER -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Join Makethub">
+  <meta name="twitter:description" content="Start buying and selling globally on Makethub today!">
+  <meta name="twitter:image" content="https://makethub.shop/Images/Makethub%20Logo.png">
+
   <link rel="apple-touch-icon" sizes="180x180" href="Images/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="Images/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="Images/favicon-16x16.png">
@@ -76,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div id="whatsapp-chat-box">
       <div class="chat-header">
         <div class="top">
-          <img src="Images/Makethub Logo.avif" alt="Makethub Logo" width="35">
+          <img src="Images/Makethub Logo.png" alt="Makethub Logo" width="35">
           <p><strong>Makethub.shop</strong><br>
           <small>Online</small></p>
         </div>

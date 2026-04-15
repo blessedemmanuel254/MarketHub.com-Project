@@ -132,7 +132,7 @@ $profileLetter = strtoupper(substr($formattedUsername, 0, 1));
 $safeUsername = htmlspecialchars($formattedUsername, ENT_QUOTES, 'UTF-8');
 $safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
 
-$defaultAvatar = "Images/Makethub Logo.avif";
+$defaultAvatar = "Images/Makethub Logo.png";
 
 if (!empty($profileImage) && file_exists($profileImage)) {
     $safeProfileImage = htmlspecialchars($profileImage, ENT_QUOTES, 'UTF-8');
@@ -448,7 +448,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_product_id'])
     <div id="whatsapp-chat-box">
       <div class="chat-header">
         <div class="top">
-          <img src="Images/Makethub Logo.avif" alt="Makethub Logo" width="35">
+          <img src="Images/Makethub Logo.png" alt="Makethub Logo" width="35">
           <p><strong>Makethub</strong><br>
           <small>online</small></p>
         </div>

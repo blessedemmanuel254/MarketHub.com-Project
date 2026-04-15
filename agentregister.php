@@ -353,6 +353,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- SEO / LINK PREVIEW (OPEN GRAPH) -->
+  <meta property="og:title" content="Join Makethub as a Sales Agent!" />
+  <meta property="og:description" content="Start earning by joining Makethub. Grow your network and income today." />
+  <meta property="og:image" content="https://makethub.shop/Images/Makethub%20Logo.png" />
+  <meta property="og:url" content="https://makethub.shop/agentregister.php?ref=<?= htmlspecialchars($_GET['ref'] ?? '') ?>" />
+  <meta property="og:type" content="website" />
+
+  <!-- Twitter (also used by WhatsApp/Telegram sometimes) -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Join Makethub as a Sales Agent!">
+  <meta name="twitter:description" content="Become a Makethub agent and start earning today.">
+  <meta name="twitter:image" content="https://makethub.shop/Images/Makethub%20Logo.png">
+
   <link rel="apple-touch-icon" sizes="180x180" href="Images/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="Images/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="Images/favicon-16x16.png">
@@ -378,7 +391,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       <div class="formContainer">
         <section>
           <div class="top">
-            <img src="Images/Makethub Logo.avif" alt="Makethub Logo" width="40">
+            <img src="Images/Makethub Logo.png" alt="Makethub Logo" width="40">
             <h1 class="login">Makethub</h1>
           </div>
           <h3>Join Makethub as a Sales Agent. Grow Your Network!</h3>

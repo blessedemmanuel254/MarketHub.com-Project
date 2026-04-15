@@ -313,7 +313,7 @@ if (!empty($user['profile_image'])) {
       <div class="formContainer">
         <section>
           <div class="top">
-            <img src="Images/Makethub Logo.avif" alt="Makethub Logo" width="40">
+            <img src="Images/Makethub Logo.png" alt="Makethub Logo" width="40">
             <h1 class="login">Makethub</h1>
           </div>
           <h3>Update your Makethub Profile!</h3>

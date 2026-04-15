@@ -1023,7 +1023,7 @@ $productStmt->close();
     <div id="whatsapp-chat-box">
       <div class="chat-header">
         <div class="top">
-          <img src="Images/Makethub Logo.avif" alt="Makethub Logo" width="35">
+          <img src="Images/Makethub Logo.png" alt="Makethub Logo" width="35">
           <p><strong>Makethub</strong><br>
           <small>online</small></p>
         </div>

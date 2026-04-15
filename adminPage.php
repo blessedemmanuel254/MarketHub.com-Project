@@ -408,23 +408,38 @@ if($userId && isset($map[$type])){
 
   $stmt = $conn->prepare("
     SELECT
-    user_id,
-    full_name,
-    username,
-    email,
-    phone,
-    account_type,
-    country,
-    county,
-    ward,
-    address,
-    business_name,
-    business_model,
-    business_type,
-    market_scope,
-    agency_code
-    FROM users
-    WHERE user_id=? AND account_type=?
+      u.user_id,
+      u.full_name,
+      u.username,
+      u.email,
+      u.phone,
+      u.account_type,
+      u.address,
+      u.business_name,
+      u.business_model,
+      u.business_type,
+      u.market_scope,
+      u.agency_code,
+
+      ward.name   AS ward,
+      county.name AS county,
+      country.name AS country
+
+    FROM users u
+
+    LEFT JOIN locations ward 
+      ON u.location_id = ward.location_id AND ward.type = 'ward'
+
+    LEFT JOIN locations county 
+      ON ward.parent_id = county.location_id AND county.type = 'county'
+
+    LEFT JOIN locations region 
+      ON county.parent_id = region.location_id AND region.type = 'region'
+
+    LEFT JOIN locations country 
+      ON region.parent_id = country.location_id AND country.type = 'country'
+
+    WHERE u.user_id=? AND u.account_type=?
     LIMIT 1
   ");
 
@@ -447,9 +462,9 @@ $full_name     = htmlspecialchars($editUser['full_name'] ?? '');
 $editUsername      = htmlspecialchars($editUser['username'] ?? '');
 $editEmail         = decodeEmail($editUser['email'] ?? '');
 $editPhone         = decodePhone($editUser['phone'] ?? '');
-$editCountry       = htmlspecialchars($editUser['country'] ?? '');
-$editCounty        = htmlspecialchars($editUser['county'] ?? '');
-$editWard          = htmlspecialchars($editUser['ward'] ?? '');
+$editCountry = htmlspecialchars($editUser['country'] ?? '');
+$editCounty  = htmlspecialchars($editUser['county'] ?? '');
+$editWard    = htmlspecialchars($editUser['ward'] ?? '');
 $editAddress       = htmlspecialchars($editUser['address'] ?? '');
 $edit_business_name = htmlspecialchars($editUser['business_name'] ?? '');
 $edit_business_model= htmlspecialchars($editUser['business_model'] ?? '');
@@ -2052,7 +2067,7 @@ $marginPercent = $gmv > 0 ? round(($platformBalance / $gmv) * 100) : 0;
                   // Default profile image
                   $img = (!empty($seller['profile_image']) && file_exists($seller['profile_image']))
                       ? $seller['profile_image']
-                      : "Images/Makethub Logo.avif";
+                      : "Images/Makethub Logo.png";
                   $phone = decodePhone($seller['phone']);
                   $maskedPhone = maskPhone($phone);
 

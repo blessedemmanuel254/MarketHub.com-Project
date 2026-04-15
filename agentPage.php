@@ -4,7 +4,7 @@ session_start();
 $pageTitle = "Agent Page | Makethub";
 $pageDescription = "Verify your Makethub agent account to unlock full agent privileges; receiving commissions, Making withdrawal requests and manage your agency efficiently.";
 $pageUrl = "agentregister.php";
-$pageImage = "Images/Makethub Logo.avif"; // Use a clear visual for verification
+$pageImage = "Images/Makethub Logo.png"; // Use a clear visual for verification
 require_once 'connection.php';
 
 /* ---------- SESSION SECURITY ---------- */
@@ -553,7 +553,7 @@ $agencyCode = "";
 
 // location labels (names)
 $ward = "";
-$county = "";
+$county = "Not set";
 $country = "";
 
 if ($result && $result->num_rows === 1) {
@@ -1696,7 +1696,7 @@ function getStatusIcon($status) {
     <div id="whatsapp-chat-box">
       <div class="chat-header">
         <div class="top">
-          <img src="Images/Makethub Logo.avif" alt="Makethub Logo" width="35">
+          <img src="Images/Makethub Logo.png" alt="Makethub Logo" width="35">
           <p><strong>Makethub</strong><br>
           <small>online</small></p>
         </div>
@@ -3169,7 +3169,7 @@ function getStatusIcon($status) {
               <td>
                 <img src="<?= !empty($order['image_path']) && file_exists(__DIR__ . '/' . $order['image_path']) 
                     ? htmlspecialchars($order['image_path']) 
-                    : 'Images/Makethub Logo.avif'; ?>" 
+                    : 'Images/Makethub Logo.png'; ?>" 
                     class="product-img">
               </td>
 
@@ -3270,7 +3270,7 @@ function getStatusIcon($status) {
                 <p>Status: <span class="status shipped">Shipped</span></p>
                 <span class="market-badge">National</span>
               </div>
-              <img src="Images/Makethub Logo.avif" alt="Product">
+              <img src="Images/Makethub Logo.png" alt="Product">
             </div>
 
             <div class="item-actions">
@@ -3297,7 +3297,7 @@ function getStatusIcon($status) {
                 <p>Status: <span class="status processing">Processing</span></p>
                 <span class="market-badge">Local</span>
               </div>
-              <img src="Images/Makethub Logo.avif" alt="Product">
+              <img src="Images/Makethub Logo.png" alt="Product">
             </div>
 
             <div class="item-actions">

@@ -143,7 +143,17 @@ function generateImageDHash($filePath)
 }
 
 // Fetch seller's data including county
-$query = "SELECT username, profile_image, county FROM users WHERE user_id = ? LIMIT 1"; 
+$query = "
+  SELECT 
+    u.username,
+    u.profile_image,
+    county.name AS county_name
+  FROM users u
+  LEFT JOIN locations ward ON u.location_id = ward.location_id
+  LEFT JOIN locations county ON ward.parent_id = county.location_id
+  WHERE u.user_id = ?
+  LIMIT 1
+";
 $stmt = $conn->prepare($query);
 
 if (!$stmt) {
@@ -156,20 +166,21 @@ $result = $stmt->get_result();
 
 $username = "User";
 $profileImage = null;
-$county = "Kilifi"; // default
+$county = "Not Set"; // default
 
 if ($result && $result->num_rows === 1) {
-    $user = $result->fetch_assoc();
+  $user = $result->fetch_assoc();
 
-    if (!empty($user['username'])) {
-        $username = $user['username'];
-    }
+  if (!empty($user['username'])) {
+      $username = $user['username'];
+  }
 
-    $profileImage = $user['profile_image'] ?? null;
-    $county = $user['county'] ?? $county; // use DB value if exists
+  $profileImage = $user['profile_image'] ?? null;
+  $county = $user['county_name'] ?? $county; // use DB value if exists
 }
 
 $stmt->close();
+
 /* ---------- DELETE PRODUCT ---------- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_product_id'])) {
     $deleteId = intval($_POST['delete_product_id']);
@@ -239,7 +250,7 @@ $profileLetter = strtoupper(substr($formattedUsername, 0, 1));
 $safeUsername = htmlspecialchars($formattedUsername, ENT_QUOTES, 'UTF-8');
 $safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
 
-$defaultAvatar = "Images/Makethub Logo.avif";
+$defaultAvatar = "Images/Makethub Logo.png";
 
 if (!empty($profileImage) && file_exists($profileImage)) {
     $safeProfileImage = htmlspecialchars($profileImage, ENT_QUOTES, 'UTF-8');
@@ -1244,7 +1255,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
             </div>
             <p>Order(s)</p>
           </a>
-          <select name="county" id="ward">
+          <select name="county">
             <option value="<?= htmlspecialchars($county) ?>" selected>
               <?= htmlspecialchars($county) ?>
             </option>
@@ -1303,7 +1314,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
     <div id="whatsapp-chat-box">
       <div class="chat-header">
         <div class="top">
-          <img src="Images/Makethub Logo.avif" alt="Makethub Logo" width="35">
+          <img src="Images/Makethub Logo.png" alt="Makethub Logo" width="35">
           <p><strong>Makethub</strong><br>
           <small>online</small></p>
         </div>
@@ -1689,7 +1700,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   // Product image
                   $productImage = !empty($order['image_path']) && file_exists($order['image_path']) 
                                   ? htmlspecialchars($order['image_path']) 
-                                  : "Images/Makethub Logo.avif"; // default image
+                                  : "Images/Makethub Logo.png"; // default image
 
                   echo "<tr data-status=\"{$order['order_status']}\">
                           <td><img src='{$productImage}' alt='Product Image' style='width:50px;height:50px;object-fit:cover;border-radius:4px;'></td>
@@ -1785,7 +1796,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   // Product image
                   $productImage = !empty($order['image_path']) && file_exists($order['image_path']) 
                                   ? htmlspecialchars($order['image_path']) 
-                                  : "Images/Makethub Logo.avif"; // default image
+                                  : "Images/Makethub Logo.png"; // default image
 
                   echo "<tr data-status=\"{$order['order_status']}\">
                           <td><img src='{$productImage}' alt='Product Image' style='width:50px;height:50px;object-fit:cover;border-radius:4px;'></td>

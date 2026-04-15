@@ -131,7 +131,7 @@ $fullNameFormatted = strtoupper($fullName);
 $accountTypeFormatted = ucfirst(strtolower($accountType));
 
 // Default avatar if profile image does not exist
-$defaultAvatar = "Images/Makethub Logo.avif";
+$defaultAvatar = "Images/Makethub Logo.png";
 $safeProfileImage = (!empty($profileImage) && file_exists($profileImage)) ? htmlspecialchars($profileImage, ENT_QUOTES, 'UTF-8') : $defaultAvatar;
 
 /* ===============================
@@ -167,7 +167,7 @@ $agentData = $agentQuery->fetch_assoc();
    SALES AGENTS TABLE DATA
 ================================= */
 
-$defaultAvatar = "Images/Makethub Logo.avif";
+$defaultAvatar = "Images/Makethub Logo.png";
 
 $agentsStmt = $conn->prepare("
     SELECT user_id, full_name, username, email, phone, profile_image, 
@@ -914,7 +914,7 @@ $totalOwners = count($propertyOwners);
                   // Default profile image
                   $img = (!empty($seller['profile_image']) && file_exists($seller['profile_image']))
                       ? $seller['profile_image']
-                      : "Images/Makethub Logo.avif";
+                      : "Images/Makethub Logo.png";
                   $phone = decodePhone($seller['phone']);
                   $maskedPhone = maskPhone($phone);
 
@@ -1038,7 +1038,7 @@ $totalOwners = count($propertyOwners);
                   // Default profile image
                   $img = (!empty($buyer['profile_image']) && file_exists($buyer['profile_image']))
                       ? $buyer['profile_image']
-                      : "Images/Makethub Logo.avif"; 
+                      : "Images/Makethub Logo.png"; 
                   $phone = decodePhone($buyer['phone']);
                   $maskedPhone = maskPhone($phone);
 
@@ -1182,7 +1182,7 @@ $totalOwners = count($propertyOwners);
                 // Default profile image
                 $img = (!empty($owner['profile_image']) && file_exists($owner['profile_image']))
                     ? $owner['profile_image']
-                    : "Images/Makethub Logo.avif";
+                    : "Images/Makethub Logo.png";
 
                 $email = decodeEmail($owner['email']);
                 $maskedEmail = maskEmail($email);

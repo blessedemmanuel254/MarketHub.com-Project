@@ -251,7 +251,7 @@ if ($accountType !== $allowedRole) { */
           <span class="notfy-count">0</span>
         </div>
         <div class="admin-profile">
-          <img src="Images/Makethub Logo.avif" width="40" alt="Makethub Logo">
+          <img src="Images/Makethub Logo.png" width="40" alt="Makethub Logo">
           <p>EMMANUEL&nbsp;WERANGAI <br><em>Administrator</em></p>
         </div>
       </div>

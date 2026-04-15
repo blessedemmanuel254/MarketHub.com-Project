@@ -239,7 +239,7 @@ $profileLetter = strtoupper(substr($formattedUsername, 0, 1));
 $safeUsername = htmlspecialchars($formattedUsername, ENT_QUOTES, 'UTF-8');
 $safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
 
-$defaultAvatar = "Images/Makethub Logo.avif";
+$defaultAvatar = "Images/Makethub Logo.png";
 
 if (!empty($profileImage) && file_exists($profileImage)) {
     $safeProfileImage = htmlspecialchars($profileImage, ENT_QUOTES, 'UTF-8');
@@ -1303,7 +1303,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
     <div id="whatsapp-chat-box">
       <div class="chat-header">
         <div class="top">
-          <img src="Images/Makethub Logo.avif" alt="Makethub Logo" width="35">
+          <img src="Images/Makethub Logo.png" alt="Makethub Logo" width="35">
           <p><strong>Makethub</strong><br>
           <small>online</small></p>
         </div>
@@ -1689,7 +1689,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   // Product image
                   $productImage = !empty($order['image_path']) && file_exists($order['image_path']) 
                                   ? htmlspecialchars($order['image_path']) 
-                                  : "Images/Makethub Logo.avif"; // default image
+                                  : "Images/Makethub Logo.png"; // default image
 
                   echo "<tr data-status=\"{$order['order_status']}\">
                           <td><img src='{$productImage}' alt='Product Image' style='width:50px;height:50px;object-fit:cover;border-radius:4px;'></td>
@@ -1785,7 +1785,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   // Product image
                   $productImage = !empty($order['image_path']) && file_exists($order['image_path']) 
                                   ? htmlspecialchars($order['image_path']) 
-                                  : "Images/Makethub Logo.avif"; // default image
+                                  : "Images/Makethub Logo.png"; // default image
 
                   echo "<tr data-status=\"{$order['order_status']}\">
                           <td><img src='{$productImage}' alt='Product Image' style='width:50px;height:50px;object-fit:cover;border-radius:4px;'></td>

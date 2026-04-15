@@ -162,6 +162,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- ✅ OPEN GRAPH (WHATSAPP, FACEBOOK, ETC) -->
+  <meta property="og:title" content="Makethub - Buy Local. Order Global!" />
+  <meta property="og:description" content="Makethub connects buyers, sellers, agents, and property owners in one powerful global marketplace." />
+  <meta property="og:image" content="https://makethub.shop/Images/Makethub%20Logo.png" />
+  <meta property="og:url" content="https://makethub.shop/index.php" />
+  <meta property="og:type" content="website" />
+
+  <!-- ✅ TWITTER (OPTIONAL BUT GOOD) -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Makethub - Buy Local. Order Global!">
+  <meta name="twitter:description" content="Join Makethub and connect to a global marketplace of buyers and sellers.">
+  <meta name="twitter:image" content="https://makethub.shop/Images/Makethub%20Logo.png">
+
   <link rel="apple-touch-icon" sizes="180x180" href="Images/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="Images/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="Images/favicon-16x16.png">
@@ -186,7 +199,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       <div class="formContainer">
         <section>
           <div class="top">
-            <img src="Images/Makethub Logo.avif" alt="Makethub Logo" width="40">
+            <img src="Images/Makethub Logo.png" alt="Makethub Logo" width="40">
             <h1 class="login">Makethub</h1>
           </div>
           <h3>Buy Local. Order Global!</h3>
@@ -196,9 +209,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </section>
         <form action="index.php" method="POST">
           <h2>Login to Makethub</h2>
-          <p style="font-size:13px; color:#555; margin-bottom:10px;">
-            Your information is securely processed. Makethub does not share your login details with any third party.
-          </p>
           <?php if (!empty($error)): ?>
             <p class="errorMessage">
               <i class="fa-solid fa-circle-exclamation"></i>
