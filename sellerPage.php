@@ -1,9 +1,9 @@
 <?php
 session_start();
 require_once 'connection.php';
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-
+ini_set('display_errors', 0);
+error_reporting(0);
+ob_start();
 /* ---------- SESSION SECURITY ---------- */
 if (!isset($_SESSION['user_id'])) {
   header("Location: index.php");
@@ -40,16 +40,16 @@ if ($accountType !== $allowedRole) {
 $user_id = $_SESSION['user_id'];
 
 function formatDate($date) {
-    if (empty($date)) return '-';
+  if (empty($date)) return '-';
 
-    $timestamp = strtotime($date);
-    $oneYear = 31536000;
+  $timestamp = strtotime($date);
+  $oneYear = 31536000;
 
-    if (time() - $timestamp < $oneYear) {
-        return date("d M, H:i", $timestamp);
-    } else {
-        return date("d M Y", $timestamp);
-    }
+  if (time() - $timestamp < $oneYear) {
+      return date("d M, H:i", $timestamp);
+  } else {
+      return date("d M Y", $timestamp);
+  }
 }
 
 function formatToK($number) {
@@ -146,6 +146,7 @@ function generateImageDHash($filePath)
 $query = "
   SELECT 
     u.username,
+    u.business_name,
     u.profile_image,
     county.name AS county_name
   FROM users u
@@ -164,7 +165,8 @@ $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
-$username = "User";
+$username = "Not set";
+$businessName = "Not set";
 $profileImage = null;
 $county = "Not Set"; // default
 
@@ -172,14 +174,188 @@ if ($result && $result->num_rows === 1) {
   $user = $result->fetch_assoc();
 
   if (!empty($user['username'])) {
-      $username = $user['username'];
+    $username = $user['username'];
   }
-
+  if (!empty($user['business_name'])) {
+    $businessName = $user['business_name'];
+  }
   $profileImage = $user['profile_image'] ?? null;
   $county = $user['county_name'] ?? $county; // use DB value if exists
 }
 
 $stmt->close();
+
+/* ---------- SELLER QR LINK ---------- */
+$shopUrl = "https://makethub.shop/marketDisplay.php?seller=" . $user_id;
+
+/* ---------- QR IMAGE SOURCE ---------- */
+$qrImageUrl = "https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=" . urlencode($shopUrl);
+
+function centerText($image, $size, $angle, $y, $color, $font, $text) {
+  $box = imagettfbbox($size, $angle, $font, $text);
+  $textWidth = $box[2] - $box[0];
+  $x = (imagesx($image) - $textWidth) / 2;
+  imagettftext($image, $size, $angle, $x, $y, $color, $font, $text);
+}
+
+function drawGoldGradientText($image, $size, $angle, $x, $y, $text, $font)
+{
+  // Gold gradient shades (dark → bright)
+  $colors = [
+    imagecolorallocate($image, 184, 134, 11),  // dark gold
+    imagecolorallocate($image, 218, 165, 32),  // goldenrod
+    imagecolorallocate($image, 255, 193, 7),   // your gold
+    imagecolorallocate($image, 255, 215, 0),   // bright gold
+  ];
+
+  // slight offsets to simulate glow + gradient depth
+  $offsets = [
+    [-1, 0],
+    [0, -1],
+    [1, 0],
+    [0, 1],
+  ];
+
+  foreach ($colors as $index => $color) {
+    $ox = $offsets[$index % count($offsets)][0];
+    $oy = $offsets[$index % count($offsets)][1];
+
+    imagettftext($image, $size, $angle, $x + $ox, $y + $oy, $color, $font, $text);
+  }
+}
+
+/* ---------- QR STICKER DOWNLOAD ---------- */
+if (isset($_GET['download_qr'])) {
+
+  while (ob_get_level()) {
+    ob_end_clean();
+  }
+  header("Content-Type: image/png");
+  header("Content-Disposition: attachment; filename=makethub_qr_" . $user_id . ".png");
+
+  /* ✅ FIX 1: MATCH CANVAS SIZE */
+  $width = 991;
+  $height = 1236;
+
+  $image = imagecreatetruecolor($width, $height);
+
+  // Colors
+  $black = imagecolorallocate($image, 0, 0, 0);
+  $white = imagecolorallocate($image, 255, 255, 255);
+  $gold  = imagecolorallocate($image, 255, 193, 7);
+
+  imagefill($image, 0, 0, $black);
+
+  /* ---------- LOAD QR ---------- */
+  $qrData = file_get_contents($qrImageUrl);
+  if ($qrData === false) die("Failed to load QR code.");
+
+  $qr = imagecreatefromstring($qrData);
+  if ($qr === false) die("Invalid QR image data.");
+
+  /* ✅ FIX 2: CREATE THICK WHITE FRAME LIKE IMAGE 1 */
+  $qrBoxSize = 560;
+  $qrInnerSize = 440;
+  $qrPadding = ($qrBoxSize - $qrInnerSize) / 2;
+
+  $qrBox = imagecreatetruecolor($qrBoxSize, $qrBoxSize);
+  imagefill($qrBox, 0, 0, $white);
+
+  imagecopyresampled(
+    $qrBox,
+    $qr,
+    $qrPadding,
+    $qrPadding,
+    0,
+    0,
+    $qrInnerSize,
+    $qrInnerSize,
+    imagesx($qr),
+    imagesy($qr)
+  );
+
+  /* ✅ FIX 3: PERFECT CENTER + LOWER POSITION */
+  $qrX = ($width - $qrBoxSize) / 2;
+  $qrY = 320;
+
+  imagecopy($image, $qrBox, $qrX, $qrY, 0, 0, $qrBoxSize, $qrBoxSize);
+
+  /* ---------- FONTS ---------- */
+  $fontBold = __DIR__ . '/fonts/impact.ttf';
+  $fontScript = __DIR__ . '/fonts/GreatVibes-Regular.ttf';
+  $fontShop = __DIR__ . '/fonts/calibri.ttf';
+
+  if (!file_exists($fontBold) || !file_exists($fontScript) || !file_exists($fontShop)) {
+    die("Font file missing.");
+  }
+
+  /* ✅ FIX 4: CENTER ALL TEXT */
+
+  centerText($image, 60, 0, 140, $white, $fontBold, "FOLLOW MY SHOP");
+  centerText($image, 80, 0, 250, $gold, $fontScript, "Scan Me:");
+
+  /* ---------- LOGO + SHOP NAME (CENTERED + ALIGN-ITEMS CENTER) ---------- */
+
+  $shopName = strtoupper($businessName);
+  $fontSize = 45;
+
+  // Measure text box
+  $box = imagettfbbox($fontSize, 0, $fontShop, $shopName);
+  $textWidth  = $box[2] - $box[0];
+  $textHeight = $box[1] - $box[7]; // correct height
+
+  // Logo setup
+  $logoPath = __DIR__ . '/Images/Makethub Logo.png';
+  $logoSize = 90;
+  $gap = 20;
+
+  // Total width (for horizontal centering)
+  $totalWidth = $logoSize + $gap + $textWidth;
+  $startX = ($width - $totalWidth) / 2;
+
+  // ---- ALIGN-ITEMS CENTER LOGIC ----
+  $centerY = $qrY + $qrBoxSize + 80; // vertical center line
+
+  // Logo position (centered vertically)
+  $logoX = $startX;
+  $logoY = $centerY - ($logoSize / 2);
+
+  // Text position (baseline adjusted to center)
+  $textX = $startX + $logoSize + $gap;
+  $textY = $centerY + ($textHeight / 2);
+
+  // Draw logo
+  if (file_exists($logoPath)) {
+      $logoData = file_get_contents($logoPath);
+      $logo = @imagecreatefromstring($logoData);
+
+      if ($logo !== false) {
+        imagecopyresampled(
+          $image,
+          $logo,
+          $logoX,
+          $logoY,
+          0,
+          0,
+          $logoSize,
+          $logoSize,
+          imagesx($logo),
+          imagesy($logo)
+        );
+        imagedestroy($logo);
+      }
+  }
+
+  // Draw text
+  imagettftext($image, $fontSize, 0, $textX, $textY, $white, $fontShop, $shopName);
+
+  /* ---------- OUTPUT ---------- */
+  imagepng($image);
+  imagedestroy($image);
+  imagedestroy($qr);
+  imagedestroy($qrBox);
+  exit();
+}
 
 /* ---------- DELETE PRODUCT ---------- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_product_id'])) {
@@ -1349,6 +1525,16 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
         </div>
 
         <div class="tab-content">
+          <div style="margin:20px 0;">
+            <a href="?download_qr=1" 
+              style="padding:12px 20px;background:#000;color:#fff;text-decoration:none;border-radius:8px;">
+              📥 Download Shop QR Sticker
+            </a>
+
+            <br><br>
+
+            <img src="<?php echo $qrImageUrl; ?>" width="150" style="border:5px solid #eee;">
+          </div>
           <div id="dashboard" class="tab-panel">
             <p>Dashboard Area <br><strong>Your business performance and finances <i class="fa-regular fa-circle-check"></i></strong></p>
             <div class="containerInner">

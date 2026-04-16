@@ -909,6 +909,24 @@ function formatProductName($name) {
 }
 
 $productStmt->close();
+
+/* ---------- TRACK QR SCAN ---------- */
+if (isset($_GET['seller'])) {
+
+  $sellerId = intval($_GET['seller']);
+
+  $stmt = $conn->prepare("
+      INSERT INTO qr_scans (seller_id, ip_address, user_agent, created_at)
+      VALUES (?, ?, ?, NOW())
+  ");
+
+  $ip = $_SERVER['REMOTE_ADDR'];
+  $agent = $_SERVER['HTTP_USER_AGENT'];
+
+  $stmt->bind_param("iss", $sellerId, $ip, $agent);
+  $stmt->execute();
+  $stmt->close();
+}
 ?>
 
 <!DOCTYPE html>

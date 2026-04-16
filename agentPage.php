@@ -2811,7 +2811,8 @@ function getStatusIcon($status) {
               $date = formatDate($row['created_at']);
 
               // Source
-              $source = ($row['source_type']);
+              $source = ($row['source_type'] === 'agency_commission') ? 'Agency Commission' : (($row['source_type'] === 'sales_commission') ? 'Sales Commission'
+              : $row['source_type']);
 
               // Level
               preg_match('/Level (\d+)/', $row['description'], $matches);
@@ -2956,10 +2957,11 @@ function getStatusIcon($status) {
             <?php foreach ($commissions as $row): 
 
               // Format date
-              $date = formatDate($row['created_at']); 
+              $date = formatDate($row['created_at']);
 
               // Source
-              $source = ($row['source_type']);
+              $source = ($row['source_type'] === 'agency_commission') ? 'Agency Commission' : (($row['source_type'] === 'sales_commission') ? 'Sales Commission'
+              : $row['source_type']);
 
               // Level
               preg_match('/Level (\d+)/', $row['description'], $matches);
@@ -2978,7 +2980,14 @@ function getStatusIcon($status) {
               $amount = "KES " . number_format($row['amount'], 2);
 
               $phone = !empty($row['phone']) ? base64_decode($row['phone']) : '';
-              $email = !empty($row['email']) ? base64_decode($row['email']) : '';              
+              $email = !empty($row['email']) ? base64_decode($row['email']) : '';
+
+              $cleanPhone = preg_replace('/\D/', '', $phone);
+
+              // Convert 07XXXXXXXX → 2547XXXXXXXX
+              if (strpos($cleanPhone, '0') === 0) {
+                  $cleanPhone = '254' . substr($cleanPhone, 1);
+              }
               
             ?>
 
@@ -2993,33 +3002,18 @@ function getStatusIcon($status) {
                 <td><?php echo htmlspecialchars($amount); ?></td>
                 <td><?php echo htmlspecialchars($level); ?></td>
                 <td><?php echo htmlspecialchars($source); ?></td>
+                
                 <td class="comm-cell">
                   <button class="comm-btn">
                     <i class="fas fa-ellipsis-vertical"></i>
                   </button>
-
                   <div class="comm-dropdown">
-
-                    <?php if ($phone): ?>
-                      <a href="tel:<?= htmlspecialchars($phone) ?>">
-                        <i class="fas fa-phone"></i> Call
-                      </a>
-
-                      <a href="https://wa.me/<?= $cleanPhone ?>" target="_blank">
-                        <i class="fab fa-whatsapp"></i> WhatsApp
-                      </a>
-
-                      <a href="sms:<?= htmlspecialchars($phone) ?>">
-                        <i class="fas fa-comment-dots"></i> SMS
-                      </a>
-                    <?php endif; ?>
-
-                    <?php if ($email): ?>
-                      <a href="mailto:<?= htmlspecialchars($email) ?>">
-                        <i class="fas fa-envelope"></i> Email
-                      </a>
-                    <?php endif; ?>
-
+                    <a href="tel:<?= htmlspecialchars($phone) ?>"><i class="fas fa-phone"></i> Call</a>
+                    <a href="https://wa.me/<?= $cleanPhone ?>" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="mailto:<?= htmlspecialchars($email) ?>"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="sms:<?= $cleanPhone ?>">
+                      <i class="fas fa-comment-dots"></i> SMS
+                    </a>
                   </div>
                 </td>
                 <td><?php echo htmlspecialchars($date); ?></td>
