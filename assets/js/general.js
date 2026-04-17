@@ -2632,3 +2632,149 @@ window.addEventListener("DOMContentLoaded", () => {
     loadLocations(oldCountry, oldCounty, oldWard);
   }
 });
+
+// ===============================
+// ORDER CHART LOCATION-TRACKING JS
+// ===============================
+
+
+const chatBody = document.getElementById("chatBody");
+const chatInput = document.getElementById("chatInput");
+const orderStatus = document.getElementById("orderStatus");
+const chatFooter = document.getElementById("chatFooter");
+
+/* SEND MESSAGE */
+function sendMessage() {
+  const input = document.getElementById("chatInput");
+  if (!input.value.trim()) return;
+
+  const messageWrapper = document.createElement("div");
+  messageWrapper.className = "chat-message buyer";
+
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+
+  const time = new Date().toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  bubble.innerHTML = `
+    ${input.value}
+    <span class="time">${time}</span>
+  `;
+
+  messageWrapper.appendChild(bubble);
+  document.getElementById("chatBody").appendChild(messageWrapper);
+
+  input.value = "";
+  chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+let currentCoords = null;
+
+function shareLocation() {
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    currentCoords = {
+      lat: pos.coords.latitude,
+      lng: pos.coords.longitude,
+      accuracy: pos.coords.accuracy
+    };
+
+    // Show manual input modal
+    document.getElementById("locationModal").style.display = "block";
+  });
+}
+
+async function confirmLocation() {
+  const manualText = document.getElementById("manualLocation").value;
+
+  const { lat, lng, accuracy } = currentCoords;
+
+  const apiKey = "YOUR_GOOGLE_API_KEY";
+
+  let address = "";
+
+  try {
+    const res = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
+    );
+    const data = await res.json();
+    address = data.results[0]?.formatted_address || "Unknown location";
+  } catch {
+    address = "Address unavailable";
+  }
+
+  const mapEmbed = `
+    <iframe 
+      width="100%" 
+      height="150" 
+      style="border-radius:10px"
+      src="https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed">
+    </iframe>
+  `;
+
+  const time = new Date().toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  const messageWrapper = document.createElement("div");
+  messageWrapper.className = "chat-message buyer";
+
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+
+  bubble.innerHTML = `
+    📍 <strong>Delivery Location</strong><br>
+    ${address}<br>
+    📝 ${manualText}<br><br>
+    ${mapEmbed}
+    <small>Accuracy: ±${Math.round(accuracy)}m</small>
+    <span class="time">${time}</span>
+  `;
+
+  messageWrapper.appendChild(bubble);
+  chatBody.appendChild(messageWrapper);
+
+  document.getElementById("locationModal").style.display = "none";
+
+  // Send to backend
+  sendLocationToServer(lat, lng, address, manualText);
+
+  // Start live tracking
+  startLiveTracking();
+}
+
+let trackingInterval;
+
+function startLiveTracking() {
+  trackingInterval = setInterval(() => {
+    navigator.geolocation.getCurrentPosition((pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+
+      fetch("update_location.php", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ lat, lng })
+      });
+    });
+  }, 5000); // every 5 seconds
+}
+
+/* COMPLETE ORDER */
+function completeOrder() {
+  if (!confirm("This will mark the order as completed and close the chat. Continue?")) return;
+
+  orderStatus.textContent = "Order Completed • Chat Closed";
+  orderStatus.style.color = "#ffb703";
+
+  const systemMsg = document.createElement("div");
+  systemMsg.className = "message system";
+  systemMsg.textContent =
+    "✅ Order marked as completed. Chat has been closed.";
+  chatBody.appendChild(systemMsg);
+
+  chatFooter.classList.add("locked");
+}

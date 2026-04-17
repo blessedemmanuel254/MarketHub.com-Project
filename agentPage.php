@@ -530,11 +530,41 @@ if($_SERVER["REQUEST_METHOD"] === "POST"){
 
 }
 
+$username = "User";
+$profileImage = null;
+$agencyCode = "";
+
+// location labels (names)
+$ward = "";
+$county = "Not set";
+$country = "";
+
 $query = "
-SELECT username, profile_image, agency_code, location_id
-FROM users 
-WHERE user_id = ? 
-LIMIT 1
+  SELECT 
+    u.username,
+    u.profile_image,
+    u.agency_code,
+
+    ward.name   AS ward,
+    county.name AS county,
+    country.name AS country
+
+  FROM users u
+
+  LEFT JOIN locations ward 
+    ON u.location_id = ward.location_id
+
+  LEFT JOIN locations county 
+    ON ward.parent_id = county.location_id
+
+  LEFT JOIN locations region 
+    ON county.parent_id = region.location_id
+
+  LEFT JOIN locations country 
+    ON region.parent_id = country.location_id
+
+  WHERE u.user_id = ?
+  LIMIT 1
 ";
 
 $stmt = $conn->prepare($query);
@@ -547,104 +577,21 @@ $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
-$username = "User";
-$profileImage = null;
-$agencyCode = "";
-
-// location labels (names)
-$ward = "";
-$county = "Not set";
-$country = "";
-
 if ($result && $result->num_rows === 1) {
-
   $user = $result->fetch_assoc();
 
-  $username = $user['username'] ?? $username;
+  if (!empty($user['username'])) {
+      $username = $user['username'];
+  }
+
   $profileImage = $user['profile_image'] ?? null;
   $agencyCode = $user['agency_code'] ?? "";
 
-  $location_id = $user['location_id'] ?? null;
+  $county = !empty($user['county']) ? $user['county'] : "Not set";
 
-  if ($location_id) {
-
-    // =============================
-    // STEP 1: WARD
-    // =============================
-    $stmt1 = $conn->prepare("
-      SELECT name, parent_id 
-      FROM locations 
-      WHERE location_id = ? AND type = 'ward'
-      LIMIT 1
-    ");
-    $stmt1->bind_param("i", $location_id);
-    $stmt1->execute();
-    $res1 = $stmt1->get_result()->fetch_assoc();
-    $stmt1->close();
-
-    if ($res1) {
-
-      $ward = $res1['name'];
-      $county_id = $res1['parent_id'];
-
-      // =============================
-      // STEP 2: COUNTY
-      // =============================
-      $stmt2 = $conn->prepare("
-        SELECT name, parent_id 
-        FROM locations 
-        WHERE location_id = ? AND type = 'county'
-        LIMIT 1
-      ");
-      $stmt2->bind_param("i", $county_id);
-      $stmt2->execute();
-      $res2 = $stmt2->get_result()->fetch_assoc();
-      $stmt2->close();
-
-      if ($res2) {
-
-        $county = $res2['name'];
-        $region_id = $res2['parent_id']; // ✅ THIS IS REGION
-
-        // =============================
-        // STEP 3: REGION
-        // =============================
-        $stmt3 = $conn->prepare("
-          SELECT parent_id 
-          FROM locations 
-          WHERE location_id = ? AND type = 'region'
-          LIMIT 1
-        ");
-        $stmt3->bind_param("i", $region_id);
-        $stmt3->execute();
-        $res3 = $stmt3->get_result()->fetch_assoc();
-        $stmt3->close();
-
-        if ($res3) {
-
-          $country_id = $res3['parent_id']; // ✅ NOW THIS IS COUNTRY
-
-          // =============================
-          // STEP 4: COUNTRY
-          // =============================
-          $stmt4 = $conn->prepare("
-            SELECT name 
-            FROM locations 
-            WHERE location_id = ? AND type = 'country'
-            LIMIT 1
-          ");
-          $stmt4->bind_param("i", $country_id);
-          $stmt4->execute();
-          $res4 = $stmt4->get_result()->fetch_assoc();
-          $stmt4->close();
-
-          if ($res4) {
-            $country = $res4['name'];
-          }
-        }
-      }
-    }
-  }
+  // Normalize for matching
+  $ward = !empty($user['ward']) ? strtolower(trim($user['ward'])) : "";
+  $country = !empty($user['country']) ? strtolower(trim($user['country'])) : "";
 }
 
 $stmt->close();
@@ -943,98 +890,98 @@ $stmt = $conn->prepare("
   $displayCommissionCount = $pendingCount > 9 ? "9+" : $pendingCount;
   $stmt->close();
 
-  // Current logged in user
-  $currentUserId = $_SESSION['user_id'];
-  $agentWard = strtolower(trim($ward));
-  $agentCountry = strtolower(trim($country));
+// Current logged in user
+$currentUserId = $_SESSION['user_id'];
+$agentWard = strtolower(trim($ward));
+$agentCountry = strtolower(trim($country));
 
-  $sellerQuery = "
-  SELECT 
-    u.user_id,
-    u.username,
-    u.business_name,
-    u.business_type,
-    u.market_scope,
-    u.profile_image,
-    u.address,
+$sellerQuery = "
+SELECT 
+  u.user_id,
+  u.username,
+  u.business_name,
+  u.business_type,
+  u.market_scope,
+  u.profile_image,
+  u.address,
 
-    wardLoc.name AS ward,
-    countyLoc.name AS county,
-    countryLoc.name AS country,
+  wardLoc.name AS ward,
+  countyLoc.name AS county,
+  countryLoc.name AS country,
 
-    (
-      SELECT COUNT(DISTINCT oi.order_id)
-      FROM order_items oi
-      JOIN orders o ON oi.order_id = o.order_id
-      WHERE oi.seller_id = u.user_id
-      AND o.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-    ) AS total_orders,
+  (
+    SELECT COUNT(DISTINCT oi.order_id)
+    FROM order_items oi
+    JOIN orders o ON oi.order_id = o.order_id
+    WHERE oi.seller_id = u.user_id
+    AND o.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+  ) AS total_orders,
 
-    (
-      SELECT COUNT(*)
-      FROM user_followers uf
-      WHERE uf.followed_id = u.user_id
-    ) AS followers_count,
+  (
+    SELECT COUNT(*)
+    FROM user_followers uf
+    WHERE uf.followed_id = u.user_id
+  ) AS followers_count,
 
-    (
-      SELECT COUNT(*)
-      FROM user_followers uf
-      WHERE uf.follower_id = u.user_id
-    ) AS following_count,
+  (
+    SELECT COUNT(*)
+    FROM user_followers uf
+    WHERE uf.follower_id = u.user_id
+  ) AS following_count,
 
-    (
-      SELECT COUNT(*)
-      FROM user_followers uf
-      WHERE uf.follower_id = ?
-      AND uf.followed_id = u.user_id
-    ) AS is_following
+  (
+    SELECT COUNT(*)
+    FROM user_followers uf
+    WHERE uf.follower_id = ?
+    AND uf.followed_id = u.user_id
+  ) AS is_following
 
-  FROM users u
+FROM users u
 
-  LEFT JOIN locations wardLoc 
-    ON wardLoc.location_id = u.location_id 
-    AND wardLoc.type = 'ward'
+LEFT JOIN locations wardLoc 
+  ON wardLoc.location_id = u.location_id
 
-  LEFT JOIN locations countyLoc 
-    ON countyLoc.location_id = wardLoc.parent_id 
-    AND countyLoc.type = 'county'
+LEFT JOIN locations countyLoc 
+  ON countyLoc.location_id = wardLoc.parent_id
 
-  LEFT JOIN locations countryLoc 
-    ON countryLoc.location_id = countyLoc.parent_id 
-    AND countryLoc.type = 'country'
+LEFT JOIN locations regionLoc 
+  ON regionLoc.location_id = countyLoc.parent_id
 
-  WHERE u.account_type = 'seller'
+LEFT JOIN locations countryLoc 
+  ON countryLoc.location_id = regionLoc.parent_id
 
-  ORDER BY total_orders DESC
-  LIMIT 50
-  ";
+WHERE u.account_type = 'seller'
 
-  $stmt = $conn->prepare($sellerQuery);
-  $stmt->bind_param("i", $currentUserId);
-  $stmt->execute();
-  $result = $stmt->get_result();
+ORDER BY total_orders DESC
+LIMIT 50
+";
 
-  $shops = [];
-  $supermarkets = [];
+$stmt = $conn->prepare($sellerQuery);
+$stmt->bind_param("i", $currentUserId);
+$stmt->execute();
+$result = $stmt->get_result();
 
-  $shopsN = [];
-  $supermarketsN = [];
+$shops = [];
+$supermarkets = [];
 
-  $shopsG = [];
-  $supermarketsG = [];
+$shopsN = [];
+$supermarketsN = [];
 
-  while ($row = $result->fetch_assoc()) {
+$shopsG = [];
+$supermarketsG = [];
 
-    $row['business_name'] = ucwords(strtolower($row['business_name']));
-    $row['business_type'] = ucwords(strtolower($row['business_type']));
-    $row['address'] = ucwords(strtolower($row['address']));
+while ($row = $result->fetch_assoc()) {
 
-    $type = strtolower(trim($row['business_type']));
-    $scope = strtolower(trim($row['market_scope']));
+  $row['business_name'] = ucwords(strtolower($row['business_name']));
+  $row['business_type'] = ucwords(strtolower($row['business_type']));
+  $row['address'] = ucwords(strtolower($row['address']));
 
-    $row['ward'] = strtolower(trim($row['ward'] ?? ''));
-    $row['country'] = strtolower(trim($row['country'] ?? ''));
-    $row['county'] = strtolower(trim($row['county'] ?? ''));
+  $type = strtolower(trim($row['business_type']));
+  $scope = strtolower(trim($row['market_scope']));
+
+  $row['ward'] = strtolower(trim($row['ward'] ?? ''));
+  $row['country'] = strtolower(trim($row['country'] ?? ''));
+  $row['county'] = strtolower(trim($row['county'] ?? ''));
   /* ---------- LOCAL ---------- */
   if (($scope === "local" && strtolower(trim($row['ward'])) === $agentWard) || (strtolower(trim($row['ward'])) === $agentWard)) {
 
@@ -1077,6 +1024,21 @@ $stmt = $conn->prepare("
 }
 
 $stmt->close();
+
+$markets = [
+  'L' => [
+    'shops' => $shops,
+    'supermarkets' => $supermarkets
+  ],
+  'N' => [
+    'shops' => $shopsN,
+    'supermarkets' => $supermarketsN
+  ],
+  'G' => [
+    'shops' => $shopsG,
+    'supermarkets' => $supermarketsG
+  ]
+];
 
 $markets = [
   'L' => [
@@ -2811,7 +2773,7 @@ function getStatusIcon($status) {
               $date = formatDate($row['created_at']);
 
               // Source
-              $source = ($row['source_type'] === 'agency_commission') ? 'Agency Commission' : (($row['source_type'] === 'sales_commission') ? 'Sales Commission'
+              $source = ($row['source_type'] === 'agency_commission')? 'Agency Commission' : (($row['source_type'] === 'sales_commission') ? 'Sales Commission'
               : $row['source_type']);
 
               // Level
@@ -2960,7 +2922,7 @@ function getStatusIcon($status) {
               $date = formatDate($row['created_at']);
 
               // Source
-              $source = ($row['source_type'] === 'agency_commission') ? 'Agency Commission' : (($row['source_type'] === 'sales_commission') ? 'Sales Commission'
+              $source = ($row['source_type'] === 'agency_commission')? 'Agency Commission' : (($row['source_type'] === 'sales_commission') ? 'Sales Commission'
               : $row['source_type']);
 
               // Level

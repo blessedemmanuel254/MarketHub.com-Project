@@ -118,7 +118,32 @@ if (
 /* ---------- FETCH USER DATA ---------- */
 $user_id = $_SESSION['user_id'];
 
-$query = "SELECT username, profile_image, county, ward, country FROM users WHERE user_id = ? LIMIT 1";
+$query = "
+  SELECT 
+    u.username,
+    u.profile_image,
+
+    ward.name   AS ward,
+    county.name AS county,
+    country.name AS country
+
+  FROM users u
+
+  LEFT JOIN locations ward 
+    ON u.location_id = ward.location_id
+
+  LEFT JOIN locations county 
+    ON ward.parent_id = county.location_id
+
+  LEFT JOIN locations region 
+    ON county.parent_id = region.location_id
+
+  LEFT JOIN locations country 
+    ON region.parent_id = country.location_id
+
+  WHERE u.user_id = ?
+  LIMIT 1
+";
 $stmt = $conn->prepare($query);
 
 if (!$stmt) {
@@ -129,7 +154,7 @@ $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
-$username = "User";
+$username = "Not set";
 $profileImage = null;
 $county = "Not set";
 $ward = "not set";
@@ -144,11 +169,11 @@ if ($result && $result->num_rows === 1) {
 
   $profileImage = $user['profile_image'] ?? null;
 
-  $county = $user['county'] ?? "Not set";
+  $county = !empty($user['county']) ? $user['county'] : "Not set";
 
   // Normalize for matching
-  $ward = strtolower(trim($user['ward'] ?? "not set"));
-  $country = strtolower(trim($user['country'] ?? "not set"));
+  $ward = !empty($user['ward']) ? strtolower(trim($user['ward'])) : "";
+  $country = !empty($user['country']) ? strtolower(trim($user['country'])) : "";
 }
 
 $stmt->close();
@@ -180,48 +205,68 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
 // Current logged in user
 $currentUserId = $_SESSION['user_id'];
+$agentWard = strtolower(trim($ward));
+$agentCountry = strtolower(trim($country));
 
 $sellerQuery = "
-    SELECT 
-        u.user_id,
-        u.username,
-        u.business_name,
-        u.business_type,
-        u.market_scope,
-        u.ward,
-        u.country,
-        u.profile_image,
-        u.address,
-        (
-          SELECT COUNT(DISTINCT oi.order_id)
-          FROM order_items oi
-          JOIN orders o ON oi.order_id = o.order_id
-          WHERE oi.seller_id = u.user_id
-          AND o.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-        ) AS total_orders,
-        (
-          SELECT COUNT(*)
-          FROM user_followers uf
-          WHERE uf.followed_id = u.user_id
-        ) AS followers_count,
+SELECT 
+  u.user_id,
+  u.username,
+  u.business_name,
+  u.business_type,
+  u.market_scope,
+  u.profile_image,
+  u.address,
 
-        (
-          SELECT COUNT(*)
-          FROM user_followers uf
-          WHERE uf.follower_id = u.user_id
-        ) AS following_count,
-        (
-          SELECT COUNT(*)
-          FROM user_followers uf
-          WHERE uf.follower_id = ?
-          AND uf.followed_id = u.user_id
-        ) AS is_following
+  wardLoc.name AS ward,
+  countyLoc.name AS county,
+  countryLoc.name AS country,
 
-    FROM users u
-    WHERE u.account_type = 'seller'
+  (
+    SELECT COUNT(DISTINCT oi.order_id)
+    FROM order_items oi
+    JOIN orders o ON oi.order_id = o.order_id
+    WHERE oi.seller_id = u.user_id
+    AND o.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+  ) AS total_orders,
 
-    ORDER BY total_orders DESC
-    LIMIT 50
+  (
+    SELECT COUNT(*)
+    FROM user_followers uf
+    WHERE uf.followed_id = u.user_id
+  ) AS followers_count,
+
+  (
+    SELECT COUNT(*)
+    FROM user_followers uf
+    WHERE uf.follower_id = u.user_id
+  ) AS following_count,
+
+  (
+    SELECT COUNT(*)
+    FROM user_followers uf
+    WHERE uf.follower_id = ?
+    AND uf.followed_id = u.user_id
+  ) AS is_following
+
+FROM users u
+
+LEFT JOIN locations wardLoc 
+  ON wardLoc.location_id = u.location_id
+
+LEFT JOIN locations countyLoc 
+  ON countyLoc.location_id = wardLoc.parent_id
+
+LEFT JOIN locations regionLoc 
+  ON regionLoc.location_id = countyLoc.parent_id
+
+LEFT JOIN locations countryLoc 
+  ON countryLoc.location_id = regionLoc.parent_id
+
+WHERE u.account_type = 'seller'
+
+ORDER BY total_orders DESC
+LIMIT 50
 ";
 
 $stmt = $conn->prepare($sellerQuery);
@@ -247,8 +292,11 @@ while ($row = $result->fetch_assoc()) {
   $type = strtolower(trim($row['business_type']));
   $scope = strtolower(trim($row['market_scope']));
 
+  $row['ward'] = strtolower(trim($row['ward'] ?? ''));
+  $row['country'] = strtolower(trim($row['country'] ?? ''));
+  $row['county'] = strtolower(trim($row['county'] ?? ''));
   /* ---------- LOCAL ---------- */
-  if ($scope === "local" && strtolower(trim($row['ward'])) === $ward) {
+  if (($scope === "local" && strtolower(trim($row['ward'])) === $agentWard) || (strtolower(trim($row['ward'])) === $agentWard)) {
 
     if (in_array($type, ['shop','kiosk','canteen','kibanda'])) {
       $shops[] = $row;
@@ -261,7 +309,7 @@ while ($row = $result->fetch_assoc()) {
   }
 
   /* ---------- NATIONAL ---------- */
-  elseif ($scope === "national" && strtolower(trim($row['country'])) === $country) {
+  if ($scope === "national" && strtolower(trim($row['country'])) === $agentCountry) {
 
     if (in_array($type, ['shop','kiosk','canteen','kibanda'])) {
       $shopsN[] = $row;
@@ -274,7 +322,7 @@ while ($row = $result->fetch_assoc()) {
   }
 
   /* ---------- GLOBAL ---------- */
-  elseif ($scope === "global") {
+  if ($scope === "global") {
 
     if (in_array($type, ['shop','kiosk','canteen','kibanda'])) {
       $shopsG[] = $row;
@@ -531,6 +579,50 @@ $pendingOrders = count($pendingItems);
     </div>
 
     <main class="buyerMain" id="marketMain">
+      
+    <div class="chat-wrapper">
+
+      <!-- HEADER -->
+      <div class="chat-header">
+        <h3>Order Chat • Seller: Alex</h3>
+        <div class="meta">Item: Office Chair (Rental • 3 Days)</div>
+        <div class="status" id="orderStatus">Order in progress</div>
+      </div>
+
+      <!-- CHAT BODY -->
+      <div class="chat-body" id="chatBody">
+
+        <!-- Seller Message -->
+        <div class="chat-message seller">
+          <div class="bubble">
+            Hello 👋 I’m ready to deliver your product.
+            <span class="time">10:32 AM</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- FOOTER -->
+      <div class="chat-footer" id="chatFooter">
+
+        <div class="chat-actions">
+          <button class="location-btn" onclick="shareLocation()">📍 Share Location</button>
+          <button class="complete-btn" onclick="completeOrder()">✔ I have Received Order</button>
+        </div>
+
+        <div class="chat-input">
+          <input type="text" id="chatInput" placeholder="Type a message..." />
+          <button class="send-btn" onclick="sendMessage()">Send</button>
+        </div>
+
+      </div>
+
+    </div>
+    <div id="locationModal" style="display:none; position:fixed; bottom:0; background:#fff; width:100%; padding:15px;">
+      <h4>Describe your location</h4>
+      <input type="text" id="manualLocation" placeholder="e.g. Blue gate, near church" style="width:100%; padding:10px;">
+      <button onclick="confirmLocation()">Confirm Location</button>
+    </div>
       <div class="tabs-container strongRed" id="toggleMarketTypeTab" data-tab-storage="marketTypeTabs">
         <div class="tabs">
           <button class="tab-btn" data-tab="products">Products</button>

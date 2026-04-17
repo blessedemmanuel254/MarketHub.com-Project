@@ -24,7 +24,31 @@ function decodeField($v) {
 }
 
 /* ---------- FETCH USER ---------- */
-$stmt = $conn->prepare("SELECT * FROM users WHERE user_id = ? LIMIT 1");
+$stmt = $conn->prepare("
+  SELECT 
+    u.*,
+
+    ward.name   AS ward,
+    county.name AS county,
+    country.name AS country
+
+  FROM users u
+
+  LEFT JOIN locations ward 
+    ON u.location_id = ward.location_id
+
+  LEFT JOIN locations county 
+    ON ward.parent_id = county.location_id
+
+  LEFT JOIN locations region 
+    ON county.parent_id = region.location_id
+
+  LEFT JOIN locations country 
+    ON region.parent_id = country.location_id
+
+  WHERE u.user_id = ?
+  LIMIT 1
+");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
@@ -45,9 +69,9 @@ $full_name = $user['full_name'] ?? '';
 $username  = $user['username'] ?? '';
 $email     = $user['email'] ?? '';
 $phone     = $user['phone'] ?? '';
-$country   = $user['country'] ?? '';
-$county    = $user['county'] ?? '';
-$ward      = $user['ward'] ?? '';
+$country   = !empty($user['country']) ? $user['country'] : '';
+$county    = !empty($user['county']) ? $user['county'] : '';
+$ward      = !empty($user['ward']) ? $user['ward'] : '';
 $address   = $user['address'] ?? '';
 $busname   = $user['business_name'] ?? '';
 $busmodel  = $user['business_model'] ?? '';
@@ -110,9 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   // Common fields
   $full_name = trim($_POST['full_name'] ?? '');
   $phoneRaw  = trim($_POST['phone'] ?? '');
-  $country   = trim($_POST['country'] ?? '');
-  $county    = trim($_POST['county'] ?? '');
-  $ward      = trim($_POST['ward'] ?? '');
+  $location_id = intval($_POST['ward'] ?? 0);
   $address   = trim($_POST['address'] ?? '');
   $bio       = trim($_POST['bio'] ?? '');
 
@@ -120,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       COMMON VALIDATION
   ----------------------------- */
 
-  if (!$full_name || !$phoneRaw || !$country || !$county || !$ward || !$address) {
+  if (!$full_name || !$phoneRaw || !$location_id || !$address) {
       $error = "All fields are required!";
   }
   elseif (str_word_count($full_name) < 2) {
@@ -210,48 +232,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       if ($accountType === 'seller') {
 
-          $update = $conn->prepare("
-              UPDATE users SET
-                  full_name=?, phone=?, bio=?, country=?, county=?, ward=?, address=?,
-                  business_name=?, business_model=?, business_type=?,
-                  profile_image=?, updated_at=NOW()
-              WHERE user_id=?
-          ");
+        $update = $conn->prepare("
+          UPDATE users SET
+            full_name=?, phone=?, bio=?, location_id=?, address=?,
+            business_name=?, business_model=?, business_type=?,
+            profile_image=?, updated_at=NOW()
+          WHERE user_id=?
+        ");
 
-          $update->bind_param(
-              "sssssssssssi",
-              $full_name,
-              $encrypted_phone,
-              $bio,
-              $country,
-              $county,
-              $ward,
-              $address,
-              $busname,
-              $busmodel,
-              $bustype,
-              $profile_image,
-              $user_id
-          );
+        $update->bind_param(
+          "sssisssssi",
+          $full_name,
+          $encrypted_phone,
+          $bio,
+          $location_id,
+          $address,
+          $busname,
+          $busmodel,
+          $bustype,
+          $profile_image,
+          $user_id
+        );
 
       } else {
 
           // buyer / agent / property_owner
           $update = $conn->prepare("
               UPDATE users SET
-                  full_name=?, phone=?, bio=?, country=?, county=?, ward=?, address=?,
+                  full_name=?, phone=?, bio=?, location_id=?, address=?,
                   profile_image=?, updated_at=NOW()
               WHERE user_id=?
           ");
 
           $update->bind_param(
-              "ssssssssi",
+              "sssissi",
               $full_name,
               $encrypted_phone,
               $bio,
-              $country,
-              $county,
-              $ward,
+              $location_id,
               $address,
               $profile_image,
               $user_id
@@ -372,10 +390,17 @@ if (!empty($user['profile_image'])) {
 
           <div class="form-group">
             <label>Country</label>
-            <select name="country">
-              <option value="Kenya" <?= $country=='Kenya'?'selected':'' ?>>Kenya</option>
-              <option value="Uganda" <?= $country=='Uganda'?'selected':'' ?>>Uganda</option>
-              <option value="Tanzania" <?= $country=='Tanzania'?'selected':'' ?>>Tanzania</option>
+            <select id="country" name="country" required>
+              <option value="">-- Select Country --</option>
+              <?php
+                $countries = $conn->query("SELECT location_id, name FROM locations WHERE type='country' ORDER BY name ASC");
+                while ($row = $countries->fetch_assoc()):
+              ?>
+                <option value="<?= $row['location_id']; ?>" 
+                  <?= ($country == $row['location_id']) ? 'selected' : ''; ?>>
+                  <?= htmlspecialchars($row['name']); ?>
+                </option>
+              <?php endwhile; ?>
             </select>
           </div>
 
@@ -392,19 +417,15 @@ if (!empty($user['profile_image'])) {
           
           <div class="form-group">
             <label>County</label>
-            <select name="county">
-              <option <?= $user['county']=='Kenya'?'selected':'' ?>>Kilifi</option>
-              <option <?= $user['county']=='Uganda'?'selected':'' ?>>Mombasa</option>
-              <option <?= $user['county']=='Tanzania'?'selected':'' ?>>Bungoma</option>
+            <select id="county" name="county" required>
+              <option value="">-- Select County --</option>
             </select>
           </div>
           
           <div class="form-group">
             <label>Ward</label>
-            <select name="ward">
-              <option <?= $user['ward']=='Sokoni'?'selected':'' ?>>Sokoni</option>
-              <option <?= $user['ward']=='Kilifi North'?'selected':'' ?>>Kilifi North</option>
-              <option <?= $user['ward']=='Kilifi South'?'selected':'' ?>>Kilifi South</option>
+            <select id="ward" name="ward" required data-selected="<?= htmlspecialchars($location_id ?? '') ?>">
+              <option value="">-- Select Ward --</option>
             </select>
           </div>
           <div></div>
@@ -500,10 +521,17 @@ if (!empty($user['profile_image'])) {
 
           <div class="form-group">
             <label>Country</label>
-            <select name="country">
-              <option value="Kenya" <?= $country=='Kenya'?'selected':'' ?>>Kenya</option>
-              <option value="Uganda" <?= $country=='Uganda'?'selected':'' ?>>Uganda</option>
-              <option value="Tanzania" <?= $country=='Tanzania'?'selected':'' ?>>Tanzania</option>
+            <select id="country" name="country" required>
+              <option value="">-- Select Country --</option>
+              <?php
+                $countries = $conn->query("SELECT location_id, name FROM locations WHERE type='country' ORDER BY name ASC");
+                while ($row = $countries->fetch_assoc()):
+              ?>
+                <option value="<?= $row['location_id']; ?>" 
+                  <?= ($country == $row['location_id']) ? 'selected' : ''; ?>>
+                  <?= htmlspecialchars($row['name']); ?>
+                </option>
+              <?php endwhile; ?>
             </select>
           </div>
               
@@ -519,19 +547,15 @@ if (!empty($user['profile_image'])) {
           
           <div class="form-group">
             <label>County</label>
-            <select name="county" required>
-              <option <?= $user['county']=='Kenya'?'selected':'' ?>>Kilifi</option>
-              <option <?= $user['county']=='Uganda'?'selected':'' ?>>Mombasa</option>
-              <option <?= $user['county']=='Tanzania'?'selected':'' ?>>Bungoma</option>
+            <select id="county" name="county" required>
+              <option value="">-- Select County --</option>
             </select>
           </div>
           
           <div class="form-group">
             <label>Ward</label>
-            <select name="ward" required>
-              <option <?= $user['ward']=='Kenya'?'selected':'' ?>>Sokoni</option>
-              <option <?= $user['ward']=='Uganda'?'selected':'' ?>>Kilifi North</option>
-              <option <?= $user['ward']=='Tanzania'?'selected':'' ?>>Kilifi South</option>
+            <select id="ward" name="ward" required data-selected="<?= htmlspecialchars($location_id ?? '') ?>">
+              <option value="">-- Select Ward --</option>
             </select>
           </div>
 
@@ -601,19 +625,24 @@ if (!empty($user['profile_image'])) {
 
           <div class="form-group">
             <label>Country</label>
-            <select name="country">
-              <option value="Kenya" <?= $country=='Kenya'?'selected':'' ?>>Kenya</option>
-              <option value="Uganda" <?= $country=='Uganda'?'selected':'' ?>>Uganda</option>
-              <option value="Tanzania" <?= $country=='Tanzania'?'selected':'' ?>>Tanzania</option>
+            <select id="country" name="country" required>
+              <option value="">-- Select Country --</option>
+              <?php
+                $countries = $conn->query("SELECT location_id, name FROM locations WHERE type='country' ORDER BY name ASC");
+                while ($row = $countries->fetch_assoc()):
+              ?>
+                <option value="<?= $row['location_id']; ?>" 
+                  <?= ($country == $row['location_id']) ? 'selected' : ''; ?>>
+                  <?= htmlspecialchars($row['name']); ?>
+                </option>
+              <?php endwhile; ?>
             </select>
           </div>
           
           <div class="form-group">
             <label>County</label>
-            <select name="county">
-              <option <?= $user['county']=='Kenya'?'selected':'' ?>>Kilifi</option>
-              <option <?= $user['county']=='Uganda'?'selected':'' ?>>Mombasa</option>
-              <option <?= $user['county']=='Tanzania'?'selected':'' ?>>Bungoma</option>
+            <select id="county" name="county" required>
+              <option value="">-- Select County --</option>
             </select>
           </div>
 
@@ -691,19 +720,24 @@ if (!empty($user['profile_image'])) {
 
           <div class="form-group">
             <label>Country</label>
-            <select name="country">
-              <option value="Kenya" <?= $country=='Kenya'?'selected':'' ?>>Kenya</option>
-              <option value="Uganda" <?= $country=='Uganda'?'selected':'' ?>>Uganda</option>
-              <option value="Tanzania" <?= $country=='Tanzania'?'selected':'' ?>>Tanzania</option>
+            <select id="country" name="country" required>
+              <option value="">-- Select Country --</option>
+              <?php
+                $countries = $conn->query("SELECT location_id, name FROM locations WHERE type='country' ORDER BY name ASC");
+                while ($row = $countries->fetch_assoc()):
+              ?>
+                <option value="<?= $row['location_id']; ?>" 
+                  <?= ($country == $row['location_id']) ? 'selected' : ''; ?>>
+                  <?= htmlspecialchars($row['name']); ?>
+                </option>
+              <?php endwhile; ?>
             </select>
           </div>
           
           <div class="form-group">
             <label>County</label>
-            <select name="county">
-              <option <?= $user['county']=='Kenya'?'selected':'' ?>>Kilifi</option>
-              <option <?= $user['county']=='Uganda'?'selected':'' ?>>Mombasa</option>
-              <option <?= $user['county']=='Tanzania'?'selected':'' ?>>Bungoma</option>
+            <select id="county" name="county" required>
+              <option value="">-- Select County --</option>
             </select>
           </div>
 

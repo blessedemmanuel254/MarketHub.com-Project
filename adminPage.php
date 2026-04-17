@@ -38,6 +38,25 @@ if ($accountType !== $allowedRole) {
    HELPER FUNCTIONS
 ================================= */
 
+function formatToK($number) {
+
+  if ($number >= 9950) {
+    $k = $number / 1000;
+
+    // round to nearest 0.1
+    $k = round($k, 1);
+
+    // remove .0
+    if (floor($k) == $k) {
+        return $k . "k";
+    }
+
+    return $k . "k";
+  }
+
+  return number_format($number);
+}
+
 function smartTitleCase(string $text): string
 {
   // Normalize spacing & lowercase
@@ -252,13 +271,13 @@ $userData = $userQuery->fetch_assoc();
    SALES AGENTS CARD DATA
 ================================= */
 $agentQuery = $conn->query("
-    SELECT 
-        COUNT(*) AS total_agents,
-        SUM(status = 'active') AS active_agents,
-        SUM(is_verified = 1) AS verified_agents,
-        SUM(status = 'suspended') AS under_review
-    FROM users
-    WHERE account_type = 'sales_agent'
+  SELECT 
+    COUNT(*) AS total_agents,
+    SUM(status = 'active') AS active_agents,
+    SUM(is_verified = 1) AS verified_agents,
+    SUM(status = 'suspended') AS under_review
+  FROM users
+  WHERE account_type = 'sales_agent'
 ");
 
 $agentData = $agentQuery->fetch_assoc();
@@ -283,21 +302,59 @@ $agentsStmt = $conn->prepare("
     a.updated_at,
     a.agency_code,
     a.economic_period_count,
+
     r.username AS referrer_username,
+
+    -- ✅ TOTAL SUB AGENTS
     (
       SELECT COUNT(*) 
       FROM users u 
-      WHERE u.referred_by = a.user_id and is_verified = 1
-    ) AS total_sub_agents
+      WHERE u.referred_by = a.user_id AND u.is_verified = 1
+    ) AS total_sub_agents,
+
+    -- ✅ TOTAL WALLET BALANCE (sales + agency)
+    (
+      SELECT COALESCE(SUM(w.balance), 0)
+      FROM wallets w
+      WHERE w.user_id = a.user_id
+    ) AS total_wallet,
+
+    -- ✅ REGION
+    region.name AS region_name
+
   FROM users a
+
   LEFT JOIN users r 
     ON a.referred_by = r.user_id
+
+  -- ✅ LOCATION JOINS
+  LEFT JOIN locations ward 
+    ON a.location_id = ward.location_id AND ward.type = 'ward'
+
+  LEFT JOIN locations county 
+    ON ward.parent_id = county.location_id AND county.type = 'county'
+
+  LEFT JOIN locations region 
+    ON county.parent_id = region.location_id AND region.type = 'region'
+
   WHERE a.account_type = 'sales_agent'
   ORDER BY a.user_id DESC
 ");
 
 $agentsStmt->execute();
 $agentsResult = $agentsStmt->get_result();
+
+$commissionQuery = $conn->query("
+  SELECT COALESCE(SUM(ft.amount), 0) AS total_commissions
+  FROM financial_transactions ft
+  JOIN users u ON u.user_id = ft.receiver_id
+  WHERE ft.transaction_type = 'commission'
+  AND ft.status = 'completed'
+  AND u.account_type = 'sales_agent'
+");
+
+$commissionData = $commissionQuery->fetch_assoc();
+$totalCommissions = $commissionData['total_commissions'] ?? 0;
 
 
 // Fetch sellers
@@ -1779,7 +1836,7 @@ $marginPercent = $gmv > 0 ? round(($platformBalance / $gmv) * 100) : 0;
               <i class="fa-solid fa-wallet"></i>
               <div>
                 <h3>Total Commissions</h3>
-                <div class="value">KES 1.3M</div>
+                <div class="value">KES <?= formatToK($totalCommissions) ?></div>
               </div>
             </div>
           </div>
@@ -1794,9 +1851,18 @@ $marginPercent = $gmv > 0 ? round(($platformBalance / $gmv) * 100) : 0;
             </select>
             <select id="regionFilter">
               <option value="all">🌍&nbsp;Region</option>
-              <option value="Nairobi">Nairobi</option>
-              <option value="Coast">Coast</option>
-              <option value="Western">Western</option>
+              <?php
+              $regionsQuery = $conn->query("
+                SELECT DISTINCT name 
+                FROM locations 
+                WHERE type = 'region'
+              ");
+              while ($reg = $regionsQuery->fetch_assoc()):
+              ?>
+                <option value="<?= htmlspecialchars($reg['name']) ?>">
+                  <?= htmlspecialchars($reg['name']) ?>
+                </option>
+              <?php endwhile; ?>
             </select>
           </div>
           <table id="salesagentsTable">
@@ -1869,9 +1935,9 @@ $marginPercent = $gmv > 0 ? round(($platformBalance / $gmv) * 100) : 0;
               <td class="economic"><?= (int)$agent['economic_period_count'] ?></td>
               <td><?= htmlspecialchars($referrer) ?></td>
 
-              <td>KES 12,000</td>
+              <td>KES <?= number_format($agent['total_wallet'] ?? 0) ?></td>
 
-              <td>Coast</td>
+              <td><?= htmlspecialchars($agent['region_name'] ?? 'N/A') ?></td>
 
               <td>
                 <span class="badge <?= $badgeClass ?>">
@@ -2968,9 +3034,7 @@ $marginPercent = $gmv > 0 ? round(($platformBalance / $gmv) * 100) : 0;
                   <label>Ward</label>
                   <select name="ward" required>
                     <option value=""><p>-- Select Ward --</p></option>
-                    <option value="Sokoni Ward" <?php echo ($editWard === 'Sokoni Ward') ? 'selected' : ''; ?>>Sokoni Ward</option><!-- 
-                    <option value="Kenya" <?php echo ($editWard === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
-                    <option value="Kenya" <?php echo ($editWard === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                    <option value="Sokoni" <?php echo ($editWard === 'Sokoni') ? 'selected' : ''; ?>>Sokoni</option>
                   </select>
                 </div>
                 <div></div>
@@ -3086,17 +3150,11 @@ $marginPercent = $gmv > 0 ? round(($platformBalance / $gmv) * 100) : 0;
                   <label>Ward</label>
                   <select name="ward" required>
                     <option value=""><p>-- Select Ward --</p></option>
-                    <option value="Sokoni Ward" <?php echo ($editWard === 'Sokoni Ward') ? 'selected' : ''; ?>>Sokoni Ward</option><!-- 
-                    <option value="Kenya" <?php echo ($editWard === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
-                    <option value="Kenya" <?php echo ($editWard === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
+                    <option value="Sokoni" <?php echo ($editWard === 'Sokoni') ? 'selected' : ''; ?>>Sokoni</option>
                   </select>
                 </div>
                 <div></div>
-                <div></div><!-- 
-                <div class="inp-box">
-                  <label>Agency Code (read-only)</label>
-                  <input type="text" name="agency_code" placeholder="A56D3847" disabled required>
-                </div> -->
+                <div></div>
                 <div></div>
                 <button type="submit">
                   Update User
@@ -3166,7 +3224,7 @@ $marginPercent = $gmv > 0 ? round(($platformBalance / $gmv) * 100) : 0;
                   <label>Ward</label>
                   <select name="ward" required>
                     <option value=""><p>-- Select Ward --</p></option>
-                    <option value="Sokoni Ward" <?php echo ($editWard === 'Sokoni Ward') ? 'selected' : ''; ?>>Sokoni Ward</option><!-- 
+                    <option value="Sokoni" <?php echo ($editWard === 'Sokoni') ? 'selected' : ''; ?>>Sokoni</option><!-- 
                     <option value="Kenya" <?php echo ($editWard === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
                     <option value="Kenya" <?php echo ($editWard === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
                   </select>
@@ -3273,7 +3331,7 @@ $marginPercent = $gmv > 0 ? round(($platformBalance / $gmv) * 100) : 0;
                   <label>Ward</label>
                   <select name="ward" required>
                     <option value=""><p>-- Select Ward --</p></option>
-                    <option value="Sokoni Ward" <?php echo ($editWard === 'Sokoni Ward') ? 'selected' : ''; ?>>Sokoni Ward</option><!-- 
+                    <option value="Sokoni" <?php echo ($editWard === 'Sokoni') ? 'selected' : ''; ?>>Sokoni</option><!-- 
                     <option value="Kenya" <?php echo ($editWard === 'Kenya') ? 'selected' : ''; ?>>Kenya</option>
                     <option value="Kenya" <?php echo ($editWard === 'Kenya') ? 'selected' : ''; ?>>Kenya</option> -->
                   </select>

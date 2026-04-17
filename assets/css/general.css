@@ -5020,3 +5020,207 @@ justify-content: space-between;
 #notification-container .notification + #notification-container .notification {
   margin-top: 5px;
 }
+
+/*===========================
+ORDER CHAT LOCATION-TRACKING CSS 
+===============================*/
+
+/* MAIN WRAPPER */
+.container main.buyerMain .chat-wrapper {
+  width: 100%;
+  max-width: 420px;
+  height: 100vh;
+  background: #dedede;
+  background-image: url('/Images/Whatsapp\ default\ wallpaper.avif');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+  border-radius: 4px;
+}
+
+/* HEADER */
+.container main.buyerMain .chat-wrapper .chat-header {
+  padding: 14px;
+  background: #0f0f0f;
+  border-bottom: 1px solid #dedede;
+}
+
+.container main.buyerMain .chat-wrapper .chat-header h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.container main.buyerMain .chat-wrapper .chat-header .meta {
+  font-size: 12px;
+  color: #aaa;
+}
+
+.container main.buyerMain .chat-wrapper .chat-header .status {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #088000;
+}
+
+/* CHAT BODY */
+.container main.buyerMain .chat-wrapper .chat-body {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.container main.buyerMain .chat-wrapper .message {
+  max-width: 75%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.container main.buyerMain .chat-wrapper .system {
+  align-self: center;
+  background: #1a1a1a;
+  color: #aaa;
+  font-size: 11px;
+}
+
+.container main.buyerMain .chat-wrapper .location-link {
+  font-size: 12px;
+  color: #088000;
+  text-decoration: underline;
+}
+
+.container main.buyerMain .chat-wrapper .chat-body {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* MESSAGE CONTAINER */
+.container main.buyerMain .chat-wrapper .chat-message {
+  display: flex;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+/* ALIGNMENT */
+.container main.buyerMain .chat-wrapper .chat-message.buyer {
+  justify-content: flex-end;
+}
+
+.container main.buyerMain .chat-wrapper .chat-message.seller {
+  justify-content: flex-start;
+}
+
+/* BUBBLE */
+.container main.buyerMain .chat-wrapper .bubble {
+  position: relative;
+  max-width: 75%;
+  padding: 8px 12px;
+  border-radius: 18px;
+  font-size: 13px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  border: 1px solid #dedede;
+}
+
+/* BUYER STYLE */
+.container main.buyerMain .chat-wrapper .chat-message.buyer .bubble {
+  background: #beffb9;
+  color: #0f0f0f;
+  border-bottom-right-radius: 0;
+}
+
+/* SELLER STYLE */
+.container main.buyerMain .chat-wrapper .chat-message.seller .bubble {
+  background: #ffffff;
+  color: #0f0f0f;
+  border-bottom-left-radius: 0;
+}
+
+/* TIME */
+.container main.buyerMain .chat-wrapper .time {
+  display: block;
+  font-size: 10px;
+  opacity: 0.6;
+  margin-top: 4px;
+  text-align: right;
+}
+
+/* ANIMATION */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* FOOTER */
+.container main.buyerMain .chat-wrapper .chat-footer {
+  padding: 10px;
+  background: #ffffff;
+}
+
+.container main.buyerMain .chat-wrapper .chat-footer .chat-actions {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.container main.buyerMain .chat-wrapper .chat-footer .chat-actions button {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.container main.buyerMain .chat-wrapper .chat-footer .location-btn {
+  background: #333;
+  color: #fff;
+}
+
+.container main.buyerMain .chat-wrapper .chat-footer .complete-btn {
+  background: #ff3b3b;
+  color: #ffffff;
+}
+
+.container main.buyerMain .chat-wrapper .chat-input {
+  display: flex;
+  gap: 4px;
+}
+
+.container main.buyerMain .chat-wrapper .chat-input input {
+  flex: 1;
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
+  outline: none;
+  border: 1px solid #dedede;
+}
+
+.container main.buyerMain .chat-wrapper .send-btn {
+  background: #0f0f0f;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+}
+
+/* LOCKED */
+.container main.buyerMain .chat-wrapper .locked {
+  opacity: 0.5;
+  pointer-events: none;
+}

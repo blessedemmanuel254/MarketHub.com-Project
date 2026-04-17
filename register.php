@@ -358,7 +358,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
               </div>
               <div class="selectorBox">
                 <span>County</span>
-                <select id="county" name="county" required>
+                <select id="county" name="county">
                   <option value="">-- Select County --</option>
                 </select>
               </div>
@@ -485,7 +485,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
               </div>
               <div class="selectorBox">
                 <span>Country</span>
-                  <select id="country" name="country" required>
+                  <select id="country" name="country">
                     <option value="">-- Select Country --</option>
                     <?php
                       $countries = $conn->query("SELECT location_id, name FROM locations WHERE type='country' ORDER BY name ASC");
@@ -511,7 +511,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
               <div class="selectorBox">
                 <span>County</span>
-                <select id="county" name="county" required>
+                <select id="county" name="county">
                   <option value="">-- Select County --</option>
                 </select>
               </div>
