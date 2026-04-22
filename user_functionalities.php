@@ -1,6 +1,8 @@
 <?php
 session_start();
 include 'connection.php';
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 header('Content-Type: application/json');
 
@@ -21,7 +23,34 @@ if ($action === "suspend") {
 }
 
 elseif ($action === "restore") {
+
+    // Restore user
     $stmt = $conn->prepare("UPDATE users SET status='active' WHERE user_id=?");
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $stmt->close();
+
+    // 🔥 Fetch updated state
+    $check = $conn->prepare("
+        SELECT is_verified, subscription_expires_at
+        FROM users
+        WHERE user_id=?
+    ");
+    $check->bind_param("i", $userId);
+    $check->execute();
+    $check->bind_result($isVerified, $expiresAt);
+    $check->fetch();
+    $check->close();
+
+    $now = date('Y-m-d H:i:s');
+    $isExpired = (!empty($expiresAt) && $expiresAt < $now) ? 1 : 0;
+
+    echo json_encode([
+        "success" => true,
+        "is_verified" => (int)$isVerified,
+        "is_expired" => $isExpired
+    ]);
+    exit;
 }
 
 elseif ($action === "delete") {
@@ -169,6 +198,13 @@ elseif ($action === "activate") {
             }
 
             $walletStmt->close();
+            if (!$walletId) {
+                echo json_encode([
+                    "success" => false,
+                    "error" => "Wallet not found or created for user $referrerId"
+                ]);
+                exit;
+            }
 
             if ($walletId) {
 
@@ -181,7 +217,6 @@ elseif ($action === "activate") {
                     AND receiver_id = ?
                     AND amount = ?
                     AND status = 'pending'
-                    LIMIT 1
                 ");
 
                 $txn->bind_param(
@@ -193,8 +228,16 @@ elseif ($action === "activate") {
                 );
 
                 $txn->execute();
+                if (!$txn->execute()) {
+                    echo json_encode([
+                        "success" => false,
+                        "error" => $txn->error,
+                        "level" => $level,
+                        "referrerId" => $referrerId
+                    ]);
+                    exit;
+                }
                 $txn->close();
-
                 // Update wallet
                 $update = $conn->prepare("
                     UPDATE wallets 
@@ -258,7 +301,6 @@ elseif ($action === "activate") {
                 AND receiver_id = ?
                 AND amount = ?
                 AND status = 'pending'
-                LIMIT 1
             ");
 
             $txn->bind_param(
@@ -270,6 +312,15 @@ elseif ($action === "activate") {
             );
 
             $txn->execute();
+            if (!$txn->execute()) {
+                echo json_encode([
+                    "success" => false,
+                    "error" => $txn->error,
+                    "level" => $level,
+                    "referrerId" => $referrerId
+                ]);
+                exit;
+            }
             $txn->close();
 
             /* UPDATE WALLET */
@@ -306,9 +357,11 @@ elseif ($action === "activate") {
             $stmt = $conn->prepare("SELECT referred_by FROM users WHERE user_id=?");
             $stmt->bind_param("i", $referrerId);
             $stmt->execute();
-            $stmt->bind_result($referrerId);
+            $stmt->bind_result($nextReferrerId);
             $stmt->fetch();
             $stmt->close();
+
+            $referrerId = $nextReferrerId;
 
             $level++;
         }
@@ -355,9 +408,6 @@ elseif ($action === "activate") {
 
 elseif ($action === "deactivate") {
 
-    /* -----------------------------
-       CHECK CURRENT STATE
-    ----------------------------- */
     $check = $conn->prepare("
         SELECT is_verified 
         FROM users 
@@ -377,16 +427,28 @@ elseif ($action === "deactivate") {
         exit;
     }
 
-    /* -----------------------------
-       DEACTIVATE (NO PAYMENT REVERSAL)
-    ----------------------------- */
     $stmt = $conn->prepare("
         UPDATE users 
         SET is_verified = 0
         WHERE user_id = ?
     ");
-}
+    $stmt->bind_param("i", $userId);
 
+    if ($stmt->execute()) {
+        echo json_encode([
+            "success" => true,
+            "is_verified" => 0
+        ]);
+    } else {
+        echo json_encode([
+            "success" => false,
+            "error" => $stmt->error
+        ]);
+    }
+
+    $stmt->close();
+    exit;
+}
 /* =========================
    EXECUTE SIMPLE ACTIONS
 ========================= */

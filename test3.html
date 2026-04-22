@@ -1,130 +1,266 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Notification Example</title>
-  <!-- Font Awesome CDN -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <style>
-    /* Container for notifications (top-right) */
-    #notification-container {
-      position: fixed;
-      top: 20px;
-      right: 20px; /* changed from left to right */
-      z-index: 9999;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Makethub Payment Demo</title>
 
-    /* Individual notification */
-    #notification-container .notification {
-      background-color: #ffffff;
-      color: #088000;
-      padding: 15px 20px;
-      border-radius: 8px;
-      min-width: 250px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      margin-bottom: 10px;
-      overflow: hidden;
-      position: relative;
-      font-family: Arial, sans-serif;
-      opacity: 0;
-      transform: translateX(50px); /* slide in from right */
-      animation: slideIn 0.3s forwards;
-    }
+<style>
+/* ===== GLOBAL ===== */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0f0f0f;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 50px;
+}
 
-    /* Slide-in animation from right */
-    /* Slide-in animation */
-    @keyframes slideIn {
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
+/* Demo Buttons */
+.demo-btn {
+  padding: 12px 20px;
+  margin: 10px;
+  border: none;
+  border-radius: 8px;
+  background: #ffcc00;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+}
 
-    /* Sliding out wiggling animation */
-    @keyframes slideOutWiggle {
-      0% { opacity: 1; transform: translateX(0) translateY(0) rotate(0deg); }
-      25% { transform: translateX(20px) translateY(-5px) rotate(-5deg); }
-      50% { transform: translateX(-20px) translateY(5px) rotate(5deg); }
-      75% { transform: translateX(20px) translateY(-5px) rotate(-5deg); }
-      100% { opacity: 0; transform: translateX(-50px) translateY(0) rotate(0deg); }
-    }
+/* ===== OVERLAY ===== */
+.payOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: none;
+  z-index: 1000;
+}
 
-    /* Message inside notification */
-    #notification-container .notification .message {
-      margin-bottom: 16px;
-      font-size: 14px;
-    }
+/* ===== MODAL ===== */
+.paymentContainer {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #111;
+  padding: 25px;
+  border-radius: 12px;
+  width: 350px;
+  display: none;
+  z-index: 1001;
+}
 
-    /* Progress bar */
-    #notification-container .notification .progress-bar {
-      height: 6px;
-      background-color: #088000;
-      width: 100%;
-      transition: width 0.1s linear;
-      border-radius: 6px;
-    }
+/* Radio */
+.radio-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #1a1a1a;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
 
-    /* Stack notifications nicely */
-    #notification-container .notification + #notification-container .notification {
-      margin-top: 5px;
-    }
+.rightDiv {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
 
-    /* Example button styling */
-    .notif-btn {
-      padding: 10px 20px;
-      background-color: #088000;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-    }
+/* Button */
+.paymentContainer button {
+  width: 100%;
+  padding: 12px;
+  background: #ffcc00;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  margin-top: 10px;
+}
 
-    .notif-btn:hover {
-      background-color: #066000;
-    }
-  </style>
+/* Status */
+.statusBox {
+  margin-top: 15px;
+  padding: 15px;
+  border-radius: 8px;
+  display: none;
+}
+
+.info { background: #2c2c2c; }
+.success { background: #2e7d32; }
+.error { background: #c62828; }
+
+.loader {
+  border: 4px solid #333;
+  border-top: 4px solid #ffcc00;
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  margin: 10px auto;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+</style>
+
 </head>
+
 <body>
-  <h1>Notification Demo</h1>
-  <button class="notif-btn" onclick="showNotification(`<i class='fa-solid fa-check-circle'></i> Order placed successfully!`, 3000)">
-    Place Order
-  </button>
 
-  <!-- Notification container -->
-  <div id="notification-container"></div>
+<h2>Makethub Payment Demo</h2>
 
-  <script>
-    function showNotification(message, duration = 3000) {
-      const notification = document.createElement('div');
-      notification.classList.add('notification');
-      notification.innerHTML = `
-        <div class="message">${message}</div>
-        <div class="progress-bar"></div>
-      `;
-      document.getElementById('notification-container').appendChild(notification);
+<!-- DEMO BUTTONS -->
 
-      const progressBar = notification.querySelector('.progress-bar');
-      let startTime = null;
+<button class="demo-btn" onclick="togglePaymentOption('pay', 101)">
+  Pay for Order #101
+</button>
 
-      function animateProgress(timestamp) {
-        if (!startTime) startTime = timestamp;
-        const elapsed = timestamp - startTime;
-        const progress = Math.max(0, 1 - elapsed / duration);
-        progressBar.style.width = `${progress * 100}%`;
+<button class="demo-btn" onclick="togglePaymentOption('withdraw', 55)">
+  Withdraw KES 500
+</button>
 
-        if (elapsed < duration) {
-          requestAnimationFrame(animateProgress);
-        } else {
-          // Trigger slide-out wiggle animation
-          notification.style.animation = 'slideOutWiggle 0.8s forwards';
-          setTimeout(() => notification.remove(), 800);
-        }
-      }
+<!-- OVERLAY -->
 
-      requestAnimationFrame(animateProgress);
+<div class="payOverlay" onclick="togglePaymentOption()" id="payOverlay"></div>
+
+<!-- MODAL -->
+
+<form class="paymentContainer" id="paymentContainer" onsubmit="event.preventDefault(); startFlow();">
+
+  <h2 id="title">Choose Account</h2>
+
+  <!-- STEP 1 -->
+
+  <div id="selectionStep">
+    <label class="radio-container">
+      <div class="rightDiv">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/1/15/M-PESA_LOGO-01.svg" width="50">
+        <p>M-PESA<br><span id="userPhone">2547XXXXXXXX</span></p>
+      </div>
+      <input type="radio" checked>
+    </label>
+
+```
+<button type="submit">Continue</button>
+```
+
+  </div>
+
+  <!-- STEP 2+ -->
+
+  <div id="statusBox" class="statusBox info">
+    <div id="statusText"></div>
+    <div class="loader" id="loader"></div>
+  </div>
+
+<a href="#" onclick="togglePaymentOption()">Cancel</a>
+
+</form>
+
+<script>
+let paymentType = "pay";
+let referenceId = null;
+
+/* ===== TOGGLE MODAL ===== */
+function togglePaymentOption(type = "pay", ref = null) {
+  const overlay = document.getElementById("payOverlay");
+  const modal = document.getElementById("paymentContainer");
+
+  paymentType = type;
+  referenceId = ref;
+
+  const visible = modal.style.display === "block";
+
+  overlay.style.display = visible ? "none" : "block";
+  modal.style.display = visible ? "none" : "block";
+
+  resetUI();
+}
+
+/* ===== RESET ===== */
+function resetUI() {
+  document.getElementById("selectionStep").style.display = "block";
+  document.getElementById("statusBox").style.display = "none";
+}
+
+/* ===== STATUS ===== */
+function showStatus(msg, type="info", loading=true) {
+  const box = document.getElementById("statusBox");
+  const text = document.getElementById("statusText");
+  const loader = document.getElementById("loader");
+
+  box.style.display = "block";
+  box.className = "statusBox " + type;
+
+  text.innerText = msg;
+  loader.style.display = loading ? "block" : "none";
+}
+
+/* ===== START FLOW ===== */
+function startFlow() {
+
+  document.getElementById("selectionStep").style.display = "none";
+
+  showStatus("Initiating request...", "info", true);
+
+  fetch(`mpesa.php?action=${paymentType}`, {
+    method: "POST",
+    headers: {"Content-Type": "application/x-www-form-urlencoded"},
+    body: `reference_id=${referenceId}`
+  })
+  .then(res => res.json())
+  .then(data => {
+
+    showStatus("📲 STK Push sent. Enter your M-Pesa PIN", "info", true);
+
+    waitForPayment();
+
+  })
+  .catch(() => {
+    showStatus("Failed to initiate request", "error", false);
+  });
+}
+
+/* ===== WAIT ===== */
+function waitForPayment() {
+  showStatus("Waiting for confirmation...", "info", true);
+
+  setTimeout(checkStatus, 5000);
+}
+
+/* ===== RESULT ===== */
+function checkStatus() {
+
+  showStatus("Processing payment...", "info", true);
+
+  setTimeout(() => {
+
+    let success = Math.random() > 0.3;
+
+    if (success) {
+      showStatus("✅ Success! Redirecting...", "success", false);
+
+      setTimeout(() => {
+        location.reload();
+      }, 2000);
+
+    } else {
+      showStatus("❌ Payment failed or cancelled", "error", false);
     }
-  </script>
+
+  }, 3000);
+}
+</script>
+
 </body>
 </html>

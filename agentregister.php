@@ -10,7 +10,7 @@ $accountType = $_SESSION['accountType'];
 CAPTURE REFERRAL FROM LINK
 ----------------------------- */
 if (isset($_GET['ref']) && !empty($_GET['ref'])) {
-    $_SESSION['agency_code'] = trim($_GET['ref']); // store in session
+  $_SESSION['agency_code'] = trim($_GET['ref']); // store in session
 }
 
 // Use session value globally

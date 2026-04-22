@@ -1184,7 +1184,15 @@ showPopup(title, message, () => {
     action: action
   })
   })
-  .then(res=>res.json())
+  .then(async res => {
+    const text = await res.text();
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      console.error("SERVER RESPONSE:", text);
+      throw new Error("Invalid JSON");
+    }
+  })
   .then(data=>{
 
   if(!data.success){
@@ -1225,8 +1233,20 @@ badge.className="badge suspendedSpan";
 }
 
 if(action === "restore"){
-badge.textContent="Unverified";
-badge.className="badge unverified";
+
+  if(data.is_verified == 0){
+    badge.textContent = "Unverified";
+    badge.className = "badge unverified";
+  } 
+  else {
+    if(data.is_expired){
+      badge.textContent = "Expired";
+      badge.className = "badge expired";
+    } else {
+      badge.textContent = "Verified";
+      badge.className = "badge verified";
+    }
+  }
 }
 
 if(action === "activate"){
@@ -1674,47 +1694,6 @@ function initWallets() {
 };
 
 document.addEventListener("DOMContentLoaded", initWallets);
-// ==============================
-// DAILY PRODUCTS CONFIGURATION
-// ==============================
-
-const dailyProducts = [
-  {
-    id: 1,
-    name: "Executive Leather Laptop Bag",
-    price: "KES 1,300",
-    description: "Premium executive laptop bag. Durable and stylish.",
-    image: "Images/Executive Leather Laptop Bag.png"
-  },
-  {
-    id: 2,
-    name: "6 Litre Electric Pressure Cooker",
-    price: "KES 5,200",
-    description: "Fast cooking, energy saving, perfect for family meals.",
-    image: "Images/6 Litre Electric Pressure Cooker.png"
-  },
-  {
-    id: 3,
-    name: "16-inch Standing Fan",
-    price: "KES 2,350",
-    description: "Powerful airflow with adjustable height.",
-    image: "Images/Ipcone 16-inch standing fan.png"
-  },
-  {
-    id: 4,
-    name: "Large Travel Duffel Bag",
-    price: "KES 1,250",
-    description: "Spacious travel bag. Ideal for weekend trips.",
-    image: "Images/Large Travel Duffel Bag.png"
-  },
-  {
-    id: 5,
-    name: "Velvet Curtains",
-    price: "KES 2,700",
-    description: "Elegant home curtains. Premium soft material.",
-    image: "Images/Velvet Curtains.png"
-  }
-];
 
 // ==============================
 // DOWNLOAD JS CODE

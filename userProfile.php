@@ -659,10 +659,8 @@ if (!empty($user['profile_image'])) {
           
           <div class="form-group">
             <label>Ward</label>
-            <select name="ward">
-              <option <?= $user['ward']=='Kenya'?'selected':'' ?>>Sokoni</option>
-              <option <?= $user['ward']=='Uganda'?'selected':'' ?>>Kilifi North</option>
-              <option <?= $user['ward']=='Tanzania'?'selected':'' ?>>Kilifi South</option>
+            <select id="ward" name="ward" required data-selected="<?= htmlspecialchars($location_id ?? '') ?>">
+              <option value="">-- Select Ward --</option>
             </select>
           </div>
           <div></div>
@@ -759,10 +757,8 @@ if (!empty($user['profile_image'])) {
           
           <div class="form-group">
             <label>Ward</label>
-            <select name="ward">
-              <option <?= $user['ward']=='Kenya'?'selected':'' ?>>Sokoni</option>
-              <option <?= $user['ward']=='Uganda'?'selected':'' ?>>Kilifi North</option>
-              <option <?= $user['ward']=='Tanzania'?'selected':'' ?>>Kilifi South</option>
+            <select id="ward" name="ward" required data-selected="<?= htmlspecialchars($location_id ?? '') ?>">
+              <option value="">-- Select Ward --</option>
             </select>
           </div>
           <div></div>
