@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'connection.php';
+include __DIR__ . '/connection.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -169,45 +169,23 @@ elseif ($action === "activate") {
 
             $amount = $levels[0];
 
-            /* GET OR CREATE SYSTEM WALLET */
+            // Get system wallet
             $walletStmt = $conn->prepare("
                 SELECT wallet_id 
                 FROM wallets 
-                WHERE user_id=? AND wallet_type='administrator' LIMIT 1
+                WHERE user_id=? AND wallet_type='main'
+                LIMIT 1
             ");
             $walletStmt->bind_param("i", $SYSTEM_USER_ID);
             $walletStmt->execute();
-            $walletStmt->store_result();
-
-            if ($walletStmt->num_rows === 0) {
-
-                // 🔥 CREATE SYSTEM WALLET
-                $createWallet = $conn->prepare("
-                    INSERT INTO wallets 
-                    (user_id, wallet_type, balance, total_transacted, created_at, updated_at)
-                    VALUES (?, 'main', 0, 0, NOW(), NOW())
-                ");
-                $createWallet->bind_param("i", $SYSTEM_USER_ID);
-                $createWallet->execute();
-                $walletId = $createWallet->insert_id;
-                $createWallet->close();
-
-            } else {
-                $walletStmt->bind_result($walletId);
-                $walletStmt->fetch();
-            }
-
+            $walletStmt->bind_result($walletId);
+            $walletStmt->fetch();
             $walletStmt->close();
-            if (!$walletId) {
-                echo json_encode([
-                    "success" => false,
-                    "error" => "Wallet not found or created for user $referrerId"
-                ]);
-                exit;
-            }
 
             if ($walletId) {
 
+                /* UPDATE TRANSACTION */
+                
                 $txn = $conn->prepare("
                     UPDATE financial_transactions
                     SET status = 'completed'
@@ -217,6 +195,7 @@ elseif ($action === "activate") {
                     AND receiver_id = ?
                     AND amount = ?
                     AND status = 'pending'
+                    LIMIT 1
                 ");
 
                 $txn->bind_param(
@@ -226,18 +205,9 @@ elseif ($action === "activate") {
                     $SYSTEM_USER_ID,
                     $amount
                 );
-
                 $txn->execute();
-                if (!$txn->execute()) {
-                    echo json_encode([
-                        "success" => false,
-                        "error" => $txn->error,
-                        "level" => $level,
-                        "referrerId" => $referrerId
-                    ]);
-                    exit;
-                }
                 $txn->close();
+
                 // Update wallet
                 $update = $conn->prepare("
                     UPDATE wallets 
@@ -289,8 +259,7 @@ elseif ($action === "activate") {
             }
             $walletStmt->close();
 
-            /* INSERT TRANSACTION */
-            $description = "Level $levelNumber commission from agent $userId";
+            /* UPDATE TRANSACTION */
 
             $txn = $conn->prepare("
                 UPDATE financial_transactions
@@ -301,6 +270,7 @@ elseif ($action === "activate") {
                 AND receiver_id = ?
                 AND amount = ?
                 AND status = 'pending'
+                LIMIT 1
             ");
 
             $txn->bind_param(
@@ -312,56 +282,72 @@ elseif ($action === "activate") {
             );
 
             $txn->execute();
-            if (!$txn->execute()) {
-                echo json_encode([
-                    "success" => false,
-                    "error" => $txn->error,
-                    "level" => $level,
-                    "referrerId" => $referrerId
-                ]);
-                exit;
-            }
             $txn->close();
 
             /* UPDATE WALLET */
             $update = $conn->prepare("
                 UPDATE wallets 
-                SET balance = balance + ?,total_transacted = total_transacted + ?
+                SET balance = balance + ?, 
+                    total_transacted = total_transacted + ?
                 WHERE wallet_id=?
             ");
             $update->bind_param("ddi", $amount, $amount, $walletId);
             $update->execute();
             $update->close();
             /* -----------------------------
-            SEND EMAIL TO REFERRER
+            QUEUE EMAIL INSTEAD OF SENDING
             ----------------------------- */
-            $stmtEmail = $conn->prepare("SELECT email, full_name FROM users WHERE user_id=? LIMIT 1");
+            $stmtEmail = $conn->prepare("
+                SELECT email, full_name 
+                FROM users 
+                WHERE user_id=? 
+                LIMIT 1
+            ");
+
             $stmtEmail->bind_param("i", $referrerId);
             $stmtEmail->execute();
             $stmtEmail->bind_result($referrerEmail, $referrerName);
-            $stmtEmail->fetch();
-            $stmtEmail->close();
 
-            if ($referrerEmail) {
-                $referrerEmail = base64_decode($referrerEmail);
-                $subject = "Level $levelNumber Earnings";
-                $body = "Hooray! 🥳 You've just earned KES " . number_format($amount, 2) .
-                        " for inviting " . htmlspecialchars($userId) . ". Let's continue building!";
-                $headers = "From: Market Hub <no-reply@makethub.shop>\r\n";
-                $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+            if ($stmtEmail->fetch() && !empty($referrerEmail)) {
 
-                @mail($referrerEmail, $subject, $body, $headers);
+                    $decodedEmail = base64_decode($referrerEmail, true);
+
+                    // fallback if not base64
+                    if (!$decodedEmail) {
+                        $decodedEmail = $referrerEmail;
+                    }
+
+                    if (filter_var($decodedEmail, FILTER_VALIDATE_EMAIL)) {
+
+                    $insertQueue = $conn->prepare("
+                        INSERT INTO email_queue 
+                        (user_id, email, full_name, amount, level, status, created_at)
+                        VALUES (?, ?, ?, ?, ?, 'pending', NOW())
+                    ");
+
+                    $insertQueue->bind_param(
+                        "issdi",
+                        $referrerId,
+                        $decodedEmail,
+                        $referrerName,
+                        $amount,
+                        $levelNumber
+                    );
+
+                    $insertQueue->execute();
+                    $insertQueue->close();
+                }
             }
+
+            $stmtEmail->close();
 
             /* MOVE UP */
             $stmt = $conn->prepare("SELECT referred_by FROM users WHERE user_id=?");
             $stmt->bind_param("i", $referrerId);
             $stmt->execute();
-            $stmt->bind_result($nextReferrerId);
+            $stmt->bind_result($referrerId);
             $stmt->fetch();
             $stmt->close();
-
-            $referrerId = $nextReferrerId;
 
             $level++;
         }

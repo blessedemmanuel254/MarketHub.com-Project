@@ -1517,6 +1517,50 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
     </div>
 
     <main class="buyerMain" id="sellerMain">
+
+      <div class="chat-wrapper">
+
+        <!-- HEADER -->
+        <div class="chat-header">
+          <h3>Order Chat • Seller: Alex</h3>
+          <div class="meta">Item: Office Chair (Rental • 3 Days)</div>
+          <div class="status" id="orderStatus">Order in progress</div>
+        </div>
+
+        <!-- CHAT BODY -->
+        <div class="chat-body" id="chatBody">
+
+          <!-- Seller Message -->
+          <div class="chat-message seller">
+            <div class="bubble">
+              Hello 👋 I’m ready to deliver your product.
+              <span class="time">10:32 AM</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="chat-footer" id="chatFooter">
+
+          <div class="chat-actions">
+            <button class="location-btn" onclick="shareLocation()">📍 Share Location</button>
+            <button class="complete-btn" onclick="completeOrder()">✔ I have Received Order</button>
+          </div>
+
+          <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Type a message..." />
+            <button class="send-btn" onclick="sendMessage()">Send</button>
+          </div>
+
+        </div>
+
+      </div>
+      <div id="locationModal" style="display:none; position:fixed; bottom:0; background:#fff; width:100%; padding:15px;">
+        <h4>Describe your location</h4>
+        <input type="text" id="manualLocation" placeholder="e.g. Blue gate, near church" style="width:100%; padding:10px;">
+        <button onclick="confirmLocation()">Confirm Location</button>
+      </div>
       <div class="tabs-container" id="toggleMarketTypeTab">
         <div class="tabs">
           <button class="tab-btn" data-tab="dashboard">Dashboard</button>

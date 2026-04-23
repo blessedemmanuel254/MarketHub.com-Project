@@ -2155,7 +2155,7 @@ label.account-type input:checked + .radio-dot::after {
 /* =====================
    SELLER ITEM (NOT A CARD)
 ===================== */
-.seller {
+.sellers .seller {
   padding: 16px 10px;
   border-bottom: 1px solid #dedede;
   display: grid;
@@ -2528,8 +2528,8 @@ a.seller-right {
 }
 
 .container .sellerMain .sellerProfileContainer .seller .seller-left .avatar {
-  height: clamp(100px, 20vw, 150px);
-  width: clamp(100px, 20vw, 150px);
+  height: clamp(50px, 20vw, 150px);
+  width: clamp(50px, 20vw, 150px);
   min-height: 100px;
   min-width: 100px;
   font-size: 50px;
@@ -5027,8 +5027,7 @@ ORDER CHAT LOCATION-TRACKING CSS
 
 /* MAIN WRAPPER */
 .container main.buyerMain .chat-wrapper {
-  width: 100%;
-  max-width: 420px;
+  width: clamp(300px, 100%, 420px);
   height: 100vh;
   background: #dedede;
   background-image: url('/Images/Whatsapp\ default\ wallpaper.avif');
@@ -5039,6 +5038,7 @@ ORDER CHAT LOCATION-TRACKING CSS
   flex-direction: column;
   color: #fff;
   border-radius: 4px;
+  overflow-x: hidden;
 }
 
 /* HEADER */
@@ -5061,7 +5061,7 @@ ORDER CHAT LOCATION-TRACKING CSS
 .container main.buyerMain .chat-wrapper .chat-header .status {
   margin-top: 4px;
   font-size: 12px;
-  color: #088000;
+  color: #856404;
 }
 
 /* CHAT BODY */
@@ -5223,4 +5223,9 @@ ORDER CHAT LOCATION-TRACKING CSS
 .container main.buyerMain .chat-wrapper .locked {
   opacity: 0.5;
   pointer-events: none;
+}
+
+.container main.buyerMain .locationModal {
+  display: flex;
+  background-color: lightblue;
 }
