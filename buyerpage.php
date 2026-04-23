@@ -572,7 +572,7 @@ $pendingOrders = count($pendingItems);
           </div>
         </div>
         <div class="containerWhp">
-          <textarea id="userMessage" placeholder="Type a message.."></textarea>
+          <textarea id="userMessage" placeholder="Type a message..."></textarea>
           <img src="Images/Send-35.png" alt="Send Icon" width="45" onclick="sendWhatsAppMessage()">
         </div>
       </div>
@@ -604,15 +604,15 @@ $pendingOrders = count($pendingItems);
 
         <!-- FOOTER -->
         <div class="chat-footer" id="chatFooter">
+          
+          <div class="chat-input">
+            <textarea id="chatInput" placeholder="Type a message..."></textarea>
+            <img src="Images/Send-35.png" alt="Send Icon" width="45" onclick="sendMessage()">
+          </div>
 
           <div class="chat-actions">
             <button class="location-btn" onclick="shareLocation()">📍 Share Location</button>
             <button class="complete-btn" onclick="completeOrder()">✔ I have Received Order</button>
-          </div>
-
-          <div class="chat-input">
-            <input type="text" id="chatInput" placeholder="Type a message..." />
-            <button class="send-btn" onclick="sendMessage()">Send</button>
           </div>
 
         </div>
@@ -1603,7 +1603,7 @@ $pendingOrders = count($pendingItems);
       const systemMsg = document.createElement("div");
       systemMsg.className = "message system";
       systemMsg.textContent =
-        "✅ Order marked as completed. Chat has been closed.";
+        "✅ Order marked as completed. Chat has been closed!";
       chatBody.appendChild(systemMsg);
 
       chatFooter.classList.add("locked");

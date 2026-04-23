@@ -1,6 +1,6 @@
 <?php
 session_start();
-include __DIR__ . '/connection.php';
+include 'connection.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -205,8 +205,6 @@ elseif ($action === "activate") {
                     $SYSTEM_USER_ID,
                     $amount
                 );
-                $txn->execute();
-                $txn->close();
 
                 // Update wallet
                 $update = $conn->prepare("
@@ -294,52 +292,6 @@ elseif ($action === "activate") {
             $update->bind_param("ddi", $amount, $amount, $walletId);
             $update->execute();
             $update->close();
-            /* -----------------------------
-            QUEUE EMAIL INSTEAD OF SENDING
-            ----------------------------- */
-            $stmtEmail = $conn->prepare("
-                SELECT email, full_name 
-                FROM users 
-                WHERE user_id=? 
-                LIMIT 1
-            ");
-
-            $stmtEmail->bind_param("i", $referrerId);
-            $stmtEmail->execute();
-            $stmtEmail->bind_result($referrerEmail, $referrerName);
-
-            if ($stmtEmail->fetch() && !empty($referrerEmail)) {
-
-                    $decodedEmail = base64_decode($referrerEmail, true);
-
-                    // fallback if not base64
-                    if (!$decodedEmail) {
-                        $decodedEmail = $referrerEmail;
-                    }
-
-                    if (filter_var($decodedEmail, FILTER_VALIDATE_EMAIL)) {
-
-                    $insertQueue = $conn->prepare("
-                        INSERT INTO email_queue 
-                        (user_id, email, full_name, amount, level, status, created_at)
-                        VALUES (?, ?, ?, ?, ?, 'pending', NOW())
-                    ");
-
-                    $insertQueue->bind_param(
-                        "issdi",
-                        $referrerId,
-                        $decodedEmail,
-                        $referrerName,
-                        $amount,
-                        $levelNumber
-                    );
-
-                    $insertQueue->execute();
-                    $insertQueue->close();
-                }
-            }
-
-            $stmtEmail->close();
 
             /* MOVE UP */
             $stmt = $conn->prepare("SELECT referred_by FROM users WHERE user_id=?");
