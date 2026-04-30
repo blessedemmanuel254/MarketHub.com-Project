@@ -163,7 +163,7 @@
     const name = document.getElementById('name').value.trim();
     const message = `Hello, I have paid KES 200 for Makethub badge. Name: ${name}`;
 
-    const phone = '254773029440';
+    const phone = '254781449115';
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 
     window.open(url, '_blank');

@@ -595,7 +595,7 @@ $pendingOrders = count($pendingItems);
           <!-- Seller Message -->
           <div class="chat-message seller">
             <div class="bubble">
-              Hello 👋 I’m ready to deliver your product.
+              Hello 👋 I’m ready to deliver your order.
               <span class="time">10:32 AM</span>
             </div>
           </div>
@@ -1468,13 +1468,14 @@ $pendingOrders = count($pendingItems);
   </script>
 
   <script>
+    const CURRENT_USER_ID = <?php echo $_SESSION['user_id']; ?>;
     const chatBody = document.getElementById("chatBody");
     const chatInput = document.getElementById("chatInput");
     const orderStatus = document.getElementById("orderStatus");
     const chatFooter = document.getElementById("chatFooter");
 
     /* SEND MESSAGE */
-    function sendMessage() {
+    async function sendMessage() {
       const input = document.getElementById("chatInput");
       if (!input.value.trim()) return;
 
@@ -1496,6 +1497,18 @@ $pendingOrders = count($pendingItems);
 
       messageWrapper.appendChild(bubble);
       document.getElementById("chatBody").appendChild(messageWrapper);
+
+      const message = input.value;
+
+      // Send to backend
+      await fetch("send_message.php", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          conversation_id: 1, // dynamic later
+          message: message
+        })
+      });
 
       input.value = "";
       chatBody.scrollTop = chatBody.scrollHeight;
@@ -1570,7 +1583,18 @@ $pendingOrders = count($pendingItems);
       document.getElementById("locationModal").style.display = "none";
 
       // Send to backend
-      sendLocationToServer(lat, lng, address, manualText);
+      //sendLocationToServer(lat, lng, address, manualText);
+      await fetch("send_location.php", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          conversation_id: 1,
+          lat,
+          lng,
+          address,
+          manualText
+        })
+      });
 
       // Start live tracking
       startLiveTracking();
@@ -1591,6 +1615,39 @@ $pendingOrders = count($pendingItems);
           });
         });
       }, 5000); // every 5 seconds
+    }
+
+    setInterval(fetchMessages, 2000);
+
+    let lastMessageId = 0;
+
+    async function fetchMessages() {
+      const res = await fetch(`fetch_messages.php?conversation_id=1&last_id=${lastMessageId}`);
+      const messages = await res.json();
+
+      messages.forEach(msg => {
+        const messageWrapper = document.createElement("div");
+        messageWrapper.className =
+          msg.sender_id == CURRENT_USER_ID
+            ? "chat-message buyer"
+            : "chat-message seller";
+
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+
+        bubble.innerHTML = `
+          ${msg.message}
+          <span class="time">${msg.time}</span>
+        `;
+
+        messageWrapper.appendChild(bubble);
+        chatBody.appendChild(messageWrapper);
+
+        // update last message id
+        lastMessageId = msg.id;
+      });
+
+      chatBody.scrollTop = chatBody.scrollHeight;
     }
 
     /* COMPLETE ORDER */

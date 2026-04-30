@@ -1048,6 +1048,7 @@ $stmt = $conn->prepare("
     o.order_id,
     o.order_code,
     o.created_at,
+    o.buyer_id,
     u.full_name AS buyer_name,
 
     oi.item_id,
@@ -1400,6 +1401,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
   <!-- jQuery + DataTables JS -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  
 
   <title>Seller Page | Makethub</title>
 </head>
@@ -1517,50 +1519,6 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
     </div>
 
     <main class="buyerMain" id="sellerMain">
-
-      <div class="chat-wrapper">
-
-        <!-- HEADER -->
-        <div class="chat-header">
-          <h3>Order Chat • Seller: Alex</h3>
-          <div class="meta">Order Code: ORD-20260421-71795</div>
-          <div class="status" id="orderStatus">Order in progress...</div>
-        </div>
-
-        <!-- CHAT BODY -->
-        <div class="chat-body" id="chatBody">
-
-          <!-- Seller Message -->
-          <div class="chat-message seller">
-            <div class="bubble">
-              Hello 👋 I’m ready to deliver your product.
-              <span class="time">10:32 AM</span>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- FOOTER -->
-        <div class="chat-footer" id="chatFooter">
-          
-          <div class="chat-input">
-            <textarea id="chatInput" placeholder="Type a message..."></textarea>
-            <img src="Images/Send-35.png" alt="Send Icon" width="45" onclick="sendMessage()">
-          </div>
-
-          <div class="chat-actions">
-            <button class="location-btn" onclick="shareLocation()">📍 Share Location</button>
-            <button class="complete-btn" onclick="completeOrder()">✔ I have Received Order</button>
-          </div>
-
-        </div>
-
-      </div>
-      <div class="locationModal" id="locationModal" style="display:none; position:fixed; bottom:0; background:lightblue; width:100%; padding:15px;">
-        <h4>Describe your location</h4>
-        <input type="text" id="manualLocation" placeholder="e.g. Blue gate, near church" style="width:100%; padding:10px;">
-        <button onclick="confirmLocation()">Confirm Location</button>
-      </div>
       <div class="tabs-container" id="toggleMarketTypeTab">
         <div class="tabs">
           <button class="tab-btn" data-tab="dashboard">Dashboard</button>
@@ -1949,7 +1907,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   if ($statusClass === 'pending') {
                     echo "<button class='btn-ship' data-id='{$order['order_id']}'>Mark&nbsp;as&nbsp;Shipped</button>";
                   } else {
-                    echo "<button class='btn-view'><i class='fa-solid fa-eye'></i></button>";
+                    echo "<button class='btn-view' 
+                            data-buyer='{$order['buyer_id']}'
+                            data-order='{$order['order_code']}'
+                            data-buyername='".htmlspecialchars($order['buyer_name'], ENT_QUOTES)."'>
+                            <i class='fa-solid fa-eye'></i>
+                          </button>";
                   }
 
                   echo "      </div>
@@ -1969,6 +1932,60 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
       </div>
       
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleSellerOrdersTrack()">View&nbsp;All&nbsp;Orders</button> to access all your orders.</p>
+
+    </main>
+
+    <main class="buyerMain" id="chatSection">
+      <div class="tab-top">
+        <p>Track customer for delivery<br><strong>Get to chat with customer using our in-built chat feature <i class="fa-regular fa-circle-check"></i></strong></p>
+        <button onclick="goBack()">
+          <i class="fa-solid fa-circle-arrow-left" data-tab="products"></i> <span>Go&nbsp;Back</span>
+        </button>
+      </div>
+
+      <div class="chat-wrapper">
+
+        <!-- HEADER -->
+        <div class="chat-header">
+          <h3 id="chatTitle">Order Chat • Seller: Alex</h3>
+          <div class="meta" id="chatOrderCode">Order Code: ORD-XXXX</div>
+          <div class="status" id="orderStatus">Order in progress...</div>
+        </div>
+
+        <!-- CHAT BODY -->
+        <div class="chat-body" id="chatBody">
+
+          <!-- Seller Message -->
+          <div class="chat-message seller">
+            <div class="bubble">
+              Hello 👋 I’m ready to deliver your order.
+              <span class="time">10:32 AM</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="chat-footer" id="chatFooter">
+          
+          <div class="chat-input">
+            <textarea id="chatInput" placeholder="Type a message..."></textarea>
+            <img src="Images/Send-35.png" alt="Send Icon" width="45" onclick="sendMessage()">
+          </div>
+
+          <div class="chat-actions">
+            <button class="location-btn" onclick="shareLocation()">📍 Share Location</button>
+            <button class="complete-btn" onclick="completeOrder()">✔ I have Received Order</button>
+          </div>
+
+        </div>
+
+      </div>
+      <div class="locationModal" id="locationModal" style="display:none; position:fixed; bottom:0; background:lightblue; width:100%; padding:15px;">
+        <h4>Describe your location</h4>
+        <input type="text" id="manualLocation" placeholder="e.g. Blue gate, near church" style="width:100%; padding:10px;">
+        <button onclick="confirmLocation()">Confirm Location</button>
+      </div>
 
     </main>
 
@@ -2045,7 +2062,13 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   if ($statusClass === 'pending') {
                     echo "<button class='btn-ship' data-id='{$order['order_id']}'>Mark&nbsp;as&nbsp;Shipped</button>";
                   } else {
-                    echo "<button class='btn-view'><i class='fa-solid fa-eye'></i></button>";
+
+                    echo "<button class='btn-view' 
+                            data-buyer='{$order['buyer_id']}'
+                            data-order='{$order['order_code']}'
+                            data-buyername='".htmlspecialchars($order['buyer_name'], ENT_QUOTES)."'>
+                            <i class='fa-solid fa-eye'></i>
+                          </button>";
                   }
 
                   echo "      </div>
@@ -2103,13 +2126,28 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
   <?php endif; ?>
 
   <script>
+    const CURRENT_USER_ID = <?php echo $_SESSION['user_id']; ?>;
     const chatBody = document.getElementById("chatBody");
     const chatInput = document.getElementById("chatInput");
     const orderStatus = document.getElementById("orderStatus");
     const chatFooter = document.getElementById("chatFooter");
 
+    chatInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        
+        // If SHIFT or CTRL is pressed → allow newline
+        if (e.shiftKey || e.ctrlKey) {
+          return; // do nothing (default behavior = new line)
+        }
+
+        // Otherwise → send message
+        e.preventDefault(); // stop newline
+        sendMessage();
+      }
+    });
+
     /* SEND MESSAGE */
-    function sendMessage() {
+    async function sendMessage() {
       const input = document.getElementById("chatInput");
       if (!input.value.trim()) return;
 
@@ -2124,16 +2162,71 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
         minute: '2-digit'
       });
 
-      bubble.innerHTML = `
-        ${input.value}
-        <span class="time">${time}</span>
-      `;
+      const text = document.createElement("span");
+      text.textContent = input.value;
+
+      const timeSpan = document.createElement("span");
+      timeSpan.className = "time";
+      timeSpan.textContent = time;
+
+      bubble.appendChild(text);
+      bubble.appendChild(timeSpan);
 
       messageWrapper.appendChild(bubble);
       document.getElementById("chatBody").appendChild(messageWrapper);
 
+      const message = input.value;
+      let conversationId;
+
+      initChat();
+
+      // Send to backend
+      await fetch("send_message.php", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          conversation_id: conversationId, // dynamic later
+          message: message
+        })
+      });
+
       input.value = "";
       chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    async function initChat(buyerId, orderCode) {
+      try {
+        const res = await fetch("get_or_create_conversation.php", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            buyer_id: buyerId,
+            seller_id: CURRENT_USER_ID,
+            order_code: orderCode
+          })
+        });
+
+        const data = await res.json();
+
+        if (!data.conversation_id) {
+          console.error("No conversation returned");
+          return;
+        }
+
+        conversationId = data.conversation_id;
+
+        // Join socket room
+        socket.emit("join", {
+          user_id: CURRENT_USER_ID,
+          conversation_id: conversationId
+        });
+
+        // Load messages
+        loadMessages();
+
+      } catch (err) {
+        console.error("Init chat error:", err);
+      }
     }
 
     let currentCoords = null;
@@ -2205,7 +2298,18 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
       document.getElementById("locationModal").style.display = "none";
 
       // Send to backend
-      sendLocationToServer(lat, lng, address, manualText);
+      //sendLocationToServer(lat, lng, address, manualText);
+      await fetch("send_location.php", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          conversation_id: conversationId,
+          lat,
+          lng,
+          address,
+          manualText
+        })
+      });
 
       // Start live tracking
       startLiveTracking();
@@ -2228,6 +2332,46 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
       }, 5000); // every 5 seconds
     }
 
+    setInterval(fetchMessages, 2000);
+
+    let lastMessageId = 0;
+
+    async function fetchMessages() {
+      const res = await fetch(`fetch_messages.php?conversation_id=1&last_id=${lastMessageId}`);
+      const messages = await res.json();
+
+      // Check if user is near bottom BEFORE adding messages
+      const threshold = 100; // px
+      const isNearBottom =
+        chatBody.scrollHeight - chatBody.scrollTop - chatBody.clientHeight < threshold;
+
+      messages.forEach(msg => {
+        const messageWrapper = document.createElement("div");
+        messageWrapper.className =
+          msg.sender_id == CURRENT_USER_ID
+            ? "chat-message buyer"
+            : "chat-message seller";
+
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+
+        bubble.innerHTML = `
+          ${msg.message}
+          <span class="time">${msg.time}</span>
+        `;
+
+        messageWrapper.appendChild(bubble);
+        chatBody.appendChild(messageWrapper);
+
+        lastMessageId = msg.id;
+      });
+
+      // Only scroll if user was already at bottom
+      if (isNearBottom && messages.length > 0) {
+        chatBody.scrollTop = chatBody.scrollHeight;
+      }
+    }
+
     /* COMPLETE ORDER */
     function completeOrder() {
       if (!confirm("This will mark the order as completed and close the chat. Continue?")) return;
@@ -2243,6 +2387,69 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
       chatFooter.classList.add("locked");
     }
+  </script>
+  <script>
+
+  let conversationId = null;
+
+  // Handle view click
+  document.querySelectorAll(".btn-view").forEach(btn => {
+    btn.addEventListener("click", function () {
+
+      const buyerId = this.dataset.buyer;
+      const orderCode = this.dataset.order;
+
+      // Switch UI
+      document.getElementById("sellerMain").style.display = "none";
+      document.getElementById("chatSection").style.display = "flex";
+
+      // Initialize chat with real data
+      initChat(buyerId, orderCode);
+    });
+  });
+
+  async function loadMessages() {
+    const res = await fetch(`fetch_messages.php?conversation_id=${conversationId}&last_id=0`);
+    const messages = await res.json();
+
+    chatBody.innerHTML = "";
+
+    messages.forEach(msg => {
+      appendMessage(msg);
+    });
+  }
+
+  function goBack() {
+    document.getElementById("chatSection").style.display = "none";
+    document.getElementById("sellerMain").style.display = "flex";
+  }
+
+  document.querySelectorAll(".btn-view").forEach(btn => {
+    btn.addEventListener("click", function () {
+
+      const buyerId = this.dataset.buyer;
+      const orderCode = this.dataset.order;
+      const buyerName = this.dataset.buyername;
+
+      // 🔥 SET CHAT HEADER DATA
+      document.getElementById("chatTitle").textContent =
+        "Order Chat • Buyer: " + buyerName;
+
+      document.getElementById("chatOrderCode").textContent =
+        "Order Code: " + orderCode;
+
+      // Optional: reset status
+      document.getElementById("orderStatus").textContent =
+        "Order in progress...";
+
+      // Switch UI
+      document.getElementById("sellerMain").style.display = "none";
+      document.getElementById("chatSection").style.display = "flex";
+
+      // Init chat
+      initChat(buyerId, orderCode);
+    });
+  });
   </script>
 </body>
 </html>

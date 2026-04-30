@@ -861,6 +861,7 @@ $stmt = $conn->prepare("
     o.order_id,
     o.order_code,
     o.created_at,
+    o.buyer_id,
     u.full_name AS buyer_name,
 
     oi.item_id,

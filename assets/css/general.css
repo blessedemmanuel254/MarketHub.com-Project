@@ -554,6 +554,10 @@ html body.no-scroll {
   animation: fadeIn 0.25s ease;
 }
 
+.container main.buyerMain#chatSection {
+  display: none;
+}
+
 .container main.help-centre-main {
   align-items: normal;
   margin: 50px auto;
