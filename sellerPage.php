@@ -2094,10 +2094,95 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
       </div>
       <div class="sales-wrapper">
         <p>No products here. Click "Go Back" to update your store.</p>
-        <div class="sales-grid">
-          <div class="productSalesCard">
-            <img src="Images/Makethub Logo.png" alt="Product Image">
-            <strong class="stock in-stock">10</strong>
+        <div class="offer-container">
+          <div class="sales-grid">
+            <div class="productSalesCard">
+              <img src="Images/Makethub Logo.png" alt="Product Image">
+              <strong class="stock in-stock">10</strong>
+            </div>
+            <div class="productSalesCard">
+              <img src="Images/Makethub Logo.png" alt="Product Image">
+              <strong class="stock in-stock">10</strong>
+            </div>
+            <div class="productSalesCard">
+              <img src="Images/Makethub Logo.png" alt="Product Image">
+              <strong class="stock in-stock">10</strong>
+            </div>
+            <div class="productSalesCard">
+              <img src="Images/Makethub Logo.png" alt="Product Image">
+              <strong class="stock in-stock">10</strong>
+            </div>
+            <div class="productSalesCard">
+              <img src="Images/Makethub Logo.png" alt="Product Image">
+              <strong class="stock in-stock">10</strong>
+            </div>
+            <div class="productSalesCard">
+              <img src="Images/Makethub Logo.png" alt="Product Image">
+              <strong class="stock in-stock">10</strong>
+            </div>
+            <div class="productSalesCard">
+              <img src="Images/Makethub Logo.png" alt="Product Image">
+              <strong class="stock in-stock">10</strong>
+            </div>
+            <div class="productSalesCard">
+              <img src="Images/Makethub Logo.png" alt="Product Image">
+              <strong class="stock in-stock">10</strong>
+            </div>
+            <div class="productSalesCard">
+              <img src="Images/Makethub Logo.png" alt="Product Image">
+              <strong class="stock in-stock">10</strong>
+            </div>
+            <div class="productSalesCard">
+              <img src="Images/Makethub Logo.png" alt="Product Image">
+              <strong class="stock in-stock">10</strong>
+            </div>
+            <div class="productSalesCard">
+              <img src="Images/Makethub Logo.png" alt="Product Image">
+              <strong class="stock in-stock">5</strong>
+            </div>
+          </div>
+          <div class="sales-container" id="sales-container">
+            <div class="cartTop">
+              <h1>My&nbsp;Cart</h1>
+              <i class="fa-solid fa-xmark" onclick="toggleCartBar()"></i>
+            </div>
+            <div class="inner-cart-container">
+              <div class="cart-items" id="cartItems">
+              </div>
+              <div id="emptyCartMessage" class="empty-cart">
+                🛒 Your cart is empty
+              </div>
+
+              <div class="cart-summary">
+                <h1>Cart Summary</h1>
+                <div class="summary-row">
+                  <span>Subtotal</span>
+                  <span id="subtotal">KES 0</span>
+                </div>
+
+                <div class="summary-row">
+                  <span>Delivery</span>
+                  <span>KES 0</span>
+                </div>
+
+                <div class="summary-row">
+                  <span>Discount</span>
+                  <span>KES 0</span>
+                </div>
+
+                <div class="summary-row">
+                  <span>Makethub Points</span>
+                  <span>KES 0</span>
+                </div>
+
+                <div class="summary-row summary-total">
+                  <span>Total</span>
+                  <span id="total">KES 0</span>
+                </div>
+
+                <button class="checkout-btn" onclick="proceedFromCart()">Proceed&nbsp;to&nbsp;Payment</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

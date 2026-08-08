@@ -827,6 +827,12 @@ html body.no-scroll {
   width: 100%;
 }
 
+.offer-container {
+  display: grid;
+  grid-template-columns: .75fr .25fr;
+  gap: 20px;
+}
+
 .container main#salesDashMain .sales-wrapper p {
   font-size: 13px;
   color: #898888;
@@ -834,9 +840,8 @@ html body.no-scroll {
 
 .container main#salesDashMain .sales-wrapper .sales-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill,minmax(100px,1fr));
+  grid-template-columns: repeat(auto-fit,minmax(100px,1fr));
   gap: 20px;
-  background-color: lightblue;
 }
 
 .container main#salesDashMain .sales-wrapper .sales-grid .productSalesCard {
@@ -849,6 +854,8 @@ html body.no-scroll {
   background-color: #ffffff;
   border: 1px solid #89898879;
   margin: 0 auto;
+  width: 100px;
+  height: 100px;
 }
 
 .container main#salesDashMain .sales-wrapper .sales-grid .productSalesCard:hover{
