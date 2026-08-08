@@ -263,6 +263,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <label class="account-type">
                   <input type="radio" name="login_type" value="sales_agent" required>
                   <div class="radio-dot"></div>
+                  Shop Attendant
+                </label>
+                </label>
+
+                <label class="account-type">
+                  <input type="radio" name="login_type" value="sales_agent" required>
+                  <div class="radio-dot"></div>
                   Agent
                 </label>
 
@@ -270,6 +277,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                   <input type="radio" name="login_type" value="property_owner" required>
                   <div class="radio-dot"></div>
                   Property&nbsp;Owner
+                </label>
+
+                <label class="account-type">
+                  <input type="radio" name="login_type" value="property_owner" required>
+                  <div class="radio-dot"></div>
+                  Forex
                 </label>
 
                 <label class="account-type">

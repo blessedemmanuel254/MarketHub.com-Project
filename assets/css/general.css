@@ -33,7 +33,7 @@ html body.no-scroll {
 
 .container, .containerAdmin {
   width: 100%;
-  font-size: 14px;
+  font-size: 13px;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -89,7 +89,7 @@ html body.no-scroll {
 }
 
 .container header.pgHeader section .sContainer p {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .avatar-img {
@@ -166,7 +166,7 @@ html body.no-scroll {
   width: 20px;
   border-radius: 50%;
   color: white;
-  font-size: 14px;
+  font-size: 13px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -182,7 +182,7 @@ html body.no-scroll {
 }
 
 .container header.pgHeader section .sContainer p.wcmTxt span {
-  font-size: 14px;
+  font-size: 13px;
   color: #898888;
 }
 
@@ -225,7 +225,7 @@ html body.no-scroll {
   padding: 5px 10px;
   white-space: nowrap;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 13px;
   top: 120%;
   left: 50%;
   transform: translateX(-50%) translateY(10px);
@@ -257,7 +257,7 @@ html body.no-scroll {
   position: absolute;
   white-space: nowrap;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 13px;
   top: 90%;
   left: 50%;
   transform: translateX(-50%) translateY(10px);
@@ -313,12 +313,12 @@ html body.no-scroll {
 }
 
 .container header .rhs .profile-icon .profileOption a i {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .container header .rhs select {
   outline: none;
-  font-size: 14px;
+  font-size: 13px;
   border: none;
   padding: 4px 10px;
   background-color: #dedede;
@@ -509,7 +509,7 @@ html body.no-scroll {
 
 .container #whatsapp-chat-box .chat-body p {
   margin: 0 0 10px;
-  font-size: 14px;
+  font-size: 13px;
   color: #333;
 }
 
@@ -521,7 +521,7 @@ html body.no-scroll {
   outline: none;
   padding: 10px;
   padding-bottom: 0;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .container #whatsapp-chat-box .chat-body button {
@@ -598,7 +598,7 @@ html body.no-scroll {
 .container main.buyerMain .filter-bar #statusFilter, .containerAdmin .admin-tab-panel .table-wrapper .filter-bar #statusFilter, .containerAdmin .admin-tab-panel .table-wrapper .filter-bar #regionFilter, .containerAdmin .admin-tab-panel .table-wrapper .filter-bar #kycFilter, .containerAdmin .admin-tab-panel .table-wrapper .filter-bar #productsFilter {
   padding: 8px;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 13px;
   border: 1px solid #dedede;
   outline: none;
   color: #0f0f0f;
@@ -668,7 +668,7 @@ html body.no-scroll {
   padding: 8px;
   border: none;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   position: relative;
   background: #ffffff;
   border: 1px solid #ffffff;
@@ -727,7 +727,7 @@ html body.no-scroll {
 }
 
 .tabs-container .tab-content .tab-panel p,  .tabs-container .tab-content .tab-panel-msource p, .container main .tab-top p, .tabs-container .tab-content .tab-panel-mtype p, .tab-panel-admin .tab-top p, .tab-panel-admin p.mproducts-alert-p {
-  font-size: 14px;
+  font-size: 13px;
   color: #898888;
   line-height: 30px;
 }
@@ -737,7 +737,7 @@ html body.no-scroll {
 }
 
 .tabs-container .tab-content .tab-panel p i,  .tabs-container .tab-content .tab-panel-msource p i, .container main .tab-top p i, .tabs-container .tab-content .tab-panel-msource p i, .tab-panel-admin .tab-top i {
-  font-size: 14px;
+  font-size: 13px;
   line-height: 30px;
 }
 
@@ -782,6 +782,85 @@ html body.no-scroll {
   margin: 10px auto;
 }
 
+
+
+.container main#salesDashMain .tab-top .salesSideDiv {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.container main#salesDashMain .tab-top .salesSideDiv .salesCounter {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container main#salesDashMain .tab-top .salesSideDiv .salesCounter i {
+  font-size: 28px;
+  color: #088000;
+}
+
+.container main#salesDashMain .tab-top .salesSideDiv .salesCounter p {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  background-color: #ff3b3b;
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  text-align: center;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  font-size: 14px;
+  
+}
+
+.container main#salesDashMain .sales-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.container main#salesDashMain .sales-wrapper p {
+  font-size: 13px;
+  color: #898888;
+}
+
+.container main#salesDashMain .sales-wrapper .sales-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(100px,1fr));
+  gap: 20px;
+  background-color: lightblue;
+}
+
+.container main#salesDashMain .sales-wrapper .sales-grid .productSalesCard {
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: .25s;
+  position: relative;
+  overflow: hidden;
+  background-color: #ffffff;
+  border: 1px solid #89898879;
+  margin: 0 auto;
+}
+
+.container main#salesDashMain .sales-wrapper .sales-grid .productSalesCard:hover{
+  transform: translateY(-4px);
+}
+
+.container main#salesDashMain .sales-wrapper .sales-grid .productSalesCard img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .container main#orderMain .tab-top , .container .agentWithdrawalH, .container#agentWithdrawalH {
   width: 100%;
 }
@@ -791,10 +870,15 @@ html body.no-scroll {
   padding: 8px 16px;
   color: #ffffff;
   border: none;
-  font-size: 14px;
+  font-size: 13px;
   border-radius: 4px;
   gap: 5px;
   cursor: pointer;
+}
+
+.tabs-container .tab-content .tab-top.sales button {
+  background-color: #ff3b3b;
+  font-weight: bold;
 }
 
 .tab-panel-admin .tab-top button {
@@ -850,7 +934,7 @@ html body.no-scroll {
 }
 
 .tabs-container .tab-content .tab-panel .cards a.card p, .tabs-container .tab-content .tab-panel-mtype .cards a.card p {
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.6;
   color: inherit;
 }
@@ -861,7 +945,7 @@ html body.no-scroll {
   width: 100%;
   align-items: center;
   margin-top: 10px;
-  font-size: 14px;
+  font-size: 13px;
   color: #898888;
 }
 
@@ -869,7 +953,7 @@ html body.no-scroll {
   display: inline-block;
   margin-top: 10px;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 13px;
   letter-spacing: 1px;
   text-transform: uppercase;
   border-bottom: 1px solid currentColor;
@@ -946,15 +1030,19 @@ html body.no-scroll {
 }
 
 .table-wrapper table thead {
-  background: #000;
-  color: #fff;
+  color: #898888;
 }
 
 .table-wrapper table thead tr th, .table-wrapper table tbody tr td {
   padding: 8px;
   border-bottom: 1px solid #eee;
-  font-size: 14px;
+  font-size: 13px;
   text-align: left;
+  font-weight: normal;
+}
+
+.table-wrapper table tbody tr td {
+  font-size: 13px;
 }
 
 .table-wrapper table tbody tr td .contactOwer {
@@ -1029,7 +1117,7 @@ html body.no-scroll {
   opacity: 0.875;
 }
 
-.table-wrapper table tbody tr td.actions button.btn-view, .cards .order-card .card-actions button.btn-view { background:#0f0f0f; color:#ffffff; }
+.table-wrapper table tbody tr td.actions button.btn-view, .cards .order-card .card-actions button.btn-view { background:#dedede; color:#0f0f0f; }
 .table-wrapper table tbody tr td.actions button.btn-copy-link { background:#8988888c; color:#0f0f0f; }
 .table-wrapper table tbody tr td.actions button.btn-track, .cards .order-card .card-actions button.btn-track { background:#ddd; }
 .table-wrapper table tbody tr td.actions button.btn-copy-link, .table-wrapper table tbody tr td.actions button.btn-activate, .table-wrapper table tbody tr td.actions button.btn-deactivate {
@@ -1078,7 +1166,7 @@ html body.no-scroll {
 
 .table-wrapper table tbody tr td.comm-cell .comm-btn i {
   color: #0f0f0f;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .table-wrapper table tbody tr td.comm-cell .comm-btn:hover {
@@ -1107,7 +1195,7 @@ html body.no-scroll {
   padding: 12px 14px;
   text-decoration: none;
   color: #000;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .table-wrapper table tbody tr td.comm-cell .comm-dropdown a i {
@@ -1174,7 +1262,7 @@ html body.no-scroll {
   text-align: center;
   color: #898888;
   width: 100%;
-  font-size: 14px;
+  font-size: 13px;
   margin: 35px auto;
 }
 
@@ -1192,7 +1280,7 @@ html body.no-scroll {
 }
 
 /* Oder Management Section CSS */
-.container main.buyerMain#orderMain, .container main.buyerMain#ordersTrackMain, .container main.buyerMain#earningsTrackMain, .container main.agentWithdrawalH, .container main.buyerMain#productsAgentMain {
+.container main.buyerMain#orderMain, .container main.buyerMain#salesDashMain, .container main.buyerMain#orderMain, .container main.buyerMain#ordersTrackMain, .container main.buyerMain#earningsTrackMain, .container main.agentWithdrawalH, .container main.buyerMain#productsAgentMain {
   background-color: #ffffff;
   display: none;
 }
@@ -1324,7 +1412,7 @@ html body.no-scroll {
   border-radius: 4px;
   padding: 20px 12px;
   padding-bottom: 50px;
-  font-size: 14px;
+  font-size: 13px;
   height: fit-content;
   width: fit-content;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -1366,7 +1454,7 @@ html body.no-scroll {
 }
 
 .container .formContainer form .selectorBox span {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .container .formContainer form .selectorBox select, .container main .formContainer form input, .container main .formContainer form .socialLogin, .container main .formContainer form .socialRegister, .container main .formContainer form .remember-me, .container main .formContainer form .inpBox {
@@ -1375,7 +1463,7 @@ html body.no-scroll {
   border-radius: 4px;
   margin-bottom: 10px;
   padding: 8px 16px;
-  font-size: 14px;
+  font-size: 13px;
   width: 100%;
   color: #898888;
 }
@@ -1384,13 +1472,13 @@ html body.no-scroll {
   color: #0f0f0f;
 }
 
-.container main .formContainer form .account-type {
+.container main .formContainer form .account-type, .tab-content .tab-panel .form-wrapper form .inp-box .account-type {
   width: 100%;
   padding: 8px 0;
   display: flex;
   gap: 16px;
   align-items: center;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .container main .formContainer form .account-type .account-icon {
@@ -1407,7 +1495,7 @@ html body.no-scroll {
 
 .container main .formContainer form .account-type p {
   color: #898888;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .container main .formContainer form .inpBox {
@@ -1518,7 +1606,7 @@ html body.no-scroll {
   border-radius: 4px;
   padding: 8px 16px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .container main .formContainer form button:hover, .container main form.actpContainer button:hover {
@@ -1626,7 +1714,7 @@ html body.no-scroll {
 
 .container main .formContainer section p{
   text-align: center;
-  font-size: 14px;
+  font-size: 13px;
   color: #898888;
 
 }
@@ -1649,7 +1737,7 @@ html body.no-scroll {
 
 .container main .formContainer form p.errorMessage, .container main .formContainer form p.successMessage, .container main form.actpContainer p.errorMessage, .tab-content .tab-panel p.errorMessage, .tab-content .tab-panel p.successMessage, .tab-panel-admin .form-wrapper form .errorMessage, .container.cmng-sn main .content form .successMessage, .container.cmng-sn main .content form .errorMessage, .container main.profile-main .profile-container .errorMessage, .container main.profile-main .profile-container .successMessage {
   text-align: start;
-  font-size: 14px;
+  font-size: 13px;
   color: #ff3b3b;
 }
 
@@ -1672,14 +1760,14 @@ html body.no-scroll {
 }
 
 .container main .formContainer form input::placeholder {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .container main .formContainer form .remember-me {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 14px;
+  font-size: 13px;
   border: none;
   margin-bottom: 0;
   color: #0f0f0f;
@@ -1701,7 +1789,7 @@ html body.no-scroll {
 }
 
 .container main .formContainer form p.reDctor {
-  font-size: 14px;
+  font-size: 13px;
   margin-top: 10px;
   text-align: center;
 }
@@ -1749,10 +1837,10 @@ html body.no-scroll {
 }
 
 .container main .formContainer form .socialLogin p, .container main .formContainer form .socialRegister p {
-  font-size: 14px;
+  font-size: 13px;
 }
 
-.container main .formContainer form .account-type-box {
+.container main .formContainer form .account-type-box, .tab-content .tab-panel .form-wrapper form .inp-box.sold-by, .tab-content .tab-panel .form-wrapper form .inp-box.sold-by .soldByDiv {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
@@ -1761,13 +1849,29 @@ html body.no-scroll {
   border-radius: 4px;
 }
 
+.tab-content .tab-panel .form-wrapper form .inp-box.sold-by .soldByDiv {
+  padding: 0;
+  border: none;
+}
+
+.tab-content .tab-panel .form-wrapper form .inp-box.sold-by .soldByDiv:first-of-type {
+  margin-bottom: 5px;
+}
+
+.tab-content .tab-panel .form-wrapper form .inp-box.sold-by .soldByDiv:last-of-type {
+  display: none;
+  margin-bottom: 5px;
+  background-color: #89898846;
+  padding: 8px 16px;
+}
+
 .container main .formContainer form .account-type-box .account-title {
   width: 100%;
   color: #898888;
 
 }
 
-.container main .formContainer form .account-type-box label.account-type {
+.container main .formContainer form .account-type-box label.account-type, .tab-content .tab-panel .form-wrapper form .inp-box label.account-type {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1929,7 +2033,7 @@ label.account-type input:checked + .radio-dot::after {
 
 .container footer p, .containerAdmin footer p {
   color: #898888;
-  font-size: 14px;
+  font-size: 13px;
   text-align: center;
 }
 
@@ -2043,7 +2147,7 @@ label.account-type input:checked + .radio-dot::after {
   color: #ffffff;
   border: 1px solid #0f0f0f;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   transition: all 0.25s ease;
   display: flex;
@@ -2068,7 +2172,7 @@ label.account-type input:checked + .radio-dot::after {
 }
 
 .container main.help-centre-main .faq-header p {
-  font-size: 14px;
+  font-size: 13px;
   color: #008000;
   max-width: 760px;
 }
@@ -2127,7 +2231,7 @@ label.account-type input:checked + .radio-dot::after {
 }
 
 .container main.help-centre-main .faq-list .faq-item .faq-answer p {
-  font-size: 14px;
+  font-size: 13px;
   color: #898888;
   padding-top: 14px;
   max-width: 800px;
@@ -2194,7 +2298,7 @@ label.account-type input:checked + .radio-dot::after {
   background: #898888;
   color: #000;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 13px;
   flex-shrink: 0;
 }
 
@@ -2219,7 +2323,7 @@ label.account-type input:checked + .radio-dot::after {
 
 .meta h2 {
   color: #0f0f0f;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .meta h2 span {
@@ -2292,7 +2396,7 @@ a.seller-right {
   border-radius: 20px;
   font-weight: bold;
   border: 1px solid #dedede;
-  font-size: 14px;
+  font-size: 13px;
   min-width: 50px;
   text-align: center;
 }
@@ -2313,7 +2417,7 @@ a.seller-right {
   box-shadow:
     inset 0 1px 1px rgba(255,255,255,0.6),
     0 4px 10px rgba(0, 0, 0, 0.35);
-  font-size: 14px;
+  font-size: 13px;
   min-width: 50px;
   text-align: center;
 }
@@ -2329,7 +2433,7 @@ a.seller-right {
   color: #ffffff;
   border: none;
   padding: 4px 8px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: bold;
   border-radius: 20px;
   box-shadow:
@@ -2397,11 +2501,11 @@ a.seller-right {
 .container form.paymentContainer h1 span {
   color: #898888;
   font-weight: normal;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .container form.paymentContainer p {
-  font-size: 14px;
+  font-size: 13px;
   margin-right: 15px;
 }
 
@@ -2486,7 +2590,7 @@ a.seller-right {
 
 .container form.paymentContainer button {
   background-color: #dedede;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   color: #898888;
 }
@@ -2542,7 +2646,7 @@ a.seller-right {
 
 .container .sellerMain .sellerProfileContainer .seller .seller-right h2 {
   color: #0f0f0f;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: normal;
   text-align: right;
 }
@@ -2625,7 +2729,7 @@ a.seller-right {
 }
 
 .variable-content .variable-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: bold;
 }/* 
 
@@ -2636,7 +2740,7 @@ a.seller-right {
 } */
 
 .variable-content .stock {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .variable-content .stock.in-stock{ color:#088000; }
@@ -2650,7 +2754,7 @@ a.seller-right {
 }
 
 .variable-content .price-row .price {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: bold;
 }
 
@@ -2760,7 +2864,7 @@ a.seller-right {
   align-items: center;
   justify-content: space-between;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
 }
 
@@ -2942,7 +3046,7 @@ a.seller-right {
 
 .container .cart-container .inner-cart-container .cart-summary .summary-row.summary-total {
   font-weight: bold;
-  font-size: 14px;
+  font-size: 13px;
   margin-top: 15px;
 }
 
@@ -2953,7 +3057,7 @@ a.seller-right {
   border: none;
   background: #000;
   color: #fff;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   margin-top: 20px;
 }
@@ -3107,6 +3211,7 @@ a.seller-right {
   width: 200px;
   margin: 0 auto;
   border: 1px solid #dedede;
+  position: relative;
 }
 
 .products-grid .card img {
@@ -3126,7 +3231,7 @@ a.seller-right {
 }
 
 .products-grid .card .card-body .product-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: bold;
 }
 
@@ -3137,45 +3242,80 @@ a.seller-right {
 }
 
 .products-grid .card .card-body .price {
-  font-size: 16px;
-  font-weight: bold;
+  font-size: 15px;
+  position: absolute;
+  top: 50%;
+  left: 4px;
+  transform: translateY(-50%);
+  color: #ffffff;
+  background: #0f0f0f;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #89898879;
+  
 }
 
-.products-grid .card .card-body .stock {
-  font-size:12px;
+.products-grid .card .card-body .stock, .container main#salesDashMain .sales-wrapper .sales-grid .productSalesCard strong.stock {
+  font-size:14px;
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  color: #ffffff;
+  border-radius: 50%;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  width: 30px;
+  border: 1px solid #89898879;
 }
 
-.products-grid .card .card-body .stock.in-stock{ color:green; }
-.products-grid .card .card-body .stock.low-stock{ color:orange; }
-.products-grid .card .card-body .stock.out-stock{ color:red; }
+.products-grid .card .card-body .stock.in-stock, .container main#salesDashMain .sales-wrapper .sales-grid .productSalesCard strong.stock.in-stock {
+  background-color:#088000;
+}
+.products-grid .card .card-body .stock.low-stock, .container main#salesDashMain .sales-wrapper .sales-grid .productSalesCard strong.stock.low-stock {
+  background-color:#ffb803;
+}
+.products-grid .card .card-body .stock.out-stock, .container main#salesDashMain .sales-wrapper .sales-grid .productSalesCard strong.stock.out-stock {
+  background-color:#ff3b3b;
+}
 .products-grid .card .card-actions, .tab-panel-admin .products-grid-admin .product-card .card-actions {
-  display:grid;
-  border-top:1px solid #eee;
-  grid-template-columns: 1fr 1fr;
+  position:absolute;
+  display:flex;
+  gap: 10px;
+  top: 4px;
+  right: 4px;
+  background: none;
+  border: none;
+  color: #ffffff;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .products-grid .card .card-actions button, .products-grid .card .card-actions a.edit, .tab-panel-admin .products-grid-admin .product-card .card-actions .btn-edit, .tab-panel-admin .products-grid-admin .product-card .card-actions button {
   flex: 1;
-  padding: 10px 16px;
+  padding: 4px 6px;
   border: none;
-  background: none;
+  background: #898989;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 15px;
+  border-radius: 4px;
+  color: #ffffff;
+  border: 1px solid #89898879;
 }
 
 .products-grid .card .card-actions a.edit, .tab-panel-admin .products-grid-admin .product-card .card-actions .btn-edit {
   text-decoration: none;
   text-align: center;
-  color:#088000;
   width: 100%;
 }
 
 .products-grid .card .card-actions button:hover, .products-grid .card .card-actions a.edit:hover, .tab-panel-admin .products-grid-admin .product-card .card-actions a.edit:hover, .tab-panel-admin .products-grid-admin .product-card .card-actions button:hover {
-  background:#f5f5f5;
+  opacity: .875;
 }
 
 .products-grid .card .card-actions button.delete, .tab-panel-admin .products-grid-admin .product-card .card-actions button.delete-product-btn {
-  color:#ff3b3b;
   width: 100%;
 }
 
@@ -3223,7 +3363,7 @@ a.seller-right {
   padding: 8px 16px;
   outline: none;
   border: 1px solid #dedede;
-  font-size: 14px;
+  font-size: 13px;
   color: #0f0f0f;
   width: fit-content;
   border-radius: 4px;
@@ -3259,9 +3399,17 @@ a.seller-right {
   align-items: flex-start;
 
 }
-
+.tab-content .tab-panel .form-wrapper form .inp-box.sold-by {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 16px;
+  border: 1px solid #dedede;
+  border-radius: 4px;
+  flex-direction: row;
+}
 .tab-content .tab-panel .form-wrapper form .inp-box label, .tab-panel-admin .form-wrapper form .inp-box label, .tab-panel.agency .dashboard .grid .card.agency-lincods .lincod-box span {
-  font-size: 14px;
+  font-size: 13px;
   color: #0f0f0f;
   width: 100%;
 }
@@ -3293,7 +3441,7 @@ a.seller-right {
   background-color: #0f0f0f;
   height: auto;
   width: auto;
-  font-size: 14px;
+  font-size: 13px;
   margin-left: 0;
   border-radius: 0;
  }
@@ -3351,7 +3499,7 @@ a.seller-right {
   border: none;
   padding: 8px 16px;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   align-self: flex-end;
 }
@@ -3406,7 +3554,7 @@ body .confirmation-popup h3 {
 }
 
 body .confirmation-popup p {
-  font-size: 14px;
+  font-size: 13px;
   
 }
 
@@ -3422,7 +3570,7 @@ body .confirmation-popup .popup-actions button {
   padding: 8px 16px;
   border: none;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   color: #ffffff;
   background-color: #0f0f0f;
@@ -3567,7 +3715,7 @@ body .confirmation-popup .popup-actions button:hover {
   text-decoration: none;
   color: #088000;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .containerAdmin main.adminMain .admin-tab-panel nav ul a.active {
@@ -3628,7 +3776,7 @@ body .confirmation-popup .popup-actions button:hover {
 }
 
 .admin-tab-content .cards .card h3 {
-  font-size: 14px;
+  font-size: 13px;
   margin-bottom: 4px;
   color: #898888;
   font-weight: normal;
@@ -3696,6 +3844,16 @@ body .confirmation-popup .popup-actions button:hover {
 
 .containerAdmin .admin-tab-panel .tabs-container {
   margin-top: 10px;
+}
+
+.container main.buyerMain .tabs-container .shop {
+  width:1200px;
+  max-width:100%;
+  background:#f7f7f7;
+  border-radius:20px;
+  overflow:hidden;
+  box-shadow:0 20px 40px rgba(0,0,0,0.2);
+  border:8px solid #8b5a2b;
 }
 
 .containerAdmin .admin-tab-panel .products-grid-admin {
@@ -3864,7 +4022,7 @@ body .confirmation-popup .popup-actions button:hover {
   margin: 0 4px;
   padding: 4px 8px;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: normal;
   color: #333 !important;
   background: #8988889f;
@@ -3902,7 +4060,7 @@ body .confirmation-popup .popup-actions button:hover {
 }
 
 .dataTables_wrapper .dataTables_filter label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: #898888;
   display: flex;
@@ -4011,7 +4169,7 @@ body .confirmation-popup .popup-actions button:hover {
   border: none;
   background: none;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .tab-panel.agency .dashboard .grid .share-menu button:hover{
@@ -4176,7 +4334,7 @@ WITHDRAW HISTORY
 }
 
 .containerWH .withdraw-grid .withdraw-card .withdraw-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: bold;
   margin-bottom: 6px;
   display: flex;
@@ -4277,7 +4435,7 @@ WITHDRAW HISTORY
 }
 
 .containerWH .no-withdrawals p {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .containerWH .no-withdrawals small {
@@ -4312,7 +4470,7 @@ AGENTS' PRODUCTS CSS
 }
 
 .container main#productsAgentMain .header p {
-  font-size: 14px;
+  font-size: 13px;
   color: #898888;
 
 }
@@ -4377,7 +4535,7 @@ AGENTS' PRODUCTS CSS
 }
 
 .container main#productsAgentMain .product-price, .tab-panel-admin .products-grid-admin .product-card .product-price {
-  font-size: 14px;
+  font-size: 13px;
   padding: 0 10px;
   color: #0f0f0f;
 }
@@ -4470,7 +4628,7 @@ AGENTS' PRODUCTS CSS
 .order-container .card .address-name {
     font-weight: bold;
     margin-bottom: 6px;
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .order-container .card .address-text {
@@ -4525,7 +4683,7 @@ AGENTS' PRODUCTS CSS
 }
 
 .order-container .card .seller-box .product .product-info {
-    font-size: 14px;
+    font-size: 13px;
     flex: 1;
 }
 
@@ -4549,7 +4707,7 @@ AGENTS' PRODUCTS CSS
 .order-container .card .summary-row {
   display: flex;
   justify-content: space-between;
-  font-size: 14px;
+  font-size: 13px;
   margin-bottom: 12px;
 }
 
@@ -4571,7 +4729,7 @@ AGENTS' PRODUCTS CSS
   border: none;
   cursor: pointer;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .order-container .card .place-order:hover {
@@ -4619,7 +4777,7 @@ AGENTS' PRODUCTS CSS
     color: #ffffff;
     border: none;
     padding: 4px 8px;
-    font-size: 14px;
+    font-size: 13px;
     cursor: pointer;
     margin-left: 10px;
     border-radius: 4px;
@@ -4730,7 +4888,7 @@ font-weight:bold;
 }
 
 .container .alertPopupOverlay .alert-popup-text {
-font-size: 14px;
+font-size: 13px;
 color: #898888;
 margin-bottom: 15px;
 
@@ -4824,7 +4982,7 @@ justify-content: space-between;
 }
 
 .container.cmng-sn main .content p.ready-p {
-  font-size: 14px;
+  font-size: 13px;
   text-align: center;
 }
 
@@ -4854,7 +5012,7 @@ justify-content: space-between;
 }
 
 .container.cmng-sn main .content .launch-time div span {
-  font-size: 14px;
+  font-size: 13px;
   color: #898888;
 }
 
@@ -5009,7 +5167,7 @@ justify-content: space-between;
 /* Message inside notification */
 #notification-container .notification .message {
   margin-bottom: 16px;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 /* Progress bar */

@@ -294,8 +294,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['edit_product_id']) &
 
 $productName = smartTitleCase($_POST['name'] ?? '');
 $category    = trim($_POST['category'] ?? '');
+$saleType = $_POST['sale_type'] ?? 'Each';
+$unit      = $_POST['unit'] ?? 'Each';
 $price       = floatval($_POST['price'] ?? 0);
 $stock       = intval($_POST['stock'] ?? 0);
+if ($saleType === 'Each') {
+  $unit = 'Each';
+}
 
 
 /* ---------- BASIC VALIDATION ---------- */
@@ -305,6 +310,12 @@ $error = "Product name is required.";
 }
 elseif ($category === '') {
 $error = "Please select a category.";
+}
+elseif ($saleType === '') {
+$error = "Please select a sale type.";
+}
+elseif ($unit === '') {
+$error = "Please select a unit.";
 }
 elseif ($price <= 0) {
 $error = "Price must be greater than zero.";
@@ -513,35 +524,42 @@ imagedestroy($source);
 $stmt = $conn->prepare("
 INSERT INTO productservicesrentals
 (
-user_id,
-product_name,
-category,
-price,
-stock_quantity,
-image_path,
-image_width,
-image_height,
-image_size_kb,
-image_format,
-image_hash,
-image_phash
+  user_id,
+  product_name,
+  category,
+  sale_type,
+  unit,
+  price,
+  stock_quantity,
+  image_path,
+  image_width,
+  image_height,
+  image_size_kb,
+  image_format,
+  image_hash,
+  image_phash
 )
-VALUES (?,?,?,?,?,?,?,?,?,'webp',?,?)
+VALUES
+(
+  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'webp', ?, ?
+)
 ");
 
 $stmt->bind_param(
-"issdissiiss",
-$user_id,
-$productName,
-$category,
-$price,
-$stock,
-$filePath,
-$newWidth,
-$newHeight,
-$fileSizeKB,
-$imgHash,
-$imgPhash
+  "issssdisiiiss",
+  $user_id,
+  $productName,
+  $category,
+  $saleType,
+  $unit,
+  $price,
+  $stock,
+  $filePath,
+  $newWidth,
+  $newHeight,
+  $fileSizeKB,
+  $imgHash,
+  $imgPhash
 );
 
 if ($stmt->execute()) {

@@ -1,8 +1,9 @@
 <?php
 session_start();
 require_once 'connection.php';
-ini_set('display_errors', 0);
-error_reporting(0);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 ob_start();
 /* ---------- SESSION SECURITY ---------- */
 if (!isset($_SESSION['user_id'])) {
@@ -440,6 +441,8 @@ $success = "";
 
 $productName = '';
 $category    = '';
+$saleType = '';
+$unit      = '';
 $price       = '';
 $stock       = '';
 
@@ -451,10 +454,17 @@ if (isset($_GET['edit_product_id'])) {
   $editProductId = intval($_GET['edit_product_id']);
 
   $stmt = $conn->prepare("
-    SELECT product_name, category, price, stock_quantity, image_path
-    FROM productservicesrentals
-    WHERE product_id = ? AND user_id = ?
-    LIMIT 1
+      SELECT
+          product_name,
+          category,
+          sale_type,
+          unit,
+          price,
+          stock_quantity,
+          image_path
+      FROM productservicesrentals
+      WHERE product_id = ? AND user_id = ?
+      LIMIT 1
   ");
 
   $stmt->bind_param("ii", $editProductId, $user_id);
@@ -463,27 +473,34 @@ if (isset($_GET['edit_product_id'])) {
 
   if ($result && $result->num_rows === 1) {
 
-    $product = $result->fetch_assoc();
+      $product = $result->fetch_assoc();
 
-    $productName = $product['product_name'];
-    $category    = $product['category'];
-    $price       = $product['price'];
-    $stock       = $product['stock_quantity'];
-    $currentImagePath = $product['image_path'];
+      $productName      = $product['product_name'];
+      $category         = $product['category'];
+      $saleType         = $product['sale_type'];
+      $unit             = $product['unit'];
+      $price            = $product['price'];
+      $stock            = $product['stock_quantity'];
+      $currentImagePath = $product['image_path'];
 
-    $editMode = true;
+      $editMode = true;
   }
 
   $stmt->close();
 }
+
 // ---------- ADD PRODUCT ----------
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['edit_product_id']) && !isset($_POST['delete_product_id'])) {
 
 $productName = smartTitleCase($_POST['name'] ?? '');
 $category    = trim($_POST['category'] ?? '');
+$saleType = $_POST['sale_type'] ?? 'Each';
+$unit      = $_POST['unit'] ?? 'Each';
 $price       = floatval($_POST['price'] ?? 0);
 $stock       = intval($_POST['stock'] ?? 0);
-
+if ($saleType === 'Each') {
+  $unit = 'Each';
+}
 
 /* ---------- BASIC VALIDATION ---------- */
 
@@ -493,16 +510,31 @@ $error = "Product name is required.";
 elseif ($category === '') {
 $error = "Please select a category.";
 }
+elseif ($saleType === '') {
+$error = "Please select a sale type.";
+}
+elseif ($unit === '') {
+$error = "Please select a unit.";
+}
 elseif ($price <= 0) {
 $error = "Price must be greater than zero.";
 }
+
 elseif ($stock < 0) {
 $error = "Stock cannot be negative.";
 }
 elseif (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== 0) {
 $error = "Please upload a product image.";
 }
+if ($saleType === 'Each') {
+  $unit = 'Each';
+}
 
+if ($saleType === 'Measurement') {
+  $unit = $_POST['unit'] ?? null;
+} else {
+  $unit = 'Each';
+}
 
 /* ---------- CHECK DUPLICATE PRODUCT NAME ---------- */
 
@@ -541,8 +573,8 @@ $allowed = ['image/jpeg','image/png','image/webp'];
 if (!in_array($mime,$allowed)) {
 $error = "Invalid image format.";
 }
-elseif ($fileSize > 5 * 1024 * 1024) {
-$error = "Image too large. Max 5MB.";
+elseif($fileSize > 10 * 1024 * 1024){
+  $error = "Image too large. Maximum size is 10MB.";
 }
 
 $imgInfo = getimagesize($fileTmp);
@@ -555,8 +587,8 @@ if (empty($error)) {
 
 [$width,$height] = $imgInfo;
 
-if ($width < 600 || $height < 600) {
-$error = "Image too small. Minimum size is 600×600 px.";
+if ($width < 400 || $height < 400) {
+  $error = "Image too small. Minimum size is 400 × 400 px.";
 }
 
 }
@@ -700,35 +732,46 @@ imagedestroy($source);
 $stmt = $conn->prepare("
 INSERT INTO productservicesrentals
 (
-user_id,
-product_name,
-category,
-price,
-stock_quantity,
-image_path,
-image_width,
-image_height,
-image_size_kb,
-image_format,
-image_hash,
-image_phash
+  user_id,
+  product_name,
+  category,
+  sale_type,
+  unit,
+  price,
+  stock_quantity,
+  image_path,
+  image_width,
+  image_height,
+  image_size_kb,
+  image_format,
+  image_hash,
+  image_phash
 )
-VALUES (?,?,?,?,?,?,?,?,?,'webp',?,?)
+VALUES
+(
+  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'webp', ?, ?
+)
 ");
 
+if (!$stmt) {
+  die("Prepare failed: " . $conn->error);
+}
+
 $stmt->bind_param(
-"issdissiiss",
-$user_id,
-$productName,
-$category,
-$price,
-$stock,
-$filePath,
-$newWidth,
-$newHeight,
-$fileSizeKB,
-$imgHash,
-$imgPhash
+  "issssdisiiiss",
+  $user_id,
+  $productName,
+  $category,
+  $saleType,
+  $unit,
+  $price,
+  $stock,
+  $filePath,
+  $newWidth,
+  $newHeight,
+  $fileSizeKB,
+  $imgHash,
+  $imgPhash
 );
 
 if ($stmt->execute()) {
@@ -737,12 +780,14 @@ $success = "Product added successfully! <span class='redirect-msg'></span>";
 
 $productName='';
 $category='';
+$saleType='';
+$unit='';
 $price='';
 $stock='';
 
 } else {
 
-$error="Failed to save product.";
+die($stmt->error);
 
 }
 
@@ -759,9 +804,10 @@ $editProductId = intval($_POST['edit_product_id']);
 
 $productName = smartTitleCase($_POST['name'] ?? '');
 $category    = trim($_POST['category'] ?? '');
+$saleType = $_POST['sale_type'] ?? 'Each';
+$unit      = $_POST['unit'] ?? 'Each';
 $price       = floatval($_POST['price'] ?? 0);
 $stock       = intval($_POST['stock'] ?? 0);
-
 
 /* ---------- BASIC VALIDATION ---------- */
 
@@ -951,7 +997,6 @@ SELECT image_phash
 FROM productservicesrentals
 WHERE user_id=? AND product_id<>?
 ");
-
 $stmt->bind_param("ii",$user_id,$editProductId);
 $stmt->execute();
 $result=$stmt->get_result();
@@ -1001,46 +1046,59 @@ if(isset($source)) imagedestroy($source);
 
 /* ---------- UPDATE PRODUCT ---------- */
 
-if(empty($error)){
+if (empty($error)) {
 
-$stmt=$conn->prepare("
-UPDATE productservicesrentals
-SET product_name=?,category=?,price=?,stock_quantity=?,image_path=?,image_hash=?,image_phash=?
-WHERE product_id=? AND user_id=?
-");
+  $stmt = $conn->prepare("
+      UPDATE productservicesrentals
+      SET
+          product_name = ?,
+          category = ?,
+          sale_type = ?,
+          unit = ?,
+          price = ?,
+          stock_quantity = ?,
+          image_path = ?,
+          image_hash = ?,
+          image_phash = ?
+      WHERE product_id = ? AND user_id = ?
+  ");
 
-$stmt->bind_param(
-"ssdsssiii",
-$productName,
-$category,
-$price,
-$stock,
-$imageToSave,
-$imgHash,
-$imgPhash,
-$editProductId,
-$user_id
-);
+  $stmt->bind_param(
+      "ssssdisssii",
+      $productName,
+      $category,
+      $saleType,
+      $unit,
+      $price,
+      $stock,
+      $imageToSave,
+      $imgHash,
+      $imgPhash,
+      $editProductId,
+      $user_id
+  );
 
-if($stmt->execute()){
+  if ($stmt->execute()) {
 
-$success = "Product updated successfully! <span class='redirect-msg'></span>";
+      $success = "Product updated successfully! <span class='redirect-msg'></span>";
 
-$productName='';
-$category='';
-$price='';
-$stock='';
+      $productName = '';
+      $category    = '';
+      $saleType    = 'Each';
+      $unit        = 'Each';
+      $price       = '';
+      $stock       = '';
 
-}else{
-$error="Update failed.";
+  } else {
+
+      $error = "Update failed: " . $stmt->error;
+
+  }
+
+  $stmt->close();
+
 }
-
-$stmt->close();
-
 }
-
-}
-
 // Fetch seller orders
 $sellerOrders = [];
 $stmt = $conn->prepare("
@@ -1422,7 +1480,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
           <img src="<?php echo $safeProfileImage; ?>" alt="Profile" class="avatar-img">
           <p class="wcmTxt">
             Welcome,<br>
-            <span>Logged in as <?php echo $safeUsername; ?></span>
+            <span><?php echo $safeUsername; ?></span>
           </p>
         </div>
         <div class="rhs">
@@ -1522,12 +1580,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
       <div class="tabs-container" id="toggleMarketTypeTab">
         <div class="tabs">
           <button class="tab-btn" data-tab="dashboard">Dashboard</button>
-          <button class="tab-btn" data-tab="products">Products</button>
+          <button class="tab-btn" data-tab="products">Store</button>
           <button class="tab-btn" data-tab="funds">Funds</button>
         </div>
 
         <div class="tab-content">
-          <div style="margin:20px 0;">
+         <!--  <div style="margin:20px 0;">
             <a href="?download_qr=1" 
               style="padding:12px 20px;background:#000;color:#fff;text-decoration:none;border-radius:8px;">
               📥 Download Shop QR Sticker
@@ -1536,12 +1594,34 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
             <br><br>
 
             <img src="<?php echo $qrImageUrl; ?>" width="150" style="border:5px solid #eee;">
-          </div>
+          </div> -->
           <div id="dashboard" class="tab-panel">
-            <p>Dashboard Area <br><strong>Your business performance and finances <i class="fa-regular fa-circle-check"></i></strong></p>
+            <div class="tab-top sales">
+              <p>Dashboard Area <br><strong>Your business performance and finances <i class="fa-regular fa-circle-check"></i></strong></p>
+              <button onclick="toggleSalesDash()">
+                Sale&nbsp;<span><i class="fa-solid fa-tags"></i></span>
+              </button>
+
+            </div>
             <div class="containerInner">
 
               <div class="grid">
+                <!-- DAILY STATS -->
+                <div class="card">
+                  <i class="fa-solid fa-receipt icon"></i>
+                  <h3>Daily Stats</h3>
+
+                  <div class="stat">KES <?= number_format($walletBalance, 2) ?></div>
+
+                  <p class="meta">Total daily sales</p>
+
+                  <div class="progress">
+                    <span style="width:<?= min(($walletBalance/20000)*100,100) ?>%"></span>
+                  </div>
+
+                  <p class="small">KES 0 pending clearance</p>
+                </div>
+
                 <!-- WALLET HEALTH -->
                 <div class="card">
                   <i class="fa fa-wallet icon"></i>
@@ -1642,20 +1722,27 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                       <img src="<?= htmlspecialchars($product['image_path']) ?>" loading="lazy" decoding="async" alt="<?= htmlspecialchars($product['product_name']) ?>">
                       <div class="card-body">
                         <div class="product-name"><?= htmlspecialchars($product['product_name']) ?></div>
-                        <div class="product-meta"><?= htmlspecialchars($product['category']) ?></div>
                         <div class="price">KES <?= number_format($product['price'], 2) ?></div>
                         <div class="stock <?= ($product['stock_quantity'] > 5) ? 'in-stock' : (($product['stock_quantity'] > 0) ? 'low-stock' : 'out-stock') ?>">
-                          <?= ($product['stock_quantity'] > 0) ? "In stock (<strong>{$product['stock_quantity']}</strong>)" : "Out of stock" ?>
+                          <?php
+                          if ($product['stock_quantity'] >= 100) {
+                              echo '<strong>99+</strong>';
+                          } elseif ($product['stock_quantity'] > 0) {
+                              echo '<strong>' . $product['stock_quantity'] . '</strong>';
+                          } else {
+                              echo '0';
+                          }
+                          ?>
                         </div>
                       </div>
                       <div class="card-actions">
                           <a href="?edit_product_id=<?= $product['product_id'] ?>" class="edit" >
-                            <i class="fa fa-pen"></i> Edit
+                            <i class="fa fa-pen"></i>
                           </a>
                           <form method="POST" onsubmit="return confirm('Are you sure you want to delete this product?')">
                             <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
                             <button type="submit" class="delete">
-                                <i class="fa fa-trash"></i> Delete
+                                <i class="fa fa-trash"></i>
                             </button>
                           </form>
                       </div>
@@ -1665,7 +1752,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                     <p>No products uploaded yet. Click "Add Product" to start selling.</p>
                 <?php endif; ?>
               </div>
-          </div>
+            </div>
           
           <div id="add-products" class="tab-panel">
             <div class="tab-top">
@@ -1714,9 +1801,65 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                       <option value="Stationery" <?php echo ($category === 'Stationery') ? 'selected' : ''; ?>>Stationery</option>
                     </select>
                   </div>
+                  <div class="inp-box sold-by">
+
+                    <label>Sold by</label>
+                    <div class="soldByDiv">
+
+                      <label class="account-type">
+                        <input type="radio" name="sale_type" value="Each" <?= ($saleType === 'Each') ? 'checked' : '' ?>>
+                        <div class="radio-dot"></div>
+                        Each
+                      </label>
+
+                      <label class="account-type">
+                        <input type="radio" name="sale_type" value="Measurement" <?= ($saleType === 'Measurement') ? 'checked' : '' ?>>
+                        <div class="radio-dot"></div>
+                        Measurement
+                      </label>
+                    </div>
+                    <div class="soldByDiv" id="unitOptions">
+                      <label class="account-type">
+                        <input type="radio" name="unit" value="Kg" <?= ($unit === 'Kg') ? 'checked' : '' ?>>
+                        <div class="radio-dot"></div>
+                        Kg
+                      </label>
+                      <label class="account-type">
+                        <input type="radio" name="unit" value="Liter" <?= ($unit === 'Liter') ? 'checked' : '' ?>>
+                        <div class="radio-dot"></div>
+                        Liter
+                      </label>
+                      <label class="account-type">
+                        <input type="radio" name="unit" value="Meter" <?= ($unit === 'Meter') ? 'checked' : '' ?>>
+                        <div class="radio-dot"></div>
+                        Meter
+                      </label>
+                      <label class="account-type">
+                        <input type="radio" name="unit" value="Inch" <?= ($unit === 'Inch') ? 'checked' : '' ?>>
+                        <div class="radio-dot"></div>
+                        Inch
+                      </label>
+                      <label class="account-type">
+                        <input type="radio" name="unit" value="Packet" <?= ($unit === 'Packet') ? 'checked' : '' ?>>
+                        <div class="radio-dot"></div>
+                        Packet
+                      </label>
+                      <label class="account-type">
+                        <input type="radio" name="unit" value="Gallon" <?= ($unit === 'Gallon') ? 'checked' : '' ?>>
+                        <div class="radio-dot"></div>
+                        Gallon
+                      </label>
+                      <label class="account-type">
+                        <input type="radio" name="unit" value="Roll" <?= ($unit === 'Roll') ? 'checked' : '' ?>>
+                        <div class="radio-dot"></div>
+                        Roll
+                      </label>
+                    </div>
+                    
+                  </div>
 
                   <div class="inp-box">
-                    <label>Price (KES)</label>
+                    <label id="priceLabel">Price (KES)</label>
                     <input type="number" name="price" step="0.01" placeholder="Enter price"
                     value="<?= htmlspecialchars($price, ENT_QUOTES) ?>"
                     oninput="this.value = this.value.replace(/[^0-9.]/g, '')" min="0" required>
@@ -1934,6 +2077,33 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleSellerOrdersTrack()">View&nbsp;All&nbsp;Orders</button> to access all your orders.</p>
 
     </main>
+    
+
+    <main class="buyerMain" id="salesDashMain">
+      <div class="tab-top">
+        <p>Sale<br><strong>Tap to sale <i class="fa-solid fa-hand-pointer"></i></strong></p>
+        <div class="salesSideDiv">
+          <div class="salesCounter">
+            <i class="fa-solid fa-receipt"></i>
+            <p>0</p>
+          </div>
+          <button onclick="toggleSalesDash()">
+            <i class="fa-solid fa-circle-arrow-left" data-tab="products"></i> <span>Go&nbsp;Back</span>
+          </button>
+        </div>
+      </div>
+      <div class="sales-wrapper">
+        <p>No products here. Click "Go Back" to update your store.</p>
+        <div class="sales-grid">
+          <div class="productSalesCard">
+            <img src="Images/Makethub Logo.png" alt="Product Image">
+            <strong class="stock in-stock">10</strong>
+          </div>
+        </div>
+      </div>
+
+      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleSalesDash()">Go&nbsp;back</button> to continue your dashboard.</p>
+    </main>
 
     <main class="buyerMain" id="chatSection">
       <div class="tab-top">
@@ -2084,7 +2254,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleSellerOrdersTrack()">Go&nbsp;back</button> to continue delivering.</p>
     </main>
-        <footer>
+    <footer>
       <p>&copy; 2025/2026, Makethub.shop, All Rights Reserved.</p><br>
       <p>
         <a href="privacy.php">Privacy Policy</a> |
@@ -2120,7 +2290,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
   <?php if ($editMode): ?>
   <script>
   document.addEventListener("DOMContentLoaded", function() {
-      toggleProductsAdd(true);
+    toggleProductsAdd(true);
   });
   </script>
   <?php endif; ?>

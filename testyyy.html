@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Interactive Kiosk Shelf</title>
+
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:Arial, Helvetica, sans-serif;
+    }
+
+    body{
+      background:#dfe9f3;
+      min-height:100vh;
+      overflow-x:hidden;
+    }
+
+    /* HEADER */
+    .header{
+      background:#5a3112;
+      color:white;
+      padding:18px;
+      text-align:center;
+      font-size:28px;
+      font-weight:bold;
+      letter-spacing:2px;
+      box-shadow:0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .container{
+      width:95%;
+      max-width:1400px;
+      margin:auto;
+      padding:30px 0;
+    }
+
+    /* SHELF */
+    .shop{
+      background:#f7f4ef;
+      border-radius:20px;
+      padding:30px;
+      border:8px solid #7a4a20;
+      box-shadow:0 15px 30px rgba(0,0,0,0.2);
+    }
+
+    .shelf{
+      position:relative;
+      background:#8b5a2b;
+      height:240px;
+      margin-bottom:60px;
+      border-radius:10px;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      padding:20px;
+      overflow:hidden;
+    }
+
+    .shelf::after{
+      content:"";
+      position:absolute;
+      left:0;
+      bottom:-15px;
+      width:100%;
+      height:15px;
+      background:#5a3112;
+    }
+
+    /* PARTITIONS */
+    .partition{
+      width:6px;
+      height:100%;
+      background:#5a3112;
+      position:relative;
+      border-radius:5px;
+    }
+
+    /* PRODUCT SECTION */
+    .section{
+      flex:1;
+      display:flex;
+      justify-content:center;
+      align-items:flex-end;
+      gap:15px;
+      height:100%;
+      position:relative;
+    }
+
+    /* PRODUCTS */
+    .product{
+      cursor:pointer;
+      transition:0.3s;
+      position:relative;
+    }
+
+    .product:hover{
+      transform:translateY(-8px) scale(1.05);
+    }
+
+    /* SHAPES */
+    .bottle{
+      width:55px;
+      height:140px;
+      border-radius:15px 15px 10px 10px;
+      position:relative;
+    }
+
+    .bottle::before{
+      content:"";
+      position:absolute;
+      top:-18px;
+      left:15px;
+      width:25px;
+      height:20px;
+      background:#333;
+      border-radius:5px 5px 0 0;
+    }
+
+    .box{
+      width:90px;
+      height:110px;
+      border-radius:6px;
+    }
+
+    .can{
+      width:70px;
+      height:95px;
+      border-radius:12px;
+      position:relative;
+    }
+
+    .packet{
+      width:75px;
+      height:120px;
+      clip-path:polygon(10% 0%,90% 0%,100% 10%,100% 100%,0% 100%,0% 10%);
+    }
+
+    /* COLORS */
+    .red{background:#e74c3c;}
+    .blue{background:#3498db;}
+    .green{background:#27ae60;}
+    .yellow{background:#f1c40f;}
+    .orange{background:#e67e22;}
+    .purple{background:#8e44ad;}
+    .pink{background:#fd79a8;}
+    .dark{background:#2c3e50;}
+    .cyan{background:#00b894;}
+
+    /* PRODUCT DETAILS PANEL */
+    .details-panel{
+      position:fixed;
+      top:0;
+      right:-450px;
+      width:420px;
+      height:100vh;
+      background:white;
+      box-shadow:-10px 0 30px rgba(0,0,0,0.25);
+      padding:30px;
+      transition:0.4s;
+      z-index:1000;
+      overflow-y:auto;
+    }
+
+    .details-panel.active{
+      right:0;
+    }
+
+    .close-btn{
+      position:absolute;
+      right:20px;
+      top:15px;
+      font-size:28px;
+      cursor:pointer;
+      color:#555;
+    }
+
+    .product-preview{
+      height:180px;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      margin:25px 0;
+    }
+
+    .product-preview div{
+      transform:scale(1.5);
+    }
+
+    .panel-title{
+      font-size:26px;
+      margin-bottom:10px;
+      color:#333;
+    }
+
+    .panel-sub{
+      color:#777;
+      margin-bottom:25px;
+      line-height:1.6;
+    }
+
+    .form-group{
+      margin-bottom:22px;
+    }
+
+    .form-group label{
+      display:block;
+      margin-bottom:8px;
+      font-weight:bold;
+      color:#444;
+    }
+
+    select,
+    input{
+      width:100%;
+      padding:13px;
+      border:1px solid #ccc;
+      border-radius:8px;
+      font-size:15px;
+      outline:none;
+    }
+
+    .price-box{
+      background:#f7f7f7;
+      padding:18px;
+      border-radius:10px;
+      margin-top:10px;
+      margin-bottom:20px;
+    }
+
+    .price{
+      font-size:28px;
+      color:#111;
+      font-weight:bold;
+    }
+
+    .order-btn{
+      width:100%;
+      padding:16px;
+      border:none;
+      background:#27ae60;
+      color:white;
+      font-size:18px;
+      border-radius:10px;
+      cursor:pointer;
+      transition:0.3s;
+    }
+
+    .order-btn:hover{
+      background:#1f8d4d;
+    }
+
+    /* OVERLAY */
+    .overlay{
+      position:fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background:rgba(0,0,0,0.5);
+      display:none;
+      z-index:999;
+    }
+
+    .overlay.active{
+      display:block;
+    }
+
+    /* CUSTOMER WINDOW */
+    .window{
+      height:150px;
+      background:#5a3112;
+      margin-top:40px;
+      border-radius:12px;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      color:white;
+      font-size:22px;
+      font-weight:bold;
+      letter-spacing:1px;
+    }
+
+    @media(max-width:700px){
+
+      .details-panel{
+        width:100%;
+      }
+
+      .shelf{
+        overflow-x:auto;
+        gap:30px;
+      }
+
+      .section{
+        min-width:300px;
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    KIOSK PRODUCT SHELF
+  </div>
+
+  <div class="container">
+
+    <div class="shop">
+
+      <!-- SHELF 1 -->
+      <div class="shelf">
+
+        <div class="section">
+
+          <div class="product"
+               data-name="Cooking Oil"
+               data-price="250"
+               data-shape="bottle yellow">
+            <div class="bottle yellow"></div>
+          </div>
+
+          <div class="product"
+               data-name="Soap Packet"
+               data-price="120"
+               data-shape="packet green">
+            <div class="packet green"></div>
+          </div>
+
+        </div>
+
+        <div class="partition"></div>
+
+        <div class="section">
+
+          <div class="product"
+               data-name="Milk Bottle"
+               data-price="180"
+               data-shape="bottle cyan">
+            <div class="bottle cyan"></div>
+          </div>
+
+          <div class="product"
+               data-name="Chocolate Box"
+               data-price="300"
+               data-shape="box red">
+            <div class="box red"></div>
+          </div>
+
+        </div>
+
+        <div class="partition"></div>
+
+        <div class="section">
+
+          <div class="product"
+               data-name="Energy Drink"
+               data-price="150"
+               data-shape="can dark">
+            <div class="can dark"></div>
+          </div>
+
+          <div class="product"
+               data-name="Rice Packet"
+               data-price="400"
+               data-shape="packet blue">
+            <div class="packet blue"></div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- SHELF 2 -->
+      <div class="shelf">
+
+        <div class="section">
+
+          <div class="product"
+               data-name="Juice Bottle"
+               data-price="220"
+               data-shape="bottle red">
+            <div class="bottle red"></div>
+          </div>
+
+          <div class="product"
+               data-name="Corn Flour"
+               data-price="160"
+               data-shape="box yellow">
+            <div class="box yellow"></div>
+          </div>
+
+        </div>
+
+        <div class="partition"></div>
+
+        <div class="section">
+
+          <div class="product"
+               data-name="Tea Box"
+               data-price="140"
+               data-shape="box orange">
+            <div class="box orange"></div>
+          </div>
+
+          <div class="product"
+               data-name="Shampoo Bottle"
+               data-price="350"
+               data-shape="bottle pink">
+            <div class="bottle pink"></div>
+          </div>
+
+        </div>
+
+        <div class="partition"></div>
+
+        <div class="section">
+
+          <div class="product"
+               data-name="Soda Can"
+               data-price="90"
+               data-shape="can blue">
+            <div class="can blue"></div>
+          </div>
+
+          <div class="product"
+               data-name="Sugar Packet"
+               data-price="210"
+               data-shape="packet purple">
+            <div class="packet purple"></div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="window">
+        CUSTOMER ORDERING WINDOW
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- OVERLAY -->
+  <div class="overlay" id="overlay"></div>
+
+  <!-- PRODUCT DETAILS PANEL -->
+  <div class="details-panel" id="detailsPanel">
+
+    <div class="close-btn" id="closeBtn">&times;</div>
+
+    <h2 class="panel-title" id="productTitle">
+      Product
+    </h2>
+
+    <p class="panel-sub">
+      Select your preferred color, size and quantity before placing your order.
+    </p>
+
+    <div class="product-preview" id="productPreview"></div>
+
+    <div class="price-box">
+      Price:
+      <div class="price" id="productPrice">KES 0</div>
+    </div>
+
+    <div class="form-group">
+      <label>Choose Color</label>
+      <select id="colorSelect">
+        <option>Red</option>
+        <option>Blue</option>
+        <option>Green</option>
+        <option>Black</option>
+        <option>Yellow</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Choose Size</label>
+      <select id="sizeSelect">
+        <option>Small</option>
+        <option>Medium</option>
+        <option>Large</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Quantity</label>
+      <input type="number" id="quantityInput" value="1" min="1">
+    </div>
+
+    <button class="order-btn" id="orderBtn">
+      Place Order
+    </button>
+
+  </div>
+
+  <script>
+
+    const products = document.querySelectorAll(".product");
+    const panel = document.getElementById("detailsPanel");
+    const overlay = document.getElementById("overlay");
+    const closeBtn = document.getElementById("closeBtn");
+
+    const productTitle = document.getElementById("productTitle");
+    const productPrice = document.getElementById("productPrice");
+    const productPreview = document.getElementById("productPreview");
+
+    const colorSelect = document.getElementById("colorSelect");
+    const sizeSelect = document.getElementById("sizeSelect");
+    const quantityInput = document.getElementById("quantityInput");
+
+    const orderBtn = document.getElementById("orderBtn");
+
+    let currentProduct = "";
+
+    // OPEN PRODUCT DETAILS
+    products.forEach(product => {
+
+      product.addEventListener("click", () => {
+
+        currentProduct = product.dataset.name;
+
+        productTitle.textContent = currentProduct;
+
+        productPrice.textContent =
+          "KES " + product.dataset.price;
+
+        // PRODUCT PREVIEW
+        const shape = product.dataset.shape;
+
+        productPreview.innerHTML =
+          `<div class="${shape}"></div>`;
+
+        // SHOW PANEL
+        panel.classList.add("active");
+        overlay.classList.add("active");
+
+      });
+
+    });
+
+    // CLOSE PANEL
+    function closePanel(){
+      panel.classList.remove("active");
+      overlay.classList.remove("active");
+    }
+
+    closeBtn.addEventListener("click", closePanel);
+    overlay.addEventListener("click", closePanel);
+
+    // PLACE ORDER
+    orderBtn.addEventListener("click", () => {
+
+      const color = colorSelect.value;
+      const size = sizeSelect.value;
+      const quantity = quantityInput.value;
+
+      alert(
+        "ORDER SUCCESSFULLY PLACED!\n\n" +
+        "Product: " + currentProduct + "\n" +
+        "Color: " + color + "\n" +
+        "Size: " + size + "\n" +
+        "Quantity: " + quantity
+      );
+
+      closePanel();
+
+    });
+
+  </script>
+
+</body>
+</html>

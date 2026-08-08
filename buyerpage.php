@@ -494,8 +494,8 @@ $pendingOrders = count($pendingItems);
         <div class="sContainer">
           <img src="<?php echo $safeProfileImage; ?>" alt="Profile" class="avatar-img">
           <p class="wcmTxt">
-            Welcome,<br>
-            <span>Logged in as <?php echo $safeUsername; ?></span>
+            Welcome,<br> hft
+            <span><?php echo $safeUsername; ?></span>
           </p>
         </div>
         <div class="rhs">
@@ -578,21 +578,21 @@ $pendingOrders = count($pendingItems);
       </div>
     </div>
 
-    <main class="buyerMain" id="marketMain">
+    <main class="buyerMain" id="marketMain"><!-- 
 
-      <div class="chat-wrapper">
+      <div class="chat-wrapper"> -->
 
-        <!-- HEADER -->
+        <!-- HEADER --><!-- 
         <div class="chat-header">
           <h3>Order Chat • Seller: Alex</h3>
           <div class="meta">Order Code: ORD-20260421-71795</div>
           <div class="status" id="orderStatus">Order in progress...</div>
-        </div>
+        </div> -->
 
-        <!-- CHAT BODY -->
+        <!-- CHAT BODY --><!-- 
         <div class="chat-body" id="chatBody">
 
-          <!-- Seller Message -->
+           --><!-- Seller Message --><!-- 
           <div class="chat-message seller">
             <div class="bubble">
               Hello 👋 I’m ready to deliver your order.
@@ -600,9 +600,9 @@ $pendingOrders = count($pendingItems);
             </div>
           </div>
 
-        </div>
+        </div> -->
 
-        <!-- FOOTER -->
+        <!-- FOOTER --><!-- 
         <div class="chat-footer" id="chatFooter">
           
           <div class="chat-input">
@@ -617,12 +617,12 @@ $pendingOrders = count($pendingItems);
 
         </div>
 
-      </div>
+      </div> --><!-- 
       <div class="locationModal" id="locationModal" style="display:none; position:fixed; bottom:0; background:lightblue; width:100%; padding:15px;">
         <h4>Describe your location</h4>
         <input type="text" id="manualLocation" placeholder="e.g. Blue gate, near church" style="width:100%; padding:10px;">
         <button onclick="confirmLocation()">Confirm Location</button>
-      </div>
+      </div> -->
       <div class="tabs-container strongRed" id="toggleMarketTypeTab" data-tab-storage="marketTypeTabs">
         <div class="tabs">
           <button class="tab-btn" data-tab="products">Products</button>
@@ -1046,20 +1046,41 @@ $pendingOrders = count($pendingItems);
 
               <!-- PAYMENT STATUS -->
               <td>
-                <?php
-                  $paymentClass = strtolower($order['payment_status']);
-                  $paymentText  = ucwords($order['payment_status']);
-                ?>
-                <span class="badge <?= $paymentClass ?>"><?= $paymentText ?></span>
+                  <?php
+                      $paymentClass = strtolower($order['payment_status']);
+
+                      if ($paymentClass === 'paid') {
+                          $paymentText = '<i class="fa-solid fa-circle-check"></i>';
+                      } else {
+                          $paymentText = '<i class="fa-solid fa-circle-exclamation"></i>';
+                      }
+                  ?>
+                  <span class="badge <?= $paymentClass ?>"><?= $paymentText ?></span>
               </td>
 
               <!-- ORDER / SHIPMENT STATUS -->
               <td>
-                <?php
-                  $statusClass = strtolower($order['order_status']);
-                  $statusText  = ucwords($order['order_status']);
-                ?>
-                <span class="badge <?= $statusClass ?>"><?= $statusText ?></span>
+                  <?php
+                      $statusClass = strtolower($order['order_status']);
+
+                      switch ($statusClass) {
+                          case 'pending':
+                              $statusText = '<i class="fa-regular fa-clock"></i>';
+                              break;
+
+                          case 'shipped':
+                              $statusText = '<i class="fa-solid fa-truck"></i>';
+                              break;
+
+                          case 'delivered':
+                              $statusText = '<i class="fa-solid fa-envelope-circle-check"></i>';
+                              break;
+
+                          default:
+                              $statusText = ucwords($order['order_status']);
+                      }
+                  ?>
+                  <span class="badge <?= $statusClass ?>"><?= $statusText ?></span>
               </td>
 
               <!-- ACTIONS -->

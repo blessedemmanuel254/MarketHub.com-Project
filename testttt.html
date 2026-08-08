@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kiosk Shelf Display</title>
+
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:Arial, Helvetica, sans-serif;
+    }
+
+    body{
+      background:#d7e5f2;
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:30px;
+    }
+
+    .shop{
+      width:1200px;
+      max-width:100%;
+      background:#f7f7f7;
+      border-radius:20px;
+      overflow:hidden;
+      box-shadow:0 20px 40px rgba(0,0,0,0.2);
+      border:8px solid #8b5a2b;
+    }
+
+    /* TOP SIGN */
+    .shop-header{
+      background:#6d3f18;
+      color:white;
+      text-align:center;
+      padding:18px;
+      letter-spacing:2px;
+      font-size:26px;
+      font-weight:bold;
+    }
+
+    /* SHELF AREA */
+    .shelf-wrapper{
+      background:#ece5da;
+      padding:30px 20px 60px;
+      position:relative;
+    }
+
+    .shelf{
+      width:100%;
+      height:220px;
+      background:#8b5a2b;
+      border-radius:8px;
+      margin-bottom:40px;
+      position:relative;
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-evenly;
+      padding:20px;
+      box-shadow: inset 0 -8px 0 rgba(0,0,0,0.2);
+    }
+
+    .shelf::after{
+      content:"";
+      position:absolute;
+      bottom:-18px;
+      left:0;
+      width:100%;
+      height:18px;
+      background:#5f3818;
+      border-radius:0 0 8px 8px;
+    }
+
+    /* PRODUCTS */
+    .product{
+      position:relative;
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+      cursor:pointer;
+      transition:0.3s;
+    }
+
+    .product:hover{
+      transform:translateY(-10px) scale(1.05);
+    }
+
+    /* BOTTLES */
+    .bottle{
+      width:55px;
+      height:140px;
+      border-radius:15px 15px 10px 10px;
+      position:relative;
+    }
+
+    .bottle::before{
+      content:"";
+      position:absolute;
+      top:-18px;
+      left:15px;
+      width:25px;
+      height:22px;
+      background:#444;
+      border-radius:6px 6px 0 0;
+    }
+
+    /* BOXES */
+    .box{
+      width:90px;
+      height:110px;
+      border-radius:6px;
+      position:relative;
+    }
+
+    .box::before{
+      content:"";
+      position:absolute;
+      top:0;
+      left:0;
+      width:100%;
+      height:18px;
+      background:rgba(255,255,255,0.15);
+    }
+
+    /* CANS */
+    .can{
+      width:70px;
+      height:95px;
+      border-radius:12px;
+      position:relative;
+    }
+
+    .can::before{
+      content:"";
+      position:absolute;
+      top:-5px;
+      left:0;
+      width:100%;
+      height:10px;
+      border-radius:50%;
+      background:rgba(255,255,255,0.3);
+    }
+
+    /* PACKETS */
+    .packet{
+      width:75px;
+      height:120px;
+      clip-path:polygon(10% 0%,90% 0%,100% 10%,100% 100%,0% 100%,0% 10%);
+    }
+
+    /* COLORS */
+    .red{ background:#d64545; }
+    .blue{ background:#3498db; }
+    .green{ background:#27ae60; }
+    .yellow{ background:#f1c40f; }
+    .orange{ background:#e67e22; }
+    .purple{ background:#8e44ad; }
+    .dark{ background:#2c3e50; }
+    .pink{ background:#fd79a8; }
+    .cyan{ background:#00b894; }
+
+    /* CUSTOMER WINDOW */
+    .counter{
+      height:170px;
+      background:#6d3f18;
+      position:relative;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      overflow:hidden;
+    }
+
+    .counter::before{
+      content:"";
+      position:absolute;
+      top:25px;
+      width:70%;
+      height:65px;
+      background:#2f2f2f;
+      border-radius:12px;
+      border:6px solid #111;
+    }
+
+    .window-text{
+      position:absolute;
+      top:42px;
+      color:#fff;
+      font-size:20px;
+      letter-spacing:1px;
+      font-weight:bold;
+    }
+
+    /* INFO BOX */
+    .info-box{
+      position:fixed;
+      right:20px;
+      top:20px;
+      background:white;
+      padding:15px 20px;
+      border-radius:12px;
+      box-shadow:0 10px 20px rgba(0,0,0,0.2);
+      min-width:220px;
+      z-index:100;
+    }
+
+    .info-box h3{
+      margin-bottom:10px;
+      color:#444;
+    }
+
+    .info{
+      color:#666;
+      line-height:1.6;
+      font-size:15px;
+    }
+
+    .highlight{
+      color:#111;
+      font-weight:bold;
+    }
+
+    @media(max-width:900px){
+      .shelf{
+        overflow-x:auto;
+        justify-content:flex-start;
+        gap:25px;
+      }
+
+      .info-box{
+        position:relative;
+        right:auto;
+        top:auto;
+        margin-bottom:20px;
+      }
+
+      body{
+        flex-direction:column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="info-box">
+    <h3>Shop Shelf</h3>
+    <div class="info">
+      Click any product to simulate a customer pointing at it.
+      <br><br>
+      Selected Product:
+      <div class="highlight" id="selectedProduct">None</div>
+    </div>
+  </div>
+
+  <div class="shop">
+
+    <div class="shop-header">
+      MINI KIOSK SHELF
+    </div>
+
+    <div class="shelf-wrapper">
+
+      <!-- SHELF 1 -->
+      <div class="shelf">
+
+        <div class="product" data-product="Cooking Oil Bottle">
+          <div class="bottle yellow"></div>
+        </div>
+
+        <div class="product" data-product="Biscuits Box">
+          <div class="box red"></div>
+        </div>
+
+        <div class="product" data-product="Soft Drink Can">
+          <div class="can blue"></div>
+        </div>
+
+        <div class="product" data-product="Soap Packet">
+          <div class="packet green"></div>
+        </div>
+
+        <div class="product" data-product="Milk Bottle">
+          <div class="bottle cyan"></div>
+        </div>
+
+        <div class="product" data-product="Tea Box">
+          <div class="box orange"></div>
+        </div>
+
+        <div class="product" data-product="Energy Drink">
+          <div class="can dark"></div>
+        </div>
+
+      </div>
+
+      <!-- SHELF 2 -->
+      <div class="shelf">
+
+        <div class="product" data-product="Sugar Packet">
+          <div class="packet purple"></div>
+        </div>
+
+        <div class="product" data-product="Juice Bottle">
+          <div class="bottle red"></div>
+        </div>
+
+        <div class="product" data-product="Corn Flour">
+          <div class="box yellow"></div>
+        </div>
+
+        <div class="product" data-product="Soda Can">
+          <div class="can orange"></div>
+        </div>
+
+        <div class="product" data-product="Rice Packet">
+          <div class="packet blue"></div>
+        </div>
+
+        <div class="product" data-product="Shampoo Bottle">
+          <div class="bottle pink"></div>
+        </div>
+
+        <div class="product" data-product="Chocolate Box">
+          <div class="box green"></div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- CUSTOMER WINDOW -->
+    <div class="counter">
+      <div class="window-text">
+        CUSTOMER BUYING WINDOW
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const products = document.querySelectorAll(".product");
+    const selectedProduct = document.getElementById("selectedProduct");
+
+    products.forEach(product => {
+      product.addEventListener("click", () => {
+
+        // remove old selection glow
+        products.forEach(p => {
+          p.style.filter = "none";
+        });
+
+        // highlight selected
+        product.style.filter = "drop-shadow(0 0 15px gold)";
+
+        // show product name
+        selectedProduct.textContent = product.dataset.product;
+
+      });
+    });
+  </script>
+
+</body>
+</html>

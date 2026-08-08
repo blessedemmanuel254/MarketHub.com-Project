@@ -55,7 +55,7 @@
     padding: 15px;
     border-radius: 8px;
     margin: 15px 0;
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .container .payPageContainer .details strong {

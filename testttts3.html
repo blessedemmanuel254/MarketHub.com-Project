@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POS Product Grid</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+background:#f4f5f7;
+overflow-x:hidden;
+}
+
+/*==========================
+HEADER
+==========================*/
+
+header{
+height:70px;
+background:#fff;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:0 25px;
+box-shadow:0 2px 10px rgba(0,0,0,.08);
+position:sticky;
+top:0;
+z-index:1000;
+}
+
+header h2{
+font-size:24px;
+font-weight:bold;
+}
+
+.ticket-btn{
+position:relative;
+cursor:pointer;
+font-size:30px;
+color:#333;
+}
+
+.ticket-count{
+position:absolute;
+top:-8px;
+right:-8px;
+background:red;
+color:#fff;
+width:23px;
+height:23px;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:12px;
+font-weight:bold;
+}
+
+/*==========================
+PRODUCT GRID
+==========================*/
+
+.grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(100px,1fr));
+  gap: 20px;
+  padding: 8px 16px;
+}
+
+.product {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: .25s;
+  position: relative;
+  overflow: hidden;
+}
+
+.product:hover{
+  transform: translateY(-4px);
+}
+
+.product img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/*==========================
+SIDEBAR
+==========================*/
+
+.sidebar{
+position:fixed;
+right:-400px;
+top:0;
+width:380px;
+height:100%;
+background:#fff;
+box-shadow:-5px 0 20px rgba(0,0,0,.15);
+transition:.35s;
+z-index:3000;
+display:flex;
+flex-direction:column;
+}
+
+.sidebar.show{
+right:0;
+}
+
+.sidebar-header{
+height:70px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:20px;
+border-bottom:1px solid #ddd;
+}
+
+.sidebar-header h2{
+font-size:22px;
+}
+
+.close{
+font-size:28px;
+cursor:pointer;
+}
+
+.ticket-list{
+flex:1;
+overflow:auto;
+padding:15px;
+}
+
+.ticket-item{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:12px;
+margin-bottom:10px;
+background:#f8f8f8;
+border-radius:10px;
+}
+
+.ticket-left{
+display:flex;
+align-items:center;
+gap:10px;
+}
+
+.ticket-left img{
+width:55px;
+height:55px;
+object-fit:cover;
+border-radius:8px;
+}
+
+.qty{
+background:#222;
+color:white;
+padding:4px 10px;
+border-radius:20px;
+font-size:13px;
+}
+
+/*==========================
+FLY IMAGE
+==========================*/
+
+.fly{
+position:fixed;
+z-index:99999;
+pointer-events:none;
+border-radius:10px;
+transition:
+left .7s cubic-bezier(.22,.61,.36,1),
+top .7s cubic-bezier(.22,.61,.36,1),
+width .7s,
+height .7s,
+opacity .7s;
+margin: ;
+}
+
+</style>
+
+</head>
+<body>
+
+<header>
+
+<h2>Tap to Sale</h2>
+
+<div class="ticket-btn" id="ticketButton">
+
+<i class="fa-solid fa-receipt"></i>
+
+<div class="ticket-count" id="counter">0</div>
+
+</div>
+
+</header>
+
+  <div class="container">
+
+    <div class="grid" id="grid">
+
+    </div>
+
+  </div>
+
+
+<!-- SIDEBAR -->
+
+<div class="sidebar" id="sidebar">
+
+<div class="sidebar-header">
+
+<h2>Sale Ticket</h2>
+
+<i class="fa-solid fa-xmark close" id="closeSidebar"></i>
+
+</div>
+
+<div class="ticket-list" id="ticketList">
+
+</div>
+
+</div>
+
+<script>
+
+const products=[
+
+{
+id:1,
+image:"https://picsum.photos/300?1"
+},
+
+{
+id:2,
+image:"https://picsum.photos/300?2"
+},
+
+{
+id:3,
+name:"Milk",
+price:200,
+image:"https://picsum.photos/300?3"
+},
+
+{
+id:4,
+name:"Bread",
+price:70,
+image:"https://picsum.photos/300?4"
+},
+
+{
+id:5,
+name:"Rice",
+price:320,
+image:"https://picsum.photos/300?5"
+},
+
+{
+id:6,
+name:"Sugar",
+price:170,
+image:"https://picsum.photos/300?6"
+},
+
+{
+id:7,
+name:"Eggs",
+price:450,
+image:"https://picsum.photos/300?7"
+},
+
+{
+id:8,
+name:"Coffee",
+price:600,
+image:"https://picsum.photos/300?8"
+}
+
+];
+
+const grid=document.getElementById("grid");
+const ticketList=document.getElementById("ticketList");
+const counter=document.getElementById("counter");
+
+let ticket={};
+
+renderProducts();
+
+function renderProducts(){
+
+products.forEach(product=>{
+
+const card=document.createElement("div");
+card.className="product";
+
+card.innerHTML=`
+
+<img src="${product.image}">
+
+`;
+
+card.onclick=(e)=>{
+
+flyImage(card.querySelector("img"));
+
+addProduct(product);
+
+};
+
+grid.appendChild(card);
+
+});
+
+}
+
+
+function addProduct(product){
+
+if(ticket[product.id]){
+
+ticket[product.id].qty++;
+
+}else{
+
+ticket[product.id]={
+...product,
+qty:1
+};
+
+updateCounter();
+
+}
+
+renderTicket();
+
+}
+
+
+function updateCounter(){
+
+counter.innerHTML=Object.keys(ticket).length;
+
+}
+
+
+function renderTicket(){
+
+ticketList.innerHTML="";
+
+Object.values(ticket).forEach(item=>{
+
+ticketList.innerHTML+=`
+
+<div class="ticket-item">
+
+<div class="ticket-left">
+
+<img src="${item.image}">
+
+<div>
+
+<b>${item.name}</b><br>
+
+KES ${item.price}
+
+</div>
+
+</div>
+
+<div class="qty">
+
+x${item.qty}
+
+</div>
+
+</div>
+
+`;
+
+});
+
+}
+
+
+/*==========================
+LOYVERSE STYLE FLY
+==========================*/
+
+function flyImage(img){
+
+const clone=img.cloneNode(true);
+
+const rect=img.getBoundingClientRect();
+
+clone.className="fly";
+
+clone.style.left=rect.left+"px";
+clone.style.top=rect.top+"px";
+clone.style.width=rect.width+"px";
+clone.style.height=rect.height+"px";
+
+document.body.appendChild(clone);
+
+const target=document.getElementById("ticketButton");
+
+const targetRect=target.getBoundingClientRect();
+
+requestAnimationFrame(()=>{
+
+clone.style.left=(targetRect.left+15)+"px";
+
+clone.style.top=(targetRect.top+15)+"px";
+
+clone.style.width="25px";
+
+clone.style.height="25px";
+
+clone.style.opacity="0";
+
+});
+
+setTimeout(()=>{
+
+clone.remove();
+
+},700);
+
+}
+
+
+/*==========================
+SIDEBAR
+==========================*/
+
+document.getElementById("ticketButton").onclick=()=>{
+
+document.getElementById("sidebar").classList.add("show");
+
+}
+
+document.getElementById("closeSidebar").onclick=()=>{
+
+document.getElementById("sidebar").classList.remove("show");
+
+}
+
+</script>
+
+</body>
+</html>

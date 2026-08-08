@@ -326,14 +326,50 @@ function toggleOrderMarket() {
 function toggleSellerOrdersTrack() {
   const sellerMain = document.getElementById("sellerMain");
   const ordersTrackMain = document.getElementById("ordersTrackMain");
+  const salesDashMain = document.getElementById("salesDashMain");
 
-  const isSellerVisible = sellerMain.style.display !== "none";
+  const isOrdersVisible = getComputedStyle(ordersTrackMain).display !== "none";
 
-  sellerMain.style.display = isSellerVisible ? "none" : "flex";
-  ordersTrackMain.style.display = isSellerVisible ? "flex" : "none";
+  if (isOrdersVisible) {
+      // Return to Seller Main
+      ordersTrackMain.style.display = "none";
+      salesDashMain.style.display = "none";
+      sellerMain.style.display = "flex";
 
-  if (!isSellerVisible) resetScrollFor(ordersTrackMain);
-  else resetScrollFor(sellerMain);
+      resetScrollFor();
+  } else {
+      // Open Orders Tracking
+      sellerMain.style.display = "none";
+      salesDashMain.style.display = "none";
+      ordersTrackMain.style.display = "flex";
+
+      resetScrollFor();
+  }
+}
+
+
+function toggleSalesDash() {
+  const sellerMain = document.getElementById("sellerMain");
+  const ordersTrackMain = document.getElementById("ordersTrackMain");
+  const salesDashMain = document.getElementById("salesDashMain");
+
+  const isSalesVisible = getComputedStyle(salesDashMain).display !== "none";
+
+  if (isSalesVisible) {
+      // Return to Seller Main
+      salesDashMain.style.display = "none";
+      ordersTrackMain.style.display = "none";
+      sellerMain.style.display = "flex";
+
+      resetScrollFor();
+  } else {
+      // Open Sales Dashboard
+      sellerMain.style.display = "none";
+      ordersTrackMain.style.display = "none";
+      salesDashMain.style.display = "flex";
+
+      resetScrollFor();
+  }
 }
 
 function toggleAgentOrdersTrack() {  
@@ -2594,6 +2630,7 @@ function loadWardsFromTree(countyId, selectedWard = null) {
 // ===============================
 // EVENTS
 // ===============================
+if (countrySelect) {
 countrySelect.addEventListener("change", function () {
   loadLocations(this.value);
 });
@@ -2601,7 +2638,7 @@ countrySelect.addEventListener("change", function () {
 countySelect.addEventListener("change", function () {
   loadWardsFromTree(this.value);
 });
-
+}
 // ===============================
 // RESTORE ON PAGE LOAD
 // ===============================
@@ -2610,4 +2647,63 @@ window.addEventListener("DOMContentLoaded", () => {
     countrySelect.value = oldCountry;
     loadLocations(oldCountry, oldCounty, oldWard);
   }
+});
+
+// SOLD BY
+document.addEventListener("DOMContentLoaded", function () {
+
+    const saleTypeRadios = document.querySelectorAll('input[name="sale_type"]');
+    const unitRadios = document.querySelectorAll('input[name="unit"]');
+
+    const unitOptions = document.getElementById("unitOptions");
+    const priceLabel = document.getElementById("priceLabel");
+
+    function updateSoldByUI() {
+
+        const selectedSaleType = document.querySelector('input[name="sale_type"]:checked')?.value;
+
+        if (selectedSaleType === "Measurement") {
+
+            unitOptions.style.display = "flex";
+
+            unitRadios.forEach(radio => {
+                radio.required = true;
+            });
+
+            updatePriceLabel();
+
+        } else {
+
+            unitOptions.style.display = "none";
+
+            unitRadios.forEach(radio => {
+                radio.required = false;
+                radio.checked = false;
+            });
+
+            priceLabel.textContent = "Price (KES)";
+        }
+    }
+
+    function updatePriceLabel() {
+
+        const selectedUnit = document.querySelector('input[name="unit"]:checked');
+
+        if (selectedUnit) {
+            priceLabel.textContent = `Price per ${selectedUnit.value} (KES)`;
+        } else {
+            priceLabel.textContent = "Price per Unit (KES)";
+        }
+    }
+
+    saleTypeRadios.forEach(radio => {
+        radio.addEventListener("change", updateSoldByUI);
+    });
+
+    unitRadios.forEach(radio => {
+        radio.addEventListener("change", updatePriceLabel);
+    });
+
+    updateSoldByUI();
+
 });

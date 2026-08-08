@@ -1791,7 +1791,7 @@ function getStatusIcon($status) {
 
             </div>
             <div class="dashboard">
-              <?php if ($status === 'active' && !$isExpired && $isVerified): ?>
+              <?php if ($status === 'active' <!---&& !$isExpired && $isVerified): ?>
 
               <!-- TOP CARDS -->
               <div class="grid"> 
