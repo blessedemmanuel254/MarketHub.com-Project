@@ -2707,3 +2707,1497 @@ document.addEventListener("DOMContentLoaded", function () {
     updateSoldByUI();
 
 });
+/* =========================================================
+   SALES / CHECKOUT SYSTEM
+   ========================================================= */
+
+const saleItems = {};
+
+
+/* =========================================================
+   FORMAT QUANTITY
+   ========================================================= */
+
+function formatQuantity(quantity) {
+
+  quantity = Number(quantity);
+
+  if (!Number.isFinite(quantity)) {
+    return "0";
+  }
+
+  quantity = Math.round(quantity * 4) / 4;
+
+  const whole = Math.floor(quantity);
+
+  const fraction =
+    Math.round((quantity - whole) * 4);
+
+  let fractionText = "";
+
+  if (fraction === 1) {
+    fractionText = "¼";
+  } 
+  else if (fraction === 2) {
+    fractionText = "½";
+  } 
+  else if (fraction === 3) {
+    fractionText = "¾";
+  }
+
+  if (whole === 0) {
+    return fractionText || "0";
+  }
+
+  if (!fractionText) {
+    return String(whole);
+  }
+
+  return whole + fractionText;
+}
+
+
+/* =========================================================
+   CHECK IF PRODUCT IS SOLD AS EACH
+   ========================================================= */
+
+function isEachUnit(unit) {
+
+  if (!unit) {
+    return true;
+  }
+
+  return unit.trim().toLowerCase() === "each";
+}
+
+
+/* =========================================================
+   CHECKOUT PRODUCT NAME
+   ========================================================= */
+
+function getCheckoutProductName(item) {
+
+  /*
+   * EACH PRODUCTS
+   *
+   * Example:
+   *
+   * Juice... x1
+   * Juice... x2
+   */
+
+  if (isEachUnit(item.unit)) {
+
+    return (
+      item.name +
+      "... x" +
+      formatQuantity(item.quantity)
+    );
+  }
+
+
+  /*
+   * MEASURED PRODUCTS
+   */
+
+  const quantity =
+    Number(item.quantity);
+
+
+  /*
+   * Add "s" when quantity is
+   * greater than 1.
+   *
+   * 1 Kg  → Kg
+   * 2 Kgs → Kgs
+   */
+
+  let displayUnit =
+    item.unit;
+
+
+  if (quantity > 1) {
+
+    /*
+     * Don't add another "s" if
+     * the database unit already
+     * ends with s.
+     */
+
+    if (
+      !displayUnit
+        .trim()
+        .toLowerCase()
+        .endsWith("s")
+    ) {
+
+      displayUnit += "s";
+
+    }
+
+  }
+
+
+  return (
+    formatQuantity(quantity) +
+    " " +
+    displayUnit +
+    " " +
+    item.name
+  );
+}
+
+
+/* =========================================================
+   FLY IMAGE TO EXACT PRODUCT NAME
+   ========================================================= */
+
+function flyProductToCheckout(
+  imageElement,
+  productId
+) {
+
+  const checkoutItems =
+    document.getElementById("checkoutItems");
+
+  if (!checkoutItems) {
+    return;
+  }
+
+
+  const targetRow =
+    checkoutItems.querySelector(
+      `.checkout-item[data-product-id="${productId}"]`
+    );
+
+  if (!targetRow) {
+    return;
+  }
+
+
+  const targetName =
+    targetRow.querySelector(
+      ".checkout-item-name"
+    );
+
+  if (!targetName) {
+    return;
+  }
+
+
+  const startRect =
+    imageElement.getBoundingClientRect();
+
+  const targetRect =
+    targetName.getBoundingClientRect();
+
+
+  const flyingImage =
+    imageElement.cloneNode(true);
+
+
+  flyingImage.classList.add(
+    "fly-product-image"
+  );
+
+
+  flyingImage.style.position =
+    "fixed";
+
+  flyingImage.style.left =
+    startRect.left + "px";
+
+  flyingImage.style.top =
+    startRect.top + "px";
+
+  flyingImage.style.width =
+    startRect.width + "px";
+
+  flyingImage.style.height =
+    startRect.height + "px";
+
+  flyingImage.style.opacity =
+    "1";
+
+  flyingImage.style.transform =
+    "scale(1)";
+
+
+  document.body.appendChild(
+    flyingImage
+  );
+
+
+  /*
+   * Force browser to register
+   * the initial position.
+   */
+
+  flyingImage.offsetWidth;
+
+
+  /*
+   * Target the exact product name.
+   */
+
+  const targetX =
+    targetRect.left +
+    (targetRect.width / 2) -
+    15;
+
+  const targetY =
+    targetRect.top +
+    (targetRect.height / 2) -
+    15;
+
+
+  requestAnimationFrame(() => {
+
+    flyingImage.style.left =
+      targetX + "px";
+
+    flyingImage.style.top =
+      targetY + "px";
+
+    flyingImage.style.width =
+      "30px";
+
+    flyingImage.style.height =
+      "30px";
+
+    flyingImage.style.opacity =
+      "0.15";
+
+    flyingImage.style.transform =
+      "scale(0.25)";
+
+  });
+
+
+  flyingImage.addEventListener(
+    "transitionend",
+    () => {
+
+      flyingImage.remove();
+
+    },
+    {
+      once: true
+    }
+  );
+}
+
+
+/* =========================================================
+   ADD / REPLACE PRODUCT IN CHECKOUT
+   ========================================================= */
+
+function saveProductToCheckout(
+  card,
+  quantity,
+  mode = "replace"
+) {
+
+  const productId =
+    String(card.dataset.productId);
+
+  const productName =
+    card.dataset.productName || "";
+
+  const price =
+    Number(card.dataset.price);
+
+  const stock =
+    Number(card.dataset.stock);
+
+  const unit =
+    card.dataset.unit || "Each";
+
+
+  quantity = Number(quantity);
+
+
+  if (
+    !Number.isFinite(quantity) ||
+    quantity <= 0
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Keep everything on quarter
+   * increments.
+   */
+
+  quantity =
+    Math.round(quantity * 4) / 4;
+
+
+  /*
+   * Cannot sell more than stock.
+   */
+
+  if (quantity > stock) {
+    return false;
+  }
+
+
+  /*
+   * =======================================================
+   * EACH PRODUCTS
+   *
+   * These ADD to the existing quantity.
+   * =======================================================
+   */
+
+  if (isEachUnit(unit)) {
+
+    if (saleItems[productId]) {
+
+      let newQuantity =
+        Number(
+          saleItems[productId].quantity
+        ) + quantity;
+
+
+      newQuantity =
+        Math.round(
+          newQuantity * 4
+        ) / 4;
+
+
+      if (newQuantity > stock) {
+        return false;
+      }
+
+
+      saleItems[productId].quantity =
+        newQuantity;
+
+    } 
+    else {
+
+      saleItems[productId] = {
+
+        id: productId,
+
+        name: productName,
+
+        price: price,
+
+        stock: stock,
+
+        unit: unit,
+
+        quantity: quantity
+
+      };
+
+    }
+
+  }
+
+
+  /*
+   * =======================================================
+   * MEASURED PRODUCTS
+   *
+   * These REPLACE the existing quantity.
+   * =======================================================
+   */
+
+  else {
+
+    saleItems[productId] = {
+
+      id: productId,
+
+      name: productName,
+
+      price: price,
+
+      stock: stock,
+
+      unit: unit,
+
+      /*
+       * IMPORTANT:
+       *
+       * This is the newly selected
+       * quantity.
+       *
+       * It REPLACES the previous one.
+       */
+
+      quantity: quantity
+
+    };
+
+  }
+
+
+  /*
+   * Update checkout immediately.
+   */
+
+  renderCheckoutList();
+
+  return true;
+}
+
+
+/* =========================================================
+   RENDER CHECKOUT
+   ========================================================= */
+
+function renderCheckoutList() {
+
+  const checkoutItems =
+    document.getElementById(
+      "checkoutItems"
+    );
+
+  if (!checkoutItems) {
+    return;
+  }
+
+
+  checkoutItems.innerHTML = "";
+
+
+  let itemsTotal = 0;
+
+
+  Object.values(saleItems)
+    .forEach(item => {
+
+      const quantity =
+        Number(item.quantity);
+
+      const price =
+        Number(item.price);
+
+
+      const itemTotal =
+        price * quantity;
+
+
+      itemsTotal +=
+        itemTotal;
+
+
+      const row =
+        document.createElement("div");
+
+
+      row.className =
+        "summary-row checkout-item";
+
+
+      row.dataset.productId =
+        item.id;
+
+
+      /*
+       * Product name.
+       */
+
+      const nameSpan =
+        document.createElement("span");
+
+
+      nameSpan.className =
+        "checkout-item-name";
+
+
+      nameSpan.textContent =
+        getCheckoutProductName(item);
+
+
+      /*
+       * Price.
+       */
+
+      const priceSpan =
+        document.createElement("span");
+
+
+      priceSpan.className =
+        "checkout-item-price";
+
+
+      priceSpan.textContent =
+        "KSh " +
+        itemTotal.toLocaleString(
+          "en-KE",
+          {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }
+        );
+
+
+      row.appendChild(nameSpan);
+
+      row.appendChild(priceSpan);
+
+
+      checkoutItems.appendChild(row);
+
+    });
+
+
+  updateSaleTotals(itemsTotal);
+}
+
+
+/* =========================================================
+   UPDATE TOTALS
+   ========================================================= */
+
+function updateSaleTotals(itemsTotal) {
+
+  itemsTotal =
+    Number(itemsTotal) || 0;
+
+
+  const deliveryFees = 0;
+
+  const promotions = 0;
+
+
+  const finalTotal =
+    itemsTotal +
+    deliveryFees -
+    promotions;
+
+
+  const itemsTotalElement =
+    document.getElementById(
+      "itemsTotal ksh"
+    );
+
+
+  const finalTotalElement =
+    document.getElementById(
+      "finalTotal"
+    );
+
+
+  const checkoutTotalElement =
+    document.getElementById(
+      "checkoutTotal"
+    );
+
+
+  const formattedItemsTotal =
+    "KSh " +
+    itemsTotal.toLocaleString(
+      "en-KE",
+      {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }
+    );
+
+
+  const formattedFinalTotal =
+    "KSh " +
+    finalTotal.toLocaleString(
+      "en-KE",
+      {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }
+    );
+
+
+  if (itemsTotalElement) {
+
+    itemsTotalElement.textContent =
+      formattedItemsTotal;
+
+  }
+
+
+  if (finalTotalElement) {
+
+    finalTotalElement.textContent =
+      formattedFinalTotal;
+
+  }
+
+
+  if (checkoutTotalElement) {
+
+    checkoutTotalElement.textContent =
+      formattedFinalTotal;
+
+  }
+}
+
+
+/* =========================================================
+   CLOSE ALL POPUPS
+   ========================================================= */
+
+function closeAllAdjustPopups() {
+
+  document
+    .querySelectorAll(".adjust-popup")
+    .forEach(popup => {
+
+      popup.classList.remove("active");
+
+    });
+}
+
+
+/* =========================================================
+   RESET PRODUCT CALCULATOR
+   ========================================================= */
+
+function resetProductCalculator(card) {
+
+  card.dataset.adjustQuantity = "0";
+
+  /*
+   * This tells us whether the calculator
+   * is currently editing an existing
+   * checkout product.
+   */
+
+  card.dataset.editingCheckout = "false";
+
+
+  const quantityValue =
+    card.querySelector(
+      ".quantity-value"
+    );
+
+
+  if (quantityValue) {
+
+    quantityValue.textContent = "0";
+
+  }
+}
+
+
+/* =========================================================
+   OPEN MEASURED PRODUCT CALCULATOR
+   ========================================================= */
+
+function openMeasuredProductCalculator(card) {
+
+  const productId =
+    String(card.dataset.productId);
+
+
+  /*
+   * Load existing checkout quantity
+   * if the product is already listed.
+   */
+
+  if (saleItems[productId]) {
+
+    const existingQuantity =
+      Number(
+        saleItems[productId].quantity
+      );
+
+
+    card.dataset.adjustQuantity =
+      String(existingQuantity);
+
+
+    card.dataset.editingCheckout =
+      "true";
+
+
+    const quantityValue =
+      card.querySelector(
+        ".quantity-value"
+      );
+
+
+    if (quantityValue) {
+
+      quantityValue.textContent =
+        formatQuantity(
+          existingQuantity
+        );
+
+    }
+
+  }
+
+  else {
+
+    card.dataset.adjustQuantity =
+      "0";
+
+    card.dataset.editingCheckout =
+      "false";
+
+
+    const quantityValue =
+      card.querySelector(
+        ".quantity-value"
+      );
+
+
+    if (quantityValue) {
+
+      quantityValue.textContent =
+        "0";
+
+    }
+
+  }
+
+
+  /*
+   * IMPORTANT:
+   * Determine popup position BEFORE
+   * displaying it.
+   */
+
+  positionAdjustPopup(card);
+
+
+  /*
+   * Close other popups.
+   */
+
+  closeAllAdjustPopups();
+
+
+  /*
+   * Open this popup.
+   */
+
+  const popup =
+    card.querySelector(
+      ".adjust-popup"
+    );
+
+
+  if (popup) {
+
+    popup.classList.add("active");
+
+  }
+}
+
+
+/* =========================================================
+   INITIALIZE
+   ========================================================= */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
+
+    /*
+     * Initialize all product cards.
+     */
+
+    document
+      .querySelectorAll(
+        ".cardContainer"
+      )
+      .forEach(card => {
+
+        card.dataset.adjustQuantity =
+          "0";
+
+        card.dataset.editingCheckout =
+          "false";
+
+      });
+
+
+    /* =====================================================
+       PRODUCT CARD CLICK
+       ===================================================== */
+
+    document
+      .querySelectorAll(
+        ".productSalesCard"
+      )
+      .forEach(productCard => {
+
+
+        productCard.addEventListener(
+          "click",
+          function(event) {
+
+            event.stopPropagation();
+
+
+            const card =
+              this.closest(
+                ".cardContainer"
+              );
+
+
+            if (!card) {
+              return;
+            }
+
+
+            const stock =
+              Number(
+                card.dataset.stock
+              );
+
+
+            /*
+             * OUT OF STOCK
+             */
+
+            if (
+              !Number.isFinite(stock) ||
+              stock <= 0
+            ) {
+
+              return;
+
+            }
+
+
+            const unit =
+              card.dataset.unit ||
+              "Each";
+
+
+            const image =
+              this.querySelector("img");
+
+
+            /* =================================================
+               EACH PRODUCT
+               =================================================
+               
+               Every click means:
+               
+               existing quantity + 1
+               
+               ================================================= */
+
+            if (
+              isEachUnit(unit)
+            ) {
+
+              const added =
+                saveProductToCheckout(
+                  card,
+                  1,
+                  "add"
+                );
+
+
+              if (!added) {
+                return;
+              }
+
+
+              /*
+               * Fly immediately.
+               */
+
+              if (image) {
+
+                requestAnimationFrame(
+                  () => {
+
+                    flyProductToCheckout(
+                      image,
+                      card.dataset.productId
+                    );
+
+                  }
+                );
+
+              }
+
+
+              return;
+            }
+
+
+            /* =================================================
+               MEASURED PRODUCT
+               =================================================
+               
+               Open calculator.
+               
+               If already in checkout,
+               load existing quantity.
+               
+               ================================================= */
+
+            openMeasuredProductCalculator(
+              card
+            );
+
+          }
+        );
+
+      });
+
+
+    /* =====================================================
+       CALCULATOR ADJUSTMENT BUTTONS
+       ===================================================== */
+
+    document
+      .querySelectorAll(
+        ".adjust-btn"
+      )
+      .forEach(button => {
+
+
+        button.addEventListener(
+          "click",
+          function(event) {
+
+            event.stopPropagation();
+
+
+            const card =
+              this.closest(
+                ".cardContainer"
+              );
+
+
+            if (!card) {
+              return;
+            }
+
+
+            const quantityValue =
+              card.querySelector(
+                ".quantity-value"
+              );
+
+
+            if (!quantityValue) {
+              return;
+            }
+
+
+            const stock =
+              Number(
+                card.dataset.stock
+              );
+
+
+            /*
+             * READ THE REAL NUMERIC
+             * VALUE.
+             *
+             * NEVER read:
+             *
+             * "2½"
+             *
+             * from quantityValue.
+             */
+
+            let currentQuantity =
+              Number(
+                card.dataset.adjustQuantity ||
+                0
+              );
+
+
+            if (
+              !Number.isFinite(
+                currentQuantity
+              )
+            ) {
+
+              currentQuantity = 0;
+
+            }
+
+
+            const adjustment =
+              Number(
+                this.dataset.value
+              );
+
+
+            /*
+             * RESET.
+             */
+
+            if (
+              adjustment === 0
+            ) {
+
+              currentQuantity = 0;
+
+            }
+
+
+            /*
+             * ADD / SUBTRACT.
+             */
+
+            else {
+
+              currentQuantity +=
+                adjustment;
+
+            }
+
+
+            /*
+             * Force quarter precision.
+             */
+
+            currentQuantity =
+              Math.round(
+                currentQuantity * 4
+              ) / 4;
+
+
+            /*
+             * Never negative.
+             */
+
+            if (
+              currentQuantity < 0
+            ) {
+
+              currentQuantity = 0;
+
+            }
+
+
+            /*
+             * Never exceed stock.
+             */
+
+            if (
+              currentQuantity > stock
+            ) {
+
+              currentQuantity = stock;
+
+            }
+
+
+            /*
+             * Save numeric value.
+             */
+
+            card.dataset.adjustQuantity =
+              String(
+                currentQuantity
+              );
+
+
+            /*
+             * Display fraction.
+             */
+
+            quantityValue.textContent =
+              formatQuantity(
+                currentQuantity
+              );
+
+          }
+        );
+
+      });
+
+
+    /* =====================================================
+       ADD TO LIST
+       ===================================================== */
+
+    document
+      .querySelectorAll(
+        ".add-list-btn"
+      )
+      .forEach(button => {
+
+
+        button.addEventListener(
+          "click",
+          function(event) {
+
+            event.stopPropagation();
+
+
+            const card =
+              this.closest(
+                ".cardContainer"
+              );
+
+
+            if (!card) {
+              return;
+            }
+
+
+            const quantity =
+              Number(
+                card.dataset.adjustQuantity ||
+                0
+              );
+
+
+            /*
+             * Must have a quantity.
+             */
+
+            if (
+              !Number.isFinite(quantity) ||
+              quantity <= 0
+            ) {
+
+              return;
+
+            }
+
+
+            const image =
+              card.querySelector(
+                ".productSalesCard img"
+              );
+
+
+            /*
+             * =================================================
+             * MEASURED PRODUCTS
+             *
+             * SAVE = REPLACE
+             *
+             * =================================================
+             */
+
+            const added =
+              saveProductToCheckout(
+                card,
+                quantity,
+                "replace"
+              );
+
+
+            if (!added) {
+              return;
+            }
+
+
+            /*
+             * Fly after checkout has been
+             * updated.
+             */
+
+            if (image) {
+
+              requestAnimationFrame(
+                () => {
+
+                  flyProductToCheckout(
+                    image,
+                    card.dataset.productId
+                  );
+
+                }
+              );
+
+            }
+
+
+            /*
+             * Reset calculator.
+             */
+
+            resetProductCalculator(
+              card
+            );
+
+
+            /*
+             * Hide popup.
+             */
+
+            const popup =
+              card.querySelector(
+                ".adjust-popup"
+              );
+
+
+            if (popup) {
+
+              popup.classList.remove("active");
+
+            }
+
+          }
+        );
+
+      });
+
+
+    /* =====================================================
+       RESET CHECKOUT
+       ===================================================== */
+
+    const resetButton =
+      document.querySelector(
+        ".reset-btn"
+      );
+
+
+    if (resetButton) {
+
+      resetButton.addEventListener(
+        "click",
+        function(event) {
+
+          event.preventDefault();
+
+
+          /*
+           * Clear checkout.
+           */
+
+          Object.keys(
+            saleItems
+          ).forEach(productId => {
+
+            delete saleItems[
+              productId
+            ];
+
+          });
+
+
+          /*
+           * Clear calculator states.
+           */
+
+          document
+            .querySelectorAll(
+              ".cardContainer"
+            )
+            .forEach(card => {
+
+              resetProductCalculator(
+                card
+              );
+
+            });
+
+
+          /*
+           * Close calculators.
+           */
+
+          closeAllAdjustPopups();
+
+
+          /*
+           * Redraw empty checkout.
+           */
+
+          renderCheckoutList();
+
+        }
+      );
+
+    }
+
+
+    /*
+     * Initial empty checkout.
+     */
+
+    renderCheckoutList();
+
+  }
+);
+
+/* =========================================================
+   POSITION ADJUST POPUP RELATIVE TO PRODUCT CARD
+   ========================================================= */
+
+function positionAdjustPopup(card) {
+
+  const grid =
+    card.closest(".sales-grid");
+
+  if (!grid) {
+    return;
+  }
+
+
+  /*
+   * Remove any previous position.
+   */
+
+  card.classList.remove(
+    "popup-left",
+    "popup-middle",
+    "popup-right"
+  );
+
+
+  /*
+   * Get all cards currently visible
+   * in the grid.
+   */
+
+  const cards = Array.from(
+    grid.querySelectorAll(
+      ".cardContainer"
+    )
+  );
+
+
+  if (!cards.length) {
+    return;
+  }
+
+
+  /*
+   * Determine the actual grid row
+   * and column of this card.
+   *
+   * We use the TOP position because
+   * the grid can wrap onto multiple rows.
+   */
+
+  const cardRect =
+    card.getBoundingClientRect();
+
+
+  const cardCenter =
+    cardRect.left +
+    (cardRect.width / 2);
+
+
+  /*
+   * Find cards that are on the same
+   * row as the clicked product.
+   */
+
+  const sameRowCards =
+    cards.filter(otherCard => {
+
+      const rect =
+        otherCard.getBoundingClientRect();
+
+      return (
+        Math.abs(
+          rect.top -
+          cardRect.top
+        ) < 5
+      );
+
+    });
+
+
+  /*
+   * Sort the cards from LEFT
+   * to RIGHT.
+   */
+
+  sameRowCards.sort(
+    (a, b) => {
+
+      return (
+        a.getBoundingClientRect().left -
+        b.getBoundingClientRect().left
+      );
+
+    }
+  );
+
+
+  /*
+   * Find this card's position
+   * in its row.
+   */
+
+  const index =
+    sameRowCards.indexOf(card);
+
+
+  const total =
+    sameRowCards.length;
+
+
+  /*
+   * =======================================================
+   * ONLY ONE PRODUCT IN THE ROW
+   *
+   * Treat it as middle.
+   * =======================================================
+   */
+
+  if (total === 1) {
+
+    card.classList.add(
+      "popup-middle"
+    );
+
+    return;
+  }
+
+
+  /*
+   * =======================================================
+   * FIRST / LEFT PRODUCT
+   *
+   * Popup extends toward the RIGHT.
+   * Arrow points to product center.
+   * =======================================================
+   */
+
+  if (index === 0) {
+
+    card.classList.add(
+      "popup-left"
+    );
+
+    return;
+  }
+
+
+  /*
+   * =======================================================
+   * LAST / RIGHT PRODUCT
+   *
+   * Popup extends toward the LEFT.
+   * =======================================================
+   */
+
+  if (index === total - 1) {
+
+    card.classList.add(
+      "popup-right"
+    );
+
+    return;
+  }
+
+
+  /*
+   * =======================================================
+   * MIDDLE PRODUCT
+   * =======================================================
+   */
+
+  card.classList.add(
+    "popup-middle"
+  );
+}

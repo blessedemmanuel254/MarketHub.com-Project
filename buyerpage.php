@@ -494,7 +494,7 @@ $pendingOrders = count($pendingItems);
         <div class="sContainer">
           <img src="<?php echo $safeProfileImage; ?>" alt="Profile" class="avatar-img">
           <p class="wcmTxt">
-            Welcome,<br> hft
+            Welcome,<br>
             <span><?php echo $safeUsername; ?></span>
           </p>
         </div>

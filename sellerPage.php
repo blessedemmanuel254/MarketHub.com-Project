@@ -1822,37 +1822,42 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                       <label class="account-type">
                         <input type="radio" name="unit" value="Kg" <?= ($unit === 'Kg') ? 'checked' : '' ?>>
                         <div class="radio-dot"></div>
-                        Kg
+                        Kgs
                       </label>
                       <label class="account-type">
                         <input type="radio" name="unit" value="Liter" <?= ($unit === 'Liter') ? 'checked' : '' ?>>
                         <div class="radio-dot"></div>
-                        Liter
+                        Liters
                       </label>
                       <label class="account-type">
                         <input type="radio" name="unit" value="Meter" <?= ($unit === 'Meter') ? 'checked' : '' ?>>
                         <div class="radio-dot"></div>
-                        Meter
+                        Meters
                       </label>
                       <label class="account-type">
                         <input type="radio" name="unit" value="Inch" <?= ($unit === 'Inch') ? 'checked' : '' ?>>
                         <div class="radio-dot"></div>
-                        Inch
+                        Inches
                       </label>
                       <label class="account-type">
-                        <input type="radio" name="unit" value="Packet" <?= ($unit === 'Packet') ? 'checked' : '' ?>>
+                        <input type="radio" name="unit" value="Gram" <?= ($unit === 'Gram') ? 'checked' : '' ?>>
                         <div class="radio-dot"></div>
-                        Packet
+                        Grams
                       </label>
                       <label class="account-type">
                         <input type="radio" name="unit" value="Gallon" <?= ($unit === 'Gallon') ? 'checked' : '' ?>>
                         <div class="radio-dot"></div>
-                        Gallon
+                        Gallons
                       </label>
                       <label class="account-type">
                         <input type="radio" name="unit" value="Roll" <?= ($unit === 'Roll') ? 'checked' : '' ?>>
                         <div class="radio-dot"></div>
-                        Roll
+                        Rolls
+                      </label>
+                      <label class="account-type">
+                        <input type="radio" name="unit" value="Tone" <?= ($unit === 'Tone') ? 'checked' : '' ?>>
+                        <div class="radio-dot"></div>
+                        Tones
                       </label>
                     </div>
                     
@@ -2093,98 +2098,206 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
         </div>
       </div>
       <div class="sales-wrapper">
-        <p>No products here. Click "Go Back" to update your store.</p>
+
+        <?php
+        $userId = $_SESSION['user_id'] ?? 0;
+
+        $sql = "
+            SELECT
+                product_id,
+                product_name,
+                price,
+                stock_quantity,
+                unit,
+                image_path
+            FROM productservicesrentals
+            WHERE user_id = ?
+              AND status = 'active'
+            ORDER BY product_id DESC
+        ";
+
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+        ?>
+
+        <?php if ($result->num_rows === 0): ?>
+
+          <p>No products here. Click "Go Back" to update your store.</p>
+
+        <?php endif; ?>
+
+
         <div class="offer-container">
+
           <div class="sales-grid">
-            <div class="productSalesCard">
-              <img src="Images/Makethub Logo.png" alt="Product Image">
-              <strong class="stock in-stock">10</strong>
-            </div>
-            <div class="productSalesCard">
-              <img src="Images/Makethub Logo.png" alt="Product Image">
-              <strong class="stock in-stock">10</strong>
-            </div>
-            <div class="productSalesCard">
-              <img src="Images/Makethub Logo.png" alt="Product Image">
-              <strong class="stock in-stock">10</strong>
-            </div>
-            <div class="productSalesCard">
-              <img src="Images/Makethub Logo.png" alt="Product Image">
-              <strong class="stock in-stock">10</strong>
-            </div>
-            <div class="productSalesCard">
-              <img src="Images/Makethub Logo.png" alt="Product Image">
-              <strong class="stock in-stock">10</strong>
-            </div>
-            <div class="productSalesCard">
-              <img src="Images/Makethub Logo.png" alt="Product Image">
-              <strong class="stock in-stock">10</strong>
-            </div>
-            <div class="productSalesCard">
-              <img src="Images/Makethub Logo.png" alt="Product Image">
-              <strong class="stock in-stock">10</strong>
-            </div>
-            <div class="productSalesCard">
-              <img src="Images/Makethub Logo.png" alt="Product Image">
-              <strong class="stock in-stock">10</strong>
-            </div>
-            <div class="productSalesCard">
-              <img src="Images/Makethub Logo.png" alt="Product Image">
-              <strong class="stock in-stock">10</strong>
-            </div>
-            <div class="productSalesCard">
-              <img src="Images/Makethub Logo.png" alt="Product Image">
-              <strong class="stock in-stock">10</strong>
-            </div>
-            <div class="productSalesCard">
-              <img src="Images/Makethub Logo.png" alt="Product Image">
-              <strong class="stock in-stock">5</strong>
+
+            <?php while ($product = $result->fetch_assoc()): ?>
+
+              <?php
+              $productId = (int)$product['product_id'];
+
+              $productName = htmlspecialchars(
+                  $product['product_name'],
+                  ENT_QUOTES,
+                  'UTF-8'
+              );
+
+              $price = (float)$product['price'];
+              $stock = (float)$product['stock_quantity'];
+
+              $unit = htmlspecialchars(
+                  $product['unit'] ?? 'Each',
+                  ENT_QUOTES,
+                  'UTF-8'
+              );
+
+              $imagePath = !empty($product['image_path'])
+                  ? htmlspecialchars(
+                      $product['image_path'],
+                      ENT_QUOTES,
+                      'UTF-8'
+                  )
+                  : 'Images/Makethub Logo.png';
+
+              $displayStock = rtrim(
+                  rtrim(number_format($stock, 2, '.', ''), '0'),
+                  '.'
+              );
+
+              if ($stock <= 0) {
+                  $stockClass = 'out-of-stock';
+              } elseif ($stock <= 5) {
+                  $stockClass = 'low-stock';
+              } else {
+                  $stockClass = 'in-stock';
+              }
+              ?>
+
+
+              <div
+                class="cardContainer"
+                data-product-id="<?= $productId ?>"
+                data-product-name="<?= $productName ?>"
+                data-price="<?= $price ?>"
+                data-stock="<?= $stock ?>"
+                data-unit="<?= $unit ?>"
+              >
+
+                <div class="productSalesCard">
+
+                  <img
+                    src="<?= $imagePath ?>"
+                    alt="<?= $productName ?>"
+                  >
+
+                  <strong class="stock <?= $stockClass ?>">
+                    <?= $displayStock ?>
+                  </strong>
+
+                </div>
+
+
+                <div class="adjust-popup">
+
+                  <div class="adjust-buttons">
+
+                    <button type="button" class="adjust-btn minus" data-value="-1">
+                      -1
+                    </button>
+
+                    <button type="button" class="adjust-btn minus" data-value="-0.5">
+                      -½
+                    </button>
+
+                    <button type="button" class="adjust-btn minus" data-value="-0.25">
+                      -¼
+                    </button>
+
+                    <button type="button" class="adjust-btn zero" data-value="0">
+                      0
+                    </button>
+
+                    <button type="button" class="adjust-btn plus" data-value="0.25">
+                      +¼
+                    </button>
+
+                    <button type="button" class="adjust-btn plus" data-value="0.5">
+                      +½
+                    </button>
+
+                    <button type="button" class="adjust-btn plus" data-value="1">
+                      +1
+                    </button>
+
+                  </div>
+
+
+                  <div class="current-adjustment">
+
+                    <span class="quantity-value">0</span>
+
+                    <span class="quantity-unit">
+                      <?= $unit ?>
+                    </span>
+
+                  </div>
+
+
+                  <button type="button" class="add-list-btn">
+                    Add to list
+                  </button>
+
+                </div>
+
+              </div>
+
+            <?php endwhile; ?>
+
+          </div>
+          <div class="fSales-container">
+            <div class="cardFSales">
+              <div class="card-title">Checkout List
+                <a class="reset-btn">
+                  <i class="fa-solid fa-rotate-left"></i> Reset
+                </a>
+              </div>
+
+              <div id="checkoutItems" class="checkout-items">
+              </div>
+
+              <div class="summary-row items-total ksh">
+                <span>Items Total</span>
+                <span id="itemsTotal ksh">KSh 0.00</span>
+              </div>
+
+              <div class="summary-row ksh">
+                <span>Delivery Fees</span>
+                <span>0</span>
+              </div>
+
+              <div class="summary-row ksh">
+                <span>Promotions</span>
+                <span>0</span>
+              </div>
+
+              <div class="summary-row total">
+                <span>Total</span>
+                <span id="finalTotal">KSh 0.00</span>
+              </div>
+
+              <button id="checkoutButton" class="checkout-order" onclick="checkOutOrder()">
+                Checkout <span id="checkoutTotal">KSh 600.00</span>
+              </button>
             </div>
           </div>
-          <div class="sales-container" id="sales-container">
-            <div class="cartTop">
-              <h1>My&nbsp;Cart</h1>
-              <i class="fa-solid fa-xmark" onclick="toggleCartBar()"></i>
-            </div>
-            <div class="inner-cart-container">
-              <div class="cart-items" id="cartItems">
-              </div>
-              <div id="emptyCartMessage" class="empty-cart">
-                🛒 Your cart is empty
-              </div>
 
-              <div class="cart-summary">
-                <h1>Cart Summary</h1>
-                <div class="summary-row">
-                  <span>Subtotal</span>
-                  <span id="subtotal">KES 0</span>
-                </div>
-
-                <div class="summary-row">
-                  <span>Delivery</span>
-                  <span>KES 0</span>
-                </div>
-
-                <div class="summary-row">
-                  <span>Discount</span>
-                  <span>KES 0</span>
-                </div>
-
-                <div class="summary-row">
-                  <span>Makethub Points</span>
-                  <span>KES 0</span>
-                </div>
-
-                <div class="summary-row summary-total">
-                  <span>Total</span>
-                  <span id="total">KES 0</span>
-                </div>
-
-                <button class="checkout-btn" onclick="proceedFromCart()">Proceed&nbsp;to&nbsp;Payment</button>
-              </div>
-            </div>
-          </div>
         </div>
+
+        <?php $stmt->close(); ?>
+
       </div>
 
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleSalesDash()">Go&nbsp;back</button> to continue your dashboard.</p>

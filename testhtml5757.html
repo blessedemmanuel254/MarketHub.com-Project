@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Seller Product Adjustment</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+
+        /* =========================================================
+           RESET
+        ========================================================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            color: #222;
+            padding: 40px 20px;
+        }
+
+
+        /* =========================================================
+           PRODUCT AREA
+        ========================================================= */
+
+        .products-container {
+            width: 100%;
+            max-width: 1100px;
+            margin: auto;
+
+            display: grid;
+            grid-template-columns: repeat(
+                auto-fit,
+                minmax(100px, 1fr)
+            );
+
+            gap: 25px;
+        }
+
+
+        /* =========================================================
+           PRODUCT ITEM
+        ========================================================= */
+
+        .product-item {
+            width: 100%;
+        }
+
+
+        /* =========================================================
+           PRODUCT CARD
+        ========================================================= */
+
+        .product-card {
+            width: 100%;
+            background: #fff;
+
+            border-radius: 14px;
+
+            overflow: hidden;
+
+            border: 1px solid #e5e5e5;
+
+            box-shadow:
+                0 3px 10px rgba(0,0,0,0.07);
+
+            cursor: pointer;
+
+            transition:
+                transform .2s ease,
+                box-shadow .2s ease;
+
+            user-select: none;
+        }
+
+        .product-card:hover {
+            transform: translateY(-3px);
+
+            box-shadow:
+                0 8px 22px rgba(0,0,0,0.12);
+        }
+
+
+        /* =========================================================
+           PRODUCT IMAGE
+        ========================================================= */
+
+        .product-image {
+            width: 100%;
+            height: 190px;
+
+            overflow: hidden;
+
+            background: #eee;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+
+            object-fit: cover;
+
+            display: block;
+        }
+
+
+        /* =========================================================
+           PRODUCT INFORMATION
+        ========================================================= */
+
+        .product-info {
+            padding: 15px;
+        }
+
+        .product-name {
+            font-size: 18px;
+            font-weight: 700;
+
+            margin-bottom: 8px;
+        }
+
+        .product-price {
+            color: #088000;
+
+            font-size: 16px;
+            font-weight: 700;
+
+            margin-bottom: 7px;
+        }
+
+        .product-description {
+            color: #777;
+
+            font-size: 13px;
+
+            line-height: 1.5;
+        }
+
+
+        /* =========================================================
+           ADJUSTMENT POPUP
+        ========================================================= */
+
+        .adjust-popup {
+            display: none;
+            width: 315px;
+            margin-top: 10px;
+            background: #fff;
+            border-radius: 12px;
+            padding: 8px;
+            border: 1px solid #dedede;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 10;
+            animation: popupOpen .18s ease-out;
+        }
+
+        .adjust-popup.active {
+            display: block;
+        }
+
+
+        /* Small pointer connecting popup to card */
+
+        .adjust-popup::before {
+            content: "";
+
+            position: absolute;
+
+            top: -7px;
+            left: 50%;
+
+            width: 14px;
+            height: 14px;
+
+            background: #fff;
+
+            border-left: 1px solid #e4e4e4;
+            border-top: 1px solid #e4e4e4;
+
+            transform:
+                translateX(-50%)
+                rotate(45deg);
+        }
+
+
+        @keyframes popupOpen {
+
+            from {
+                opacity: 0;
+                transform: translateY(-5px) scale(.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+
+        }
+
+
+        /* =========================================================
+           ADJUSTMENT BUTTON ROW
+        ========================================================= */
+
+        .adjust-buttons {
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            gap: 5px;
+
+            width: 100%;
+        }
+
+
+        /* =========================================================
+           3D ADJUST BUTTON
+        ========================================================= */
+
+        .adjust-btn {
+            flex: 1;
+
+            min-width: 0;
+
+            height: 30px;
+
+            border: none;
+
+            border-radius: 12px;
+
+            font-size: 14px;
+
+            font-weight: 550;
+
+            color: #fff;
+
+            cursor: pointer;
+
+            position: relative;
+
+            transition:
+                transform .08s ease,
+                box-shadow .08s ease;
+
+            user-select: none;
+        }
+
+
+        /* ---------- RED DECREASE BUTTONS ---------- */
+
+        .adjust-btn.minus {
+            background:
+                linear-gradient(
+                    to bottom,
+                    #0f0f0f 0%,
+                    #e90000 100%
+                );
+
+            box-shadow:
+                0 4px 0 #a90000,
+                0 6px 10px rgba(0,0,0,.16);
+        }
+
+
+        /* ---------- GREEN INCREASE BUTTONS ---------- */
+
+        .adjust-btn.plus {
+            background:
+                linear-gradient(
+                    to bottom,
+                    #0f0f0f 0%,
+                    #087800 100%
+                );
+
+            box-shadow:
+                0 4px 0 #055500,
+                0 6px 10px rgba(0,0,0,.16);
+        }
+
+
+        /* ---------- ZERO BUTTON ---------- */
+
+        .adjust-btn.zero {
+            background:
+                linear-gradient(
+                    to bottom,
+                    #ffffff 0%,
+                    #dedede 100%
+                );
+
+            color: #555;
+
+            border: 1px solid #d4d4d4;
+
+            box-shadow:
+                0 4px 0 #bdbdbd,
+                0 6px 10px rgba(0,0,0,.10);
+        }
+
+
+        /* =========================================================
+           3D PRESS EFFECT
+        ========================================================= */
+
+        .adjust-btn:active {
+
+            transform: translateY(4px);
+
+            box-shadow:
+                0 0 0 transparent;
+        }
+
+
+        .adjust-btn:hover {
+
+            filter: brightness(1.05);
+
+        }
+
+
+        /* =========================================================
+           CURRENT QUANTITY
+        ========================================================= */
+
+        .current-adjustment {
+
+            display: none;
+
+            text-align: center;
+
+            margin-top: 15px;
+
+            padding-top: 12px;
+
+            border-top: 1px solid #eeeeee;
+        }
+
+        .current-adjustment.active {
+            display: block;
+        }
+
+        .quantity-value {
+
+            font-size: 18px;
+
+            font-weight: 800;
+
+            color: #222;
+        }
+
+        .quantity-unit {
+
+            font-size: 12px;
+
+            font-weight: bold;
+
+            color: #777;
+
+            margin-left: 4px;
+        }
+
+
+        /* =========================================================
+           ADD TO LIST
+        ========================================================= */
+
+        .add-list-btn {
+          display: none;
+          width: 100%;
+          padding: 8px 16px;
+          margin-top: 14px;
+          border: none;
+          border-radius: 4px;
+          background-color: #0f0f0f;
+          color: #ffffff;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+          transition:
+              transform .08s ease,
+              box-shadow .08s ease;
+        }
+
+        .add-list-btn.active {
+            display: block;
+        }
+
+        .add-list-btn:hover {
+            filter: brightness(1.06);
+        }
+
+        .add-list-btn:active {
+            transform: translateY(4px);
+
+            box-shadow:
+                0 0 0 transparent;
+        }
+
+        .add-list-btn i {
+            margin-right: 8px;
+        }
+
+
+        /* =========================================================
+           MOBILE
+        ========================================================= */
+
+        @media (max-width: 500px) {
+
+            body {
+                padding: 20px 12px;
+            }
+
+            .products-container {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .product-image {
+                height: 140px;
+            }
+
+            .product-info {
+                padding: 11px;
+            }
+
+            .product-name {
+                font-size: 15px;
+            }
+
+            .product-price {
+                font-size: 13px;
+            }
+
+            .product-description {
+                font-size: 11px;
+            }
+
+            .adjust-popup {
+                padding: 12px 8px;
+            }
+
+            .adjust-buttons {
+                gap: 5px;
+            }
+
+            .adjust-btn {
+                height: 36px;
+
+                font-size: 11px;
+
+                border-radius: 6px;
+            }
+
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+
+<!-- =============================================================
+     PRODUCTS
+============================================================= -->
+
+<div class="products-container">
+
+
+    <!-- =========================================================
+         PRODUCT 1
+    ========================================================== -->
+
+    <div class="product-item">
+
+        <div
+            class="product-card"
+            data-product="Rice"
+            data-unit="KG"
+            data-price="80"
+        >
+
+            <div class="product-image">
+
+                <img
+                    src="https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=700&q=80"
+                    alt="Rice"
+                >
+
+            </div>
+
+
+            <div class="product-info">
+
+                <div class="product-name">
+                    Rice
+                </div>
+
+                <div class="product-price">
+                    KES 80.00 / KG
+                </div>
+
+                <div class="product-description">
+                    High quality white rice.
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             QUICK ADJUST POPUP
+        ====================================================== -->
+
+        <div class="adjust-popup">
+
+
+            <div class="adjust-buttons">
+
+                <button
+                    type="button"
+                    class="adjust-btn minus"
+                    data-value="-1">
+                    -1
+                </button>
+
+                <button
+                    type="button"
+                    class="adjust-btn minus"
+                    data-value="-0.5">
+                    -½
+                </button>
+
+                <button
+                    type="button"
+                    class="adjust-btn minus"
+                    data-value="-0.25">
+                    -¼
+                </button>
+
+                <button
+                    type="button"
+                    class="adjust-btn zero"
+                    data-value="0">
+                    0
+                </button>
+
+                <button
+                    type="button"
+                    class="adjust-btn plus"
+                    data-value="0.25">
+                    +¼
+                </button>
+
+                <button
+                    type="button"
+                    class="adjust-btn plus"
+                    data-value="0.5">
+                    +½
+                </button>
+
+                <button
+                    type="button"
+                    class="adjust-btn plus"
+                    data-value="1">
+                    +1
+                </button>
+
+            </div>
+
+
+            <!-- CURRENT QUANTITY -->
+
+            <div class="current-adjustment">
+
+                <span class="quantity-value">
+                    0
+                </span>
+
+                <span class="quantity-unit">
+                    Kg
+                </span>
+
+            </div>
+
+
+            <!-- ADD TO LIST -->
+
+            <button
+                type="button"
+                class="add-list-btn">
+
+                Add to list
+
+            </button>
+
+
+            <div class="added-message">
+
+                <i class="fa-solid fa-circle-check"></i>
+
+                Added to list
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================================================
+         PRODUCT 2
+    ========================================================== -->
+
+    <div class="product-item">
+
+        <div
+            class="product-card"
+            data-product="Sugar"
+            data-unit="KG"
+            data-price="150"
+        >
+
+            <div class="product-image">
+
+                <img
+                    src="https://images.unsplash.com/photo-1581441363689-1f3c3c414635?auto=format&fit=crop&w=700&q=80"
+                    alt="Sugar"
+                >
+
+            </div>
+
+
+            <div class="product-info">
+
+                <div class="product-name">
+                    Sugar
+                </div>
+
+                <div class="product-price">
+                    KES 150.00 / KG
+                </div>
+
+                <div class="product-description">
+                    Premium white sugar.
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ADJUSTMENT -->
+
+        <div class="adjust-popup">
+
+
+            <div class="adjust-buttons">
+
+                <button
+                    type="button"
+                    class="adjust-btn minus"
+                    data-value="-1">
+                    -1
+                </button>
+
+                <button
+                    type="button"
+                    class="adjust-btn minus"
+                    data-value="-0.5">
+                    -1/2
+                </button>
+
+                <button
+                    type="button"
+                    class="adjust-btn minus"
+                    data-value="-0.25">
+                    -1/4
+                </button>
+
+                <button
+                    type="button"
+                    class="adjust-btn zero"
+                    data-value="0">
+                    0
+                </button>
+
+                <button
+                    type="button"
+                    class="adjust-btn plus"
+                    data-value="0.25">
+                    +1/4
+                </button>
+
+                <button
+                    type="button"
+                    class="adjust-btn plus"
+                    data-value="0.5">
+                    +1/2
+                </button>
+
+                <button
+                    type="button"
+                    class="adjust-btn plus"
+                    data-value="1">
+                    +1
+                </button>
+
+            </div>
+
+
+            <div class="current-adjustment">
+
+                <span class="quantity-value">
+                    0
+                </span>
+
+                <span class="quantity-unit">
+                    KG
+                </span>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="add-list-btn">
+
+                Add to list
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+
+    /* =========================================================
+       ALL PRODUCT ITEMS
+    ========================================================== */
+
+    const productItems =
+        document.querySelectorAll(".product-item");
+
+
+    /* =========================================================
+       OPEN PRODUCT ADJUSTMENT
+    ========================================================== */
+
+    productItems.forEach(function (item) {
+
+        const card =
+            item.querySelector(".product-card");
+
+        const popup =
+            item.querySelector(".adjust-popup");
+
+
+        card.addEventListener("click", function () {
+
+
+            /*
+             * Close every other popup first
+             */
+
+            productItems.forEach(function (otherItem) {
+
+                if (otherItem !== item) {
+
+                    const otherPopup =
+                        otherItem.querySelector(".adjust-popup");
+
+                    otherPopup.classList.remove("active");
+
+                }
+
+            });
+
+
+            /*
+             * Open this product's popup
+             */
+
+            popup.classList.toggle("active");
+
+
+        });
+
+
+        /* =====================================================
+           ADJUSTMENT BUTTONS
+        ====================================================== */
+
+        const buttons =
+            popup.querySelectorAll(".adjust-btn");
+
+        const quantityDisplay =
+            popup.querySelector(".quantity-value");
+
+        const quantityUnit =
+            popup.querySelector(".quantity-unit");
+
+        const currentAdjustment =
+            popup.querySelector(".current-adjustment");
+
+        const addButton =
+            popup.querySelector(".add-list-btn");
+
+        const addedMessage =
+            popup.querySelector(".added-message");
+
+
+        let quantity = 0;
+
+
+        /* Set correct unit */
+
+        quantityUnit.textContent =
+            card.dataset.unit;
+
+
+        /* =====================================================
+           BUTTON CLICK
+        ====================================================== */
+
+        buttons.forEach(function (button) {
+
+
+            button.addEventListener("click", function (event) {
+
+                /*
+                 * Prevent the click from reaching
+                 * the product card.
+                 */
+
+                event.stopPropagation();
+
+
+                const value =
+                    parseFloat(button.dataset.value);
+
+
+                /*
+                 * ZERO BUTTON
+                 */
+
+                if (value === 0) {
+
+                    quantity = 0;
+
+                }
+
+                /*
+                 * OTHER BUTTONS
+                 */
+
+                else {
+
+                    quantity += value;
+
+                }
+
+
+                /*
+                 * Never allow negative quantity
+                 */
+
+                if (quantity < 0) {
+                    quantity = 0;
+                }
+
+
+                /*
+                 * Avoid floating point values
+                 * such as 0.30000000000004
+                 */
+
+                quantity =
+                    Math.round(quantity * 100) / 100;
+
+
+                /*
+                 * Display quantity
+                 */
+
+                quantityDisplay.textContent =
+                    formatQuantity(quantity);
+
+
+                /*
+                 * Show current adjustment
+                 */
+
+                if (quantity > 0) {
+
+                    currentAdjustment.classList.add("active");
+
+                    addButton.classList.add("active");
+
+                }
+
+                else {
+
+                    currentAdjustment.classList.remove("active");
+
+                    addButton.classList.remove("active");
+
+                }
+
+
+                /*
+                 * Hide old success message
+                 */
+
+                addedMessage.classList.remove("active");
+
+
+            });
+
+        });
+
+
+        /* =====================================================
+           ADD TO LIST
+        ====================================================== */
+
+        addButton.addEventListener("click", function (event) {
+
+            event.stopPropagation();
+
+
+            if (quantity <= 0) {
+                return;
+            }
+
+
+            const productName =
+                card.dataset.product;
+
+            const unit =
+                card.dataset.unit;
+
+
+            /*
+             * Example:
+             * Rice - 2.5 KG
+             */
+
+            console.log(
+                "Added:",
+                productName,
+                quantity,
+                unit
+            );
+
+
+            /*
+             * Show success
+             */
+
+            addedMessage.classList.add("active");
+
+
+            /*
+             * Close popup after short delay
+             */
+
+            setTimeout(function () {
+
+                popup.classList.remove("active");
+
+                addedMessage.classList.remove("active");
+
+                currentAdjustment.classList.remove("active");
+
+                addButton.classList.remove("active");
+
+                quantity = 0;
+
+                quantityDisplay.textContent = "0";
+
+            }, 700);
+
+
+        });
+
+
+    });
+
+
+    /* =========================================================
+       FORMAT QUANTITY
+    ========================================================== */
+
+  function formatQuantity(value) {
+
+    /*
+      * Keep the value accurate to the nearest quarter
+      */
+    value = Math.round(value * 4) / 4;
+
+    const whole = Math.floor(value);
+    const fraction = value - whole;
+
+    let fractionText = "";
+
+    /*
+      * Convert decimal fractions into
+      * proper fraction characters.
+      */
+    if (fraction === 0.25) {
+        fractionText = "¼";
+    }
+    else if (fraction === 0.5) {
+        fractionText = "½";
+    }
+    else if (fraction === 0.75) {
+        fractionText = "¾";
+    }
+
+    /*
+      * Whole number only
+      */
+    if (whole === 0 && fractionText === "") {
+        return "0";
+    }
+
+    /*
+      * Fraction less than 1
+      */
+    if (whole === 0) {
+        return fractionText;
+    }
+
+    /*
+      * Mixed fraction
+      */
+    return whole + fractionText;
+  }
+
+
+    /* =========================================================
+       CLICK OUTSIDE
+    ========================================================== */
+
+    document.addEventListener("click", function (event) {
+
+        /*
+         * If the click isn't inside a product item,
+         * close all adjustment panels.
+         */
+
+        if (!event.target.closest(".product-item")) {
+
+            document
+                .querySelectorAll(".adjust-popup")
+                .forEach(function (popup) {
+
+                    popup.classList.remove("active");
+
+                });
+
+        }
+
+    });
+
+
+});
+
+</script>
+
+</body>
+</html>
