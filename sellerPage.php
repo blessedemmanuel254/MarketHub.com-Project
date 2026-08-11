@@ -1107,7 +1107,7 @@ $stmt = $conn->prepare("
     o.order_code,
     o.created_at,
     o.buyer_id,
-    u.full_name AS buyer_name,
+    u.username AS buyer_name,
 
     oi.item_id,
     oi.product_id,
@@ -1581,7 +1581,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
         <div class="tabs">
           <button class="tab-btn" data-tab="dashboard">Dashboard</button>
           <button class="tab-btn" data-tab="products">Store</button>
-          <button class="tab-btn" data-tab="funds">Funds</button>
+          <!-- <button class="tab-btn" data-tab="funds">Funds</button> -->
         </div>
 
         <div class="tab-content">
@@ -1622,7 +1622,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   <p class="small">KES 0 pending clearance</p>
                 </div>
 
-                <!-- WALLET HEALTH -->
+                <!-- WALLET HEALTH --><!-- 
                 <div class="card">
                   <i class="fa fa-wallet icon"></i>
                   <h3>Wallet Health</h3>
@@ -1636,7 +1636,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   </div>
 
                   <p class="small">KES 0 pending clearance</p>
-                </div>
+                </div> -->
 
                 <!-- WITHDRAWAL STATUS -->
                 <div class="card">
@@ -1723,6 +1723,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                       <div class="card-body">
                         <div class="product-name"><?= htmlspecialchars($product['product_name']) ?></div>
                         <div class="price">KES <?= number_format($product['price'], 2) ?></div>
+                        <div class="perDiv">
+                          Per Meter
+                        </div>
                         <div class="stock <?= ($product['stock_quantity'] > 5) ? 'in-stock' : (($product['stock_quantity'] > 0) ? 'low-stock' : 'out-stock') ?>">
                           <?php
                           if ($product['stock_quantity'] >= 100) {
@@ -1845,6 +1848,16 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                         Grams
                       </label>
                       <label class="account-type">
+                        <input type="radio" name="unit" value="Plate" <?= ($unit === 'Plate') ? 'checked' : '' ?>>
+                        <div class="radio-dot"></div>
+                        Plate
+                      </label>
+                      <label class="account-type">
+                        <input type="radio" name="unit" value="Cup" <?= ($unit === 'Cup') ? 'checked' : '' ?>>
+                        <div class="radio-dot"></div>
+                        Cup
+                      </label>
+                      <label class="account-type">
                         <input type="radio" name="unit" value="Gallon" <?= ($unit === 'Gallon') ? 'checked' : '' ?>>
                         <div class="radio-dot"></div>
                         Gallons
@@ -1918,7 +1931,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
             </form>
             </div>
-          </div>
+          </div><!-- 
           
           <div id="funds" class="tab-panel">
             <p>Access your earnings</em> <br><strong>Withdraw funds you’ve earned from completed sales <i class="fa-regular fa-circle-check"></i></strong></p>
@@ -1972,7 +1985,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                 </div>
               </form>
             </div>
-          </div>
+          </div> -->
         </div>
       </div>
 
@@ -1996,13 +2009,14 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
               <th>Image</th>
               <th>Order ID</th>
               <th>Buyer</th>
-              <th>Product</th>
-              <th>Qty</th>
+              <th>Product Qty</th>
               <th>Total</th>
               <th>Payment</th>
               <th>Status</th>
-              <th>Date</th>
               <th>Actions</th>
+              <th>Receipt</th>
+              <th>Paid by</th>
+              <th>Date</th>
             </tr>
           </thead>
           <tbody>
@@ -2041,13 +2055,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   echo "<tr data-status=\"{$order['order_status']}\">
                           <td><img src='{$productImage}' alt='Product Image' style='width:50px;height:50px;object-fit:cover;border-radius:4px;'></td>
                           <td>{$order['order_code']}</td>
-                          <td>".htmlspecialchars($order['buyer_name'])."</td>
-                          <td>".htmlspecialchars($order['product_name'])."</td>
+                          <td>".htmlspecialchars(ucwords(strtolower($order['buyer_name'])))."</td>
                           <td>{$order['quantity']}</td>
                           <td>KES {$total}</td>
                           <td><span class='badge {$paymentClass}'>{$paymentLabel}</span></td>
                           <td><span class='badge {$statusClass}' title=\"".htmlspecialchars($statusTooltip)."\">{$statusLabel}</span></td>
-                          <td>{$date}</td>
                           <td class='actions'>
                         <div>";
 
@@ -2065,6 +2077,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
                   echo "      </div>
                           </td>
+                          <td><div id='receiptTd'><i class='fa-solid fa-barcode'></i></div></td>
+                          <td>Cash</td>
+                          <td>{$date}</td>
                         </tr>";
                   $count++;
               }
@@ -2168,7 +2183,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
               );
 
               if ($stock <= 0) {
-                  $stockClass = 'out-of-stock';
+                  $stockClass = 'out-stock';
               } elseif ($stock <= 5) {
                   $stockClass = 'low-stock';
               } else {
@@ -2183,6 +2198,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                 data-product-name="<?= $productName ?>"
                 data-price="<?= $price ?>"
                 data-stock="<?= $stock ?>"
+                data-available-stock="<?= $stock ?>"
                 data-unit="<?= $unit ?>"
               >
 
@@ -2196,9 +2212,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   <strong class="stock <?= $stockClass ?>">
                     <?= $displayStock ?>
                   </strong>
-
                 </div>
-
 
                 <div class="adjust-popup">
 
@@ -2258,12 +2272,13 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
           </div>
           <div class="fSales-container">
-            <div class="cardFSales">
+            <form class="cardFSales">
               <div class="card-title">Checkout List
                 <a class="reset-btn">
                   <i class="fa-solid fa-rotate-left"></i> Reset
                 </a>
               </div>
+              <p class="emptyListP"><i class="fa-solid fa-battery-empty"></i> Click on a product to sale!...</p>
 
               <div id="checkoutItems" class="checkout-items">
               </div>
@@ -2288,10 +2303,26 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                 <span id="finalTotal">KSh 0.00</span>
               </div>
 
+              <div class="payMethodDiv">
+                <label>Paid by</label>
+                <div class="paidByDiv">
+
+                  <label class="money-method">
+                    <input type="radio" name="pmethod" value="cash" <?= ($saleType === 'cash') ? 'checked' : '' ?>>
+                    <div class="radio-dot"></div>
+                    Cash
+                  </label>
+                  <label class="money-method">
+                    <input type="radio" name="pmethod" value="bank" <?= ($saleType === 'bank') ? 'checked' : '' ?>>
+                    <div class="radio-dot"></div>
+                    Bank
+                  </label>
+                </div>
+              </div>
               <button id="checkoutButton" class="checkout-order" onclick="checkOutOrder()">
-                Checkout <span id="checkoutTotal">KSh 600.00</span>
+                Checkout <span id="checkoutTotal">KSh 0.00</span>
               </button>
-            </div>
+            </form>
           </div>
 
         </div>
@@ -2371,13 +2402,14 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
               <th>Image</th>
               <th>Order ID</th>
               <th>Buyer</th>
-              <th>Product</th>
-              <th>Qty</th>
+              <th>Product Qty</th>
               <th>Total</th>
               <th>Payment</th>
               <th>Status</th>
-              <th>Date</th>
               <th>Actions</th>
+              <th>Receipt</th>
+              <th>Paid by</th>
+              <th>Date</th>
             </tr>
           </thead>
           <tbody>
@@ -2416,13 +2448,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   echo "<tr data-status=\"{$order['order_status']}\">
                           <td><img src='{$productImage}' alt='Product Image' style='width:50px;height:50px;object-fit:cover;border-radius:4px;'></td>
                           <td>{$order['order_code']}</td>
-                          <td>".htmlspecialchars($order['buyer_name'])."</td>
-                          <td>".htmlspecialchars($order['product_name'])."</td>
+                          <td>".htmlspecialchars(ucwords(strtolower($order['buyer_name'])))."</td>
                           <td>{$order['quantity']}</td>
                           <td>KES {$total}</td>
                           <td><span class='badge {$paymentClass}'>{$paymentLabel}</span></td>
                           <td><span class='badge {$statusClass}' title=\"".htmlspecialchars($statusTooltip)."\">{$statusLabel}</span></td>
-                          <td>{$date}</td>
                           <td class='actions'>
                               <div>";
 
@@ -2441,6 +2471,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
                   echo "      </div>
                           </td>
+                          <td><div id='receiptTd'><i class='fa-solid fa-barcode'></i></div></td>
+                          <td>Cash</td>
+                          <td>{$date}</td>
                         </tr>";
                   $count++;
               }
