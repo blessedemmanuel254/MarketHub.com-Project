@@ -391,16 +391,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_product_id']))
 
     $stmt->close();
 }
+
 // ---------- FETCH SELLER PRODUCTS ----------
+
 $products = [];
+
 $stmt = $conn->prepare("
-    SELECT product_id, product_name, category, price, stock_quantity, image_path
+    SELECT product_id, product_name, category, price, stock_quantity, unit, image_path
     FROM productservicesrentals
     WHERE user_id = ?
     ORDER BY created_at DESC
 ");
+
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
+
 $result = $stmt->get_result();
 
 if ($result) {
@@ -408,6 +413,7 @@ if ($result) {
         $products[] = $row;
     }
 }
+
 $stmt->close();
 
 /* ---------- PROFILE LETTER ---------- */
@@ -1637,6 +1643,21 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
                   <p class="small">KES 0 pending clearance</p>
                 </div> -->
+                <!-- ORDERS SUMMARY -->
+                <div class="card">
+                  <i class="fa fa-box icon"></i>
+                  <h3>Orders Summary</h3>
+
+                  <div class="stat">
+                      <?= formatToK($totalOrders) ?> <?= $totalOrders == 1 ? 'Order' : 'Orders' ?>
+                  </div>
+
+                  <p class="meta">
+                      <span class="badge yellow"><?= $processingOrders ?> <?= $processingOrders == 1 ? 'Processing' : 'Processing' ?></span>
+                      <span class="badge blue"><?= $shippedOrders ?> <?= $shippedOrders == 1 ? 'Shipped' : 'Shipped' ?></span>
+                      <span class="badge green"><?= $deliveredOrders ?> <?= $deliveredOrders == 1 ? 'Delivered' : 'Delivered' ?></span>
+                  </p>
+                </div>
 
                 <!-- WITHDRAWAL STATUS -->
                 <div class="card">
@@ -1662,21 +1683,6 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
                   <p class="small">
                     Available: KES <?= number_format($walletBalance) ?>
-                  </p>
-                </div>
-                <!-- ORDERS SUMMARY -->
-                <div class="card">
-                  <i class="fa fa-box icon"></i>
-                  <h3>Orders Summary</h3>
-
-                  <div class="stat">
-                      <?= formatToK($totalOrders) ?> <?= $totalOrders == 1 ? 'Order' : 'Orders' ?>
-                  </div>
-
-                  <p class="meta">
-                      <span class="badge yellow"><?= $processingOrders ?> <?= $processingOrders == 1 ? 'Processing' : 'Processing' ?></span>
-                      <span class="badge blue"><?= $shippedOrders ?> <?= $shippedOrders == 1 ? 'Shipped' : 'Shipped' ?></span>
-                      <span class="badge green"><?= $deliveredOrders ?> <?= $deliveredOrders == 1 ? 'Delivered' : 'Delivered' ?></span>
                   </p>
                 </div>
 
@@ -1724,7 +1730,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                         <div class="product-name"><?= htmlspecialchars($product['product_name']) ?></div>
                         <div class="price">KES <?= number_format($product['price'], 2) ?></div>
                         <div class="perDiv">
-                          Per Meter
+                            <?php if (strcasecmp(trim($product['unit']), 'Each') === 0): ?>
+                                Each
+                            <?php else: ?>
+                                Per <?= htmlspecialchars($product['unit']) ?>
+                            <?php endif; ?>
                         </div>
                         <div class="stock <?= ($product['stock_quantity'] > 5) ? 'in-stock' : (($product['stock_quantity'] > 0) ? 'low-stock' : 'out-stock') ?>">
                           <?php
@@ -2285,7 +2295,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
               <div class="summary-row items-total ksh">
                 <span>Items Total</span>
-                <span id="itemsTotal ksh">KSh 0.00</span>
+                <span id="itemsTotal ksh">KES 0.00</span>
               </div>
 
               <div class="summary-row ksh">
@@ -2300,7 +2310,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
               <div class="summary-row total">
                 <span>Total</span>
-                <span id="finalTotal">KSh 0.00</span>
+                <span id="finalTotal">KES 0.00</span>
               </div>
 
               <div class="payMethodDiv">
@@ -2320,7 +2330,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                 </div>
               </div>
               <button id="checkoutButton" class="checkout-order" onclick="checkOutOrder()">
-                Checkout <span id="checkoutTotal">KSh 0.00</span>
+                Checkout <span id="checkoutTotal">KES 0.00</span>
               </button>
             </form>
           </div>

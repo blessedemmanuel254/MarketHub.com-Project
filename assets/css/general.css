@@ -849,6 +849,7 @@ html body.no-scroll {
   display: grid;
   grid-template-columns: repeat(auto-fit,minmax(100px,1fr));
   gap: 20px;
+  height: fit-content;
 }
 
 .container main#salesDashMain .sales-wrapper .sales-grid .cardContainer {
@@ -991,6 +992,10 @@ html body.no-scroll {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.container main#salesDashMain .sales-wrapper .offer-container .fSales-container {
+  background-color: lightblue;
+}
+
 .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales {
   border-radius: 4px;
   border: 1px solid #8988886b;
@@ -998,7 +1003,6 @@ html body.no-scroll {
   font-size: 13px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   width: 100%;
-  margin: 0 auto;
 
 }
 
@@ -3493,7 +3497,6 @@ a.seller-right {
   padding: 8px;
   border: 1px solid #8988882c;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  animation: popupOpen .18s ease-out;
   z-index: 11;
 
   opacity: 0;
@@ -3511,13 +3514,15 @@ a.seller-right {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
+  animation: popupOpen .13s ease-out;
 }
 
 .container main#salesDashMain .sales-wrapper .sales-grid .cardContainer .adjust-popup::before {
   content: "";
   position: absolute;
   top: -7px;
-  left: 15px;
+  left: var(--popup-arrow-left, 50%);
+  transform: translateX(-50%);
   width: 14px;
   height: 14px;
   background: #dedede;
@@ -3526,147 +3531,11 @@ a.seller-right {
   transform: translateX(-50%) rotate(45deg);
 }
 
-/* =====================================================
-   LEFT PRODUCT
-   Popup extends toward the RIGHT
-   ===================================================== */
-
-.container main#salesDashMain
-.sales-wrapper
-.sales-grid
-.cardContainer.popup-left
-.adjust-popup {
-
-  left: 0;
-  right: auto;
-  transform: translateY(8px);
-
-}
-
-.container main#salesDashMain
-.sales-wrapper
-.sales-grid
-.cardContainer.popup-left
-.adjust-popup.active {
-
-  transform: translateY(0);
-
-}
-
-
-.container main#salesDashMain
-.sales-wrapper
-.sales-grid
-.cardContainer.popup-left
-.adjust-popup::before {
-
-  /*
-   * Product card is 100px wide.
-   * Arrow points at its center.
-   * Since popup starts at card's left edge,
-   * arrow is 50px from popup's left edge.
-   */
-
-  left: 50px;
-
-}
-
-
-/* =====================================================
-   MIDDLE PRODUCT
-   Popup centered under product
-   ===================================================== */
-
-.container main#salesDashMain
-.sales-wrapper
-.sales-grid
-.cardContainer.popup-middle
-.adjust-popup {
-
-  left: 50%;
-  right: auto;
-
-  transform:
-    translateX(-50%)
-    translateY(8px);
-
-}
-
-.container main#salesDashMain
-.sales-wrapper
-.sales-grid
-.cardContainer.popup-middle
-.adjust-popup.active {
-
-  transform:
-    translateX(-50%)
-    translateY(0);
-
-}
-
-
-.container main#salesDashMain
-.sales-wrapper
-.sales-grid
-.cardContainer.popup-middle
-.adjust-popup::before {
-
-  left: 50%;
-
-}
-
-
-/* =====================================================
-   RIGHT PRODUCT
-   Popup extends toward the LEFT
-   ===================================================== */
-
-.container main#salesDashMain
-.sales-wrapper
-.sales-grid
-.cardContainer.popup-right
-.adjust-popup {
-
-  left: auto;
-  right: 0;
-
-  transform: translateY(8px);
-
-}
-
-.container main#salesDashMain
-.sales-wrapper
-.sales-grid
-.cardContainer.popup-right
-.adjust-popup.active {
-
-  transform: translateY(0);
-
-}
-
-.container main#salesDashMain
-.sales-wrapper
-.sales-grid
-.cardContainer.popup-right
-.adjust-popup::before {
-
-  /*
-   * Popup is aligned by its right edge
-   * with the product card's right edge.
-   *
-   * The product center is therefore 50px
-   * to the LEFT of the popup's right edge.
-   */
-
-  left: calc(100% - 50px);
-
-}
-
 @keyframes popupOpen {
 
   from {
       opacity: 0;
-      transform: translateY(-5px) scale(.98);
+      transform: translateY(8px) scale(.98);
   }
 
   to {

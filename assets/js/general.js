@@ -3345,7 +3345,7 @@ function renderCheckoutList() {
 
 
       priceSpan.textContent =
-        "KSh " +
+        "KES " +
         itemTotal.toLocaleString(
           "en-KE",
           {
@@ -3410,7 +3410,7 @@ function updateSaleTotals(itemsTotal) {
 
 
   const formattedItemsTotal =
-    "KSh " +
+    "KES " +
     itemsTotal.toLocaleString(
       "en-KE",
       {
@@ -3421,7 +3421,7 @@ function updateSaleTotals(itemsTotal) {
 
 
   const formattedFinalTotal =
-    "KSh " +
+    "KES " +
     finalTotal.toLocaleString(
       "en-KE",
       {
@@ -4312,179 +4312,183 @@ document.addEventListener(
 );
 
 /* =========================================================
-   POSITION ADJUST POPUP RELATIVE TO PRODUCT CARD
-   ========================================================= */
-
+POSITION ADJUST POPUP RELATIVE TO PRODUCT CARD
+========================================================= */
 function positionAdjustPopup(card) {
 
   const grid =
-    card.closest(".sales-grid");
+      card.closest(".sales-grid");
 
-  if (!grid) {
-    return;
+  const popup =
+      card.querySelector(".adjust-popup");
+
+  if (!grid || !popup) {
+      return;
   }
 
+  /*
+    * Remember the popup's current state.
+    */
+  const wasActive =
+      popup.classList.contains("active");
 
   /*
-   * Remove any previous position.
-   */
+    * Temporarily make the popup measurable
+    * WITHOUT adding the "active" class.
+    *
+    * This is important because your CSS
+    * animation is attached to .active.
+    */
+  const originalDisplay =
+      popup.style.display;
 
-  card.classList.remove(
-    "popup-left",
-    "popup-middle",
-    "popup-right"
-  );
+  const originalVisibility =
+      popup.style.visibility;
 
+  popup.style.visibility =
+      "hidden";
 
-  /*
-   * Get all cards currently visible
-   * in the grid.
-   */
-
-  const cards = Array.from(
-    grid.querySelectorAll(
-      ".cardContainer"
-    )
-  );
-
-
-  if (!cards.length) {
-    return;
-  }
-
+  popup.style.display =
+      "block";
 
   /*
-   * Determine the actual grid row
-   * and column of this card.
-   *
-   * We use the TOP position because
-   * the grid can wrap onto multiple rows.
-   */
-
+    * Get dimensions.
+    */
   const cardRect =
-    card.getBoundingClientRect();
+      card.getBoundingClientRect();
 
+  const gridRect =
+      grid.getBoundingClientRect();
 
+  const popupRect =
+      popup.getBoundingClientRect();
+
+  const popupWidth =
+      popupRect.width;
+
+  /*
+    * Product center relative
+    * to the card.
+    */
   const cardCenter =
-    cardRect.left +
-    (cardRect.width / 2);
-
+      cardRect.width / 2;
 
   /*
-   * Find cards that are on the same
-   * row as the clicked product.
-   */
+    * Desired position:
+    * center popup over product.
+    */
+  let popupLeft =
+      cardCenter -
+      (popupWidth / 2);
 
-  const sameRowCards =
-    cards.filter(otherCard => {
+  /*
+    * =====================================================
+    * GRID BOUNDARIES
+    * =====================================================
+    */
 
-      const rect =
-        otherCard.getBoundingClientRect();
+  const gridLeftRelative =
+      gridRect.left -
+      cardRect.left;
 
-      return (
-        Math.abs(
-          rect.top -
-          cardRect.top
-        ) < 5
+  const gridRightRelative =
+      gridRect.right -
+      cardRect.left;
+
+  /*
+    * Minimum position.
+    */
+  const minLeft =
+      gridLeftRelative;
+
+  /*
+    * Maximum position.
+    */
+  const maxLeft =
+      gridRightRelative -
+      popupWidth;
+
+  /*
+    * Keep popup inside grid.
+    */
+  popupLeft =
+      Math.max(
+          minLeft,
+          Math.min(
+              popupLeft,
+              maxLeft
+          )
       );
 
-    });
+  /*
+    * =====================================================
+    * APPLY HORIZONTAL POSITION
+    * =====================================================
+    */
 
+  popup.style.left =
+      popupLeft + "px";
+
+  popup.style.right =
+      "auto";
 
   /*
-   * Sort the cards from LEFT
-   * to RIGHT.
-   */
+    * IMPORTANT:
+    *
+    * DO NOT set:
+    *
+    * popup.style.transform = "none";
+    *
+    * because your CSS animation may use
+    * transform.
+    */
 
-  sameRowCards.sort(
-    (a, b) => {
+  /*
+    * =====================================================
+    * POSITION ARROW
+    * =====================================================
+    */
 
-      return (
-        a.getBoundingClientRect().left -
-        b.getBoundingClientRect().left
+  let arrowLeft =
+      cardCenter -
+      popupLeft;
+
+  /*
+    * Keep arrow inside popup.
+    */
+  const arrowPadding =
+      18;
+
+  arrowLeft =
+      Math.max(
+          arrowPadding,
+          Math.min(
+              arrowLeft,
+              popupWidth -
+              arrowPadding
+          )
       );
 
-    }
+  popup.style.setProperty(
+      "--popup-arrow-left",
+      arrowLeft + "px"
   );
 
+  /*
+    * Restore original inline styles.
+    */
+  popup.style.visibility =
+      originalVisibility;
+
+  popup.style.display =
+      originalDisplay;
 
   /*
-   * Find this card's position
-   * in its row.
-   */
-
-  const index =
-    sameRowCards.indexOf(card);
-
-
-  const total =
-    sameRowCards.length;
-
-
-  /*
-   * =======================================================
-   * ONLY ONE PRODUCT IN THE ROW
-   *
-   * Treat it as middle.
-   * =======================================================
-   */
-
-  if (total === 1) {
-
-    card.classList.add(
-      "popup-middle"
-    );
-
-    return;
-  }
-
-
-  /*
-   * =======================================================
-   * FIRST / LEFT PRODUCT
-   *
-   * Popup extends toward the RIGHT.
-   * Arrow points to product center.
-   * =======================================================
-   */
-
-  if (index === 0) {
-
-    card.classList.add(
-      "popup-left"
-    );
-
-    return;
-  }
-
-
-  /*
-   * =======================================================
-   * LAST / RIGHT PRODUCT
-   *
-   * Popup extends toward the LEFT.
-   * =======================================================
-   */
-
-  if (index === total - 1) {
-
-    card.classList.add(
-      "popup-right"
-    );
-
-    return;
-  }
-
-
-  /*
-   * =======================================================
-   * MIDDLE PRODUCT
-   * =======================================================
-   */
-
-  card.classList.add(
-    "popup-middle"
-  );
+    * Do NOT touch .active.
+    *
+    * The caller controls whether the
+    * popup is open.
+    */
 }
 
 /* =========================================================

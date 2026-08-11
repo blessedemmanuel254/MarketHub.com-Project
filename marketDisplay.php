@@ -1307,7 +1307,7 @@ if (isset($_GET['seller'])) {
 
             <div class="summary-row">
               <span>Items Total</span>
-              <span id="itemsTotal">KSh 0.00</span>
+              <span id="itemsTotal">KES 0.00</span>
             </div>
 
             <div class="summary-row">
@@ -1327,7 +1327,7 @@ if (isset($_GET['seller'])) {
 
             <div class="summary-row total">
               <span>Total</span>
-              <span id="finalTotal">KSh 0.00</span>
+              <span id="finalTotal">KES 0.00</span>
             </div>
 
             <button id="payButton" class="place-order" onclick="placeOrder()">
