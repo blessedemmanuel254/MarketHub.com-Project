@@ -178,7 +178,8 @@ html body.no-scroll {
 }
 
 .container header.pgHeader section .sContainer p.wcmTxt {
-  font-size: 18px;
+  font-size: 15px;
+  line-height: 18px;
 }
 
 .container header.pgHeader section .sContainer p.wcmTxt span {
@@ -856,6 +857,10 @@ html body.no-scroll {
   height: fit-content;
 }
 
+.container main#salesDashMain .sales-wrapper .sales-grid .cardContainer.stock-denied {
+  animation: stockDeniedShake 450ms ease;
+}
+
 .container main#salesDashMain .sales-wrapper .sales-grid .productSalesCard {
   border-radius: 12px;
   cursor: pointer;
@@ -867,6 +872,42 @@ html body.no-scroll {
   margin: 0 auto;
   width: 100px;
   height: 100px;
+}
+
+@keyframes stockDeniedShake {
+
+  0% {
+    transform: translateX(0);
+  }
+
+  15% {
+    transform: translateX(-7px);
+  }
+
+  30% {
+    transform: translateX(7px);
+  }
+
+  45% {
+    transform: translateX(-6px);
+  }
+
+  60% {
+    transform: translateX(6px);
+  }
+
+  75% {
+    transform: translateX(-3px);
+  }
+
+  90% {
+    transform: translateX(3px);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+
 }
 
 /* =========================================================
@@ -950,7 +991,7 @@ html body.no-scroll {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.container main#salesDashMain .sales-wrapper .offer-container .cardFSales {
+.container main#salesDashMain .sales-wrapper .offer-container form.cardFSales {
   border-radius: 4px;
   border: 1px solid #8988886b;
   padding: 20px;
@@ -961,7 +1002,7 @@ html body.no-scroll {
 
 }
 
-.container main#salesDashMain .sales-wrapper .offer-container .cardFSales button {
+.container main#salesDashMain .sales-wrapper .offer-container form.cardFSales button {
   border: none;
   background-color: #0f0f0f;
   color: #ffffff;
@@ -971,7 +1012,7 @@ html body.no-scroll {
   margin-top: 10px;
 }
 
-.container main#salesDashMain .sales-wrapper .offer-container .cardFSales button:hover {
+.container main#salesDashMain .sales-wrapper .offer-container form.cardFSales button:hover {
   opacity: .875;
 }
 
@@ -1150,7 +1191,8 @@ html body.no-scroll {
 }
 
 .table-wrapper table thead {
-  color: #898888;
+  color: #0f0f0f;
+  background-color: #dedede;
 }
 
 .table-wrapper table thead tr th, .table-wrapper table tbody tr td {
@@ -1163,6 +1205,23 @@ html body.no-scroll {
 
 .table-wrapper table tbody tr td {
   font-size: 13px;
+}
+
+.table-wrapper table tbody tr td #receiptTd {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  cursor: pointer;
+  color: #898888;
+}
+
+.table-wrapper table tbody tr td #receiptTd:hover {
+  color: #0f0f0f;
+}
+
+.table-wrapper table tbody tr td #receiptTd i {
+  font-size: 20px;
 }
 
 .table-wrapper table tbody tr td .contactOwer {
@@ -1926,7 +1985,7 @@ html body.no-scroll {
   text-decoration: underline;
 }
 
-.container main .formContainer form .or-divider, .container main#salesDashMain .sales-wrapper .offer-container .cardFSales .or-divider {
+.container main .formContainer form .or-divider, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .or-divider {
   display: flex;
   align-items: center;
   text-align: center;
@@ -1936,18 +1995,18 @@ html body.no-scroll {
 }
 
 .container main .formContainer form .or-divider::before,
-.container main .formContainer form .or-divider::after, .container main#salesDashMain .sales-wrapper .offer-container .cardFSales .or-divider::before, .container main#salesDashMain .sales-wrapper .offer-container .cardFSales .or-divider::after {
+.container main .formContainer form .or-divider::after, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .or-divider::before, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .or-divider::after {
   content: "";
   flex: 1;
   border-bottom: 1px solid #e0e0e0;
   margin: 0 10px;
 }
 
-.container main#salesDashMain .sales-wrapper .offer-container .cardFSales .or-divider {
+.container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .or-divider {
   margin: 20px 0;
 }
 
-.container main#salesDashMain .sales-wrapper .offer-container .cardFSales .or-divider::before, .container main#salesDashMain .sales-wrapper .offer-container .cardFSales .or-divider::after {
+.container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .or-divider::before, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .or-divider::after {
   margin: 0;
 }
 
@@ -1968,7 +2027,7 @@ html body.no-scroll {
   font-size: 13px;
 }
 
-.container main .formContainer form .account-type-box, .tab-content .tab-panel .form-wrapper form .inp-box.sold-by, .tab-content .tab-panel .form-wrapper form .inp-box.sold-by .soldByDiv {
+.container main .formContainer form .account-type-box, .tab-content .tab-panel .form-wrapper form .inp-box.sold-by, .tab-content .tab-panel .form-wrapper form .inp-box.sold-by .soldByDiv, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .payMethodDiv, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .payMethodDiv .paidByDiv {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
@@ -1977,7 +2036,11 @@ html body.no-scroll {
   border-radius: 4px;
 }
 
-.tab-content .tab-panel .form-wrapper form .inp-box.sold-by .soldByDiv {
+.container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .payMethodDiv .paidByDiv {
+  gap: 5px;
+}
+
+.tab-content .tab-panel .form-wrapper form .inp-box.sold-by .soldByDiv, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .payMethodDiv .paidByDiv {
   padding: 0;
   border: none;
 }
@@ -1999,7 +2062,7 @@ html body.no-scroll {
 
 }
 
-.container main .formContainer form .account-type-box label.account-type, .tab-content .tab-panel .form-wrapper form .inp-box label.account-type {
+.container main .formContainer form .account-type-box label.account-type, .tab-content .tab-panel .form-wrapper form .inp-box label.account-type, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .payMethodDiv .paidByDiv label.money-method {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -2014,14 +2077,14 @@ html body.no-scroll {
 }
 
 /* ---- RADIO UI ---- */
-label.account-type input {
+label.account-type input, label.money-method input {
   position: absolute;
   opacity: 0;
   pointer-events: none;
 
 }
 
-label.account-type .radio-dot {
+label.account-type .radio-dot,label.money-method .radio-dot {
   width: 16px;
   height: 16px;
   border: 1px solid #898888;
@@ -2029,11 +2092,11 @@ label.account-type .radio-dot {
   position: relative;
 }
 
-label.account-type input:checked + .radio-dot {
+label.account-type input:checked + .radio-dot, label.money-method input:checked + .radio-dot {
   border-color: #000;
 }
 
-label.account-type input:checked + .radio-dot::after {
+label.account-type input:checked + .radio-dot::after, label.money-method input:checked + .radio-dot:after {
   content: "";
   width: 8px;
   height: 8px;
@@ -2045,7 +2108,7 @@ label.account-type input:checked + .radio-dot::after {
   transform: translate(-50%, -50%);
 }
 
-.container main .formContainer form .account-type-box label input {
+.container main .formContainer form .account-type-box label input, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .payMethodDiv .paidByDiv label.money-method input {
   margin-bottom: 0;
   cursor: pointer;
 }
@@ -3175,7 +3238,7 @@ a.seller-right {
 .container .cart-container .inner-cart-container .cart-summary .summary-row.summary-total {
   font-weight: bold;
   font-size: 13px;
-  margin-top: 15px;
+  margin-top: 12px;
 }
 
 .container .cart-container .inner-cart-container .cart-summary .checkout-btn, .container main#salesDashMain .sales-wrapper .sales-grid .cardContainer .adjust-popup .add-list-btn {
@@ -3188,6 +3251,11 @@ a.seller-right {
   font-size: 13px;
   cursor: pointer;
   margin-top: 20px;
+}
+
+/* Hide quantity display and Add to list when quantity is 0 or below */
+.adjust-popup.quantity-empty .add-list-btn, .adjust-popup.quantity-empty .add-list-btn .current-adjustment {
+  display: none;
 }
 
 .container .cart-container .inner-cart-container .cart-summary .checkout-btn:hover, .container main#salesDashMain .sales-wrapper .sales-grid .cardContainer .adjust-popup .add-list-btn:hover {
@@ -3369,18 +3437,23 @@ a.seller-right {
   margin-bottom: 5px 0;
 }
 
-.products-grid .card .card-body .price {
-  font-size: 15px;
+.products-grid .card .card-body .price, .products-grid .card .card-body .perDiv {
+  font-size: 13px;
   position: absolute;
   top: 50%;
   left: 4px;
   transform: translateY(-50%);
-  color: #ffffff;
-  background: #0f0f0f;
-  padding: 4px 8px;
-  border-radius: 4px;
+  color: #0f0f0f;
+  background: #ffffff;
+  padding: 2px 4px;
   border: 1px solid #89898879;
+  font-weight: bold;
   
+}
+
+.products-grid .card .card-body .perDiv {
+  top: calc(50% + 26px);
+  font-size: 10px;
 }
 
 .products-grid .card .card-body .stock, .container main#salesDashMain .sales-wrapper .sales-grid .productSalesCard strong.stock {
@@ -3466,7 +3539,7 @@ a.seller-right {
 
   left: 0;
   right: auto;
-  transform: translateY(-8px);
+  transform: translateY(8px);
 
 }
 
@@ -3515,7 +3588,7 @@ a.seller-right {
 
   transform:
     translateX(-50%)
-    translateY(-8px);
+    translateY(8px);
 
 }
 
@@ -3557,7 +3630,7 @@ a.seller-right {
   left: auto;
   right: 0;
 
-  transform: translateY(-8px);
+  transform: translateY(8px);
 
 }
 
@@ -3860,7 +3933,7 @@ a.seller-right {
   border-radius: 4px;
   flex-direction: row;
 }
-.tab-content .tab-panel .form-wrapper form .inp-box label, .tab-panel-admin .form-wrapper form .inp-box label, .tab-panel.agency .dashboard .grid .card.agency-lincods .lincod-box span {
+.tab-content .tab-panel .form-wrapper form .inp-box label, .tab-panel-admin .form-wrapper form .inp-box label, .tab-panel.agency .dashboard .grid .card.agency-lincods .lincod-box span, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .payMethodDiv label {
   font-size: 13px;
   color: #0f0f0f;
   width: 100%;
@@ -3902,7 +3975,7 @@ a.seller-right {
   opacity: .875;
 }
 
-.tab-content .tab-panel .form-wrapper form .inp-box input, .tab-panel-admin .form-wrapper input, .tab-content .tab-panel .form-wrapper form .inp-box select, .tab-panel-admin .form-wrapper form .inp-box select, .tab-panel.agency .dashboard .grid .card.agency-lincods input {
+.tab-content .tab-panel .form-wrapper form .inp-box input, .tab-panel-admin .form-wrapper input, .tab-content .tab-panel .form-wrapper form .inp-box select, .tab-panel-admin .form-wrapper form .inp-box select, .tab-panel.agency .dashboard .grid .card.agency-lincods input, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .payMethodDiv input {
   padding: 8px 16px;
   border-radius: 4px;
   width: 100%;
@@ -5034,7 +5107,7 @@ AGENTS' PRODUCTS CSS
 
 }
 
-.order-container .card .card-title, .container main#salesDashMain .sales-wrapper .offer-container .cardFSales .card-title {
+.order-container .card .card-title, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .card-title {
   font-size: 18px;
   font-weight: bold;
   margin-bottom: 10px;
@@ -5043,7 +5116,22 @@ AGENTS' PRODUCTS CSS
   align-items: center;
 }
 
-.container main#salesDashMain .sales-wrapper .offer-container .cardFSales .card-title {
+.order-container .card .card-title, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales p.emptyListP {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #8988886b;
+  gap: 10px;
+  padding: 8px 0;
+  margin-bottom: 10px;
+}
+
+.container main#salesDashMain .sales-wrapper .offer-container form.cardFSales p.emptyListP i {
+  font-size: 20px;
+}
+
+.container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .card-title {
   margin-bottom: 20px;
 }
 
@@ -5061,7 +5149,7 @@ AGENTS' PRODUCTS CSS
 
 }
 
-.order-container .card .card-title a.update-btn, .container main#salesDashMain .sales-wrapper .offer-container .cardFSales .card-title a.reset-btn {
+.order-container .card .card-title a.update-btn, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .card-title a.reset-btn {
   font-size: 13px;
   color: #898888;
   cursor: pointer;
@@ -5077,7 +5165,7 @@ AGENTS' PRODUCTS CSS
   margin-left: 10px;
 }
 
-.order-container .card .card-title a.update-btn:hover, .container main#salesDashMain .sales-wrapper .offer-container .cardFSales .card-title a.reset-btn:hover {
+.order-container .card .card-title a.update-btn:hover, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .card-title a.reset-btn:hover {
   opacity: .875;
 }
 
@@ -5161,19 +5249,19 @@ AGENTS' PRODUCTS CSS
 }
 
 /* ===== Summary ===== */
-.order-container .card .summary-row, .container main#salesDashMain .sales-wrapper .offer-container .cardFSales .summary-row, .container main#salesDashMain .sales-wrapper .offer-container .cardFSales .checkout-item {
+.order-container .card .summary-row, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .summary-row, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .checkout-item {
   display: flex;
   justify-content: space-between;
   font-size: 13px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
-.container main#salesDashMain .sales-wrapper .offer-container .cardFSales .summary-row.items-total {
+.container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .summary-row.items-total {
   border-top: 1px dashed #898888;
   padding-top: 10px;
 }
 
-.order-container .card .summary-row.total, .container main#salesDashMain .sales-wrapper .offer-container .cardFSales .summary-row.total {
+.order-container .card .summary-row.total, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .summary-row.total {
   font-weight: 700;
   font-size: 16px;
   border-top: 1px solid #dedede;
@@ -5181,13 +5269,13 @@ AGENTS' PRODUCTS CSS
   margin-top: 20px;
 }
 
-.container main#salesDashMain .sales-wrapper .offer-container .cardFSales .summary-row.ksh {
+.container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .summary-row.ksh {
   color: #898888;
   font-weight: 550;
 }
 
 /* ===== Button ===== */
-.order-container .card .place-order, .container main#salesDashMain .sales-wrapper .offer-container .cardFSales .checkout-order {
+.order-container .card .place-order, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .checkout-order {
   width: 100%;
   margin-top: 10px;
   padding: 8px 16px;
@@ -5199,7 +5287,7 @@ AGENTS' PRODUCTS CSS
   font-size: 13px;
 }
 
-.order-container .card .place-order:hover, .container main#salesDashMain .sales-wrapper .offer-container .cardFSales .checkout-order:hover {
+.order-container .card .place-order:hover, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .checkout-order:hover {
   opacity: 0.875;
 }
 

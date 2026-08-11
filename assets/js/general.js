@@ -2712,7 +2712,107 @@ document.addEventListener("DOMContentLoaded", function () {
    ========================================================= */
 
 const saleItems = {};
+/* =========================================================
+   UI STOCK
+   ========================================================= */
 
+function getAvailableStock(card) {
+
+  return Number(
+    card.dataset.availableStock ??
+    card.dataset.stock ??
+    0
+  );
+
+}
+
+/* =========================================================
+UPDATE VISIBLE STOCK UI
+========================================================= */
+function updateProductStockUI(card) {
+
+    if (!card) {
+        return;
+    }
+
+    const availableStock =
+        getAvailableStock(card);
+
+    /*
+     * Find the stock quantity displayed
+     * on the product card.
+     *
+     * Change ".stock-value" if your
+     * actual stock element has another class.
+     */
+    const stockElement =
+        card.querySelector(".stock");
+
+    if (!stockElement) {
+        return;
+    }
+
+    /*
+     * Update the visible quantity.
+     */
+    stockElement.textContent = formatStockForCard(availableStock);
+
+    /*
+     * Optional visual state when
+     * nothing remains.
+     */
+    if (availableStock <= 0) {
+
+        card.classList.add(
+            "out-of-stock"
+        );
+
+    } else {
+
+        card.classList.remove(
+            "out-of-stock"
+        );
+
+    }
+}
+
+/* =========================================================
+   STOCK DENIED SHAKE
+   ========================================================= */
+
+function shakeProductForStock(card) {
+
+  if (!card) {
+    return;
+  }
+
+
+  card.classList.remove(
+    "stock-denied"
+  );
+
+
+  /*
+   * Force reflow so the animation
+   * can run again on repeated clicks.
+   */
+
+  void card.offsetWidth;
+
+
+  card.classList.add(
+    "stock-denied"
+  );
+
+
+  setTimeout(() => {
+
+    card.classList.remove(
+      "stock-denied"
+    );
+
+  }, 450);
+}
 
 /* =========================================================
    FORMAT QUANTITY
@@ -2756,6 +2856,24 @@ function formatQuantity(quantity) {
   return whole + fractionText;
 }
 
+/* =========================================================
+FORMAT STOCK FOR PRODUCT CARD
+========================================================= */
+function formatStockForCard(stock) {
+
+  stock = Number(stock);
+
+  if (!Number.isFinite(stock)) {
+      return "0";
+  }
+
+  if (stock > 99) {
+      return "99+";
+  }
+
+  return formatQuantity(stock);
+}
+
 
 /* =========================================================
    CHECK IF PRODUCT IS SOLD AS EACH
@@ -2769,7 +2887,6 @@ function isEachUnit(unit) {
 
   return unit.trim().toLowerCase() === "each";
 }
-
 
 /* =========================================================
    CHECKOUT PRODUCT NAME
@@ -3249,6 +3366,7 @@ function renderCheckoutList() {
 
 
   updateSaleTotals(itemsTotal);
+  updateEmptyListMessage();
 }
 
 
@@ -3384,113 +3502,119 @@ function resetProductCalculator(card) {
   }
 }
 
-
 /* =========================================================
-   OPEN MEASURED PRODUCT CALCULATOR
-   ========================================================= */
-
+OPEN MEASURED PRODUCT CALCULATOR
+========================================================= */
 function openMeasuredProductCalculator(card) {
 
-  const productId =
-    String(card.dataset.productId);
+    const productId =
+        String(card.dataset.productId);
 
+    /*
+     * Remaining stock available for
+     * adding to the checkout.
+     */
+    const availableStock =
+        getAvailableStock(card);
 
-  /*
-   * Load existing checkout quantity
-   * if the product is already listed.
-   */
-
-  if (saleItems[productId]) {
-
+    /*
+     * Existing quantity already in checkout.
+     */
     const existingQuantity =
-      Number(
-        saleItems[productId].quantity
-      );
+        saleItems[productId]
+            ? Number(saleItems[productId].quantity || 0)
+            : 0;
 
+    /*
+     * If there is NO remaining stock
+     * and this product is NOT already
+     * in checkout, reject the tap.
+     */
+    if (
+        availableStock <= 0 &&
+        existingQuantity <= 0
+    ) {
 
-    card.dataset.adjustQuantity =
-      String(existingQuantity);
+        shakeProductForStock(card);
 
+        return;
 
-    card.dataset.editingCheckout =
-      "true";
+    }
 
+    /*
+     * If product is already in checkout,
+     * load its current quantity.
+     */
+    if (existingQuantity > 0) {
 
-    const quantityValue =
-      card.querySelector(
-        ".quantity-value"
-      );
+        card.dataset.adjustQuantity =
+            String(existingQuantity);
 
+        card.dataset.editingCheckout =
+            "true";
 
-    if (quantityValue) {
+        const quantityValue =
+            card.querySelector(
+                ".quantity-value"
+            );
 
-      quantityValue.textContent =
-        formatQuantity(
-          existingQuantity
+        if (quantityValue) {
+
+            quantityValue.textContent =
+                formatQuantity(
+                    existingQuantity
+                );
+
+        }
+
+    }
+
+    else {
+
+        card.dataset.adjustQuantity =
+            "0";
+
+        card.dataset.editingCheckout =
+            "false";
+
+        const quantityValue =
+            card.querySelector(
+                ".quantity-value"
+            );
+
+        if (quantityValue) {
+
+            quantityValue.textContent =
+                "0";
+
+        }
+
+    }
+
+    /*
+     * Determine popup position.
+     */
+    positionAdjustPopup(card);
+
+    /*
+     * Close other popups.
+     */
+    closeAllAdjustPopups();
+
+    /*
+     * Open this popup.
+     */
+    const popup =
+        card.querySelector(
+            ".adjust-popup"
         );
 
-    }
+    if (popup) {
 
-  }
-
-  else {
-
-    card.dataset.adjustQuantity =
-      "0";
-
-    card.dataset.editingCheckout =
-      "false";
-
-
-    const quantityValue =
-      card.querySelector(
-        ".quantity-value"
-      );
-
-
-    if (quantityValue) {
-
-      quantityValue.textContent =
-        "0";
+        popup.classList.add("active");
 
     }
-
-  }
-
-
-  /*
-   * IMPORTANT:
-   * Determine popup position BEFORE
-   * displaying it.
-   */
-
-  positionAdjustPopup(card);
-
-
-  /*
-   * Close other popups.
-   */
-
-  closeAllAdjustPopups();
-
-
-  /*
-   * Open this popup.
-   */
-
-  const popup =
-    card.querySelector(
-      ".adjust-popup"
-    );
-
-
-  if (popup) {
-
-    popup.classList.add("active");
-
-  }
 }
-
 
 /* =========================================================
    INITIALIZE
@@ -3505,17 +3629,36 @@ document.addEventListener(
      * Initialize all product cards.
      */
 
-    document
+      document
       .querySelectorAll(
-        ".cardContainer"
+          ".cardContainer"
       )
       .forEach(card => {
 
-        card.dataset.adjustQuantity =
-          "0";
+          /*
+            * Keep database/original stock
+            * untouched.
+            */
+          const originalStock =
+              Number(card.dataset.stock) || 0;
 
-        card.dataset.editingCheckout =
-          "false";
+          /*
+            * Create temporary POS stock.
+            */
+          card.dataset.availableStock =
+              String(originalStock);
+
+          card.dataset.adjustQuantity =
+              "0";
+
+          card.dataset.editingCheckout =
+              "false";
+
+          /*
+            * Make sure the visible UI
+            * starts with the original stock.
+            */
+          updateProductStockUI(card);
 
       });
 
@@ -3548,21 +3691,20 @@ document.addEventListener(
               return;
             }
 
-
-            const stock =
-              Number(
-                card.dataset.stock
-              );
+            const availableStock =
+              getAvailableStock(card);
 
 
             /*
-             * OUT OF STOCK
-             */
+            * OUT OF STOCK / NO UI STOCK LEFT
+            */
 
             if (
-              !Number.isFinite(stock) ||
-              stock <= 0
+              !Number.isFinite(availableStock) ||
+              availableStock <= 0
             ) {
+
+              shakeProductForStock(card);
 
               return;
 
@@ -3588,45 +3730,83 @@ document.addEventListener(
                
                ================================================= */
 
-            if (
-              isEachUnit(unit)
-            ) {
+              if (
+                isEachUnit(unit)
+              ) {
 
-              const added =
-                saveProductToCheckout(
-                  card,
-                  1,
-                  "add"
-                );
+                const availableStock =
+                  getAvailableStock(card);
 
 
-              if (!added) {
-                return;
-              }
+                /*
+                * No products left.
+                */
+
+                if (
+                  availableStock < 1
+                ) {
+
+                  shakeProductForStock(card);
+
+                  return;
+
+                }
 
 
-              /*
-               * Fly immediately.
-               */
+                const added =
+                  saveProductToCheckout(
+                    card,
+                    1,
+                    "add"
+                  );
 
-              if (image) {
 
-                requestAnimationFrame(
-                  () => {
+                if (!added) {
+                  return;
+                }
 
-                    flyProductToCheckout(
-                      image,
-                      card.dataset.productId
+                /*
+                * Subtract one from UI stock.
+                *
+                * Database is NOT changed.
+                */
+
+                card.dataset.availableStock =
+                    String(
+                        availableStock - 1
                     );
 
-                  }
-                );
+                /*
+                * Update the visible stock immediately.
+                *
+                * This happens at the same time
+                * the product is sent toward checkout.
+                */
+                updateProductStockUI(card);
 
+
+                /*
+                * Fly immediately.
+                */
+
+                if (image) {
+
+                  requestAnimationFrame(
+                    () => {
+
+                      flyProductToCheckout(
+                        image,
+                        card.dataset.productId
+                      );
+
+                    }
+                  );
+
+                }
+
+
+                return;
               }
-
-
-              return;
-            }
 
 
             /* =================================================
@@ -3691,9 +3871,17 @@ document.addEventListener(
 
 
             const stock =
-              Number(
-                card.dataset.stock
-              );
+                getAvailableStock(card);
+
+            const productId =
+                String(card.dataset.productId);
+
+            const existingQuantity =
+                saleItems[productId]
+                    ? Number(
+                        saleItems[productId].quantity || 0
+                    )
+                    : 0;
 
 
             /*
@@ -3780,14 +3968,32 @@ document.addEventListener(
 
 
             /*
-             * Never exceed stock.
-             */
+            * The calculator is editing the
+            * CURRENT checkout quantity.
+            *
+            * Therefore we can use:
+            *
+            * remaining stock
+            * +
+            * old checkout quantity
+            *
+            * as the maximum.
+            */
+            const maximumQuantity =
+                stock +
+                existingQuantity;
 
+            /*
+            * Never exceed the amount that
+            * can actually be available after
+            * returning the old quantity.
+            */
             if (
-              currentQuantity > stock
+                currentQuantity > maximumQuantity
             ) {
 
-              currentQuantity = stock;
+                currentQuantity =
+                    maximumQuantity;
 
             }
 
@@ -3854,13 +4060,76 @@ document.addEventListener(
 
 
             /*
-             * Must have a quantity.
-             */
+            * Must have a quantity.
+            */
 
             if (
               !Number.isFinite(quantity) ||
               quantity <= 0
             ) {
+
+              return;
+
+            }
+
+
+            /*
+            * Current remaining UI stock.
+            */
+
+            const availableStock =
+              getAvailableStock(card);
+
+
+            /*
+            * Product currently in checkout?
+            */
+
+            const productId =
+              String(
+                card.dataset.productId
+              );
+
+
+            const existingItem =
+              saleItems[productId];
+
+
+            /*
+            * Existing checkout quantity.
+            *
+            * This matters because measured
+            * products REPLACE their quantity.
+            */
+
+            const oldQuantity =
+              existingItem
+                ? Number(existingItem.quantity || 0)
+                : 0;
+
+
+            /*
+            * When replacing an existing quantity,
+            * temporarily return the old quantity
+            * to available stock.
+            */
+
+            const availableForReplacement =
+              availableStock +
+              oldQuantity;
+
+
+            /*
+            * Requested quantity is greater
+            * than what is actually available.
+            */
+
+            if (
+              quantity >
+              availableForReplacement
+            ) {
+
+              shakeProductForStock(card);
 
               return;
 
@@ -3882,19 +4151,33 @@ document.addEventListener(
              * =================================================
              */
 
-            const added =
-              saveProductToCheckout(
-                card,
-                quantity,
-                "replace"
+              const added =
+                saveProductToCheckout(
+                  card,
+                  quantity,
+                  "replace"
+                );
+
+              if (!added) {
+                return;
+              }
+
+
+              /*
+              * Update remaining UI stock.
+              *
+              * The old checkout quantity has
+              * already been returned to the
+              * available amount above.
+              */
+
+              card.dataset.availableStock =
+                String(
+                availableForReplacement -
+                quantity
               );
 
-
-            if (!added) {
-              return;
-            }
-
-
+              updateProductStockUI(card);
             /*
              * Fly after checkout has been
              * updated.
@@ -3994,6 +4277,8 @@ document.addEventListener(
               resetProductCalculator(
                 card
               );
+              card.dataset.availableStock = card.dataset.stock;
+              updateProductStockUI(card);
 
             });
 
@@ -4200,4 +4485,72 @@ function positionAdjustPopup(card) {
   card.classList.add(
     "popup-middle"
   );
+}
+
+/* =========================================================
+   CLOSE ADJUST POPUP WHEN CLICKING ANYWHERE OUTSIDE IT
+   ========================================================= */
+
+document.addEventListener("click", function (event) {
+
+  /*
+   * Check whether the click happened inside
+   * an adjust popup.
+   */
+  const clickedInsidePopup =
+    event.target.closest(".adjust-popup");
+
+
+  /*
+   * If the click was inside the popup,
+   * do nothing.
+   */
+  if (clickedInsidePopup) {
+    return;
+  }
+
+
+  /*
+   * Click was outside the popup.
+   * Close every currently open popup.
+   */
+  document
+    .querySelectorAll(".adjust-popup.active")
+    .forEach(function (popup) {
+
+      popup.classList.remove("active");
+
+    });
+
+});
+
+function updateEmptyListMessage() {
+
+  const checkoutItems =
+    document.getElementById("checkoutItems");
+
+  const emptyMessage =
+    document.querySelector(".emptyListP");
+
+  if (!checkoutItems || !emptyMessage) {
+    return;
+  }
+
+
+  /*
+   * Check whether there are
+   * products currently in the list.
+   */
+
+  const hasProducts =
+    checkoutItems.children.length > 0;
+
+
+  /*
+   * Hide message when products exist.
+   * Show it when the list is empty.
+   */
+
+  emptyMessage.style.display =
+    hasProducts ? "none" : "flex";
 }
