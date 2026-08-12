@@ -3489,6 +3489,7 @@ a.seller-right {
 .container main#salesDashMain .sales-wrapper .sales-grid .cardContainer .adjust-popup {
   position: absolute;
   bottom: -155px;
+  top: calc(100% + 10px);
   left: 0;
   background-color: lightblue;
   width: 315px;
@@ -3498,14 +3499,13 @@ a.seller-right {
   border: 1px solid #8988882c;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   z-index: 11;
+  height: fit-content;
 
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
 
-  transition:
-    opacity 0.25s ease,
-    transform 0.25s ease;
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
 .container main#salesDashMain .sales-wrapper .sales-grid .cardContainer .adjust-popup.active {
@@ -3640,7 +3640,6 @@ a.seller-right {
   margin-top: 10px;
   padding-top: 12px;
   border-top: 1px solid #dedede;
-  /* display: none; */
 }
 
 .container main#salesDashMain .sales-wrapper .sales-grid .cardContainer .adjust-popup .current-adjustment.active {
@@ -3666,7 +3665,6 @@ a.seller-right {
 ========================================================= */
 
 .container main#salesDashMain .sales-wrapper .sales-grid .cardContainer .adjust-popup .add-list-btn {
-  /* display: none; */
   margin-top: 10px;
 }
  
@@ -4990,7 +4988,7 @@ AGENTS' PRODUCTS CSS
   align-items: center;
   justify-content: center;
   font-size: 14px;
-  color: #8988886b;
+  color: #89898885;
   gap: 10px;
   padding: 8px 0;
   margin-bottom: 10px;

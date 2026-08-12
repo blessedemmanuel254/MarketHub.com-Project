@@ -3475,29 +3475,98 @@ function closeAllAdjustPopups() {
 /* =========================================================
    RESET PRODUCT CALCULATOR
    ========================================================= */
-
 function resetProductCalculator(card) {
 
-  card.dataset.adjustQuantity = "0";
+  card.dataset.adjustQuantity =
+      "0";
 
-  /*
-   * This tells us whether the calculator
-   * is currently editing an existing
-   * checkout product.
-   */
-
-  card.dataset.editingCheckout = "false";
-
+  card.dataset.editingCheckout =
+      "false";
 
   const quantityValue =
-    card.querySelector(
-      ".quantity-value"
-    );
-
+      card.querySelector(
+          ".quantity-value"
+      );
 
   if (quantityValue) {
 
-    quantityValue.textContent = "0";
+      quantityValue.textContent =
+          "0";
+
+  }
+
+  /*
+    * Hide current adjustment
+    * and Add to list button.
+    */
+  updateAdjustmentControls(card);
+}
+
+/* =========================================================
+UPDATE ADJUSTMENT CONTROLS VISIBILITY
+========================================================= */
+function updateAdjustmentControls(card) {
+
+  if (!card) {
+      return;
+  }
+
+  const currentQuantity =
+      Number(
+          card.dataset.adjustQuantity || 0
+      );
+
+  const originalQuantity =
+      Number(
+          card.dataset.originalAdjustment || 0
+      );
+
+  const currentAdjustment =
+      card.querySelector(
+          ".current-adjustment"
+      );
+
+  const addListButton =
+      card.querySelector(
+          ".add-list-btn"
+      );
+
+  /*
+    * Current adjustment is visible whenever
+    * there is a quantity.
+    */
+  if (currentAdjustment) {
+
+      currentAdjustment.style.display =
+          currentQuantity > 0
+              ? ""
+              : "none";
+
+  }
+
+  /*
+    * ADD TO LIST rules:
+    *
+    * NEW PRODUCT:
+    * 0 → greater than 0 = show button
+    *
+    * EXISTING PRODUCT:
+    * unchanged = hide button
+    * changed    = show button
+    */
+  const quantityChanged =
+      currentQuantity !== originalQuantity;
+
+  const shouldShowAddButton =
+      currentQuantity > 0 &&
+      quantityChanged;
+
+  if (addListButton) {
+
+      addListButton.style.display =
+          shouldShowAddButton
+              ? ""
+              : "none";
 
   }
 }
@@ -3549,6 +3618,7 @@ function openMeasuredProductCalculator(card) {
 
         card.dataset.adjustQuantity =
             String(existingQuantity);
+        card.dataset.originalAdjustment = String(existingQuantity);
 
         card.dataset.editingCheckout =
             "true";
@@ -3566,29 +3636,40 @@ function openMeasuredProductCalculator(card) {
                 );
 
         }
+        /*
+        * Existing checkout quantity is
+        * greater than zero, therefore
+        * show the current adjustment and
+        * Add to list button.
+        */
+        updateAdjustmentControls(card);
 
     }
 
     else {
 
-        card.dataset.adjustQuantity =
-            "0";
+      card.dataset.adjustQuantity =
+          "0";
 
-        card.dataset.editingCheckout =
-            "false";
+      card.dataset.originalAdjustment =
+          "0";
 
-        const quantityValue =
-            card.querySelector(
-                ".quantity-value"
-            );
+      card.dataset.editingCheckout =
+          "false";
 
-        if (quantityValue) {
+      const quantityValue =
+          card.querySelector(
+              ".quantity-value"
+          );
 
-            quantityValue.textContent =
-                "0";
+      if (quantityValue) {
 
-        }
+          quantityValue.textContent =
+              "0";
 
+      }
+
+      updateAdjustmentControls(card);
     }
 
     /*
@@ -3659,6 +3740,7 @@ document.addEventListener(
             * starts with the original stock.
             */
           updateProductStockUI(card);
+          updateAdjustmentControls(card);
 
       });
 
@@ -4007,7 +4089,7 @@ document.addEventListener(
                 currentQuantity
               );
 
-
+            updateAdjustmentControls(card);
             /*
              * Display fraction.
              */
