@@ -358,6 +358,517 @@ if (isset($_GET['download_qr'])) {
   exit();
 }
 
+/* =========================================================
+   POS CHECKOUT
+   ========================================================= */
+
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST' &&
+    isset($_POST['action']) &&
+    $_POST['action'] === 'checkout_sale'
+) {
+
+    /*
+     * Return JSON because the request is sent
+     * from general.js.
+     */
+    header('Content-Type: application/json; charset=utf-8');
+
+    /*
+     * Never allow a checkout request to use
+     * another seller's products.
+     */
+    $sellerId = (int)$user_id;
+
+    /*
+     * Payment method.
+     */
+    $paymentMethod = $_POST['payment_method'] ?? '';
+
+    $allowedPaymentMethods = [
+        'cash',
+        'bank'
+    ];
+
+    if (!in_array($paymentMethod, $allowedPaymentMethods, true)) {
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Please select a valid payment method.'
+        ]);
+
+        exit();
+    }
+
+    /*
+     * Cart sent from JavaScript.
+     */
+    $cartJson = $_POST['cart'] ?? '';
+
+    if ($cartJson === '') {
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Checkout list is empty.'
+        ]);
+
+        exit();
+    }
+
+    $cart = json_decode(
+        $cartJson,
+        true
+    );
+
+    if (
+        !is_array($cart) ||
+        empty($cart)
+    ) {
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Checkout list is empty.'
+        ]);
+
+        exit();
+    }
+
+    /*
+     * Validate cart items.
+     */
+    $cleanCart = [];
+
+    foreach ($cart as $item) {
+
+        if (!is_array($item)) {
+            continue;
+        }
+
+        $productId = isset($item['id'])
+            ? (int)$item['id']
+            : 0;
+
+        $quantity = isset($item['quantity'])
+            ? (float)$item['quantity']
+            : 0;
+
+        if (
+            $productId <= 0 ||
+            $quantity <= 0
+        ) {
+
+            echo json_encode([
+                'success' => false,
+                'message' => 'Invalid product or quantity detected.'
+            ]);
+
+            exit();
+        }
+
+        /*
+         * Keep measured products to quarter
+         * increments.
+         */
+        $quantity =
+            round($quantity * 4) / 4;
+
+        $cleanCart[] = [
+            'id' => $productId,
+            'quantity' => $quantity
+        ];
+    }
+
+    if (empty($cleanCart)) {
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'No valid products were found.'
+        ]);
+
+        exit();
+    }
+
+    /*
+     * =====================================================
+     * START DATABASE TRANSACTION
+     * =====================================================
+     */
+
+    $conn->begin_transaction();
+
+    try {
+
+        $totalAmount = 0;
+
+        $verifiedItems = [];
+
+        /*
+         * We lock every product row while checking
+         * stock.
+         *
+         * This is important because the UI stock is
+         * only temporary.
+         *
+         * The database is the final authority.
+         */
+        $productStmt = $conn->prepare("
+            SELECT
+                product_id,
+                user_id,
+                product_name,
+                price,
+                stock_quantity,
+                unit
+            FROM productservicesrentals
+            WHERE product_id = ?
+              AND user_id = ?
+            LIMIT 1
+            FOR UPDATE
+        ");
+
+        if (!$productStmt) {
+            throw new Exception(
+                "Could not prepare product verification."
+            );
+        }
+
+        foreach ($cleanCart as $item) {
+
+            $productId =
+                $item['id'];
+
+            $requestedQuantity =
+                $item['quantity'];
+
+            $productStmt->bind_param(
+                "ii",
+                $productId,
+                $sellerId
+            );
+
+            $productStmt->execute();
+
+            $result =
+                $productStmt->get_result();
+
+            $product =
+                $result->fetch_assoc();
+
+            if (!$product) {
+
+                throw new Exception(
+                    "Product ID {$productId} was not found in your store."
+                );
+            }
+
+            $databaseStock =
+                (float)$product['stock_quantity'];
+
+            /*
+             * FINAL DATABASE STOCK CHECK.
+             */
+            if (
+                $requestedQuantity >
+                $databaseStock
+            ) {
+
+                throw new Exception(
+                    "Not enough stock for " .
+                    $product['product_name'] .
+                    ". Available: " .
+                    $databaseStock .
+                    "."
+                );
+            }
+
+            $price =
+                (float)$product['price'];
+
+            $subtotal =
+                $requestedQuantity *
+                $price;
+
+            $totalAmount +=
+                $subtotal;
+
+            $verifiedItems[] = [
+                'product_id' =>
+                    $productId,
+
+                'product_name' =>
+                    $product['product_name'],
+
+                'quantity' =>
+                    $requestedQuantity,
+
+                'price' =>
+                    $price,
+
+                'subtotal' =>
+                    $subtotal,
+
+                'stock' =>
+                    $databaseStock,
+
+                'unit' =>
+                    $product['unit']
+            ];
+        }
+
+        $productStmt->close();
+
+        /*
+         * =================================================
+         * GENERATE ORDER CODE
+         * =================================================
+         */
+
+        $datePart =
+            date('Ymd');
+
+        /*
+         * Use microtime + random number to greatly
+         * reduce duplicate order codes.
+         */
+        $randomPart =
+            random_int(10000, 99999);
+
+        $orderCode =
+            'ORD-' .
+            $datePart .
+            '-' .
+            $randomPart;
+
+        /*
+         * =================================================
+         * CREATE ORDER
+         * =================================================
+         *
+         * buyer_id = NULL
+         * customer_name = Customer
+         *
+         * payment_method = cash/bank
+         */
+
+        $orderStmt = $conn->prepare("
+            INSERT INTO orders
+            (
+              order_code,
+              buyer_id,
+              total_amount,
+              payment_method
+            )
+            VALUES
+            (
+              ?,
+              NULL,
+              ?,
+              ?
+            )
+        ");
+
+        if (!$orderStmt) {
+            throw new Exception(
+                "Could not prepare order creation."
+            );
+        }
+
+        $orderStmt->bind_param(
+            "sds",
+            $orderCode,
+            $totalAmount,
+            $paymentMethod
+        );
+
+        if (!$orderStmt->execute()) {
+
+            throw new Exception(
+              "Could not create the sale order."
+            );
+        }
+
+        $orderId =
+            $conn->insert_id;
+
+        $orderStmt->close();
+
+        /*
+         * =================================================
+         * INSERT ORDER ITEMS
+         * =================================================
+         */
+
+        $itemStmt = $conn->prepare("
+            INSERT INTO order_items
+            (
+                order_id,
+                product_id,
+                seller_id,
+                quantity,
+                price,
+                subtotal,
+                order_status,
+                payment_status
+            )
+            VALUES
+            (
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                'delivered',
+                'paid'
+            )
+        ");
+
+        if (!$itemStmt) {
+            throw new Exception(
+                "Could not prepare order items."
+            );
+        }
+
+        /*
+         * =================================================
+         * UPDATE DATABASE STOCK
+         * =================================================
+         */
+
+        $stockStmt = $conn->prepare("
+            UPDATE productservicesrentals
+            SET
+                stock_quantity =
+                    stock_quantity - ?,
+                updated_at = NOW()
+            WHERE product_id = ?
+              AND user_id = ?
+              AND stock_quantity >= ?
+        ");
+
+        if (!$stockStmt) {
+            throw new Exception(
+                "Could not prepare stock update."
+            );
+        }
+
+        foreach ($verifiedItems as $item) {
+
+            $productId =
+                $item['product_id'];
+
+            $quantity = (float)$item['quantity'];
+
+            $price =
+                $item['price'];
+
+            $subtotal =
+                $item['subtotal'];
+
+            /*
+             * Insert order item.
+             */
+            $itemStmt->bind_param(
+                "iiiddd",
+                $orderId,
+                $productId,
+                $sellerId,
+                $quantity,
+                $price,
+                $subtotal
+            );
+
+            if (!$itemStmt->execute()) {
+
+                throw new Exception(
+                    "Could not save " .
+                    $item['product_name'] .
+                    " to the order."
+                );
+            }
+
+            /*
+             * Permanently subtract stock.
+             */
+            $stockStmt->bind_param(
+                "diid",
+                $quantity,
+                $productId,
+                $sellerId,
+                $quantity
+            );
+
+            if (!$stockStmt->execute()) {
+
+                throw new Exception(
+                    "Could not update stock for " .
+                    $item['product_name'] .
+                    "."
+                );
+            }
+
+            /*
+             * This should always be exactly 1 because
+             * the row was locked and verified above.
+             */
+            if ($stockStmt->affected_rows !== 1) {
+
+                throw new Exception(
+                    "Stock changed while processing " .
+                    $item['product_name'] .
+                    ". Please try checkout again."
+                );
+            }
+        }
+
+        $itemStmt->close();
+        $stockStmt->close();
+
+        /*
+         * =================================================
+         * EVERYTHING SUCCEEDED
+         * =================================================
+         */
+
+        $conn->commit();
+
+        echo json_encode([
+            'success' => true,
+            'order_id' => $orderId,
+            'order_code' => $orderCode,
+            'total' => $totalAmount,
+            'payment_method' => $paymentMethod,
+            'message' => 'Sale completed successfully.'
+        ]);
+
+        exit();
+
+    } catch (Throwable $e) {
+
+        /*
+         * Anything that failed is completely rolled back.
+         *
+         * This prevents situations where:
+         *
+         * order created
+         * but stock not updated
+         *
+         * OR
+         *
+         * stock updated
+         * but order item not created.
+         */
+        $conn->rollback();
+
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+
+        exit();
+    }
+}
+
 /* ---------- DELETE PRODUCT ---------- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_product_id'])) {
     $deleteId = intval($_POST['delete_product_id']);
@@ -1105,42 +1616,73 @@ if (empty($error)) {
 
 }
 }
+
 // Fetch seller orders
+// ONE ROW PER ORDER
 $sellerOrders = [];
+
 $stmt = $conn->prepare("
-  SELECT 
-    o.order_id,
-    o.order_code,
-    o.created_at,
-    o.buyer_id,
-    u.username AS buyer_name,
+  SELECT
+      o.order_id,
+      o.order_code,
+      o.created_at,
+      o.buyer_id,
+      o.payment_method,
 
-    oi.item_id,
-    oi.product_id,
-    oi.quantity,
-    oi.price,
-    oi.subtotal,
-    oi.order_status,
-    oi.shipped_at,
-    oi.delivered_at,
-    oi.payment_status,
+      CASE
+          WHEN o.buyer_id IS NULL THEN 'Customer'
+          ELSE COALESCE(u.full_name, 'Customer')
+      END AS buyer_name,
 
-    p.product_name,
-    p.image_path,
+      /* Number of DIFFERENT product types */
+      COUNT(DISTINCT oi.product_id) AS product_count,
 
-    (oi.quantity * oi.price) AS seller_total
+      /* Total physical quantity across all products */
+      SUM(oi.quantity) AS total_quantity,
 
-  FROM order_items oi
-  JOIN orders o ON oi.order_id = o.order_id
-  JOIN users u ON o.buyer_id = u.user_id
-  JOIN productservicesrentals p ON oi.product_id = p.product_id
+      /* Total value of this seller's order */
+      SUM(oi.quantity * oi.price) AS seller_total,
+
+      /* Product images, maximum handled in PHP */
+      GROUP_CONCAT(
+          DISTINCT p.image_path
+          ORDER BY oi.item_id
+          SEPARATOR '|||'
+      ) AS product_images,
+
+      /* Payment/order information */
+      MAX(oi.order_status) AS order_status,
+      MAX(oi.shipped_at) AS shipped_at,
+      MAX(oi.delivered_at) AS delivered_at,
+      MAX(oi.payment_status) AS payment_status
+
+  FROM orders o
+
+  INNER JOIN order_items oi
+      ON oi.order_id = o.order_id
+
+  LEFT JOIN users u
+      ON o.buyer_id = u.user_id
+
+  INNER JOIN productservicesrentals p
+      ON oi.product_id = p.product_id
 
   WHERE oi.seller_id = ?
 
+  GROUP BY
+      o.order_id,
+      o.order_code,
+      o.created_at,
+      o.buyer_id,
+      o.payment_method,
+      u.full_name
+
   ORDER BY o.created_at DESC
 ");
+
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
+
 $result = $stmt->get_result();
 
 if ($result) {
@@ -1148,13 +1690,119 @@ if ($result) {
       $sellerOrders[] = $row;
   }
 }
+
+$stmt->close();
+
+/* =========================================================
+  DAILY STATS
+  Today's seller sales
+  ========================================================= */
+
+$dailySales = 0;
+$dailyOrders = 0;
+$dailyProducts = 0;
+$dailyCash = 0;
+$dailyBank = 0;
+
+$stmt = $conn->prepare("
+  SELECT
+      COUNT(DISTINCT o.order_id) AS daily_orders,
+
+      COUNT(DISTINCT oi.product_id) AS daily_products,
+
+      COALESCE(SUM(oi.quantity * oi.price), 0) AS daily_sales,
+
+      COALESCE(
+          SUM(
+              CASE
+                  WHEN LOWER(o.payment_method) = 'cash'
+                  THEN (oi.quantity * oi.price)
+                  ELSE 0
+              END
+          ),
+          0
+      ) AS daily_cash,
+
+      COALESCE(
+          SUM(
+              CASE
+                  WHEN LOWER(o.payment_method) = 'bank'
+                  THEN (oi.quantity * oi.price)
+                  ELSE 0
+              END
+          ),
+          0
+      ) AS daily_bank
+
+  FROM order_items oi
+
+  INNER JOIN orders o
+      ON oi.order_id = o.order_id
+
+  WHERE oi.seller_id = ?
+    AND DATE(o.created_at) = CURDATE()
+");
+
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+
+$result = $stmt->get_result();
+
+if ($result) {
+  $row = $result->fetch_assoc();
+
+  $dailyOrders   = (int)($row['daily_orders'] ?? 0);
+  $dailyProducts = (int)($row['daily_products'] ?? 0);
+  $dailySales    = (float)($row['daily_sales'] ?? 0);
+  $dailyCash     = (float)($row['daily_cash'] ?? 0);
+  $dailyBank     = (float)($row['daily_bank'] ?? 0);
+}
+
+$stmt->close();
+
+/* =========================================================
+  DAILY STOCK STATUS
+========================================================= */
+
+$stmt = $conn->prepare("
+  SELECT
+      COALESCE(SUM(CASE WHEN stock_quantity <= 0 THEN 1 ELSE 0 END), 0)
+          AS out_of_stock,
+
+      COALESCE(SUM(
+          CASE
+              WHEN stock_quantity > 0
+                AND stock_quantity <= 5
+              THEN 1
+              ELSE 0
+          END
+      ), 0)
+          AS low_stock
+
+  FROM productservicesrentals
+
+  WHERE user_id = ?
+");
+
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+
+$result = $stmt->get_result();
+
+if ($result) {
+  $stockRow = $result->fetch_assoc();
+
+  $dailyOutOfStock = (int)($stockRow['out_of_stock'] ?? 0);
+  $dailyLowStock   = (int)($stockRow['low_stock'] ?? 0);
+}
+
 $stmt->close();
 
 // Count seller's active orders (not delivered)
 $countStmt = $conn->prepare("
-    SELECT COUNT(*) AS activeOrders
-    FROM order_items
-    WHERE seller_id = ? AND order_status != 'delivered'
+  SELECT COUNT(*) AS activeOrders
+  FROM order_items
+  WHERE seller_id = ? AND order_status != 'delivered'
 ");
 $countStmt->bind_param("i", $user_id);
 $countStmt->execute();
@@ -1203,25 +1851,49 @@ $isEligible = $walletBalance >= $minWithdrawal;
 $withdrawStatus = $isEligible ? "Eligible" : "Not Eligible";
 $withdrawClass = $isEligible ? "green" : "red";
 
-// Fetch seller orders summary
+// Fetch seller orders summary - LAST 28 DAYS
 $stmt = $conn->prepare("
   SELECT 
-    COUNT(DISTINCT oi.order_id) AS total_orders,
-    COUNT(DISTINCT CASE WHEN oi.order_status = 'pending' THEN oi.order_id END) AS processing_orders,
-    COUNT(DISTINCT CASE WHEN oi.order_status = 'shipped' THEN oi.order_id END) AS shipped_orders,
-    COUNT(DISTINCT CASE WHEN oi.order_status = 'delivered' THEN oi.order_id END) AS delivered_orders
+      COUNT(DISTINCT oi.order_id) AS total_orders,
+
+      COUNT(DISTINCT CASE 
+          WHEN oi.order_status = 'pending' 
+          THEN oi.order_id 
+      END) AS processing_orders,
+
+      COUNT(DISTINCT CASE 
+          WHEN oi.order_status = 'shipped' 
+          THEN oi.order_id 
+      END) AS shipped_orders,
+
+      COUNT(DISTINCT CASE 
+          WHEN oi.order_status = 'delivered' 
+          THEN oi.order_id 
+      END) AS delivered_orders
+
   FROM order_items oi
+
+  INNER JOIN orders o 
+      ON oi.order_id = o.order_id
+
   WHERE oi.seller_id = ?
+
+    AND o.created_at >= DATE_SUB(NOW(), INTERVAL 28 DAY)
 ");
+
 $stmt->bind_param("i", $user_id);
+
 $stmt->execute();
+
 $result = $stmt->get_result();
+
 $row = $result->fetch_assoc();
 
-$totalOrders      = $row['total_orders'] ?? 0;
-$processingOrders = $row['processing_orders'] ?? 0;
-$shippedOrders    = $row['shipped_orders'] ?? 0;
-$deliveredOrders  = $row['delivered_orders'] ?? 0;
+
+$totalOrders      = (int)($row['total_orders'] ?? 0);
+$processingOrders = (int)($row['processing_orders'] ?? 0);
+$shippedOrders    = (int)($row['shipped_orders'] ?? 0);
+$deliveredOrders  = (int)($row['delivered_orders'] ?? 0);
 
 $stmt->close();
 
@@ -1614,18 +2286,64 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
               <div class="grid">
                 <!-- DAILY STATS -->
                 <div class="card">
-                  <i class="fa-solid fa-receipt icon"></i>
-                  <h3>Daily Stats</h3>
 
-                  <div class="stat">KES <?= number_format($walletBalance, 2) ?></div>
+                    <i class="fa-solid fa-receipt icon"></i>
 
-                  <p class="meta">Total daily sales</p>
+                    <h3>Daily Stats</h3>
 
-                  <div class="progress">
-                    <span style="width:<?= min(($walletBalance/20000)*100,100) ?>%"></span>
-                  </div>
+                    <!-- Total sales -->
+                    <div class="stat">
+                        KES <?= number_format($dailySales, 2) ?>
+                    </div>
 
-                  <p class="small">KES 0 pending clearance</p>
+                    <p class="meta">
+                        Total daily sales
+                    </p>
+
+                    <div class="progress">
+                        <span style="width:<?= min(($dailySales / 20000) * 100, 100) ?>%"></span>
+                    </div>
+
+                    <div class="daily-stats-slider">
+
+                      <p class="small daily-stat-item green">
+                          <?= $dailyOrders ?>
+                          <?= $dailyOrders == 1 ? 'sale' : 'sales' ?>
+                          made today
+                      </p>
+
+                      <p class="small daily-stat-item green">
+                          KES <?= number_format($dailyCash, 2) ?>
+                          collected by cash today
+                      </p>
+
+                      <p class="small daily-stat-item green">
+                          KES <?= number_format($dailyBank, 2) ?>
+                          collected by bank today
+                      </p>
+
+                      <?php if ($dailyOutOfStock > 0): ?>
+
+                          <p class="small daily-stat-item red">
+                              <?= $dailyOutOfStock ?>
+                              <?= $dailyOutOfStock == 1 ? 'product is' : 'products are' ?>
+                              out of stock
+                          </p>
+
+                      <?php endif; ?>
+
+                      <?php if ($dailyLowStock > 0): ?>
+
+                          <p class="small daily-stat-item yellow">
+                              <?= $dailyLowStock ?>
+                              <?= $dailyLowStock == 1 ? 'product is' : 'products are' ?>
+                              running low
+                          </p>
+
+                      <?php endif; ?>
+
+                    </div>
+
                 </div>
 
                 <!-- WALLET HEALTH --><!-- 
@@ -1657,9 +2375,10 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                       <span class="badge blue"><?= $shippedOrders ?> <?= $shippedOrders == 1 ? 'Shipped' : 'Shipped' ?></span>
                       <span class="badge green"><?= $deliveredOrders ?> <?= $deliveredOrders == 1 ? 'Delivered' : 'Delivered' ?></span>
                   </p>
+                  <p class="small">In the last 28 days</p>
                 </div>
 
-                <!-- WITHDRAWAL STATUS -->
+                <!-- WITHDRAWAL STATUS --><!-- 
                 <div class="card">
                   <i class="fa fa-money-bill-wave icon"></i>
                   <h3>Withdrawal Status</h3>
@@ -1684,7 +2403,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   <p class="small">
                     Available: KES <?= number_format($walletBalance) ?>
                   </p>
-                </div>
+                </div> -->
 
                 <!-- CUSTOMER TRUST -->
                 <div class="card">
@@ -1736,16 +2455,53 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                                 Per <?= htmlspecialchars($product['unit']) ?>
                             <?php endif; ?>
                         </div>
-                        <div class="stock <?= ($product['stock_quantity'] > 5) ? 'in-stock' : (($product['stock_quantity'] > 0) ? 'low-stock' : 'out-stock') ?>">
-                          <?php
-                          if ($product['stock_quantity'] >= 100) {
-                              echo '<strong>99+</strong>';
-                          } elseif ($product['stock_quantity'] > 0) {
-                              echo '<strong>' . $product['stock_quantity'] . '</strong>';
-                          } else {
-                              echo '0';
-                          }
-                          ?>
+                        <div class="stock <?= ((float)$product['stock_quantity'] > 5) ? 'in-stock' : (((float)$product['stock_quantity'] > 0) ? 'low-stock' : 'out-stock') ?>">
+                            <?php
+                            $stockP = (float)$product['stock_quantity'];
+
+                            if ($stockP >= 100) {
+
+                                echo '<strong>99+</strong>';
+
+                            } elseif ($stockP <= 0) {
+
+                                echo '<strong>0</strong>';
+
+                            } else {
+
+                                // Get the whole-number part
+                                $whole = (int)$stockP;
+
+                                // Get the decimal part without rounding the stock itself
+                                $decimal = $stockP - $whole;
+
+                                // Convert decimal to quarter
+                                if ($decimal >= 0.875) {
+                                    $whole++;
+                                    $fractionText = '';
+
+                                } elseif ($decimal >= 0.625) {
+                                    $fractionText = '¾';
+
+                                } elseif ($decimal >= 0.375) {
+                                    $fractionText = '½';
+
+                                } elseif ($decimal >= 0.125) {
+                                    $fractionText = '¼';
+
+                                } else {
+                                    $fractionText = '';
+                                }
+
+                                if ($whole === 0) {
+                                    $displayStock = $fractionText ?: '0';
+                                } else {
+                                    $displayStock = $whole . $fractionText;
+                                }
+
+                                echo '<strong>' . htmlspecialchars($displayStock) . '</strong>';
+                            }
+                            ?>
                         </div>
                       </div>
                       <div class="card-actions">
@@ -2034,6 +2790,51 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
           if (!empty($sellerOrders)) {
               $count = 1;
               foreach ($sellerOrders as $order) {
+                  // -----------------------------------------
+                  // PRODUCT IMAGES
+                  // -----------------------------------------
+
+                  $productImages = [];
+
+                  if (!empty($order['product_images'])) {
+
+                      $images = explode('|||', $order['product_images']);
+
+                      // Remove empty values
+                      $images = array_filter($images);
+
+                      // Maximum of 3 images
+                      $productImages = array_slice($images, 0, 3);
+                  }
+
+                  // Default image
+                  $defaultImage = "Images/Makethub Logo.png";
+                  $imageHTML = '<div class="order-product-images">';
+
+                  foreach ($productImages as $image) {
+
+                      $image = trim($image);
+
+                      if (
+                          empty($image) ||
+                          !file_exists($image)
+                      ) {
+                          $image = $defaultImage;
+                      }
+
+                      $image = htmlspecialchars($image, ENT_QUOTES, 'UTF-8');
+
+                      $imageHTML .= "
+                          <img
+                              src=\"{$image}\"
+                              alt=\"Product\"
+                              loading=\"lazy\"
+                          >
+                      ";
+                  }
+
+                  $imageHTML .= '</div>';
+                  $productCount = (int)$order['product_count'];
 
                   $total = number_format($order['seller_total'], 2);
                   $date = formatDate($order['created_at']);
@@ -2056,17 +2857,17 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                       if ($statusTooltip) $statusTooltip .= "\n";
                       $statusTooltip .= "Delivered: " . date("d M Y H:i", strtotime($order['delivered_at']));
                   }
-
+                  
                   // Product image
                   $productImage = !empty($order['image_path']) && file_exists($order['image_path']) 
                                   ? htmlspecialchars($order['image_path']) 
                                   : "Images/Makethub Logo.png"; // default image
 
                   echo "<tr data-status=\"{$order['order_status']}\">
-                          <td><img src='{$productImage}' alt='Product Image' style='width:50px;height:50px;object-fit:cover;border-radius:4px;'></td>
+                          <td>{$imageHTML}</td>
                           <td>{$order['order_code']}</td>
                           <td>".htmlspecialchars(ucwords(strtolower($order['buyer_name'])))."</td>
-                          <td>{$order['quantity']}</td>
+                          <td>{$productCount}</td>
                           <td>KES {$total}</td>
                           <td><span class='badge {$paymentClass}'>{$paymentLabel}</span></td>
                           <td><span class='badge {$statusClass}' title=\"".htmlspecialchars($statusTooltip)."\">{$statusLabel}</span></td>
@@ -2088,7 +2889,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   echo "      </div>
                           </td>
                           <td><div id='receiptTd'><i class='fa-solid fa-barcode'></i></div></td>
-                          <td>Cash</td>
+                          <td>".htmlspecialchars(ucfirst($order['payment_method'] ?? 'Unknown'))."</td>
                           <td>{$date}</td>
                         </tr>";
                   $count++;
@@ -2288,6 +3089,10 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   <i class="fa-solid fa-rotate-left"></i> Reset
                 </a>
               </div>
+              <div
+                id="checkoutError"
+                class="checkout-error"
+              ></div>
               <p class="emptyListP"><i class="fa-solid fa-battery-empty"></i> Click on a product to sale!...</p>
 
               <div id="checkoutItems" class="checkout-items">
@@ -2329,8 +3134,17 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   </label>
                 </div>
               </div>
-              <button id="checkoutButton" class="checkout-order" onclick="checkOutOrder()">
-                Checkout <span id="checkoutTotal">KES 0.00</span>
+              <button
+                type="button"
+                id="checkoutButton"
+                class="checkout-order"
+                onclick="checkOutOrder()">
+
+                Checkout
+                <span id="checkoutTotal">
+                    KES 0.00
+                </span>
+
               </button>
             </form>
           </div>
@@ -2427,6 +3241,51 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
           if (!empty($sellerOrders)) {
               $count = 1;
               foreach ($sellerOrders as $order) {
+                  // -----------------------------------------
+                  // PRODUCT IMAGES
+                  // -----------------------------------------
+
+                  $productImages = [];
+
+                  if (!empty($order['product_images'])) {
+
+                      $images = explode('|||', $order['product_images']);
+
+                      // Remove empty values
+                      $images = array_filter($images);
+
+                      // Maximum of 3 images
+                      $productImages = array_slice($images, 0, 3);
+                  }
+
+                  // Default image
+                  $defaultImage = "Images/Makethub Logo.png";
+                  $imageHTML = '<div class="order-product-images">';
+
+                  foreach ($productImages as $image) {
+
+                      $image = trim($image);
+
+                      if (
+                          empty($image) ||
+                          !file_exists($image)
+                      ) {
+                          $image = $defaultImage;
+                      }
+
+                      $image = htmlspecialchars($image, ENT_QUOTES, 'UTF-8');
+
+                      $imageHTML .= "
+                          <img
+                              src=\"{$image}\"
+                              alt=\"Product\"
+                              loading=\"lazy\"
+                          >
+                      ";
+                  }
+
+                  $imageHTML .= '</div>';
+                  $productCount = (int)$order['product_count'];
 
                   $total = number_format($order['seller_total'], 2);
                   $date = formatDate($order['created_at']);
@@ -2449,28 +3308,27 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                       if ($statusTooltip) $statusTooltip .= "\n";
                       $statusTooltip .= "Delivered: " . date("d M Y H:i", strtotime($order['delivered_at']));
                   }
-
+                  
                   // Product image
                   $productImage = !empty($order['image_path']) && file_exists($order['image_path']) 
                                   ? htmlspecialchars($order['image_path']) 
                                   : "Images/Makethub Logo.png"; // default image
 
                   echo "<tr data-status=\"{$order['order_status']}\">
-                          <td><img src='{$productImage}' alt='Product Image' style='width:50px;height:50px;object-fit:cover;border-radius:4px;'></td>
+                          <td>{$imageHTML}</td>
                           <td>{$order['order_code']}</td>
                           <td>".htmlspecialchars(ucwords(strtolower($order['buyer_name'])))."</td>
-                          <td>{$order['quantity']}</td>
+                          <td>{$productCount}</td>
                           <td>KES {$total}</td>
                           <td><span class='badge {$paymentClass}'>{$paymentLabel}</span></td>
                           <td><span class='badge {$statusClass}' title=\"".htmlspecialchars($statusTooltip)."\">{$statusLabel}</span></td>
                           <td class='actions'>
-                              <div>";
+                        <div>";
 
                   // Action based on status
                   if ($statusClass === 'pending') {
                     echo "<button class='btn-ship' data-id='{$order['order_id']}'>Mark&nbsp;as&nbsp;Shipped</button>";
                   } else {
-
                     echo "<button class='btn-view' 
                             data-buyer='{$order['buyer_id']}'
                             data-order='{$order['order_code']}'
@@ -2482,12 +3340,17 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   echo "      </div>
                           </td>
                           <td><div id='receiptTd'><i class='fa-solid fa-barcode'></i></div></td>
-                          <td>Cash</td>
+                          <td>".htmlspecialchars(ucfirst($order['payment_method'] ?? 'Unknown'))."</td>
                           <td>{$date}</td>
                         </tr>";
                   $count++;
               }
-          }
+          } else {
+            // Display message when no data
+            echo "<tr>
+                    <td colspan='10' style='text-align:center; color:#888;'>No data available in table</td>
+                  </tr>";
+            }
           ?>
           </tbody>
         </table>

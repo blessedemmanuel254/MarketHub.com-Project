@@ -3371,6 +3371,276 @@ function renderCheckoutList() {
 
 
 /* =========================================================
+  POS DATABASE CHECKOUT
+  ========================================================= */
+
+document.addEventListener("DOMContentLoaded", function () {
+
+  const checkoutButton =
+      document.getElementById("checkoutButton");
+
+  const checkoutError =
+      document.getElementById("checkoutError");
+
+  if (!checkoutButton) {
+      return;
+  }
+
+
+  checkoutButton.addEventListener(
+      "click",
+      function (event) {
+
+          event.preventDefault();
+
+
+          /* =============================================
+              CLEAR PREVIOUS ERROR
+              ============================================= */
+
+          if (checkoutError) {
+
+              checkoutError.style.display =
+                  "none";
+
+              checkoutError.innerHTML =
+                  "";
+
+          }
+
+
+          /* =============================================
+              CHECK CART
+              ============================================= */
+
+          const items =
+              Object.values(saleItems);
+
+          if (!items.length) {
+                  
+
+              showCheckoutError(
+                  `<i class="fa-solid fa-circle-exclamation"></i> There are no products in the checkout list!`
+              );
+
+              return;
+
+          }
+
+
+          /* =============================================
+              PAYMENT METHOD
+              ============================================= */
+
+          const paymentInput =
+              document.querySelector(
+                  'input[name="pmethod"]:checked'
+              );
+
+          if (!paymentInput) {
+
+              showCheckoutError(
+                `<i class="fa-solid fa-circle-exclamation"></i> Please select how the customer paid!`
+              );
+
+              return;
+
+          }
+
+
+          const paymentMethod =
+              paymentInput.value;
+
+
+          /* =============================================
+              PREPARE CART
+              ============================================= */
+
+          const cart =
+              items.map(item => {
+
+                  return {
+
+                      id:
+                          String(item.id),
+
+                      quantity:
+                          Number(item.quantity)
+
+                  };
+
+              });
+
+
+          /* =============================================
+              DISABLE BUTTON
+              ============================================= */
+
+          checkoutButton.disabled =
+              true;
+
+          checkoutButton.classList.add(
+              "processing"
+          );
+
+
+          /*
+            * Keep the original button text.
+            */
+          const originalHTML =
+              checkoutButton.innerHTML;
+
+          checkoutButton.innerHTML =
+              "Processing...";
+
+
+          /* =============================================
+              SEND TO sellerPage.php
+              ============================================= */
+
+          const formData =
+              new FormData();
+
+          formData.append(
+              "action",
+              "checkout_sale"
+          );
+
+          formData.append(
+              "payment_method",
+              paymentMethod
+          );
+
+          formData.append(
+              "cart",
+              JSON.stringify(cart)
+          );
+
+
+          fetch(
+              "sellerPage.php",
+              {
+                  method: "POST",
+                  body: formData
+              }
+          )
+
+          .then(response => {
+
+              return response.json();
+
+          })
+
+          .then(data => {
+
+              /*
+                * =========================================
+                * CHECK PHP RESPONSE
+                * =========================================
+                */
+
+              if (!data.success) {
+
+                  showCheckoutError(
+                      data.message ||
+                      `<i class="fa-solid fa-circle-exclamation"></i> Checkout failed!`
+                  );
+
+                  return;
+
+              }
+
+
+              /*
+                * =========================================
+                * CHECKOUT SUCCESS
+                * =========================================
+                */
+
+              /*
+                * Clear the POS cart.
+                */
+              Object.keys(
+                  saleItems
+              ).forEach(productId => {
+
+                  delete saleItems[
+                      productId
+                  ];
+
+              });
+
+
+              /*
+                * Restore every card's visual stock
+                * from the database value that was
+                * originally loaded into data-stock.
+                *
+                * IMPORTANT:
+                *
+                * We don't want to restore the old
+                * stock after a successful checkout.
+                *
+                * Instead reload the page so the
+                * stock comes directly from the
+                * database.
+                */
+              window.location.reload();
+
+          })
+
+          .catch(error => {
+
+              console.error(
+                  "Checkout error:",
+                  error
+              );
+
+              showCheckoutError(
+                  `<i class="fa-solid fa-circle-exclamation"></i> Unable to complete checkout. Please try again!`
+              );
+
+          })
+
+          .finally(() => {
+
+              checkoutButton.disabled =
+                  false;
+
+              checkoutButton.classList.remove(
+                  "processing"
+              );
+
+              checkoutButton.innerHTML =
+                  originalHTML;
+
+          });
+
+      }
+  );
+
+
+  /* =====================================================
+      DISPLAY CHECKOUT ERROR
+      ===================================================== */
+
+  function showCheckoutError(message) {
+
+      if (!checkoutError) {
+          return;
+      }
+
+      checkoutError.innerHTML =
+          message;
+
+      checkoutError.style.display =
+          "flex";
+
+  }
+
+});
+
+/* =========================================================
    UPDATE TOTALS
    ========================================================= */
 
@@ -4574,69 +4844,103 @@ function positionAdjustPopup(card) {
 }
 
 /* =========================================================
-   CLOSE ADJUST POPUP WHEN CLICKING ANYWHERE OUTSIDE IT
-   ========================================================= */
+  CLOSE ADJUST POPUP WHEN CLICKING ANYWHERE OUTSIDE IT
+  ========================================================= */
 
 document.addEventListener("click", function (event) {
 
-  /*
-   * Check whether the click happened inside
-   * an adjust popup.
-   */
-  const clickedInsidePopup =
-    event.target.closest(".adjust-popup");
+/*
+  * Check whether the click happened inside
+  * an adjust popup.
+  */
+const clickedInsidePopup =
+  event.target.closest(".adjust-popup");
 
 
-  /*
-   * If the click was inside the popup,
-   * do nothing.
-   */
-  if (clickedInsidePopup) {
-    return;
-  }
+/*
+  * If the click was inside the popup,
+  * do nothing.
+  */
+if (clickedInsidePopup) {
+  return;
+}
 
 
-  /*
-   * Click was outside the popup.
-   * Close every currently open popup.
-   */
-  document
-    .querySelectorAll(".adjust-popup.active")
-    .forEach(function (popup) {
+/*
+  * Click was outside the popup.
+  * Close every currently open popup.
+  */
+document
+  .querySelectorAll(".adjust-popup.active")
+  .forEach(function (popup) {
 
-      popup.classList.remove("active");
+    popup.classList.remove("active");
 
-    });
+  });
 
 });
 
 function updateEmptyListMessage() {
 
-  const checkoutItems =
-    document.getElementById("checkoutItems");
+const checkoutItems =
+  document.getElementById("checkoutItems");
 
-  const emptyMessage =
-    document.querySelector(".emptyListP");
+const emptyMessage =
+  document.querySelector(".emptyListP");
 
-  if (!checkoutItems || !emptyMessage) {
-    return;
+if (!checkoutItems || !emptyMessage) {
+  return;
+}
+
+
+/*
+  * Check whether there are
+  * products currently in the list.
+  */
+
+const hasProducts =
+  checkoutItems.children.length > 0;
+
+
+/*
+  * Hide message when products exist.
+  * Show it when the list is empty.
+  */
+
+emptyMessage.style.display =
+  hasProducts ? "none" : "flex";
+}
+
+/* =========================================================
+  DAILY STATS SLIDER
+========================================================= */
+
+document.addEventListener("DOMContentLoaded", function () {
+
+  const stats = document.querySelectorAll(
+      ".daily-stat-item"
+  );
+
+  if (!stats.length) {
+      return;
   }
 
+  let current = 0;
 
-  /*
-   * Check whether there are
-   * products currently in the list.
-   */
+  stats[current].classList.add("active");
 
-  const hasProducts =
-    checkoutItems.children.length > 0;
+  setInterval(function () {
 
+      stats[current].classList.remove("active");
 
-  /*
-   * Hide message when products exist.
-   * Show it when the list is empty.
-   */
+      current++;
 
-  emptyMessage.style.display =
-    hasProducts ? "none" : "flex";
-}
+      if (current >= stats.length) {
+          current = 0;
+      }
+
+      stats[current].classList.add("active");
+
+  }, 5000);
+
+});

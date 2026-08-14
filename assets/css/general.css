@@ -751,7 +751,7 @@ html body.no-scroll {
 }
 
 .tabs-container .tab-content .tab-panel p strong, .tabs-container .tab-content .tab-panel-msource p strong, .container main .tab-top p strong, .tabs-container .tab-content .tab-panel-mtype p strong, .toggleMarketSourceTab .tab-content .tab-panel p strong, .toggleMarketSourceTab .tab-content .tab-panel-msource p strong, .tab-panel-admin .tab-top p strong {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: normal;
   color: #088000;
 }
@@ -836,7 +836,7 @@ html body.no-scroll {
 
 .container main#salesDashMain .sales-wrapper .offer-container {
   display: grid;
-  grid-template-columns: .75fr .25fr;
+  grid-template-columns: minmax(0, .7fr) minmax(0, .3fr);
   gap: 20px;
 }
 
@@ -854,8 +854,8 @@ html body.no-scroll {
 
 .container main#salesDashMain .sales-wrapper .sales-grid .cardContainer {
   position: relative;
-  max-width: 100px;
   height: fit-content;
+  width: 100%;
 }
 
 .container main#salesDashMain .sales-wrapper .sales-grid .cardContainer.stock-denied {
@@ -993,7 +993,35 @@ html body.no-scroll {
 }
 
 .container main#salesDashMain .sales-wrapper .offer-container .fSales-container {
-  background-color: lightblue;
+  width: 100%;
+}
+
+@media screen and (max-width: 1000px) {
+  .container main#salesDashMain .sales-wrapper .offer-container {
+  grid-template-columns: minmax(0, .65fr) minmax(0, .35fr);
+  }
+  
+}
+
+@media screen and (max-width: 865px) {
+  .container main#salesDashMain .sales-wrapper .offer-container {
+  grid-template-columns: minmax(0, .55fr) minmax(0, .45fr);
+  }
+  
+}
+
+@media screen and (max-width: 695px) {
+  .container main#salesDashMain .sales-wrapper .offer-container {
+  grid-template-columns: minmax(0, .5fr) minmax(0, .5fr);
+  }
+  
+}
+
+@media screen and (max-width: 625px) {
+  .container main#salesDashMain .sales-wrapper .offer-container {
+  grid-template-columns: minmax(0, .1fr) minmax(0, .5fr);
+  }
+  
 }
 
 .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales {
@@ -1003,6 +1031,7 @@ html body.no-scroll {
   font-size: 13px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   width: 100%;
+  min-width: 280px;
 
 }
 
@@ -1209,6 +1238,85 @@ html body.no-scroll {
 
 .table-wrapper table tbody tr td {
   font-size: 13px;
+}
+
+/* =========================================
+  ORDER PRODUCT IMAGES
+========================================= */
+
+.table-wrapper table tbody tr td .order-product-images {
+  position: relative;
+
+  width: 60px;
+  min-width: 60px;
+  height: 50px;
+
+  padding: 0;
+  cursor: pointer;
+}
+
+
+/* -----------------------------------------
+  EVERY IMAGE = 50 × 50
+----------------------------------------- */
+
+.table-wrapper table tbody tr td
+.order-product-images img {
+  position: absolute;
+
+  width: 50px;
+  height: 50px;
+
+  object-fit: cover;
+
+  border-radius: 8px;
+
+  /* White separation between images */
+  border: 2.5px solid #ffffff;
+
+  background: #ffffff;
+
+  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+
+/* -----------------------------------------
+  FIRST IMAGE
+  Front / normal position
+----------------------------------------- */
+
+.table-wrapper table tbody tr td
+.order-product-images img:nth-child(1) {
+  left: 0;
+  top: 0;
+  z-index: 3;
+}
+
+
+/* -----------------------------------------
+  SECOND IMAGE
+  Behind + slightly up/right
+----------------------------------------- */
+
+.table-wrapper table tbody tr td
+.order-product-images img:nth-child(2) {
+  left: -5px;
+  top: -4px;
+  z-index: 2;
+}
+
+
+/* -----------------------------------------
+  THIRD IMAGE
+  Further behind + slightly up/right
+----------------------------------------- */
+
+.table-wrapper table tbody tr td
+.order-product-images img:nth-child(3) {
+  left: -10px;
+  top: -8px;
+  z-index: 1;
 }
 
 .table-wrapper table tbody tr td #receiptTd {
@@ -1918,10 +2026,23 @@ html body.no-scroll {
   margin-bottom: 5px;
 }
 
-.container main .formContainer form p.errorMessage, .container main .formContainer form p.successMessage, .container main form.actpContainer p.errorMessage, .tab-content .tab-panel p.errorMessage, .tab-content .tab-panel p.successMessage, .tab-panel-admin .form-wrapper form .errorMessage, .container.cmng-sn main .content form .successMessage, .container.cmng-sn main .content form .errorMessage, .container main.profile-main .profile-container .errorMessage, .container main.profile-main .profile-container .successMessage {
+.container main .formContainer form p.errorMessage, .container main .formContainer form p.successMessage, .container main form.actpContainer p.errorMessage, .tab-content .tab-panel p.errorMessage, .tab-content .tab-panel p.successMessage, .tab-panel-admin .form-wrapper form .errorMessage, .container.cmng-sn main .content form .successMessage, .container.cmng-sn main .content form .errorMessage, .container main.profile-main .profile-container .errorMessage, .container main.profile-main .profile-container .successMessage, .tab-content .tab-panel .form-wrapper form .inp-box.sold-by .soldByDiv, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .checkout-error {
   text-align: start;
   font-size: 13px;
   color: #ff3b3b;
+}
+
+.container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .checkout-error {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  text-transform: none !important;
+  font-size: 14px;
+}
+
+.container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .checkout-error i {
+  font-size: 15px;
 }
 
 .tab-content .tab-panel p.successMessage.usrWlt, .tab-content .tab-panel p.errorMessage.usrWlt  {
@@ -3386,6 +3507,79 @@ a.seller-right {
   font-size:12px;
 }
 
+.containerInner .card p.small.daily-stats {
+  position: relative;
+  overflow: hidden;
+
+  opacity: 1;
+  transform: translateY(0);
+
+  transition:
+      opacity 0.45s ease,
+      transform 0.45s ease;
+}
+
+
+/* Message leaving */
+.containerInner .card p.small.daily-stats.slide-out {
+  opacity: 0;
+  transform: translateY(100%);
+}
+
+
+/* New message entering from bottom */
+.containerInner .card p.small.daily-stats.slide-in {
+  opacity: 0;
+  transform: translateY(100%);
+}
+
+/* =========================================================
+DAILY STATS
+========================================================= */
+
+.daily-stats-slider {
+  position: relative;
+  min-height: 22px;
+  overflow: hidden;
+}
+
+.daily-stat-item {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+
+  margin: 0;
+
+  opacity: 0;
+  transform: translateY(18px);
+
+  transition:
+      opacity 0.6s ease,
+      transform 0.6s ease;
+}
+
+.daily-stat-item.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+/* =========================================================
+   DAILY STATS COLORS
+========================================================= */
+
+.daily-stats-slider .daily-stat-item.green {
+    color: #088000 !important;
+}
+
+.daily-stats-slider .daily-stat-item.red {
+    color: #ff3b3b !important;
+}
+
+.daily-stats-slider .daily-stat-item.yellow {
+    color: #856404 !important;
+}
 /* PRODUCTS CSS */
 .products-grid, .tab-panel-admin .products-grid-admin {
   display: grid;
@@ -3491,7 +3685,6 @@ a.seller-right {
   bottom: -155px;
   top: calc(100% + 10px);
   left: 0;
-  background-color: lightblue;
   width: 315px;
   background: #dedede;
   border-radius: 12px;
@@ -3520,7 +3713,7 @@ a.seller-right {
 .container main#salesDashMain .sales-wrapper .sales-grid .cardContainer .adjust-popup::before {
   content: "";
   position: absolute;
-  top: -7px;
+  top: -8px;
   left: var(--popup-arrow-left, 50%);
   transform: translateX(-50%);
   width: 14px;
@@ -3561,7 +3754,7 @@ a.seller-right {
   border-radius: 12px;
   font-size: 14px;
   font-weight: 550;
-  color: #fff;
+  color: #ffffff;
   cursor: pointer;
   position: relative;
   transition: transform .08s ease,box-shadow .08s ease;

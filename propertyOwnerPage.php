@@ -254,7 +254,7 @@ $success = "";
 $productName = '';
 $category    = '';
 $price       = '';
-$stock       = '';
+$stockP       = '';
 
 $editMode = false;
 $editProductId = null;
@@ -872,42 +872,57 @@ $stmt->close();
 
 }
 
-// Fetch seller orders
+// Fetch seller orders — online buyer orders + seller POS checkouts
 $sellerOrders = [];
+
 $stmt = $conn->prepare("
   SELECT 
-    o.order_id,
-    o.order_code,
-    o.created_at,
-    o.buyer_id,
-    u.full_name AS buyer_name,
+      o.order_id,
+      o.order_code,
+      o.created_at,
+      o.buyer_id,
+      o.payment_method,
 
-    oi.item_id,
-    oi.product_id,
-    oi.quantity,
-    oi.price,
-    oi.subtotal,
-    oi.order_status,
-    oi.shipped_at,
-    oi.delivered_at,
-    oi.payment_status,
+      /* Buyer name for online orders, Customer for POS checkout */
+      CASE
+          WHEN o.buyer_id IS NULL THEN 'Customer'
+          ELSE COALESCE(u.full_name, 'Customer')
+      END AS buyer_name,
 
-    p.product_name,
-    p.image_path,
+      oi.item_id,
+      oi.product_id,
+      oi.quantity,
+      oi.price,
+      oi.subtotal,
+      oi.order_status,
+      oi.shipped_at,
+      oi.delivered_at,
+      oi.payment_status,
 
-    (oi.quantity * oi.price) AS seller_total
+      p.product_name,
+      p.image_path,
 
-  FROM order_items oi
-  JOIN orders o ON oi.order_id = o.order_id
-  JOIN users u ON o.buyer_id = u.user_id
-  JOIN productservicesrentals p ON oi.product_id = p.product_id
+      (oi.quantity * oi.price) AS seller_total
+
+  FROM orders o
+
+  INNER JOIN order_items oi
+      ON oi.order_id = o.order_id
+
+  LEFT JOIN users u
+      ON o.buyer_id = u.user_id
+
+  INNER JOIN productservicesrentals p
+      ON oi.product_id = p.product_id
 
   WHERE oi.seller_id = ?
 
   ORDER BY o.created_at DESC
 ");
+
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
+
 $result = $stmt->get_result();
 
 if ($result) {
@@ -915,6 +930,7 @@ if ($result) {
       $sellerOrders[] = $row;
   }
 }
+
 $stmt->close();
 
 // Count seller's active orders (not delivered)
