@@ -2712,6 +2712,41 @@ document.addEventListener("DOMContentLoaded", function () {
    ========================================================= */
 
 const saleItems = {};
+
+/* =========================================================
+  SALES COUNTER
+  Counts UNIQUE PRODUCT TYPES
+  ========================================================= */
+
+function updateSalesCounter() {
+
+  const counter =
+      document.querySelector(".salesCounter p");
+
+  if (!counter) {
+      return;
+  }
+
+
+  /*
+    * Each key in saleItems represents
+    * one product type.
+    *
+    * Therefore:
+    *
+    * 1 Gas
+    * 2.5 Meters Lexine
+    *
+    * = 2 products
+    */
+
+  const count =
+      Object.keys(saleItems).length;
+
+
+  counter.textContent =
+      count;
+}
 /* =========================================================
    UI STOCK
    ========================================================= */
@@ -2966,144 +3001,229 @@ function getCheckoutProductName(item) {
 
 
 /* =========================================================
-   FLY IMAGE TO EXACT PRODUCT NAME
-   ========================================================= */
+  FLY IMAGE TO CHECKOUT
+  DESKTOP  → PRODUCT NAME
+  MOBILE   → SALES COUNTER
+  ========================================================= */
 
-function flyProductToCheckout(
-  imageElement,
-  productId
-) {
+function flyProductToCheckout(imageElement, productId) {
 
-  const checkoutItems =
-    document.getElementById("checkoutItems");
+  if (!imageElement) {
+      return;
+  }
 
-  if (!checkoutItems) {
-    return;
+  /*
+    * On small screens the destination is
+    * the sales counter.
+    */
+  const isMobile =
+      window.matchMedia("(max-width: 625px)").matches;
+
+
+  let targetElement = null;
+
+
+  /* =====================================================
+      MOBILE
+      ===================================================== */
+
+  if (isMobile) {
+
+      targetElement =
+          document.querySelector(".salesCounter");
+
   }
 
 
-  const targetRow =
-    checkoutItems.querySelector(
-      `.checkout-item[data-product-id="${productId}"]`
-    );
+  /* =====================================================
+      DESKTOP
+      ===================================================== */
 
-  if (!targetRow) {
-    return;
+  else {
+
+      const checkoutItems =
+          document.getElementById("checkoutItems");
+
+      if (!checkoutItems) {
+          return;
+      }
+
+
+      const targetRow =
+          checkoutItems.querySelector(
+              `.checkout-item[data-product-id="${productId}"]`
+          );
+
+      if (!targetRow) {
+          return;
+      }
+
+
+      targetElement =
+          targetRow.querySelector(
+              ".checkout-item-name"
+          );
+
+      if (!targetElement) {
+          return;
+      }
+
   }
 
 
-  const targetName =
-    targetRow.querySelector(
-      ".checkout-item-name"
-    );
-
-  if (!targetName) {
-    return;
+  if (!targetElement) {
+      return;
   }
 
+
+  /* =====================================================
+      GET START POSITION
+      ===================================================== */
 
   const startRect =
-    imageElement.getBoundingClientRect();
+      imageElement.getBoundingClientRect();
+
 
   const targetRect =
-    targetName.getBoundingClientRect();
+      targetElement.getBoundingClientRect();
 
+
+  /* =====================================================
+      CLONE PRODUCT IMAGE
+      ===================================================== */
 
   const flyingImage =
-    imageElement.cloneNode(true);
+      imageElement.cloneNode(true);
 
 
   flyingImage.classList.add(
-    "fly-product-image"
+      "fly-product-image"
   );
 
 
   flyingImage.style.position =
-    "fixed";
+      "fixed";
 
   flyingImage.style.left =
-    startRect.left + "px";
+      startRect.left + "px";
 
   flyingImage.style.top =
-    startRect.top + "px";
+      startRect.top + "px";
 
   flyingImage.style.width =
-    startRect.width + "px";
+      startRect.width + "px";
 
   flyingImage.style.height =
-    startRect.height + "px";
+      startRect.height + "px";
 
   flyingImage.style.opacity =
-    "1";
+      "1";
 
   flyingImage.style.transform =
-    "scale(1)";
+      "scale(1)";
+
+  flyingImage.style.zIndex =
+      "99999";
 
 
   document.body.appendChild(
-    flyingImage
+      flyingImage
   );
 
 
   /*
-   * Force browser to register
-   * the initial position.
-   */
+    * Force browser to register
+    * starting position.
+    */
 
   flyingImage.offsetWidth;
 
 
-  /*
-   * Target the exact product name.
-   */
+  /* =====================================================
+      TARGET POSITION
+      ===================================================== */
 
-  const targetX =
-    targetRect.left +
-    (targetRect.width / 2) -
-    15;
+  let targetX;
+  let targetY;
 
-  const targetY =
-    targetRect.top +
-    (targetRect.height / 2) -
-    15;
 
+  if (isMobile) {
+
+      /*
+        * Fly directly to the center
+        * of the sales counter icon.
+        */
+
+      targetX =
+          targetRect.left +
+          (targetRect.width / 2) -
+          15;
+
+      targetY =
+          targetRect.top +
+          (targetRect.height / 2) -
+          15;
+
+  } else {
+
+      /*
+        * Existing desktop behaviour:
+        * target the product name.
+        */
+
+      targetX =
+          targetRect.left +
+          (targetRect.width / 2) -
+          15;
+
+      targetY =
+          targetRect.top +
+          (targetRect.height / 2) -
+          15;
+
+  }
+
+
+  /* =====================================================
+      ANIMATE
+      ===================================================== */
 
   requestAnimationFrame(() => {
 
-    flyingImage.style.left =
-      targetX + "px";
+      flyingImage.style.left =
+          targetX + "px";
 
-    flyingImage.style.top =
-      targetY + "px";
+      flyingImage.style.top =
+          targetY + "px";
 
-    flyingImage.style.width =
-      "30px";
+      flyingImage.style.width =
+          "30px";
 
-    flyingImage.style.height =
-      "30px";
+      flyingImage.style.height =
+          "30px";
 
-    flyingImage.style.opacity =
-      "0.15";
+      flyingImage.style.opacity =
+          "0.15";
 
-    flyingImage.style.transform =
-      "scale(0.25)";
+      flyingImage.style.transform =
+          "scale(0.25)";
 
   });
 
 
   flyingImage.addEventListener(
-    "transitionend",
-    () => {
+      "transitionend",
+      () => {
 
-      flyingImage.remove();
+          flyingImage.remove();
 
-    },
-    {
-      once: true
-    }
+      },
+      {
+          once: true
+      }
   );
-}
 
+}
 
 /* =========================================================
    ADD / REPLACE PRODUCT IN CHECKOUT
@@ -3191,6 +3311,7 @@ function saveProductToCheckout(
 
       saleItems[productId].quantity =
         newQuantity;
+      updateSalesCounter();
 
     } 
     else {
@@ -3210,6 +3331,7 @@ function saveProductToCheckout(
         quantity: quantity
 
       };
+      updateSalesCounter();
 
     }
 
@@ -3248,8 +3370,10 @@ function saveProductToCheckout(
        */
 
       quantity: quantity
+      
 
     };
+    updateSalesCounter();
 
   }
 
@@ -3762,6 +3886,7 @@ function resetProductCalculator(card) {
 
       quantityValue.textContent =
           "0";
+  
 
   }
 
@@ -3769,8 +3894,147 @@ function resetProductCalculator(card) {
     * Hide current adjustment
     * and Add to list button.
     */
+  updateSalesCounter();
   updateAdjustmentControls(card);
 }
+
+/* =========================================================
+  MOBILE SALES COUNTER
+  TOGGLE SALES GRID / CHECKOUT FORM
+  ========================================================= */
+
+document.addEventListener("DOMContentLoaded", function () {
+
+  const salesCounter =
+      document.querySelector("#salesDashMain .salesCounter");
+
+  const salesGrid =
+      document.querySelector("#salesDashMain .sales-grid");
+
+  const checkoutForm =
+      document.querySelector("#salesDashMain form.cardFSales");
+
+
+  if (!salesCounter || !salesGrid || !checkoutForm) {
+      return;
+  }
+
+
+  salesCounter.addEventListener("click", function () {
+
+      /*
+        * Only activate on small screens
+        */
+      if (
+          !window.matchMedia("(max-width: 625px)").matches
+      ) {
+          return;
+      }
+
+
+      /*
+        * Currently showing SALES GRID
+        * → show CHECKOUT
+        */
+
+      if (salesGrid.style.display !== "none") {
+
+          /*
+            * Fade/slide sales grid out
+            */
+          salesGrid.style.transition =
+              "opacity 0.25s ease, transform 0.25s ease";
+
+          salesGrid.style.opacity = "0";
+          salesGrid.style.transform =
+              "translateX(-15px)";
+
+
+          setTimeout(function () {
+
+              salesGrid.style.display = "none";
+
+              /*
+                * Prepare checkout just outside view
+                */
+              checkoutForm.style.display = "block";
+              checkoutForm.style.opacity = "0";
+              checkoutForm.style.transform =
+                  "translateX(15px)";
+
+              checkoutForm.style.transition =
+                  "opacity 0.25s ease, transform 0.25s ease";
+
+
+              /*
+                * Start checkout animation
+                */
+              requestAnimationFrame(function () {
+
+                  checkoutForm.style.opacity = "1";
+                  checkoutForm.style.transform =
+                      "translateX(0)";
+
+              });
+
+          }, 150);
+
+      }
+
+
+      /*
+        * Currently showing CHECKOUT
+        * → show SALES GRID
+        */
+
+      else {
+
+          /*
+            * Fade/slide checkout out
+            */
+          checkoutForm.style.transition =
+              "opacity 0.25s ease, transform 0.25s ease";
+
+          checkoutForm.style.opacity = "0";
+          checkoutForm.style.transform =
+              "translateX(15px)";
+
+
+          setTimeout(function () {
+
+              checkoutForm.style.display = "none";
+
+
+              /*
+                * Prepare sales grid
+                */
+              salesGrid.style.display = "grid";
+              salesGrid.style.opacity = "0";
+              salesGrid.style.transform =
+                  "translateX(-15px)";
+
+              salesGrid.style.transition =
+                  "opacity 0.25s ease, transform 0.25s ease";
+
+
+              /*
+                * Start grid animation
+                */
+              requestAnimationFrame(function () {
+
+                  salesGrid.style.opacity = "1";
+                  salesGrid.style.transform =
+                      "translateX(0)";
+
+              });
+
+          }, 150);
+
+      }
+
+  });
+
+});
 
 /* =========================================================
 UPDATE ADJUSTMENT CONTROLS VISIBILITY
@@ -4912,35 +5176,239 @@ emptyMessage.style.display =
 }
 
 /* =========================================================
-  DAILY STATS SLIDER
+   DAILY STATS
+   TYPEWRITER + TRANSFORM
 ========================================================= */
 
 document.addEventListener("DOMContentLoaded", function () {
 
-  const stats = document.querySelectorAll(
-      ".daily-stat-item"
-  );
+    const stats = document.querySelectorAll(
+        ".daily-stat-item"
+    );
 
-  if (!stats.length) {
-      return;
-  }
+    if (!stats.length) {
+        return;
+    }
 
-  let current = 0;
 
-  stats[current].classList.add("active");
+    let current = 0;
 
-  setInterval(function () {
 
-      stats[current].classList.remove("active");
+    /*
+     * Save the original text of every message.
+     */
+    const messages = Array.from(stats).map(function (stat) {
 
-      current++;
+        return stat.textContent
+            .trim()
+            .replace(/\s+/g, " ");
 
-      if (current >= stats.length) {
-          current = 0;
-      }
+    });
 
-      stats[current].classList.add("active");
 
-  }, 5000);
+    /*
+     * Hide everything initially.
+     */
+    stats.forEach(function (stat) {
+
+        stat.style.display = "none";
+
+    });
+
+
+    /* =====================================================
+       TYPEWRITER
+    ===================================================== */
+
+    function typewriter(stat, text, callback) {
+
+        stat.style.display = "block";
+
+        stat.classList.remove(
+            "transform",
+            "show"
+        );
+
+        stat.classList.add(
+            "typewriter"
+        );
+
+        stat.textContent = "";
+
+        let position = 0;
+
+        const speed = 45;
+
+
+        function write() {
+
+            if (position < text.length) {
+
+                stat.textContent +=
+                    text.charAt(position);
+
+                position++;
+
+                setTimeout(
+                    write,
+                    speed
+                );
+
+                return;
+            }
+
+
+            /*
+             * Finished typing.
+             *
+             * Leave message visible for
+             * five seconds.
+             */
+
+            setTimeout(function () {
+
+                callback();
+
+            }, 5000);
+
+        }
+
+
+        write();
+
+    }
+
+
+    /* =====================================================
+       TRANSFORM
+    ===================================================== */
+
+    function transform(stat, text, callback) {
+
+        stat.classList.remove(
+            "typewriter"
+        );
+
+        stat.classList.add(
+            "transform"
+        );
+
+        stat.textContent = text;
+
+        /*
+         * First make it visible in the DOM,
+         * but keep it at the bottom.
+         */
+        stat.style.display = "block";
+
+
+        /*
+         * Force browser reflow.
+         */
+        void stat.offsetWidth;
+
+
+        /*
+         * Now trigger the transition.
+         */
+        requestAnimationFrame(function () {
+
+            stat.classList.add(
+                "show"
+            );
+
+        });
+
+
+        /*
+         * Leave it visible for 5 seconds.
+         */
+        setTimeout(function () {
+
+            callback();
+
+        }, 5600);
+
+    }
+
+
+    /* =====================================================
+       NEXT MESSAGE
+    ===================================================== */
+
+    function nextMessage() {
+
+        /*
+         * Hide every message.
+         */
+        stats.forEach(function (stat) {
+
+            stat.style.display = "none";
+
+            stat.classList.remove(
+                "typewriter",
+                "transform",
+                "show"
+            );
+
+        });
+
+
+        const stat =
+            stats[current];
+
+        const text =
+            messages[current];
+
+
+        /*
+         * 0, 2, 4... = TYPEWRITER
+         *
+         * 1, 3, 5... = TRANSFORM
+         */
+
+        if (current % 2 === 0) {
+
+            typewriter(
+                stat,
+                text,
+                goNext
+            );
+
+        } else {
+
+            transform(
+                stat,
+                text,
+                goNext
+            );
+
+        }
+
+    }
+
+
+    /* =====================================================
+       GO TO NEXT
+    ===================================================== */
+
+    function goNext() {
+
+        current++;
+
+        if (current >= stats.length) {
+            current = 0;
+        }
+
+        nextMessage();
+
+    }
+
+
+    /* =====================================================
+       START
+    ===================================================== */
+
+    nextMessage();
 
 });

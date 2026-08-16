@@ -1017,13 +1017,6 @@ html body.no-scroll {
   
 }
 
-@media screen and (max-width: 625px) {
-  .container main#salesDashMain .sales-wrapper .offer-container {
-  grid-template-columns: minmax(0, .1fr) minmax(0, .5fr);
-  }
-  
-}
-
 .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales {
   border-radius: 4px;
   border: 1px solid #8988886b;
@@ -1032,6 +1025,36 @@ html body.no-scroll {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   width: 100%;
   min-width: 280px;
+
+}
+
+@media screen and (max-width: 625px) {
+
+  .container main#salesDashMain
+  .sales-wrapper
+  .offer-container {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .container main#salesDashMain
+  .sales-wrapper
+  .offer-container
+  form.cardFSales {
+    display: none;
+  }
+
+  .container main#salesDashMain
+  .tab-top
+  .salesSideDiv
+  .salesCounter {
+    display: flex;
+    cursor: pointer;
+  }
+
+  .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales {
+    max-width: 450px;
+    margin: 0 auto;
+  }
 
 }
 
@@ -3519,54 +3542,60 @@ a.seller-right {
       transform 0.45s ease;
 }
 
-
-/* Message leaving */
-.containerInner .card p.small.daily-stats.slide-out {
-  opacity: 0;
-  transform: translateY(100%);
-}
-
-
-/* New message entering from bottom */
-.containerInner .card p.small.daily-stats.slide-in {
-  opacity: 0;
-  transform: translateY(100%);
-}
-
 /* =========================================================
-DAILY STATS
+   DAILY STATS SLIDER
 ========================================================= */
 
 .daily-stats-slider {
-  position: relative;
-  min-height: 22px;
-  overflow: hidden;
+    position: relative;
+    min-height: 22px;
+    overflow: hidden;
 }
 
 .daily-stat-item {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
 
-  margin: 0;
-
-  opacity: 0;
-  transform: translateY(18px);
-
-  transition:
-      opacity 0.6s ease,
-      transform 0.6s ease;
-}
-
-.daily-stat-item.active {
-  opacity: 1;
-  transform: translateY(0);
+    display: none;
 }
 
 
 /* =========================================================
-   DAILY STATS COLORS
+   TYPEWRITER
+========================================================= */
+
+.daily-stat-item.typewriter {
+    display: block;
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   TRANSFORM
+========================================================= */
+
+.daily-stat-item.transform {
+    display: block;
+
+    opacity: 0;
+    transform: translateY(25px);
+
+    transition:
+        opacity 0.6s ease,
+        transform 0.6s ease;
+}
+
+.daily-stat-item.transform.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+
+/* =========================================================
+   COLORS
 ========================================================= */
 
 .daily-stats-slider .daily-stat-item.green {
@@ -3580,6 +3609,7 @@ DAILY STATS
 .daily-stats-slider .daily-stat-item.yellow {
     color: #856404 !important;
 }
+
 /* PRODUCTS CSS */
 .products-grid, .tab-panel-admin .products-grid-admin {
   display: grid;

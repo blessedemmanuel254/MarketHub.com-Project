@@ -21,7 +21,7 @@ if (!isset($_SESSION['created'])) {
 $allowedRole = 'seller';
 
 $roleStmt = $conn->prepare(
-    "SELECT account_type FROM users WHERE user_id = ? LIMIT 1"
+  "SELECT account_type FROM users WHERE user_id = ? LIMIT 1"
 );
 $roleStmt->bind_param("i", $_SESSION['user_id']);
 $roleStmt->execute();
@@ -51,6 +51,80 @@ function formatDate($date) {
   } else {
       return date("d M Y", $timestamp);
   }
+}
+
+/* =========================================================
+  CORRECT IMAGE ORIENTATION
+  ========================================================= */
+
+function fixImageOrientation($image, $fileTmp, $mime)
+{
+  /*
+    * EXIF orientation is normally available for JPEG images.
+    * PNG and WebP generally don't use JPEG-style EXIF
+    * orientation in the same way.
+    */
+  if ($mime !== 'image/jpeg') {
+    return $image;
+  }
+
+  if (!function_exists('exif_read_data')) {
+    return $image;
+  }
+
+  $exif = @exif_read_data($fileTmp);
+
+  if (!$exif || empty($exif['Orientation'])) {
+    return $image;
+  }
+
+  $orientation = (int)$exif['Orientation'];
+
+  switch ($orientation) {
+
+      /* Normal */
+      case 1:
+        break;
+
+      /* Flip horizontally */
+      case 2:
+          imageflip($image, IMG_FLIP_HORIZONTAL);
+          break;
+
+      /* Rotate 180° */
+      case 3:
+          $image = imagerotate($image, 180, 0);
+          break;
+
+      /* Flip vertically */
+      case 4:
+          imageflip($image, IMG_FLIP_VERTICAL);
+          break;
+
+      /* Flip horizontally + rotate 90° CCW */
+      case 5:
+          imageflip($image, IMG_FLIP_HORIZONTAL);
+          $image = imagerotate($image, 90, 0);
+          break;
+
+      /* Rotate 90° CW */
+      case 6:
+          $image = imagerotate($image, -90, 0);
+          break;
+
+      /* Flip horizontally + rotate 90° CW */
+      case 7:
+          imageflip($image, IMG_FLIP_HORIZONTAL);
+          $image = imagerotate($image, -90, 0);
+          break;
+
+      /* Rotate 90° CCW */
+      case 8:
+          $image = imagerotate($image, 90, 0);
+          break;
+  }
+
+  return $image;
 }
 
 function formatToK($number) {
@@ -1112,57 +1186,146 @@ if ($width < 400 || $height < 400) {
 
 }
 
-/* ---------- RESIZE IMAGE FIRST ---------- */
+/* ---------- LOAD + CORRECT IMAGE ORIENTATION ---------- */
 
 if (empty($error)) {
 
-$maxSize = 700;
+  switch ($mime) {
 
-$ratio = min($maxSize/$width,$maxSize/$height,1);
+      case 'image/jpeg':
 
-$newWidth  = (int)($width*$ratio);
-$newHeight = (int)($height*$ratio);
+          $source = imagecreatefromjpeg($fileTmp);
 
-$canvas = imagecreatetruecolor($newWidth,$newHeight);
+          if (!$source) {
+              $error = "Unable to process JPEG image.";
+              break;
+          }
 
-switch ($mime) {
+          /*
+            * Correct phone/camera orientation.
+            */
+          $source = fixImageOrientation(
+              $source,
+              $fileTmp,
+              $mime
+          );
 
-case 'image/jpeg':
-$source = imagecreatefromjpeg($fileTmp);
-break;
+          break;
 
-case 'image/png':
-$source = imagecreatefrompng($fileTmp);
-imagealphablending($canvas,false);
-imagesavealpha($canvas,true);
-break;
 
-case 'image/webp':
-$source = imagecreatefromwebp($fileTmp);
-break;
+      case 'image/png':
 
+          $source = imagecreatefrompng($fileTmp);
+
+          if (!$source) {
+              $error = "Unable to process PNG image.";
+              break;
+          }
+
+          break;
+
+
+      case 'image/webp':
+
+          $source = imagecreatefromwebp($fileTmp);
+
+          if (!$source) {
+              $error = "Unable to process WebP image.";
+              break;
+          }
+
+          break;
+
+
+      default:
+
+          $error = "Unsupported image format.";
+          break;
+  }
 }
 
-imagecopyresampled(
-$canvas,$source,
-0,0,0,0,
-$newWidth,$newHeight,
-$width,$height
-);
+
+/* ---------- RESIZE CORRECTED IMAGE ---------- */
+
+if (empty($error)) {
+
+  /*
+    * IMPORTANT:
+    * Get dimensions AFTER EXIF orientation
+    * has been corrected.
+    */
+  $width  = imagesx($source);
+  $height = imagesy($source);
 
 
-/* ---------- SAVE TEMP IMAGE FOR HASHING ---------- */
+  $maxSize = 700;
 
-$tempFile = tempnam(sys_get_temp_dir(),'img_').'.webp';
+  $ratio = min(
+      $maxSize / $width,
+      $maxSize / $height,
+      1
+  );
 
-imagewebp($canvas,$tempFile,75);
+
+  $newWidth  = (int)round($width * $ratio);
+  $newHeight = (int)round($height * $ratio);
 
 
-/* ---------- GENERATE HASHES ---------- */
+  $canvas = imagecreatetruecolor(
+      $newWidth,
+      $newHeight
+  );
 
-$imgHash  = md5_file($tempFile);
-$imgPhash = generateImageDHash($tempFile);
 
+  /* Preserve PNG/WebP transparency */
+  imagealphablending(
+      $canvas,
+      false
+  );
+
+  imagesavealpha(
+      $canvas,
+      true
+  );
+
+
+  imagecopyresampled(
+      $canvas,
+      $source,
+      0,
+      0,
+      0,
+      0,
+      $newWidth,
+      $newHeight,
+      $width,
+      $height
+  );
+
+
+  /* ---------- SAVE TEMP IMAGE FOR HASHING ---------- */
+
+  $tempFile =
+      tempnam(
+          sys_get_temp_dir(),
+          'img_'
+      ) . '.webp';
+
+
+  imagewebp(
+      $canvas,
+      $tempFile,
+      75
+  );
+
+
+  /* ---------- GENERATE HASHES ---------- */
+
+  $imgHash =
+      md5_file($tempFile);
+
+  $imgPhash =
+      generateImageDHash($tempFile);
 }
 
 
@@ -1427,57 +1590,161 @@ $error="Image too small. Minimum size is 600×600 px.";
 }
 
 
-/* ---------- RESIZE IMAGE BEFORE HASH ---------- */
+/* ---------- LOAD + CORRECT IMAGE ORIENTATION ---------- */
 
-if(empty($error) && isset($_FILES['photo']) && $_FILES['photo']['error']==0){
+if (
+  empty($error) &&
+  isset($_FILES['photo']) &&
+  $_FILES['photo']['error'] == 0
+) {
 
-$maxSize=700;
+  switch ($mime) {
 
-$ratio=min($maxSize/$width,$maxSize/$height,1);
+      case 'image/jpeg':
 
-$newWidth  =(int)($width*$ratio);
-$newHeight =(int)($height*$ratio);
+          $source =
+              imagecreatefromjpeg($fileTmp);
 
-$canvas=imagecreatetruecolor($newWidth,$newHeight);
+          if (!$source) {
+              $error = "Unable to process JPEG image.";
+              break;
+          }
 
-switch($mime){
+          /*
+            * Correct phone/camera EXIF orientation.
+            */
+          $source =
+              fixImageOrientation(
+                  $source,
+                  $fileTmp,
+                  $mime
+              );
 
-case 'image/jpeg':
-$source=imagecreatefromjpeg($fileTmp);
-break;
+          break;
 
-case 'image/png':
-$source=imagecreatefrompng($fileTmp);
-imagealphablending($canvas,false);
-imagesavealpha($canvas,true);
-break;
 
-case 'image/webp':
-$source=imagecreatefromwebp($fileTmp);
-break;
+      case 'image/png':
 
+          $source =
+              imagecreatefrompng($fileTmp);
+
+          if (!$source) {
+              $error = "Unable to process PNG image.";
+              break;
+          }
+
+          break;
+
+
+      case 'image/webp':
+
+          $source =
+              imagecreatefromwebp($fileTmp);
+
+          if (!$source) {
+              $error = "Unable to process WebP image.";
+              break;
+          }
+
+          break;
+
+
+      default:
+
+          $error = "Unsupported image format.";
+          break;
+  }
 }
 
-imagecopyresampled(
-$canvas,$source,
-0,0,0,0,
-$newWidth,$newHeight,
-$width,$height
-);
+
+/* ---------- RESIZE CORRECTED IMAGE ---------- */
+
+if (
+  empty($error) &&
+  isset($source)
+) {
+
+  /*
+    * Get dimensions AFTER orientation correction.
+    */
+  $width  = imagesx($source);
+  $height = imagesy($source);
 
 
-/* ---------- TEMP FILE FOR HASH ---------- */
+  $maxSize = 700;
 
-$tempFile=tempnam(sys_get_temp_dir(),'img_').'.webp';
+  $ratio = min(
+      $maxSize / $width,
+      $maxSize / $height,
+      1
+  );
 
-imagewebp($canvas,$tempFile,75);
+
+  $newWidth =
+      (int)round($width * $ratio);
+
+  $newHeight =
+      (int)round($height * $ratio);
 
 
-/* ---------- GENERATE HASHES ---------- */
+  $canvas =
+      imagecreatetruecolor(
+          $newWidth,
+          $newHeight
+      );
 
-$imgHash  = md5_file($tempFile);
-$imgPhash = generateImageDHash($tempFile);
 
+  /*
+    * Preserve transparency.
+    */
+  imagealphablending(
+      $canvas,
+      false
+  );
+
+  imagesavealpha(
+      $canvas,
+      true
+  );
+
+
+  imagecopyresampled(
+      $canvas,
+      $source,
+      0,
+      0,
+      0,
+      0,
+      $newWidth,
+      $newHeight,
+      $width,
+      $height
+  );
+
+
+  /* ---------- TEMP FILE FOR HASH ---------- */
+
+  $tempFile =
+      tempnam(
+          sys_get_temp_dir(),
+          'img_'
+      ) . '.webp';
+
+
+  imagewebp(
+      $canvas,
+      $tempFile,
+      75
+  );
+
+
+  /* ---------- GENERATE HASHES ---------- */
+
+  $imgHash =
+      md5_file($tempFile);
+
+  $imgPhash =
+      generateImageDHash($tempFile);
 }
 
 
@@ -1798,20 +2065,33 @@ if ($result) {
 
 $stmt->close();
 
-// Count seller's active orders (not delivered)
+// Count seller's orders
+// One order = one count, regardless of number of products
 $countStmt = $conn->prepare("
-  SELECT COUNT(*) AS activeOrders
-  FROM order_items
-  WHERE seller_id = ? AND order_status != 'delivered'
+  SELECT COUNT(DISTINCT o.order_id) AS activeOrders
+  FROM orders o
+  INNER JOIN order_items oi
+      ON oi.order_id = o.order_id
+  LEFT JOIN users u
+      ON o.buyer_id = u.user_id
+  INNER JOIN productservicesrentals p
+      ON oi.product_id = p.product_id
+  WHERE seller_id = ?
+    AND order_status = 'pending'
 ");
+
 $countStmt->bind_param("i", $user_id);
 $countStmt->execute();
+
 $countResult = $countStmt->get_result();
+
 $activeOrders = 0;
+
 if ($countResult && $countResult->num_rows === 1) {
-    $row = $countResult->fetch_assoc();
-    $activeOrders = (int)$row['activeOrders'];
+  $row = $countResult->fetch_assoc();
+  $activeOrders = (int)$row['activeOrders'];
 }
+
 $countStmt->close();
 
 // Prepare display value
@@ -2309,17 +2589,17 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                       <p class="small daily-stat-item green">
                           <?= $dailyOrders ?>
                           <?= $dailyOrders == 1 ? 'sale' : 'sales' ?>
-                          made today
+                          made today 🎉
                       </p>
 
                       <p class="small daily-stat-item green">
                           KES <?= number_format($dailyCash, 2) ?>
-                          collected by cash today
+                          collected by cash today 💸
                       </p>
 
                       <p class="small daily-stat-item green">
                           KES <?= number_format($dailyBank, 2) ?>
-                          collected by bank today
+                          collected by bank today 🏦
                       </p>
 
                       <?php if ($dailyOutOfStock > 0): ?>
@@ -2327,7 +2607,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                           <p class="small daily-stat-item red">
                               <?= $dailyOutOfStock ?>
                               <?= $dailyOutOfStock == 1 ? 'product is' : 'products are' ?>
-                              out of stock
+                              out of stock ❗
                           </p>
 
                       <?php endif; ?>
@@ -2337,7 +2617,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                           <p class="small daily-stat-item yellow">
                               <?= $dailyLowStock ?>
                               <?= $dailyLowStock == 1 ? 'product is' : 'products are' ?>
-                              running low
+                              running low ⚠️
                           </p>
 
                       <?php endif; ?>
