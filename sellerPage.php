@@ -1461,7 +1461,7 @@ $customCategoryId = !empty($_POST['custom_category_id'])
     ? (int) $_POST['custom_category_id']
     : null;
 
-$newCustomCategory = trim($_POST['new_custom_category'] ?? '');
+$newCustomCategory = smartTitleCase(trim($_POST['new_custom_category'] ?? ''));
 
 $postedCustomCategoryId = !empty($_POST['custom_category_id'])
   ? (int) $_POST['custom_category_id']
@@ -2033,7 +2033,7 @@ $customCategoryId = !empty($_POST['custom_category_id'])
   ? (int)$_POST['custom_category_id']
   : null;
 
-$newCustomCategory = trim($_POST['new_custom_category'] ?? '');
+$newCustomCategory = smartTitleCase(trim($_POST['new_custom_category'] ?? ''));
 
 
 /*
@@ -3439,7 +3439,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   <!-- =========================
                       VIEW MORE
                   ========================= -->
-
+                <div class="card-contain">
                   <div
                     class="view-more-card"
                     id="viewMoreProducts"
@@ -3480,6 +3480,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                     </div>
 
                   </div>
+                </div>
                 <?php else: ?>
                     <p>No products uploaded yet. Click "Add Product" to start selling.</p>
                 <?php endif; ?>

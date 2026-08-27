@@ -1484,7 +1484,7 @@ html body.no-scroll {
 }
 
 .tabs-container .tab-content .tab-top.sales button {
-  background-color: #ff3b3b;
+  background-color: #0f0f0f;
   font-weight: bold;
 }
 
@@ -4126,11 +4126,10 @@ a.seller-right {
 ========================= */
 
 .view-more-card {
-  border-radius: 12px;
+  border-radius: 22px;
   overflow: hidden;
   width: 170px;
   height: 170px;
-
   aspect-ratio: 1 / 1.18;
   min-width: 0;
   border: 1px solid #dedede;
@@ -4148,7 +4147,7 @@ a.seller-right {
 
 .view-more-card:hover {
 
-  background: #fff;
+  background: #ffffff;
   transform: translateY(-3px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -4162,20 +4161,20 @@ a.seller-right {
   width: 46px;
   height: 46px;
   border-radius: 50%;
-  background: #0f0f0f;
+  background: #ffffff;
   border: 1px solid #dedede;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
+  color: #0f0f0f;
   transition: background .22s ease, color .22s ease, border-color .22s ease, transform .22s ease;
   box-shadow: 0 3px 10px rgba(0, 0, 0, .05);
 }
 
 .view-more-card:hover .view-more-icon {
-  background: #088000;
-  color: #fff;
-  border-color: #088000;
+  background: #0f0f0f;
+  border-color: #dedede;
+  color: #ffffff;
 }
 
 .view-more-icon svg {
@@ -4188,18 +4187,14 @@ a.seller-right {
 ========================= */
 
 .view-more-text {
-
   font-size: 12px;
-
   font-weight: 500;
-
-  color: #333;
-
+  color: #0f0f0f;
   text-align: center;
 }
 
 .view-more-count {
-  font-size: 10px;
+  font-size: 11px;
   color: #898888;
   text-align: center;
 }
@@ -4217,17 +4212,14 @@ a.seller-right {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   z-index: 11;
   height: fit-content;
-
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
 .container main#salesDashMain .sales-wrapper .sales-grid .cardContainer .adjust-popup.active {
   display: block;
-
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
