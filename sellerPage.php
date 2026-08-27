@@ -3656,6 +3656,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                         Rolls
                       </label>
                       <label class="account-type">
+                        <input type="radio" name="unit" value="m²" <?= ($unit === 'm²') ? 'checked' : '' ?>>
+                        <div class="radio-dot"></div>
+                        Square Meters
+                      </label>
+                      <label class="account-type">
                         <input type="radio" name="unit" value="Tone" <?= ($unit === 'Tone') ? 'checked' : '' ?>>
                         <div class="radio-dot"></div>
                         Tones
@@ -3715,7 +3720,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                         <label>Upload Product Image</label>
                         <input type="file" name="photo" accept="image/png,image/jpeg,image/webp" required>
                         <div class="note">
-                          600×600 – 1600×1600 px • Max 5MB<br>
+                          400×400 – 1600×1600 px • Max 10MB<br>
                           Automatically optimized for buyers
                         </div>
                       </div>
