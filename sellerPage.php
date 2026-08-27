@@ -1622,22 +1622,22 @@ if (!$stmt) {
 }
 
 $stmt->bind_param(
-    "ississddiiissss",
-    $user_id,
-    $productName,
-    $category,
-    $customCategoryId,
-    $saleType,
-    $unit,
-    $buyingPrice,
-    $sellingPrice,
-    $stock,
-    $filePath,
-    $newWidth,
-    $newHeight,
-    $fileSizeKB,
-    $imgHash,
-    $imgPhash
+  "ississddisiiiss",
+  $user_id,
+  $productName,
+  $category,
+  $customCategoryId,
+  $saleType,
+  $unit,
+  $buyingPrice,
+  $sellingPrice,
+  $stock,
+  $filePath,
+  $newWidth,
+  $newHeight,
+  $fileSizeKB,
+  $imgHash,
+  $imgPhash
 );
 
 if ($stmt->execute()) {
