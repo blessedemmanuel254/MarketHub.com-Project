@@ -590,7 +590,7 @@ if (
                 product_id,
                 user_id,
                 product_name,
-                price,
+                selling_price,
                 stock_quantity,
                 unit
             FROM productservicesrentals
@@ -779,7 +779,7 @@ if (
                 product_id,
                 seller_id,
                 quantity,
-                price,
+                selling_price,
                 subtotal,
                 order_status,
                 payment_status
@@ -982,7 +982,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_product_id']))
 $products = [];
 
 $stmt = $conn->prepare("
-    SELECT product_id, product_name, category, price, stock_quantity, unit, image_path
+    SELECT product_id, product_name, category, 
+    custom_category_id, buying_price, selling_price, stock_quantity, unit, image_path
     FROM productservicesrentals
     WHERE user_id = ?
     ORDER BY created_at DESC
@@ -994,12 +995,45 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result) {
+
     while ($row = $result->fetch_assoc()) {
+
         $products[] = $row;
     }
 }
 
 $stmt->close();
+
+
+// =========================================================
+// LOAD PRODUCT FOR EDITING
+// =========================================================
+
+$editProductId = isset($_GET['edit_product_id'])
+    ? (int) $_GET['edit_product_id']
+    : 0;
+
+$editMode = $editProductId > 0;
+
+if ($editMode) {
+
+    foreach ($products as $product) {
+
+        if ((int) $product['product_id'] === $editProductId) {
+
+            $productName      = $product['product_name'];
+            $category         = $product['category'];
+            $customCategoryId = $product['custom_category_id'];
+            $buyingPrice      = $product['buying_price'];
+            $sellingPrice     = $product['selling_price'];
+            $stock            = $product['stock_quantity'];
+            $unit             = $product['unit'];
+            $currentImagePath = $product['image_path'];
+
+            break;
+        }
+    }
+}
 
 /* ---------- PROFILE LETTER ---------- */
 $profileLetter = strtoupper(substr($username, 0, 1));
@@ -1026,15 +1060,17 @@ if (!empty($profileImage) && file_exists($profileImage)) {
     $safeProfileImage = $defaultAvatar;
 }
 
-
 $error = "";
 $success = "";
 
 $productName = '';
 $category    = '';
+
+$customCategoryId = null;
 $saleType = '';
 $unit      = '';
-$price       = '';
+$buyingPrice       = '';
+$sellingPrice       = '';
 $stock       = '';
 
 $editMode = false;
@@ -1045,17 +1081,19 @@ if (isset($_GET['edit_product_id'])) {
   $editProductId = intval($_GET['edit_product_id']);
 
   $stmt = $conn->prepare("
-      SELECT
-          product_name,
-          category,
-          sale_type,
-          unit,
-          price,
-          stock_quantity,
-          image_path
-      FROM productservicesrentals
-      WHERE product_id = ? AND user_id = ?
-      LIMIT 1
+    SELECT
+        product_name,
+        category,
+        custom_category_id,
+        sale_type,
+        unit,
+        buying_price,
+        selling_price,
+        stock_quantity,
+        image_path
+    FROM productservicesrentals
+    WHERE product_id = ? AND user_id = ?
+    LIMIT 1
   ");
 
   $stmt->bind_param("ii", $editProductId, $user_id);
@@ -1066,11 +1104,13 @@ if (isset($_GET['edit_product_id'])) {
 
       $product = $result->fetch_assoc();
 
-      $productName      = $product['product_name'];
-      $category         = $product['category'];
-      $saleType         = $product['sale_type'];
+      $productName       = $product['product_name'];
+      $category          = $product['category'];
+      $customCategoryId  = $product['custom_category_id'];
+      $saleType          = $product['sale_type'];
       $unit             = $product['unit'];
-      $price            = $product['price'];
+      $buyingPrice            = $product['buying_price'];
+      $sellingPrice            = $product['selling_price'];
       $stock            = $product['stock_quantity'];
       $currentImagePath = $product['image_path'];
 
@@ -1087,7 +1127,8 @@ $productName = smartTitleCase($_POST['name'] ?? '');
 $category    = trim($_POST['category'] ?? '');
 $saleType = $_POST['sale_type'] ?? 'Each';
 $unit      = $_POST['unit'] ?? 'Each';
-$price       = floatval($_POST['price'] ?? 0);
+$buyingPrice       = floatval($_POST['bPrice'] ?? 0);
+$sellingPrice       = floatval($_POST['sPrice'] ?? 0);
 $stock       = intval($_POST['stock'] ?? 0);
 if ($saleType === 'Each') {
   $unit = 'Each';
@@ -1096,26 +1137,32 @@ if ($saleType === 'Each') {
 /* ---------- BASIC VALIDATION ---------- */
 
 if ($productName === '') {
-$error = "Product name is required.";
+$error = "Product name is required!";
 }
 elseif ($category === '') {
-$error = "Please select a category.";
+$error = "Please select a category!";
 }
 elseif ($saleType === '') {
-$error = "Please select a sale type.";
+$error = "Please select a sale type!";
 }
 elseif ($unit === '') {
-$error = "Please select a unit.";
+$error = "Please select a unit!";
 }
-elseif ($price <= 0) {
-$error = "Price must be greater than zero.";
+elseif ($buyingPrice > $sellingPrice) {
+$error = "Buying price must be less than selling price!";
+}
+elseif ($buyingPrice <= 0) {
+$error = "Buying must be greater than zero!";
+}
+elseif ($sellingPrice <= 0) {
+$error = "Selling price must be greater than zero!";
 }
 
 elseif ($stock < 0) {
-$error = "Stock cannot be negative.";
+$error = "Stock cannot be negative!";
 }
 elseif (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== 0) {
-$error = "Please upload a product image.";
+$error = "Please upload a product image!";
 }
 if ($saleType === 'Each') {
   $unit = 'Each';
@@ -1406,68 +1453,210 @@ $fileSizeKB = round(filesize($filePath)/1024);
 imagedestroy($canvas);
 imagedestroy($source);
 
+/* =========================================================
+  HANDLE CUSTOM CATEGORY
+========================================================= */
+
+$customCategoryId = !empty($_POST['custom_category_id'])
+    ? (int) $_POST['custom_category_id']
+    : null;
+
+$newCustomCategory = trim($_POST['new_custom_category'] ?? '');
+
+$postedCustomCategoryId = !empty($_POST['custom_category_id'])
+  ? (int) $_POST['custom_category_id']
+  : 0;
+
+
+/*
+---------------------------------------------------------
+IF SELLER SELECTED AN EXISTING CUSTOM GROUP
+---------------------------------------------------------
+*/
+
+if ($postedCustomCategoryId > 0) {
+
+  $stmt = $conn->prepare("
+      SELECT custom_category_id
+      FROM custom_categories
+      WHERE custom_category_id = ?
+        AND user_id = ?
+        AND company_category = ?
+      LIMIT 1
+  ");
+
+  $stmt->bind_param(
+      "iis",
+      $postedCustomCategoryId,
+      $user_id,
+      $category
+  );
+
+  $stmt->execute();
+
+  $result = $stmt->get_result();
+
+  if ($row = $result->fetch_assoc()) {
+
+      $customCategoryId = (int) $row['custom_category_id'];
+
+  }
+
+  $stmt->close();
+}
+
+
+/*
+---------------------------------------------------------
+IF SELLER ENTERED A NEW CUSTOM GROUP
+---------------------------------------------------------
+*/
+
+elseif ($newCustomCategory !== '') {
+
+  /*
+    * Check whether this seller already has the same
+    * custom group under this company category.
+    */
+  $stmt = $conn->prepare("
+      SELECT custom_category_id
+      FROM custom_categories
+      WHERE user_id = ?
+        AND company_category = ?
+        AND name = ?
+      LIMIT 1
+  ");
+
+  $stmt->bind_param(
+      "iss",
+      $user_id,
+      $category,
+      $newCustomCategory
+  );
+
+  $stmt->execute();
+
+  $result = $stmt->get_result();
+
+  if ($row = $result->fetch_assoc()) {
+
+      /*
+        * Use the existing group instead of creating
+        * a duplicate.
+        */
+      $customCategoryId = (int) $row['custom_category_id'];
+
+  } else {
+
+      /*
+        * Create the new custom group.
+        *
+        * parent_id is NULL because this is currently
+        * a top-level seller custom group.
+        */
+      $stmtInsertCategory = $conn->prepare("
+          INSERT INTO custom_categories
+          (
+              user_id,
+              company_category,
+              name,
+              parent_id
+          )
+          VALUES (?, ?, ?, NULL)
+      ");
+
+      $stmtInsertCategory->bind_param(
+          "iss",
+          $user_id,
+          $category,
+          $newCustomCategory
+      );
+
+      if (!$stmtInsertCategory->execute()) {
+
+          $error = "Failed to create custom group: "
+                  . $stmtInsertCategory->error;
+
+      } else {
+
+          $customCategoryId = $stmtInsertCategory->insert_id;
+
+      }
+
+      $stmtInsertCategory->close();
+  }
+
+  $stmt->close();
+}
 
 /* ---------- INSERT PRODUCT ---------- */
 
 $stmt = $conn->prepare("
-INSERT INTO productservicesrentals
-(
-  user_id,
-  product_name,
-  category,
-  sale_type,
-  unit,
-  price,
-  stock_quantity,
-  image_path,
-  image_width,
-  image_height,
-  image_size_kb,
-  image_format,
-  image_hash,
-  image_phash
-)
-VALUES
-(
-  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'webp', ?, ?
-)
+    INSERT INTO productservicesrentals
+    (
+        user_id,
+        product_name,
+        category,
+        custom_category_id,
+        sale_type,
+        unit,
+        buying_price,
+        selling_price,
+        stock_quantity,
+        image_path,
+        image_width,
+        image_height,
+        image_size_kb,
+        image_format,
+        image_hash,
+        image_phash
+    )
+    VALUES
+    (
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'webp', ?, ?
+    )
 ");
 
 if (!$stmt) {
-  die("Prepare failed: " . $conn->error);
+    die("Prepare failed: " . $conn->error);
 }
 
 $stmt->bind_param(
-  "issssdisiiiss",
-  $user_id,
-  $productName,
-  $category,
-  $saleType,
-  $unit,
-  $price,
-  $stock,
-  $filePath,
-  $newWidth,
-  $newHeight,
-  $fileSizeKB,
-  $imgHash,
-  $imgPhash
+    "ississddiiissss",
+    $user_id,
+    $productName,
+    $category,
+    $customCategoryId,
+    $saleType,
+    $unit,
+    $buyingPrice,
+    $sellingPrice,
+    $stock,
+    $filePath,
+    $newWidth,
+    $newHeight,
+    $fileSizeKB,
+    $imgHash,
+    $imgPhash
 );
 
 if ($stmt->execute()) {
 
-$success = "Product added successfully! <span class='redirect-msg'></span>";
+    $success = "Product added successfully! <span class='redirect-msg'></span>";
 
-$productName='';
-$category='';
-$saleType='';
-$unit='';
-$price='';
-$stock='';
+    $productName = '';
+    $category = '';
+    $customCategoryId = null;
+    $newCustomCategory = '';
+    $saleType = '';
+    $unit = '';
+    $buyingPrice = '';
+    $sellingPrice = '';
+    $stock = '';
 
 } else {
 
-die($stmt->error);
+    die($stmt->error);
 
 }
 
@@ -1484,24 +1673,32 @@ $editProductId = intval($_POST['edit_product_id']);
 
 $productName = smartTitleCase($_POST['name'] ?? '');
 $category    = trim($_POST['category'] ?? '');
+$customCategoryId    = trim($_POST['custom_category_id'] ?? '');
 $saleType = $_POST['sale_type'] ?? 'Each';
 $unit      = $_POST['unit'] ?? 'Each';
-$price       = floatval($_POST['price'] ?? 0);
+$buyingPrice  = isset($_POST['bPrice']) ? (float)$_POST['bPrice'] : 0;
+$sellingPrice = isset($_POST['sPrice']) ? (float)$_POST['sPrice'] : 0;
 $stock       = intval($_POST['stock'] ?? 0);
 
 /* ---------- BASIC VALIDATION ---------- */
 
 if ($productName === '') {
-$error="Product name required.";
+$error="Product name required!";
 }
 elseif ($category === '') {
-$error="Select category.";
+$error="Select category!";
 }
-elseif ($price<=0) {
-$error="Price must be greater than zero.";
+elseif ($buyingPrice>$sellingPrice) {
+$error="Buying price must be less than selling price!";
+}
+elseif ($buyingPrice<=0) {
+$error="Buying price must be greater than zero!";
+}
+elseif ($sellingPrice<=0) {
+$error="Selling price must be greater than zero!";
 }
 elseif ($stock<0) {
-$error="Stock cannot be negative.";
+$error="Stock cannot be negative!";
 }
 
 
@@ -1567,8 +1764,9 @@ $allowed=['image/jpeg','image/png','image/webp'];
 if(!in_array($mime,$allowed)){
 $error="Invalid image format.";
 }
-elseif($fileSize>5*1024*1024){
-$error="Image too large. Max 5MB.";
+
+elseif($fileSize > 10 * 1024 * 1024){
+  $error = "Image too large. Maximum size is 10MB.";
 }
 
 $imgInfo=getimagesize($fileTmp);
@@ -1581,8 +1779,8 @@ if(empty($error)){
 
 [$width,$height]=$imgInfo;
 
-if($width<600 || $height<600){
-$error="Image too small. Minimum size is 600×600 px.";
+if ($width < 400 || $height < 400) {
+  $error = "Image too small. Minimum size is 400 × 400 px.";
 }
 
 }
@@ -1827,62 +2025,200 @@ if(isset($source)) imagedestroy($source);
 
 }
 
+/* =========================================================
+  HANDLE CUSTOM GROUP DURING PRODUCT UPDATE
+========================================================= */
+
+$customCategoryId = !empty($_POST['custom_category_id'])
+  ? (int)$_POST['custom_category_id']
+  : null;
+
+$newCustomCategory = trim($_POST['new_custom_category'] ?? '');
+
+
+/*
+---------------------------------------------------------
+CREATE NEW CUSTOM GROUP IF SELLER TYPED ONE
+---------------------------------------------------------
+*/
+
+if ($newCustomCategory !== '') {
+
+  /*
+    * Make sure a company category was selected.
+    */
+  if (empty($category)) {
+
+      $error = "Please select a general category first.";
+
+  } else {
+
+      /*
+        * Check whether this seller already has this group
+        * under the selected company category.
+        */
+      $checkStmt = $conn->prepare("
+          SELECT custom_category_id
+          FROM custom_categories
+          WHERE user_id = ?
+            AND company_category = ?
+            AND name = ?
+          LIMIT 1
+      ");
+
+      $checkStmt->bind_param(
+          "iss",
+          $user_id,
+          $category,
+          $newCustomCategory
+      );
+
+      $checkStmt->execute();
+
+      $checkResult = $checkStmt->get_result();
+
+      if ($checkResult && $checkResult->num_rows > 0) {
+
+          /*
+            * Group already exists.
+            * Use the existing ID instead of creating duplicate.
+            */
+          $existingGroup = $checkResult->fetch_assoc();
+
+          $customCategoryId =
+              (int)$existingGroup['custom_category_id'];
+
+      } else {
+
+          /*
+            * Create the new custom group.
+            */
+          $insertCategory = $conn->prepare("
+              INSERT INTO custom_categories
+              (
+                  user_id,
+                  company_category,
+                  name,
+                  parent_id
+              )
+              VALUES (?, ?, ?, NULL)
+          ");
+
+          $insertCategory->bind_param(
+              "iss",
+              $user_id,
+              $category,
+              $newCustomCategory
+          );
+
+          if ($insertCategory->execute()) {
+
+              /*
+                * Get the newly-created custom category ID.
+                */
+              $customCategoryId =
+                  $insertCategory->insert_id;
+
+          } else {
+
+              $error =
+                  "Failed to create custom group: "
+                  . $insertCategory->error;
+          }
+
+          $insertCategory->close();
+      }
+
+      $checkStmt->close();
+  }
+}
+
 
 /* ---------- UPDATE PRODUCT ---------- */
 
 if (empty($error)) {
 
-  $stmt = $conn->prepare("
+    $stmt = $conn->prepare("
       UPDATE productservicesrentals
       SET
           product_name = ?,
           category = ?,
+          custom_category_id = ?,
           sale_type = ?,
           unit = ?,
-          price = ?,
+          buying_price = ?,
+          selling_price = ?,
           stock_quantity = ?,
           image_path = ?,
           image_hash = ?,
           image_phash = ?
-      WHERE product_id = ? AND user_id = ?
-  ");
+      WHERE product_id = ?
+        AND user_id = ?
+    ");
 
-  $stmt->bind_param(
-      "ssssdisssii",
+    $stmt->bind_param(
+      "ssissddisssii",
       $productName,
       $category,
+      $customCategoryId,
       $saleType,
       $unit,
-      $price,
+      $buyingPrice,
+      $sellingPrice,
       $stock,
       $imageToSave,
       $imgHash,
       $imgPhash,
       $editProductId,
       $user_id
-  );
+    );
 
-  if ($stmt->execute()) {
+    if ($stmt->execute()) {
 
       $success = "Product updated successfully! <span class='redirect-msg'></span>";
 
       $productName = '';
-      $category    = '';
-      $saleType    = 'Each';
-      $unit        = 'Each';
-      $price       = '';
-      $stock       = '';
+      $category = '';
+      $customCategoryId = null;
+      $saleType = 'Each';
+      $unit = 'Each';
+      $buyingPrice = '';
+      $sellingPrice = '';
+      $stock = '';
 
-  } else {
+    } else {
 
       $error = "Update failed: " . $stmt->error;
 
-  }
+    }
 
   $stmt->close();
+}
+}
 
+/* =========================================================
+  LOAD SELLER'S CUSTOM GROUPS
+========================================================= */
+
+$customCategories = [];
+
+$stmt = $conn->prepare("
+  SELECT custom_category_id, company_category, name, parent_id
+  FROM custom_categories
+  WHERE user_id = ?
+  ORDER BY name ASC
+");
+
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+
+$result = $stmt->get_result();
+
+while ($row = $result->fetch_assoc()) {
+  $customCategories[] = $row;
 }
-}
+
+$stmt->close();
 
 // Fetch seller orders
 // ONE ROW PER ORDER
@@ -2417,7 +2753,6 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
   <!-- jQuery + DataTables JS -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-  
 
   <title>Seller Page | Makethub</title>
 </head>
@@ -2434,12 +2769,19 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
   <div class="container">
     <header class="pgHeader">
       <section>
-        <div class="sContainer">
-          <img src="<?php echo $safeProfileImage; ?>" alt="Profile" class="avatar-img">
-          <p class="wcmTxt">
-            Welcome,<br>
-            <span><?php echo $safeUsername; ?></span>
-          </p>
+        <div class="sContainer seller">
+          <div class="sCrh">
+            <img src="<?php echo $safeProfileImage; ?>" alt="Profile" class="avatar-img">
+            <p class="wcmTxt">
+              Welcome,<br>
+              <span><?php echo $safeUsername; ?></span>
+            </p>
+          </div>
+          <div class="sClh">
+            <div class="days-battery" id="daysBattery">
+              <div class="days-battery-fill" id="daysBatteryFill"></div>
+            </div>
+          </div>
         </div>
         <div class="rhs">
           <a class="lkOdr" onclick="toggleSellerOrdersTrack()">
@@ -2555,7 +2897,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
           </div> -->
           <div id="dashboard" class="tab-panel">
             <div class="tab-top sales">
-              <p>Dashboard Area <br><strong>Your business performance and finances <i class="fa-regular fa-circle-check"></i></strong></p>
+              <p>Dashboard Area <br><strong>Your business operations <i class="fa-regular fa-circle-check"></i></strong></p>
               <button onclick="toggleSalesDash()">
                 Sale&nbsp;<span><i class="fa-solid fa-tags"></i></span>
               </button>
@@ -2712,22 +3054,317 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
           <div id="products" class="tab-panel">
             <div class="tab-top">
-              <p>Your Products Shelf<br><strong>Manage your listed items efficiently <i class="fa-regular fa-circle-check"></i></strong></p>
+              <p>Your Products Shelf<br><strong>Manage your listed items <i class="fa-regular fa-circle-check"></i></strong></p>
               <button onclick="toggleProductsAdd(true)">
                 <i class="fa fa-plus"></i>&nbsp;<span>Add&nbsp;Product</span>
               </button>
 
+            </div>
+            
+            <div class="store-page">
+              
+
+              <div class="categorical-navigation"> 
+                <!-- =================================================
+                  COMPANY CATEGORY
+                ================================================== --> 
+                <div
+                    class="category-side company-side"
+                    id="companyCategorySide">
+
+
+                    <button
+                        type="button"
+                        class="category-crumb"
+                        id="companyCategoryButton">
+
+                        <span id="companyCategoryText">
+                          HOME ITEMS
+                        </span>
+                        <span class="category-arrow"></span>
+                    </button>
+
+
+                    <!-- COMPANY POPUP -->
+
+                    <div class="category-popup company-popup">
+
+                        <div class="popup-title">
+                            General Categories
+                        </div>
+
+
+                        <button
+                            type="button"
+                            class="category-option active"
+                            data-company="HOME ITEMS">
+
+                            HOME ITEMS
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="category-option"
+                            data-company="FASHION">
+
+                            FASHION
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="category-option"
+                            data-company="FOOD">
+
+                            FOOD
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="category-option"
+                            data-company="STATIONERY">
+
+                            STATIONERY
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="category-option"
+                            data-company="ELECTRONICS">
+
+                            ELECTRONICS
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="category-option"
+                            data-company="BEAUTY">
+
+                            BEAUTY
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CHEVRON -->
+
+                <div class="category-separator"></div>
+
+
+                <!-- =================================================
+                      SELLER CUSTOM CATEGORY
+                ================================================== -->
+
+                <div
+                    class="category-side seller-side"
+                    id="sellerCategorySide">
+                    <button
+                        type="button"
+                        class="category-crumb"
+                        id="sellerCategoryButton">
+
+                        <span id="sellerCategoryText">
+                            Utensils
+                        </span>
+
+                        <span class="category-arrow"></span>
+
+                    </button>
+
+
+                    <!-- SELLER POPUP -->
+
+                    <div class="category-popup seller-popup">
+
+                        <div class="popup-title">
+                            Custom Categories
+                        </div>
+
+
+                        <button
+                            type="button"
+                            class="category-option active"
+                            data-seller="Utensils">
+
+                            Utensils
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="category-option"
+                            data-seller="Zippers">
+
+                            Zippers
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="category-option"
+                            data-seller="Mattresses">
+
+                            Mattresses
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="category-option"
+                            data-seller="Shoes">
+
+                            Shoes
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="category-option"
+                            data-seller="Bags">
+
+                            Bags
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="category-option"
+                            data-seller="Lexines">
+
+                            Lexines
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+              </div>
+
+
+
+              <!-- =====================================================
+                  MINI NAVIGATION
+              ====================================================== -->
+
+              <div class="mini-navigation-wrapper">
+
+                <div class="mini-navigation-scroll">
+
+                    <nav
+                        class="mini-navigation"
+                        id="miniNavigation">
+
+
+                        <button
+                            type="button"
+                            class="mini-nav-item active"
+                            data-mini="all">
+
+                            All
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="mini-nav-item"
+                            data-mini="sufurias">
+
+                            Sufurias
+
+                        </button>
+                        <button
+                            type="button"
+                            class="mini-nav-item"
+                            data-mini="basins">
+                            Basins
+                        </button>
+                        <button
+                            type="button"
+                            class="mini-nav-item"
+                            data-mini="knives">
+                            Knives
+                        </button>
+                        <button
+                            type="button"
+                            class="mini-nav-item"
+                            data-mini="stands">
+                            Stands
+                        </button>
+                        <button
+                            type="button"
+                            class="mini-nav-item"
+                            data-mini="cups">
+                            Cups
+                        </button>
+                        <button
+                            type="button"
+                            class="mini-nav-item"
+                            data-mini="plates">
+                            Plates
+                        </button>
+                        <button
+                            type="button"
+                            class="mini-nav-item"
+                            data-mini="spoons">
+                            Spoons
+                        </button>
+                        <button class="subgrou-add-btn">
+                          <i class="fa fa-plus"></i>Add sub group
+                        </button>
+                        
+                        <!-- SLIDING INDICATOR -->
+                        <span
+                            class="mini-nav-indicator"
+                            id="miniNavIndicator">
+                        </span>
+                    </nav>
+                </div>
+              </div>
+              <!-- =====================================================
+                  PRODUCTS HEADER
+              ====================================================== -->
+              <div class="products-header">
+                <h2
+                  class="products-title" id="productsTitle">
+                  Utensils
+                </h2>
+                <span
+                  class="products-count" id="productsCount">
+                  8 products
+                </span>
+              </div>
             </div>
 
             <!-- PRODUCTS GRID -->
             <div class="products-grid">
               <?php if (!empty($products)): ?>
                 <?php foreach ($products as $product): ?>
+                  <div class="card-contain">
+                    
                     <div class="card">
                       <img src="<?= htmlspecialchars($product['image_path']) ?>" loading="lazy" decoding="async" alt="<?= htmlspecialchars($product['product_name']) ?>">
                       <div class="card-body">
-                        <div class="product-name"><?= htmlspecialchars($product['product_name']) ?></div>
-                        <div class="price">KES <?= number_format($product['price'], 2) ?></div>
+                        <div class="price buying">KES <?= number_format($product['buying_price'], 2) ?></div>
+                        <div class="price">KES <?= number_format($product['selling_price'], 2) ?></div>
                         <div class="perDiv">
                             <?php if (strcasecmp(trim($product['unit']), 'Each') === 0): ?>
                                 Each
@@ -2796,7 +3433,53 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                           </form>
                       </div>
                     </div>
+                    <div class="product-name"><?= htmlspecialchars($product['product_name']) ?></div>
+                  </div>
                 <?php endforeach; ?>
+                  <!-- =========================
+                      VIEW MORE
+                  ========================= -->
+
+                  <div
+                    class="view-more-card"
+                    id="viewMoreProducts"
+                    onclick="loadMoreProducts()">
+
+                    <div class="view-more-icon">
+
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+
+                            <path
+                                d="M5 12H19"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                            />
+
+                            <path
+                                d="M13 6L19 12L13 18"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            />
+
+                        </svg>
+
+                    </div>
+
+                    <div class="view-more-text">
+                        View More
+                    </div>
+
+                    <div class="view-more-count">
+                        More products
+                    </div>
+
+                  </div>
                 <?php else: ?>
                     <p>No products uploaded yet. Click "Add Product" to start selling.</p>
                 <?php endif; ?>
@@ -2837,6 +3520,13 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                       <input type="text" name="name" placeholder="Enter name" 
                       value="<?= htmlspecialchars($productName, ENT_QUOTES) ?>" required>
                   </div>
+
+                  <div class="inp-box">
+                      <label>Stock Quantity</label>
+                      <input type="number" name="stock" placeholder="e.g 24" 
+                          value="<?= htmlspecialchars($stock, ENT_QUOTES) ?>" 
+                          oninput="this.value = this.value.replace(/[^0-9]/g, '')" min="0" step="1" required>
+                  </div>
                   <div class="inp-box">
 
                     <label>Category</label>
@@ -2849,6 +3539,47 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                       <option value="Home Items" <?php echo ($category === 'Home Items') ? 'selected' : ''; ?>>Home Items</option>
                       <option value="Stationery" <?php echo ($category === 'Stationery') ? 'selected' : ''; ?>>Stationery</option>
                     </select>
+                  </div>
+                  <div class="inp-box" id="customCategoryBox">
+                    <label>Group Name</label>
+                    <!-- SELECT MODE -->
+                    <div class="custom-category-row" id="customCategorySelectRow">
+
+                    <select
+                        name="custom_category_id"
+                        id="customCategorySelect"
+                        data-selected-category-id="<?= htmlspecialchars((string)($customCategoryId ?? ''), ENT_QUOTES) ?>"
+                    >
+                        <option value="">-- Select Group Name --</option>
+                    </select>
+
+                      <button type="button" id="newCustomCategoryBtn" title="Create new group">
+                          <i class="fa-solid fa-plus"></i> Add
+                      </button>
+
+                    </div>
+                    <!-- INPUT MODE -->
+                    <div class="custom-category-row" id="newCustomCategoryRow">
+
+                        <input
+                            type="text"
+                            name="new_custom_category"
+                            id="newCustomCategory"
+                            placeholder="e.g. Utensils"
+                            maxlength="100"
+                            autocomplete="off"
+                        >
+
+                        <button type="button" id="cancelNewCustomCategoryBtn">
+                            Cancel
+                        </button>
+
+                    </div>
+                    <!-- MESSAGE -->
+                    <small id="customCategoryMessage">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        Select a general category first!
+                    </small>
                   </div>
                   <div class="inp-box sold-by">
 
@@ -2894,6 +3625,16 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                         Grams
                       </label>
                       <label class="account-type">
+                        <input type="radio" name="unit" value="Dozen" <?= ($unit === 'Dozen') ? 'checked' : '' ?>>
+                        <div class="radio-dot"></div>
+                        Dozens
+                      </label>
+                      <label class="account-type">
+                        <input type="radio" name="unit" value="Set" <?= ($unit === 'Set') ? 'checked' : '' ?>>
+                        <div class="radio-dot"></div>
+                        Sets
+                      </label>
+                      <label class="account-type">
                         <input type="radio" name="unit" value="Plate" <?= ($unit === 'Plate') ? 'checked' : '' ?>>
                         <div class="radio-dot"></div>
                         Plate
@@ -2924,16 +3665,26 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
                   <div class="inp-box">
                     <label id="priceLabel">Price (KES)</label>
-                    <input type="number" name="price" step="0.01" placeholder="Enter price"
-                    value="<?= htmlspecialchars($price, ENT_QUOTES) ?>"
-                    oninput="this.value = this.value.replace(/[^0-9.]/g, '')" min="0" required>
-                  </div>
-
-                  <div class="inp-box">
-                      <label>Stock Quantity</label>
-                      <input type="number" name="stock" placeholder="e.g 24" 
-                          value="<?= htmlspecialchars($stock, ENT_QUOTES) ?>" 
-                          oninput="this.value = this.value.replace(/[^0-9]/g, '')" min="0" step="1" required>
+                    <input
+                        type="number"
+                        name="bPrice"
+                        step="1"
+                        placeholder="Buying price"
+                        value="<?= htmlspecialchars($buyingPrice, ENT_QUOTES) ?>"
+                        oninput="this.value = this.value.replace(/[^0-9.]/g, '')"
+                        min="0"
+                        required
+                    >
+                    <input
+                        type="number"
+                        name="sPrice"
+                        step="1"
+                        placeholder="Selling price"
+                        value="<?= htmlspecialchars($sellingPrice, ENT_QUOTES) ?>"
+                        oninput="this.value = this.value.replace(/[^0-9.]/g, '')"
+                        min="0"
+                        required
+                    >
                   </div>
 
                   <?php if ($editMode): ?>
@@ -2953,7 +3704,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                           <label>Change Product Image (optional)</label>
                           <input type="file" name="photo" accept="image/png,image/jpeg,image/webp">
                           <div class="note">
-                              600×600 – 1600×1600 px • Max 5MB<br>
+                              400×400 – 1600×1600 px • Max 10MB<br>
                               Automatically optimized for buyers
                           </div>
                       </div>
@@ -3053,16 +3804,16 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
           <thead>
             <tr>
               <th>Image</th>
-              <th>Order ID</th>
-              <th>Buyer</th>
-              <th>Product Qty</th>
+              <th>Product&nbsp;Qty</th>
               <th>Total</th>
+              <th>Buyer</th>
               <th>Payment</th>
               <th>Status</th>
               <th>Actions</th>
               <th>Receipt</th>
-              <th>Paid by</th>
+              <th>Paid&nbsp;by</th>
               <th>Date</th>
+              <th>Order ID</th>
             </tr>
           </thead>
           <tbody>
@@ -3145,10 +3896,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
                   echo "<tr data-status=\"{$order['order_status']}\">
                           <td>{$imageHTML}</td>
-                          <td>{$order['order_code']}</td>
-                          <td>".htmlspecialchars(ucwords(strtolower($order['buyer_name'])))."</td>
                           <td>{$productCount}</td>
                           <td>KES {$total}</td>
+                          <td>".htmlspecialchars(ucwords(strtolower($order['buyer_name'])))."</td>
                           <td><span class='badge {$paymentClass}'>{$paymentLabel}</span></td>
                           <td><span class='badge {$statusClass}' title=\"".htmlspecialchars($statusTooltip)."\">{$statusLabel}</span></td>
                           <td class='actions'>
@@ -3171,6 +3921,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                           <td><div id='receiptTd'><i class='fa-solid fa-barcode'></i></div></td>
                           <td>".htmlspecialchars(ucfirst($order['payment_method'] ?? 'Unknown'))."</td>
                           <td>{$date}</td>
+                          <td>{$order['order_code']}</td>
                         </tr>";
                   $count++;
               }
@@ -3212,7 +3963,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
             SELECT
                 product_id,
                 product_name,
-                price,
+                selling_price,
                 stock_quantity,
                 unit,
                 image_path
@@ -3251,7 +4002,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   'UTF-8'
               );
 
-              $price = (float)$product['price'];
+              $price = (float)$product['selling_price'];
               $stock = (float)$product['stock_quantity'];
 
               $unit = htmlspecialchars(
@@ -3504,16 +4255,16 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
           <thead>
             <tr>
               <th>Image</th>
-              <th>Order ID</th>
-              <th>Buyer</th>
-              <th>Product Qty</th>
+              <th>Product&nbsp;Qty</th>
               <th>Total</th>
+              <th>Buyer</th>
               <th>Payment</th>
               <th>Status</th>
               <th>Actions</th>
               <th>Receipt</th>
-              <th>Paid by</th>
+              <th>Paid&nbsp;by</th>
               <th>Date</th>
+              <th>Order ID</th>
             </tr>
           </thead>
           <tbody>
@@ -3596,10 +4347,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
                   echo "<tr data-status=\"{$order['order_status']}\">
                           <td>{$imageHTML}</td>
-                          <td>{$order['order_code']}</td>
-                          <td>".htmlspecialchars(ucwords(strtolower($order['buyer_name'])))."</td>
                           <td>{$productCount}</td>
                           <td>KES {$total}</td>
+                          <td>".htmlspecialchars(ucwords(strtolower($order['buyer_name'])))."</td>
                           <td><span class='badge {$paymentClass}'>{$paymentLabel}</span></td>
                           <td><span class='badge {$statusClass}' title=\"".htmlspecialchars($statusTooltip)."\">{$statusLabel}</span></td>
                           <td class='actions'>
@@ -3622,6 +4372,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                           <td><div id='receiptTd'><i class='fa-solid fa-barcode'></i></div></td>
                           <td>".htmlspecialchars(ucfirst($order['payment_method'] ?? 'Unknown'))."</td>
                           <td>{$date}</td>
+                          <td>{$order['order_code']}</td>
                         </tr>";
                   $count++;
               }
@@ -3650,6 +4401,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
   <!-- Notification container -->
   <div id="notification-container"></div>
+  <script>
+    const customCategories = <?= json_encode(
+        $customCategories,
+        JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT
+    ) ?>;
+  </script>
   
   <script src="assets/js/general.js" type="text/javascript" defer></script>
   <script>

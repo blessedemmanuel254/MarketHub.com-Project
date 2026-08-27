@@ -1,0 +1,1999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  <!-- Font Awesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <link href="https://fonts.googleapis.com/css2?family=Chewy&display=swap" rel="stylesheet">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+<title>MarketHub Store Navigation</title>
+
+
+<style>
+
+/* =========================================================
+   RESET
+========================================================= */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Poppins", Arial, sans-serif;
+  background: #fff;
+  color: #111;
+}
+
+
+/* =========================================================
+  STORE CONTAINER
+========================================================= */
+
+.store-page {
+  width: 100%;
+  max-width: 1299px;
+  margin: 0 auto;
+  padding: 0 20px 50px;
+}
+
+.categorical-navigation::-webkit-scrollbar {
+  display: none;
+}
+
+/* =========================================================
+   CATEGORICAL NAVIGATION
+========================================================= */
+
+.categorical-navigation {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding-top: 18px;
+}
+
+
+/* =========================================================
+   CATEGORY SIDE
+========================================================= */
+
+.category-side {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+  CATEGORY CRUMB
+========================================================= */
+
+.category-crumb {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  background: transparent;
+  padding: 0 0 11px;
+  cursor: pointer;
+  color: #898888dd;
+  font-size: 15px;
+  white-space: nowrap;
+  transition: color 0.25s ease, border-color 0.25s ease;
+}
+
+
+/* Company category */
+
+.company-side .category-crumb {
+  text-transform: uppercase;
+}
+
+/* Arrow */
+
+.category-arrow {
+    width: 7px;
+    height: 7px;
+
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+
+    transform: rotate(45deg) translateY(-2px);
+
+    transition: transform 0.25s ease;
+}
+
+
+/* Open arrow */
+
+.category-side.open .category-arrow {
+    transform: rotate(225deg) translateY(-2px);
+}
+
+
+/* =========================================================
+   CATEGORY SEPARATOR
+========================================================= */
+
+.category-separator {
+    margin: 0 14px 11px;
+
+    display: flex;
+    align-items: center;
+
+    color: #898888;
+}
+
+
+/* Stylish chevron */
+
+.category-separator::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-top: 2px solid #89888858;
+  border-right: 2px solid #89888858;
+  transform: rotate(45deg);
+}
+
+/* =========================================================
+   CATEGORY POPUP
+========================================================= */
+
+.category-popup {
+    position: absolute;
+    top: calc(100% + 1px);
+    left: 0;
+    z-index: 1000;
+    width: 250px;
+    background: #ffffff;
+    border: 1px solid #dedede;
+    border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 8px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(18px);
+    transition:
+        opacity 0.25s ease,
+        transform 0.3s cubic-bezier(.22,.61,.36,1),
+        visibility 0.3s ease;
+}
+
+
+/* Open popup */
+
+.category-side.open .category-popup {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* =========================================================
+   POPUP TITLE
+========================================================= */
+
+.popup-title {
+  padding: 9px 10px 8px;
+  font-size: 12px;
+  color: #898888;
+  border-bottom: 1px solid #dedede;
+  margin-bottom: 3px;
+}
+
+/* =========================================================
+  POPUP OPTIONS
+========================================================= */
+
+.category-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 0;
+  background: transparent;
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 13px;
+  color: #444;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+  border-radius: 4px;
+}
+
+/* Company options uppercase */
+
+.company-popup .category-option {
+  text-transform: uppercase;
+}
+
+
+/* Seller options normal capitalization */
+
+.seller-popup .category-option {
+  text-transform: none;
+}
+
+
+/* Hover */
+
+.category-option:hover {
+  background: #dedede8e;
+}
+
+
+/* Active option */
+
+.category-option.active {
+    color: #088000;
+}
+
+
+/* Check */
+
+.category-option.active::after {
+    content: "✓";
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   SELLER POPUP POSITION
+========================================================= */
+
+.seller-popup {
+    left: 0;
+}
+
+
+/* =========================================================
+   MINI NAVIGATION
+========================================================= */
+
+.mini-navigation-wrapper {
+    width: 100%;
+
+    margin-top: 12px;
+
+    border-bottom: 1px solid #e5e5e5;
+
+    overflow: hidden;
+}
+
+
+/* Scroll container */
+
+.mini-navigation-scroll {
+    position: relative;
+
+    width: 100%;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    scrollbar-width: none;
+}
+
+.mini-navigation-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+
+/* =========================================================
+   MINI NAVIGATION
+========================================================= */
+
+.mini-navigation {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+
+    width: max-content;
+    min-width: 100%;
+
+    gap: 26px;
+
+    padding: 0;
+}
+
+
+/* =========================================================
+  MINI NAV ITEM
+========================================================= */
+
+.mini-nav-item {
+  position: relative;
+  border: 0;
+  background: transparent;
+  padding: 8px 16px;
+  color: #898888;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.25s ease, font-weight 0.25s ease;
+}
+
+.mini-nav-item.active {
+  color: #088000;
+}
+
+
+/* =========================================================
+   YOUTUBE STYLE SLIDING UNDERLINE
+========================================================= */
+
+.mini-nav-indicator {
+    position: absolute;
+
+    left: 0;
+    bottom: 0;
+
+    height: 2px;
+
+    width: 0;
+
+    background: #088000;
+
+    transition:
+        left 0.35s cubic-bezier(.22,.61,.36,1),
+        width 0.35s cubic-bezier(.22,.61,.36,1);
+}
+
+/* =========================================================
+   PRODUCTS HEADER
+========================================================= */
+
+.products-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin: 24px 0 18px;
+}
+
+.products-title {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.products-count {
+    color: #898888;
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   PRODUCT GRID
+========================================================= */
+
+.product-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(5, minmax(0, 1fr));
+
+    gap: 18px;
+}
+
+
+/* =========================================================
+   PRODUCT CARD
+========================================================= */
+
+.product-card {
+    background: #fff;
+
+    border: 1px solid #dedede;
+
+    overflow: hidden;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        opacity 0.25s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 7px 18px rgba(0, 0, 0, 0.08);
+}
+
+
+/* Hidden */
+
+.product-card.hidden {
+    display: none;
+}
+
+
+/* =========================================================
+   PRODUCT IMAGE
+========================================================= */
+
+.product-image {
+    width: 100%;
+
+    aspect-ratio: 1 / 1;
+
+    overflow: hidden;
+
+    background: #f5f5f5;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+
+    display: block;
+
+    object-fit: cover;
+
+    transition:
+        transform 0.35s ease;
+}
+
+.product-card:hover .product-image img {
+    transform: scale(1.04);
+}
+
+
+/* =========================================================
+   PRODUCT INFORMATION
+========================================================= */
+
+.product-info {
+    padding: 11px;
+}
+
+.product-name {
+    margin-bottom: 6px;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.product-price {
+    color: #088000;
+
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.product-unit {
+    margin-top: 3px;
+
+    color: #898888;
+
+    font-size: 11px;
+}
+
+
+/* =========================================================
+  EMPTY STATE
+========================================================= */
+
+.empty-products {
+    display: none;
+
+    padding: 50px 20px;
+
+    text-align: center;
+
+    color: #898888;
+
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media screen and (max-width: 1000px) {
+
+    .product-grid {
+        grid-template-columns:
+            repeat(4, minmax(0, 1fr));
+    }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media screen and (max-width: 700px) {
+
+    .store-page {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+
+    .categorical-navigation {
+        padding-top: 14px;
+
+        overflow-x: auto;
+
+        scrollbar-width: none;
+    }
+
+    .categorical-navigation::-webkit-scrollbar {
+        display: none;
+    }
+
+
+    .category-crumb {
+        font-size: 13px;
+    }
+
+
+    .category-separator {
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+
+    .category-popup {
+        width: 220px;
+    }
+
+
+    .product-grid {
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+
+        gap: 12px;
+    }
+
+}
+
+
+/* =========================================================
+   SMALL PHONES
+========================================================= */
+
+@media screen and (max-width: 520px) {
+
+    .store-page {
+        padding-left: 9px;
+        padding-right: 9px;
+    }
+
+
+    .category-popup {
+        width: 205px;
+    }
+
+
+    .mini-navigation {
+        gap: 21px;
+    }
+
+
+    .mini-nav-item {
+        font-size: 12px;
+    }
+
+
+    .products-title {
+        font-size: 17px;
+    }
+
+
+    .product-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        gap: 10px;
+    }
+
+}
+
+
+/* =========================================================
+   VERY SMALL
+========================================================= */
+
+@media screen and (max-width: 350px) {
+
+    .category-popup {
+        width: 190px;
+    }
+
+    .product-grid {
+        gap: 8px;
+    }
+
+}
+
+</style>
+</head>
+
+
+<body>
+
+
+<div class="store-page">
+
+
+    <!-- =====================================================
+         CATEGORICAL NAVIGATION
+    ====================================================== -->
+
+    <div class="categorical-navigation">
+
+
+        <!-- =================================================
+             COMPANY CATEGORY
+        ================================================== -->
+
+        <div
+            class="category-side company-side"
+            id="companyCategorySide">
+
+
+            <button
+                type="button"
+                class="category-crumb"
+                id="companyCategoryButton">
+
+                <span id="companyCategoryText">
+                    HOME ITEMS
+                </span>
+
+                <span class="category-arrow"></span>
+
+            </button>
+
+
+            <!-- COMPANY POPUP -->
+
+            <div class="category-popup company-popup">
+
+                <div class="popup-title">
+                    General Categories
+                </div>
+
+
+                <button
+                    type="button"
+                    class="category-option active"
+                    data-company="HOME ITEMS">
+
+                    HOME ITEMS
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="category-option"
+                    data-company="FASHION">
+
+                    FASHION
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="category-option"
+                    data-company="FOOD">
+
+                    FOOD
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="category-option"
+                    data-company="STATIONERY">
+
+                    STATIONERY
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="category-option"
+                    data-company="ELECTRONICS">
+
+                    ELECTRONICS
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="category-option"
+                    data-company="BEAUTY">
+
+                    BEAUTY
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- CHEVRON -->
+
+        <div class="category-separator"></div>
+
+
+        <!-- =================================================
+             SELLER CUSTOM CATEGORY
+        ================================================== -->
+
+        <div
+            class="category-side seller-side"
+            id="sellerCategorySide">
+
+
+            <button
+                type="button"
+                class="category-crumb"
+                id="sellerCategoryButton">
+
+                <span id="sellerCategoryText">
+                    Utensils
+                </span>
+
+                <span class="category-arrow"></span>
+
+            </button>
+
+
+            <!-- SELLER POPUP -->
+
+            <div class="category-popup seller-popup">
+
+                <div class="popup-title">
+                    Custom Categories
+                </div>
+
+
+                <button
+                    type="button"
+                    class="category-option active"
+                    data-seller="Utensils">
+
+                    Utensils
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="category-option"
+                    data-seller="Zippers">
+
+                    Zippers
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="category-option"
+                    data-seller="Mattresses">
+
+                    Mattresses
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="category-option"
+                    data-seller="Shoes">
+
+                    Shoes
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="category-option"
+                    data-seller="Bags">
+
+                    Bags
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="category-option"
+                    data-seller="Lexines">
+
+                    Lexines
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         MINI NAVIGATION
+    ====================================================== -->
+
+    <div class="mini-navigation-wrapper">
+
+        <div class="mini-navigation-scroll">
+
+            <nav
+                class="mini-navigation"
+                id="miniNavigation">
+
+
+                <button
+                    type="button"
+                    class="mini-nav-item active"
+                    data-mini="all">
+
+                    All
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="mini-nav-item"
+                    data-mini="sufurias">
+
+                    Sufurias
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="mini-nav-item"
+                    data-mini="basins">
+
+                    Basins
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="mini-nav-item"
+                    data-mini="knives">
+
+                    Knives
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="mini-nav-item"
+                    data-mini="stands">
+
+                    Stands
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="mini-nav-item"
+                    data-mini="cups">
+
+                    Cups
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="mini-nav-item"
+                    data-mini="plates">
+
+                    Plates
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="mini-nav-item"
+                    data-mini="spoons">
+
+                    Spoons
+
+                </button>
+
+
+                <!-- SLIDING INDICATOR -->
+
+                <span
+                    class="mini-nav-indicator"
+                    id="miniNavIndicator">
+                </span>
+
+            </nav>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         PRODUCTS HEADER
+    ====================================================== -->
+
+    <div class="products-header">
+
+        <h2
+            class="products-title"
+            id="productsTitle">
+
+            Utensils
+
+        </h2>
+
+
+        <span
+            class="products-count"
+            id="productsCount">
+
+            8 products
+
+        </span>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         PRODUCT GRID
+    ====================================================== -->
+
+    <div
+        class="product-grid"
+        id="productGrid">
+
+
+        <!-- SUFURIA -->
+
+        <article
+            class="product-card"
+            data-category="sufurias">
+
+            <div class="product-image">
+
+                <img
+                    src="Images/sufuria.jpg"
+                    alt="Sufuria">
+
+            </div>
+
+            <div class="product-info">
+
+                <div class="product-name">
+                    Aluminium Sufuria
+                </div>
+
+                <div class="product-price">
+                    KES 1,500.00
+                </div>
+
+                <div class="product-unit">
+                    Per Each
+                </div>
+
+            </div>
+
+        </article>
+
+
+
+        <!-- BASIN -->
+
+        <article
+            class="product-card"
+            data-category="basins">
+
+            <div class="product-image">
+
+                <img
+                    src="Images/basin.jpg"
+                    alt="Basin">
+
+            </div>
+
+            <div class="product-info">
+
+                <div class="product-name">
+                    Large Plastic Basin
+                </div>
+
+                <div class="product-price">
+                    KES 650.00
+                </div>
+
+                <div class="product-unit">
+                    Per Each
+                </div>
+
+            </div>
+
+        </article>
+
+
+
+        <!-- KNIFE -->
+
+        <article
+            class="product-card"
+            data-category="knives">
+
+            <div class="product-image">
+
+                <img
+                    src="Images/knife.jpg"
+                    alt="Knife">
+
+            </div>
+
+            <div class="product-info">
+
+                <div class="product-name">
+                    Stainless Steel Knife
+                </div>
+
+                <div class="product-price">
+                    KES 350.00
+                </div>
+
+                <div class="product-unit">
+                    Per Each
+                </div>
+
+            </div>
+
+        </article>
+
+
+
+        <!-- JIKO / STAND -->
+
+        <article
+            class="product-card"
+            data-category="stands">
+
+            <div class="product-image">
+
+                <img
+                    src="Images/stand.jpg"
+                    alt="Stand">
+
+            </div>
+
+            <div class="product-info">
+
+                <div class="product-name">
+                    Cooking Stand
+                </div>
+
+                <div class="product-price">
+                    KES 900.00
+                </div>
+
+                <div class="product-unit">
+                    Per Each
+                </div>
+
+            </div>
+
+        </article>
+
+
+
+        <!-- CUP -->
+
+        <article
+            class="product-card"
+            data-category="cups">
+
+            <div class="product-image">
+
+                <img
+                    src="Images/cups.jpg"
+                    alt="Cups">
+
+            </div>
+
+            <div class="product-info">
+
+                <div class="product-name">
+                    Glass Cups
+                </div>
+
+                <div class="product-price">
+                    KES 800.00
+                </div>
+
+                <div class="product-unit">
+                    Per Set
+                </div>
+
+            </div>
+
+        </article>
+
+
+
+        <!-- PLATES -->
+
+        <article
+            class="product-card"
+            data-category="plates">
+
+            <div class="product-image">
+
+                <img
+                    src="Images/plates.jpg"
+                    alt="Plates">
+
+            </div>
+
+            <div class="product-info">
+
+                <div class="product-name">
+                    Ceramic Plates
+                </div>
+
+                <div class="product-price">
+                    KES 1,400.00
+                </div>
+
+                <div class="product-unit">
+                    Per Set
+                </div>
+
+            </div>
+
+        </article>
+
+
+
+        <!-- SPOONS -->
+
+        <article
+            class="product-card"
+            data-category="spoons">
+
+            <div class="product-image">
+
+                <img
+                    src="Images/spoons.jpg"
+                    alt="Spoons">
+
+            </div>
+
+            <div class="product-info">
+
+                <div class="product-name">
+                    Stainless Steel Spoons
+                </div>
+
+                <div class="product-price">
+                    KES 700.00
+                </div>
+
+                <div class="product-unit">
+                    Per Set
+                </div>
+
+            </div>
+
+        </article>
+
+
+
+        <!-- SECOND SUFURIA -->
+
+        <article
+            class="product-card"
+            data-category="sufurias">
+
+            <div class="product-image">
+
+                <img
+                    src="Images/sufuria2.jpg"
+                    alt="Heavy Duty Sufuria">
+
+            </div>
+
+            <div class="product-info">
+
+                <div class="product-name">
+                    Heavy Duty Sufuria
+                </div>
+
+                <div class="product-price">
+                    KES 2,800.00
+                </div>
+
+                <div class="product-unit">
+                    Per Each
+                </div>
+
+            </div>
+
+        </article>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         EMPTY PRODUCTS
+    ====================================================== -->
+
+    <div
+        class="empty-products"
+        id="emptyProducts">
+
+        No products available in this category.
+
+    </div>
+
+
+</div>
+
+
+
+<script>
+
+/* =========================================================
+   ELEMENTS
+========================================================= */
+
+const companySide =
+    document.getElementById(
+        "companyCategorySide"
+    );
+
+const sellerSide =
+    document.getElementById(
+        "sellerCategorySide"
+    );
+
+const companyButton =
+    document.getElementById(
+        "companyCategoryButton"
+    );
+
+const sellerButton =
+    document.getElementById(
+        "sellerCategoryButton"
+    );
+
+const companyText =
+    document.getElementById(
+        "companyCategoryText"
+    );
+
+const sellerText =
+    document.getElementById(
+        "sellerCategoryText"
+    );
+
+const miniNavigation =
+    document.getElementById(
+        "miniNavigation"
+    );
+
+const miniIndicator =
+    document.getElementById(
+        "miniNavIndicator"
+    );
+
+const products =
+    document.querySelectorAll(
+        ".product-card"
+    );
+
+const productsTitle =
+    document.getElementById(
+        "productsTitle"
+    );
+
+const productsCount =
+    document.getElementById(
+        "productsCount"
+    );
+
+const emptyProducts =
+    document.getElementById(
+        "emptyProducts"
+    );
+
+
+/* =========================================================
+   COMPANY CATEGORY POPUP
+========================================================= */
+
+companyButton.addEventListener(
+    "click",
+    function(event) {
+
+        event.stopPropagation();
+
+        sellerSide.classList.remove(
+            "open"
+        );
+
+        companySide.classList.toggle(
+            "open"
+        );
+
+    }
+);
+
+
+/* =========================================================
+   SELLER CATEGORY POPUP
+========================================================= */
+
+sellerButton.addEventListener(
+    "click",
+    function(event) {
+
+        event.stopPropagation();
+
+        companySide.classList.remove(
+            "open"
+        );
+
+        sellerSide.classList.toggle(
+            "open"
+        );
+
+    }
+);
+
+
+/* =========================================================
+   COMPANY CATEGORY SELECTION
+========================================================= */
+
+document
+    .querySelectorAll(
+        ".company-popup .category-option"
+    )
+    .forEach(option => {
+
+        option.addEventListener(
+            "click",
+            function(event) {
+
+                event.stopPropagation();
+
+
+                /* Active option */
+
+                document
+                    .querySelectorAll(
+                        ".company-popup .category-option"
+                    )
+                    .forEach(item => {
+
+                        item.classList.remove(
+                            "active"
+                        );
+
+                    });
+
+
+                this.classList.add(
+                    "active"
+                );
+
+
+                /* Change breadcrumb */
+
+                companyText.textContent =
+                    this.dataset.company;
+
+
+                /* Active visual */
+
+                companyButton.classList.add(
+                    "selected"
+                );
+
+
+                /* Close */
+
+                companySide.classList.remove(
+                    "open"
+                );
+
+            }
+        );
+
+    });
+
+
+/* =========================================================
+   SELLER CATEGORY SELECTION
+========================================================= */
+
+document
+    .querySelectorAll(
+        ".seller-popup .category-option"
+    )
+    .forEach(option => {
+
+        option.addEventListener(
+            "click",
+            function(event) {
+
+                event.stopPropagation();
+
+
+                /* Active option */
+
+                document
+                    .querySelectorAll(
+                        ".seller-popup .category-option"
+                    )
+                    .forEach(item => {
+
+                        item.classList.remove(
+                            "active"
+                        );
+
+                    });
+
+
+                this.classList.add(
+                    "active"
+                );
+
+
+                /* Change seller breadcrumb */
+
+                sellerText.textContent =
+                    this.dataset.seller;
+
+
+                /* Close popup */
+
+                sellerSide.classList.remove(
+                    "open"
+                );
+
+
+                /*
+                 * Change title
+                 */
+
+                productsTitle.textContent =
+                    this.dataset.seller;
+
+
+                /*
+                 * Rebuild mini navigation
+                 */
+
+                loadSellerMiniNavigation(
+                    this.dataset.seller
+                );
+
+            }
+        );
+
+    });
+
+
+/* =========================================================
+   SELLER MINI NAVIGATION DATA
+========================================================= */
+
+const sellerMiniCategories = {
+
+    "Utensils": [
+        "All",
+        "Sufurias",
+        "Basins",
+        "Knives",
+        "Stands",
+        "Cups",
+        "Plates",
+        "Spoons"
+    ],
+
+    "Zippers": [
+        "All",
+        "Metal Zippers",
+        "Plastic Zippers",
+        "Invisible Zippers",
+        "Zip Sliders"
+    ],
+
+    "Mattresses": [
+        "All",
+        "Foam",
+        "Spring",
+        "Orthopedic",
+        "King Size",
+        "Queen Size"
+    ],
+
+    "Shoes": [
+        "All",
+        "Sneakers",
+        "Sandals",
+        "Boots",
+        "School Shoes"
+    ],
+
+    "Bags": [
+        "All",
+        "Backpacks",
+        "Handbags",
+        "Travel Bags",
+        "School Bags"
+    ],
+
+    "Lexines": [
+        "All",
+        "Plain",
+        "Printed",
+        "Leather",
+        "Synthetic"
+    ]
+
+};
+
+
+/* =========================================================
+   LOAD SELLER MINI NAVIGATION
+========================================================= */
+
+function loadSellerMiniNavigation(
+    sellerCategory
+) {
+
+    const categories =
+        sellerMiniCategories[
+            sellerCategory
+        ] || ["All"];
+
+
+    /*
+     * Clear navigation
+     */
+
+    miniNavigation.innerHTML = "";
+
+
+    /*
+     * Create buttons
+     */
+
+    categories.forEach(
+        (category, index) => {
+
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+            button.type =
+                "button";
+
+            button.className =
+                "mini-nav-item";
+
+            if (index === 0) {
+
+                button.classList.add(
+                    "active"
+                );
+
+            }
+
+
+            button.dataset.mini =
+                category
+                    .toLowerCase()
+                    .replace(
+                        /\s+/g,
+                        "-"
+                    );
+
+
+            button.textContent =
+                category;
+
+
+            miniNavigation.appendChild(
+                button
+            );
+
+        }
+    );
+
+
+    /*
+     * Add indicator AFTER buttons
+     */
+
+    const indicator =
+        document.createElement(
+            "span"
+        );
+
+    indicator.className =
+        "mini-nav-indicator";
+
+    indicator.id =
+        "miniNavIndicator";
+
+
+    miniNavigation.appendChild(
+        indicator
+    );
+
+
+    /*
+     * Reconnect events
+     */
+
+    attachMiniNavigationEvents();
+
+
+    /*
+     * Position underline
+     */
+
+    requestAnimationFrame(
+        updateMiniIndicator
+    );
+
+
+    /*
+     * Show all products
+     */
+
+    filterProducts("all");
+
+}
+
+
+/* =========================================================
+   MINI NAVIGATION EVENTS
+========================================================= */
+
+function attachMiniNavigationEvents() {
+
+    document
+        .querySelectorAll(
+            ".mini-nav-item"
+        )
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                function() {
+
+                    document
+                        .querySelectorAll(
+                            ".mini-nav-item"
+                        )
+                        .forEach(item => {
+
+                            item.classList.remove(
+                                "active"
+                            );
+
+                        });
+
+
+                    this.classList.add(
+                        "active"
+                    );
+
+
+                    /*
+                     * Move underline
+                     */
+
+                    updateMiniIndicator();
+
+
+                    /*
+                     * Filter
+                     */
+
+                    filterProducts(
+                        this.textContent.trim()
+                    );
+
+                }
+            );
+
+        });
+
+}
+
+
+/* =========================================================
+   YOUTUBE STYLE INDICATOR
+========================================================= */
+
+function updateMiniIndicator() {
+
+    const active =
+        document.querySelector(
+            ".mini-nav-item.active"
+        );
+
+    const indicator =
+        document.getElementById(
+            "miniNavIndicator"
+        );
+
+
+    if (
+        !active ||
+        !indicator
+    ) {
+        return;
+    }
+
+
+    const activeLeft =
+        active.offsetLeft;
+
+
+    const activeWidth =
+        active.offsetWidth;
+
+
+    indicator.style.left =
+        activeLeft + "px";
+
+
+    indicator.style.width =
+        activeWidth + "px";
+
+}
+
+
+/* =========================================================
+   FILTER PRODUCTS
+========================================================= */
+
+function filterProducts(
+    selectedCategory
+) {
+
+    const normalized =
+        selectedCategory
+            .toLowerCase()
+            .trim();
+
+
+    let visible =
+        0;
+
+
+    products.forEach(card => {
+
+        /*
+         * ALL
+         */
+
+        if (
+            normalized === "all"
+        ) {
+
+            card.classList.remove(
+                "hidden"
+            );
+
+            visible++;
+
+            return;
+
+        }
+
+
+        /*
+         * Product category
+         */
+
+        const cardCategory =
+            card.dataset.category
+                .toLowerCase();
+
+
+        /*
+         * Convert spaces to hyphens
+         */
+
+        const categorySlug =
+            normalized.replace(
+                /\s+/g,
+                "-"
+            );
+
+
+        if (
+            cardCategory ===
+            categorySlug
+        ) {
+
+            card.classList.remove(
+                "hidden"
+            );
+
+            visible++;
+
+        } else {
+
+            card.classList.add(
+                "hidden"
+            );
+
+        }
+
+    });
+
+
+    /*
+     * Count
+     */
+
+    productsCount.textContent =
+        visible +
+        (
+            visible === 1
+                ? " product"
+                : " products"
+        );
+
+
+    /*
+     * Empty state
+     */
+
+    if (visible === 0) {
+
+        emptyProducts.style.display =
+            "block";
+
+    } else {
+
+        emptyProducts.style.display =
+            "none";
+
+    }
+
+}
+
+
+/* =========================================================
+   CLOSE POPUPS WHEN CLICKING OUTSIDE
+========================================================= */
+
+document.addEventListener(
+    "click",
+    function() {
+
+        companySide.classList.remove(
+            "open"
+        );
+
+        sellerSide.classList.remove(
+            "open"
+        );
+
+    }
+);
+
+
+/* =========================================================
+   PREVENT POPUP CLICKS FROM CLOSING THEM
+========================================================= */
+
+document
+    .querySelectorAll(
+        ".category-popup"
+    )
+    .forEach(popup => {
+
+        popup.addEventListener(
+            "click",
+            function(event) {
+
+                event.stopPropagation();
+
+            }
+        );
+
+    });
+
+
+/* =========================================================
+   RESIZE
+========================================================= */
+
+window.addEventListener(
+    "resize",
+    function() {
+
+        updateMiniIndicator();
+
+    }
+);
+
+
+/* =========================================================
+  INITIALIZE
+========================================================= */
+
+attachMiniNavigationEvents();
+
+requestAnimationFrame(
+    updateMiniIndicator
+);
+
+filterProducts("all");
+
+</script>
+
+</body>
+</html>

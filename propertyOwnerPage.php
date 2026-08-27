@@ -264,7 +264,7 @@ if (isset($_GET['edit_product_id'])) {
   $editProductId = intval($_GET['edit_product_id']);
 
   $stmt = $conn->prepare("
-    SELECT product_name, category, price, stock_quantity, image_path
+    SELECT product_name, category, buying_price, selling_price, stock_quantity, image_path
     FROM productservicesrentals
     WHERE product_id = ? AND user_id = ?
     LIMIT 1
@@ -280,7 +280,8 @@ if (isset($_GET['edit_product_id'])) {
 
     $productName = $product['product_name'];
     $category    = $product['category'];
-    $price       = $product['price'];
+    $buyingPrice       = $product['buying_price'];
+    $sellingPrice       = $product['selling_price'];
     $stock       = $product['stock_quantity'];
     $currentImagePath = $product['image_path'];
 
@@ -317,8 +318,14 @@ $error = "Please select a sale type.";
 elseif ($unit === '') {
 $error = "Please select a unit.";
 }
-elseif ($price <= 0) {
-$error = "Price must be greater than zero.";
+elseif ($buyingPrice < $sellingPrice) {
+$error = "Buting price must be greater than selling price.";
+}
+elseif ($buyingPrice <= 0) {
+$error = "Buying price must be greater than zero.";
+}
+elseif ($sellingPrice <= 0) {
+$error = "Selling price must be greater than zero.";
 }
 elseif ($stock < 0) {
 $error = "Stock cannot be negative.";

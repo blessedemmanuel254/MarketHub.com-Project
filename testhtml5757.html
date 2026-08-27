@@ -1,755 +1,299 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Seller Product Adjustment</title>
+<title>28 Day Battery</title>
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
 
-    <style>
+/* =========================================================
+   PAGE
+========================================================= */
 
-        /* =========================================================
-           RESET
-        ========================================================= */
+* {
+    box-sizing: border-box;
+}
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+body {
+    margin: 0;
+    min-height: 100vh;
 
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-            color: #222;
-            padding: 40px 20px;
-        }
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
+    background: #f5f5f5;
 
-        /* =========================================================
-           PRODUCT AREA
-        ========================================================= */
+    font-family: Arial, sans-serif;
+}
 
-        .products-container {
-            width: 100%;
-            max-width: 1100px;
-            margin: auto;
 
-            display: grid;
-            grid-template-columns: repeat(
-                auto-fit,
-                minmax(100px, 1fr)
-            );
+/* =========================================================
+   DAYS BATTERY
+========================================================= */
 
-            gap: 25px;
-        }
+.days-battery-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 
 
-        /* =========================================================
-           PRODUCT ITEM
-        ========================================================= */
+/* =========================================================
+   BATTERY BODY
+========================================================= */
 
-        .product-item {
-            width: 100%;
-        }
+.days-battery {
+    position: relative;
 
+    width: 100px;
+    height: 46px;
 
-        /* =========================================================
-           PRODUCT CARD
-        ========================================================= */
+    border: 3px solid #333;
+    border-radius: 8px;
 
-        .product-card {
-            width: 100%;
-            background: #fff;
+    background: #fff;
 
-            border-radius: 14px;
+    padding: 3px;
 
-            overflow: hidden;
+    overflow: hidden;
+}
 
-            border: 1px solid #e5e5e5;
 
-            box-shadow:
-                0 3px 10px rgba(0,0,0,0.07);
+/* =========================================================
+   BATTERY TERMINAL
+========================================================= */
 
-            cursor: pointer;
+.days-battery::after {
+    content: "";
 
-            transition:
-                transform .2s ease,
-                box-shadow .2s ease;
+    position: absolute;
 
-            user-select: none;
-        }
+    right: -8px;
+    top: 50%;
 
-        .product-card:hover {
-            transform: translateY(-3px);
+    width: 7px;
+    height: 18px;
 
-            box-shadow:
-                0 8px 22px rgba(0,0,0,0.12);
-        }
+    transform: translateY(-50%);
 
+    background: #333;
 
-        /* =========================================================
-           PRODUCT IMAGE
-        ========================================================= */
+    border-radius: 0 4px 4px 0;
+}
 
-        .product-image {
-            width: 100%;
-            height: 190px;
 
-            overflow: hidden;
+/* =========================================================
+   BATTERY FILL
+========================================================= */
 
-            background: #eee;
-        }
+.days-battery-fill {
+    height: 100%;
 
-        .product-image img {
-            width: 100%;
-            height: 100%;
+    width: 100%;
 
-            object-fit: cover;
+    background: #088000;
 
-            display: block;
-        }
+    border-radius: 4px;
 
+    transition:
+        width 0.8s ease,
+        background 0.4s ease;
 
-        /* =========================================================
-           PRODUCT INFORMATION
-        ========================================================= */
+    position: relative;
 
-        .product-info {
-            padding: 15px;
-        }
+    overflow: hidden;
+}
 
-        .product-name {
-            font-size: 18px;
-            font-weight: 700;
 
-            margin-bottom: 8px;
-        }
+/* =========================================================
+   SHINE / CHARGING EFFECT
+========================================================= */
 
-        .product-price {
-            color: #088000;
+.days-battery-fill::after {
 
-            font-size: 16px;
-            font-weight: 700;
+    content: "";
 
-            margin-bottom: 7px;
-        }
+    position: absolute;
 
-        .product-description {
-            color: #777;
+    top: 0;
+    left: -40%;
 
-            font-size: 13px;
+    width: 30%;
+    height: 100%;
 
-            line-height: 1.5;
-        }
+    background: rgba(255,255,255,0.25);
 
+    transform: skewX(-20deg);
 
-        /* =========================================================
-           ADJUSTMENT POPUP
-        ========================================================= */
+    animation: batteryShine 2.5s infinite;
+}
 
-        .adjust-popup {
-            display: none;
-            width: 315px;
-            margin-top: 10px;
-            background: #fff;
-            border-radius: 12px;
-            padding: 8px;
-            border: 1px solid #dedede;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            position: relative;
-            z-index: 10;
-            animation: popupOpen .18s ease-out;
-        }
 
-        .adjust-popup.active {
-            display: block;
-        }
+@keyframes batteryShine {
 
+    0% {
+        left: -40%;
+    }
 
-        /* Small pointer connecting popup to card */
+    100% {
+        left: 130%;
+    }
 
-        .adjust-popup::before {
-            content: "";
+}
 
-            position: absolute;
 
-            top: -7px;
-            left: 50%;
+/* =========================================================
+   DAYS TEXT
+========================================================= */
 
-            width: 14px;
-            height: 14px;
+.days-value {
+    min-width: 65px;
 
-            background: #fff;
+    font-size: 16px;
 
-            border-left: 1px solid #e4e4e4;
-            border-top: 1px solid #e4e4e4;
+    font-weight: 600;
 
-            transform:
-                translateX(-50%)
-                rotate(45deg);
-        }
+    color: #333;
 
+    white-space: nowrap;
+}
 
-        @keyframes popupOpen {
 
-            from {
-                opacity: 0;
-                transform: translateY(-5px) scale(.98);
-            }
+/* =========================================================
+   OPTIONAL LABEL
+========================================================= */
 
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
+.days-label {
+    font-size: 12px;
+    color: #898888;
+}
 
-        }
 
+/* =========================================================
+   BATTERY STATES
+========================================================= */
 
-        /* =========================================================
-           ADJUSTMENT BUTTON ROW
-        ========================================================= */
+.days-battery.low .days-battery-fill {
+    background: #856404;
+}
 
-        .adjust-buttons {
-            display: flex;
 
-            align-items: center;
-            justify-content: center;
+.days-battery.critical .days-battery-fill {
+    background: #ff3b3b;
+}
 
-            gap: 5px;
 
-            width: 100%;
-        }
+.days-battery.empty .days-battery-fill {
+    background: transparent;
+}
 
 
-        /* =========================================================
-           3D ADJUST BUTTON
-        ========================================================= */
+/* =========================================================
+   DEMO CONTROLS
+========================================================= */
 
-        .adjust-btn {
-            flex: 1;
+.demo-controls {
 
-            min-width: 0;
+    position: absolute;
 
-            height: 30px;
+    bottom: 30px;
 
-            border: none;
+    display: flex;
 
-            border-radius: 12px;
+    align-items: center;
 
-            font-size: 14px;
+    gap: 8px;
+}
 
-            font-weight: 550;
 
-            color: #fff;
+.demo-controls button {
 
-            cursor: pointer;
+    border: 1px solid #ccc;
 
-            position: relative;
+    background: white;
 
-            transition:
-                transform .08s ease,
-                box-shadow .08s ease;
+    padding: 7px 12px;
 
-            user-select: none;
-        }
+    border-radius: 5px;
 
+    cursor: pointer;
+}
 
-        /* ---------- RED DECREASE BUTTONS ---------- */
 
-        .adjust-btn.minus {
-            background:
-                linear-gradient(
-                    to bottom,
-                    #0f0f0f 0%,
-                    #e90000 100%
-                );
+.demo-controls button:hover {
 
-            box-shadow:
-                0 4px 0 #a90000,
-                0 6px 10px rgba(0,0,0,.16);
-        }
+    background: #eee;
+}
 
-
-        /* ---------- GREEN INCREASE BUTTONS ---------- */
-
-        .adjust-btn.plus {
-            background:
-                linear-gradient(
-                    to bottom,
-                    #0f0f0f 0%,
-                    #087800 100%
-                );
-
-            box-shadow:
-                0 4px 0 #055500,
-                0 6px 10px rgba(0,0,0,.16);
-        }
-
-
-        /* ---------- ZERO BUTTON ---------- */
-
-        .adjust-btn.zero {
-            background:
-                linear-gradient(
-                    to bottom,
-                    #ffffff 0%,
-                    #dedede 100%
-                );
-
-            color: #555;
-
-            border: 1px solid #d4d4d4;
-
-            box-shadow:
-                0 4px 0 #bdbdbd,
-                0 6px 10px rgba(0,0,0,.10);
-        }
-
-
-        /* =========================================================
-           3D PRESS EFFECT
-        ========================================================= */
-
-        .adjust-btn:active {
-
-            transform: translateY(4px);
-
-            box-shadow:
-                0 0 0 transparent;
-        }
-
-
-        .adjust-btn:hover {
-
-            filter: brightness(1.05);
-
-        }
-
-
-        /* =========================================================
-           CURRENT QUANTITY
-        ========================================================= */
-
-        .current-adjustment {
-
-            display: none;
-
-            text-align: center;
-
-            margin-top: 15px;
-
-            padding-top: 12px;
-
-            border-top: 1px solid #eeeeee;
-        }
-
-        .current-adjustment.active {
-            display: block;
-        }
-
-        .quantity-value {
-
-            font-size: 18px;
-
-            font-weight: 800;
-
-            color: #222;
-        }
-
-        .quantity-unit {
-
-            font-size: 12px;
-
-            font-weight: bold;
-
-            color: #777;
-
-            margin-left: 4px;
-        }
-
-
-        /* =========================================================
-           ADD TO LIST
-        ========================================================= */
-
-        .add-list-btn {
-          display: none;
-          width: 100%;
-          padding: 8px 16px;
-          margin-top: 14px;
-          border: none;
-          border-radius: 4px;
-          background-color: #0f0f0f;
-          color: #ffffff;
-          font-size: 13px;
-          font-weight: 700;
-          cursor: pointer;
-          transition:
-              transform .08s ease,
-              box-shadow .08s ease;
-        }
-
-        .add-list-btn.active {
-            display: block;
-        }
-
-        .add-list-btn:hover {
-            filter: brightness(1.06);
-        }
-
-        .add-list-btn:active {
-            transform: translateY(4px);
-
-            box-shadow:
-                0 0 0 transparent;
-        }
-
-        .add-list-btn i {
-            margin-right: 8px;
-        }
-
-
-        /* =========================================================
-           MOBILE
-        ========================================================= */
-
-        @media (max-width: 500px) {
-
-            body {
-                padding: 20px 12px;
-            }
-
-            .products-container {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 12px;
-            }
-
-            .product-image {
-                height: 140px;
-            }
-
-            .product-info {
-                padding: 11px;
-            }
-
-            .product-name {
-                font-size: 15px;
-            }
-
-            .product-price {
-                font-size: 13px;
-            }
-
-            .product-description {
-                font-size: 11px;
-            }
-
-            .adjust-popup {
-                padding: 12px 8px;
-            }
-
-            .adjust-buttons {
-                gap: 5px;
-            }
-
-            .adjust-btn {
-                height: 36px;
-
-                font-size: 11px;
-
-                border-radius: 6px;
-            }
-
-        }
-
-    </style>
+</style>
 </head>
 
 
 <body>
 
 
-<!-- =============================================================
-     PRODUCTS
-============================================================= -->
+<!-- =======================================================
+     BATTERY
+======================================================= -->
 
-<div class="products-container">
+<div class="days-battery-wrapper">
 
-
-    <!-- =========================================================
-         PRODUCT 1
-    ========================================================== -->
-
-    <div class="product-item">
+    <div
+        class="days-battery"
+        id="daysBattery"
+    >
 
         <div
-            class="product-card"
-            data-product="Rice"
-            data-unit="KG"
-            data-price="80"
-        >
-
-            <div class="product-image">
-
-                <img
-                    src="https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=700&q=80"
-                    alt="Rice"
-                >
-
-            </div>
-
-
-            <div class="product-info">
-
-                <div class="product-name">
-                    Rice
-                </div>
-
-                <div class="product-price">
-                    KES 80.00 / KG
-                </div>
-
-                <div class="product-description">
-                    High quality white rice.
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- =====================================================
-             QUICK ADJUST POPUP
-        ====================================================== -->
-
-        <div class="adjust-popup">
-
-
-            <div class="adjust-buttons">
-
-                <button
-                    type="button"
-                    class="adjust-btn minus"
-                    data-value="-1">
-                    -1
-                </button>
-
-                <button
-                    type="button"
-                    class="adjust-btn minus"
-                    data-value="-0.5">
-                    -½
-                </button>
-
-                <button
-                    type="button"
-                    class="adjust-btn minus"
-                    data-value="-0.25">
-                    -¼
-                </button>
-
-                <button
-                    type="button"
-                    class="adjust-btn zero"
-                    data-value="0">
-                    0
-                </button>
-
-                <button
-                    type="button"
-                    class="adjust-btn plus"
-                    data-value="0.25">
-                    +¼
-                </button>
-
-                <button
-                    type="button"
-                    class="adjust-btn plus"
-                    data-value="0.5">
-                    +½
-                </button>
-
-                <button
-                    type="button"
-                    class="adjust-btn plus"
-                    data-value="1">
-                    +1
-                </button>
-
-            </div>
-
-
-            <!-- CURRENT QUANTITY -->
-
-            <div class="current-adjustment">
-
-                <span class="quantity-value">
-                    0
-                </span>
-
-                <span class="quantity-unit">
-                    Kg
-                </span>
-
-            </div>
-
-
-            <!-- ADD TO LIST -->
-
-            <button
-                type="button"
-                class="add-list-btn">
-
-                Add to list
-
-            </button>
-
-
-            <div class="added-message">
-
-                <i class="fa-solid fa-circle-check"></i>
-
-                Added to list
-
-            </div>
-
-        </div>
+            class="days-battery-fill"
+            id="daysBatteryFill"
+        ></div>
 
     </div>
 
 
-
-    <!-- =========================================================
-         PRODUCT 2
-    ========================================================== -->
-
-    <div class="product-item">
+    <div>
 
         <div
-            class="product-card"
-            data-product="Sugar"
-            data-unit="KG"
-            data-price="150"
+            class="days-value"
+            id="daysValue"
         >
-
-            <div class="product-image">
-
-                <img
-                    src="https://images.unsplash.com/photo-1581441363689-1f3c3c414635?auto=format&fit=crop&w=700&q=80"
-                    alt="Sugar"
-                >
-
-            </div>
-
-
-            <div class="product-info">
-
-                <div class="product-name">
-                    Sugar
-                </div>
-
-                <div class="product-price">
-                    KES 150.00 / KG
-                </div>
-
-                <div class="product-description">
-                    Premium white sugar.
-                </div>
-
-            </div>
-
+            28 days
         </div>
 
-
-        <!-- ADJUSTMENT -->
-
-        <div class="adjust-popup">
-
-
-            <div class="adjust-buttons">
-
-                <button
-                    type="button"
-                    class="adjust-btn minus"
-                    data-value="-1">
-                    -1
-                </button>
-
-                <button
-                    type="button"
-                    class="adjust-btn minus"
-                    data-value="-0.5">
-                    -1/2
-                </button>
-
-                <button
-                    type="button"
-                    class="adjust-btn minus"
-                    data-value="-0.25">
-                    -1/4
-                </button>
-
-                <button
-                    type="button"
-                    class="adjust-btn zero"
-                    data-value="0">
-                    0
-                </button>
-
-                <button
-                    type="button"
-                    class="adjust-btn plus"
-                    data-value="0.25">
-                    +1/4
-                </button>
-
-                <button
-                    type="button"
-                    class="adjust-btn plus"
-                    data-value="0.5">
-                    +1/2
-                </button>
-
-                <button
-                    type="button"
-                    class="adjust-btn plus"
-                    data-value="1">
-                    +1
-                </button>
-
-            </div>
-
-
-            <div class="current-adjustment">
-
-                <span class="quantity-value">
-                    0
-                </span>
-
-                <span class="quantity-unit">
-                    KG
-                </span>
-
-            </div>
-
-
-            <button
-                type="button"
-                class="add-list-btn">
-
-                Add to list
-
-            </button>
-
+        <div class="days-label">
+            remaining
         </div>
 
     </div>
 
+</div>
+
+
+
+<!-- =======================================================
+     DEMO CONTROLS
+======================================================= -->
+
+<div class="demo-controls">
+
+    <button onclick="changeDays(-1)">
+        − 1 Day
+    </button>
+
+    <button onclick="changeDays(1)">
+        + 1 Day
+    </button>
+
+    <button onclick="setDays(28)">
+        Full
+    </button>
+
+    <button onclick="setDays(0)">
+        Empty
+    </button>
 
 </div>
 
@@ -757,340 +301,162 @@
 
 <script>
 
-document.addEventListener("DOMContentLoaded", function () {
+/* =========================================================
+   DAYS BATTERY
+========================================================= */
 
+const MAX_DAYS = 28;
 
-    /* =========================================================
-       ALL PRODUCT ITEMS
-    ========================================================== */
+let remainingDays = 28;
 
-    const productItems =
-        document.querySelectorAll(".product-item");
 
+/* =========================================================
+   UPDATE BATTERY
+========================================================= */
 
-    /* =========================================================
-       OPEN PRODUCT ADJUSTMENT
-    ========================================================== */
-
-    productItems.forEach(function (item) {
-
-        const card =
-            item.querySelector(".product-card");
-
-        const popup =
-            item.querySelector(".adjust-popup");
-
-
-        card.addEventListener("click", function () {
-
-
-            /*
-             * Close every other popup first
-             */
-
-            productItems.forEach(function (otherItem) {
-
-                if (otherItem !== item) {
-
-                    const otherPopup =
-                        otherItem.querySelector(".adjust-popup");
-
-                    otherPopup.classList.remove("active");
-
-                }
-
-            });
-
-
-            /*
-             * Open this product's popup
-             */
-
-            popup.classList.toggle("active");
-
-
-        });
-
-
-        /* =====================================================
-           ADJUSTMENT BUTTONS
-        ====================================================== */
-
-        const buttons =
-            popup.querySelectorAll(".adjust-btn");
-
-        const quantityDisplay =
-            popup.querySelector(".quantity-value");
-
-        const quantityUnit =
-            popup.querySelector(".quantity-unit");
-
-        const currentAdjustment =
-            popup.querySelector(".current-adjustment");
-
-        const addButton =
-            popup.querySelector(".add-list-btn");
-
-        const addedMessage =
-            popup.querySelector(".added-message");
-
-
-        let quantity = 0;
-
-
-        /* Set correct unit */
-
-        quantityUnit.textContent =
-            card.dataset.unit;
-
-
-        /* =====================================================
-           BUTTON CLICK
-        ====================================================== */
-
-        buttons.forEach(function (button) {
-
-
-            button.addEventListener("click", function (event) {
-
-                /*
-                 * Prevent the click from reaching
-                 * the product card.
-                 */
-
-                event.stopPropagation();
-
-
-                const value =
-                    parseFloat(button.dataset.value);
-
-
-                /*
-                 * ZERO BUTTON
-                 */
-
-                if (value === 0) {
-
-                    quantity = 0;
-
-                }
-
-                /*
-                 * OTHER BUTTONS
-                 */
-
-                else {
-
-                    quantity += value;
-
-                }
-
-
-                /*
-                 * Never allow negative quantity
-                 */
-
-                if (quantity < 0) {
-                    quantity = 0;
-                }
-
-
-                /*
-                 * Avoid floating point values
-                 * such as 0.30000000000004
-                 */
-
-                quantity =
-                    Math.round(quantity * 100) / 100;
-
-
-                /*
-                 * Display quantity
-                 */
-
-                quantityDisplay.textContent =
-                    formatQuantity(quantity);
-
-
-                /*
-                 * Show current adjustment
-                 */
-
-                if (quantity > 0) {
-
-                    currentAdjustment.classList.add("active");
-
-                    addButton.classList.add("active");
-
-                }
-
-                else {
-
-                    currentAdjustment.classList.remove("active");
-
-                    addButton.classList.remove("active");
-
-                }
-
-
-                /*
-                 * Hide old success message
-                 */
-
-                addedMessage.classList.remove("active");
-
-
-            });
-
-        });
-
-
-        /* =====================================================
-           ADD TO LIST
-        ====================================================== */
-
-        addButton.addEventListener("click", function (event) {
-
-            event.stopPropagation();
-
-
-            if (quantity <= 0) {
-                return;
-            }
-
-
-            const productName =
-                card.dataset.product;
-
-            const unit =
-                card.dataset.unit;
-
-
-            /*
-             * Example:
-             * Rice - 2.5 KG
-             */
-
-            console.log(
-                "Added:",
-                productName,
-                quantity,
-                unit
-            );
-
-
-            /*
-             * Show success
-             */
-
-            addedMessage.classList.add("active");
-
-
-            /*
-             * Close popup after short delay
-             */
-
-            setTimeout(function () {
-
-                popup.classList.remove("active");
-
-                addedMessage.classList.remove("active");
-
-                currentAdjustment.classList.remove("active");
-
-                addButton.classList.remove("active");
-
-                quantity = 0;
-
-                quantityDisplay.textContent = "0";
-
-            }, 700);
-
-
-        });
-
-
-    });
-
-
-    /* =========================================================
-       FORMAT QUANTITY
-    ========================================================== */
-
-  function formatQuantity(value) {
+function updateDaysBattery(days) {
 
     /*
-      * Keep the value accurate to the nearest quarter
-      */
-    value = Math.round(value * 4) / 4;
+     * Keep the value between 0 and 28.
+     */
 
-    const whole = Math.floor(value);
-    const fraction = value - whole;
+    days = Math.max(
+        0,
+        Math.min(MAX_DAYS, Number(days))
+    );
 
-    let fractionText = "";
+
+    remainingDays = days;
+
 
     /*
-      * Convert decimal fractions into
-      * proper fraction characters.
-      */
-    if (fraction === 0.25) {
-        fractionText = "¼";
-    }
-    else if (fraction === 0.5) {
-        fractionText = "½";
-    }
-    else if (fraction === 0.75) {
-        fractionText = "¾";
-    }
+     * Calculate percentage.
+     *
+     * 28 days = 100%
+     * 14 days = 50%
+     * 7 days  = 25%
+     */
+
+    const percentage =
+        (days / MAX_DAYS) * 100;
+
+
+    const battery =
+        document.getElementById(
+            "daysBattery"
+        );
+
+
+    const fill =
+        document.getElementById(
+            "daysBatteryFill"
+        );
+
+
+    const value =
+        document.getElementById(
+            "daysValue"
+        );
+
 
     /*
-      * Whole number only
-      */
-    if (whole === 0 && fractionText === "") {
-        return "0";
-    }
+     * Update fill.
+     */
+
+    fill.style.width =
+        percentage + "%";
+
 
     /*
-      * Fraction less than 1
-      */
-    if (whole === 0) {
-        return fractionText;
-    }
+     * Update text.
+     */
+
+    value.textContent =
+        days === 1
+            ? "1 day"
+            : days + " days";
+
 
     /*
-      * Mixed fraction
-      */
-    return whole + fractionText;
-  }
+     * Remove previous states.
+     */
+
+    battery.classList.remove(
+        "low",
+        "critical",
+        "empty"
+    );
 
 
-    /* =========================================================
-       CLICK OUTSIDE
-    ========================================================== */
+    /*
+     * Battery state.
+     */
 
-    document.addEventListener("click", function (event) {
+    if (days === 0) {
 
-        /*
-         * If the click isn't inside a product item,
-         * close all adjustment panels.
-         */
+        battery.classList.add(
+            "empty"
+        );
 
-        if (!event.target.closest(".product-item")) {
+    }
 
-            document
-                .querySelectorAll(".adjust-popup")
-                .forEach(function (popup) {
+    else if (days <= 5) {
 
-                    popup.classList.remove("active");
+        battery.classList.add(
+            "critical"
+        );
 
-                });
+    }
 
-        }
+    else if (days <= 10) {
 
-    });
+        battery.classList.add(
+            "low"
+        );
+
+    }
+
+}
 
 
-});
+/* =========================================================
+   CHANGE DAYS
+========================================================= */
+
+function changeDays(amount) {
+
+    updateDaysBattery(
+        remainingDays + amount
+    );
+
+}
+
+
+/* =========================================================
+   SET DAYS
+========================================================= */
+
+function setDays(days) {
+
+    updateDaysBattery(days);
+
+}
+
+
+/* =========================================================
+   INITIALIZE
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        updateDaysBattery(
+            remainingDays
+        );
+
+    }
+);
 
 </script>
 

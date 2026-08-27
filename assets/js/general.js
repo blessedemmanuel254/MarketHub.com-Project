@@ -3758,7 +3758,7 @@ document.addEventListener("DOMContentLoaded", function () {
           message;
 
       checkoutError.style.display =
-          "flex";
+          "block";
 
   }
 
@@ -5410,5 +5410,386 @@ document.addEventListener("DOMContentLoaded", function () {
     ===================================================== */
 
     nextMessage();
+
+});
+
+/* =========================================================
+  CUSTOM GROUP HANDLING
+========================================================= */
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    const companyCategorySelect = document.querySelector('select[name="category"]');
+
+    const customCategorySelect = document.getElementById('customCategorySelect');
+
+    const savedCustomCategoryId =
+    customCategorySelect.dataset.selectedCategoryId || '';
+
+    const customCategorySelectRow =
+        document.getElementById('customCategorySelectRow');
+
+    const newCustomCategoryRow =
+        document.getElementById('newCustomCategoryRow');
+
+    const newCustomCategory =
+        document.getElementById('newCustomCategory');
+
+    const newCustomCategoryBtn =
+        document.getElementById('newCustomCategoryBtn');
+
+    const cancelNewCustomCategoryBtn =
+        document.getElementById('cancelNewCustomCategoryBtn');
+
+    const customCategoryMessage =
+        document.getElementById('customCategoryMessage');
+
+
+    /*
+    ============================================================
+        HELPERS
+    ============================================================
+    */
+
+    function hideMessage() {
+        customCategoryMessage.style.display = 'none';
+    }
+
+
+    function showMessage() {
+        customCategoryMessage.style.display = 'block';
+    }
+
+
+    function showInputMode() {
+
+        customCategorySelectRow.style.display = 'none';
+
+        newCustomCategoryRow.style.display = 'flex';
+
+        /*
+         * The cancel button is hidden when this is the
+         * initial/default input mode.
+         */
+        cancelNewCustomCategoryBtn.style.display = 'none';
+    }
+
+
+    function showSelectMode() {
+
+        newCustomCategoryRow.style.display = 'none';
+
+        customCategorySelectRow.style.display = 'flex';
+    }
+
+
+    function showAddNewMode() {
+
+        customCategorySelectRow.style.display = 'none';
+
+        newCustomCategoryRow.style.display = 'flex';
+
+        /*
+         * Cancel is visible because the seller deliberately
+         * clicked the Add button.
+         */
+        cancelNewCustomCategoryBtn.style.display = 'inline-flex';
+
+        newCustomCategory.focus();
+    }
+
+
+    /*
+    ============================================================
+        LOAD GROUPS FOR SELECTED COMPANY CATEGORY
+    ============================================================
+    */
+
+    function loadCustomCategories() {
+
+        const companyCategory = companyCategorySelect.value.trim();
+
+
+        /*
+        --------------------------------------------------------
+            NO COMPANY CATEGORY SELECTED
+        --------------------------------------------------------
+        */
+
+        if (!companyCategory) {
+
+            customCategorySelect.innerHTML =
+                '<option value="">-- Select Group Name --</option>';
+
+            /*
+             * Default state is text input.
+             */
+            showInputMode();
+
+            /*
+             * But when the user has not selected a company
+             * category, tell them what they need to do.
+             */
+            showMessage();
+
+            return;
+        }
+
+
+        /*
+        --------------------------------------------------------
+            COMPANY CATEGORY SELECTED
+        --------------------------------------------------------
+        */
+
+        hideMessage();
+
+
+        /*
+         * Find only groups belonging to this company category.
+         */
+        const groups = customCategories.filter(function (group) {
+
+            return String(group.company_category).trim().toLowerCase()
+                === companyCategory.toLowerCase();
+
+        });
+
+
+        /*
+        --------------------------------------------------------
+            THERE ARE EXISTING CUSTOM GROUPS
+        --------------------------------------------------------
+        */
+
+        if (groups.length > 0) {
+
+            customCategorySelect.innerHTML = '<option value="">-- Select Group Name --</option>';
+
+            groups.forEach(function (group) {
+
+              const option = document.createElement('option');
+
+              option.value = group.custom_category_id;
+
+              option.textContent = group.name;
+
+              // Select the product's previously saved custom group
+              if (
+                  savedCustomCategoryId !== '' &&
+                  String(group.custom_category_id) ===
+                  String(savedCustomCategoryId)
+              ) {
+                  option.selected = true;
+              }
+
+              customCategorySelect.appendChild(option);
+
+            });
+
+            /*
+             * Existing groups means:
+             *
+             * SELECT + ADD BUTTON
+             */
+            showSelectMode();
+
+        }
+
+
+        /*
+        --------------------------------------------------------
+            THERE ARE NO CUSTOM GROUPS
+        --------------------------------------------------------
+        */
+
+        else {
+
+            customCategorySelect.innerHTML =
+                '<option value="">-- Select Group Name --</option>';
+
+            /*
+             * No existing groups means:
+             *
+             * TEXT INPUT
+             *
+             * No Cancel button because this is the default
+             * state, not "add another group" mode.
+             */
+            showInputMode();
+
+        }
+
+    }
+
+
+    /*
+    ============================================================
+        COMPANY CATEGORY CHANGED
+    ============================================================
+    */
+
+    companyCategorySelect.addEventListener('change', function () {
+
+        /*
+         * Clear anything previously selected/typed.
+         */
+        customCategorySelect.value = '';
+
+        newCustomCategory.value = '';
+
+        loadCustomCategories();
+
+    });
+
+
+    /*
+    ============================================================
+        USER CLICKS THE CUSTOM GROUP INPUT
+    ============================================================
+    */
+
+    newCustomCategory.addEventListener('focus', function () {
+
+        /*
+         * If no company category has been selected,
+         * don't allow them to proceed silently.
+         */
+        if (!companyCategorySelect.value.trim()) {
+
+            showMessage();
+
+            /*
+             * Keep focus on the company category.
+             */
+            companyCategorySelect.focus();
+
+            return;
+        }
+
+        hideMessage();
+
+    });
+
+
+    /*
+    ============================================================
+        USER STARTS TYPING
+    ============================================================
+    */
+
+    newCustomCategory.addEventListener('input', function () {
+
+        /*
+         * Requirement:
+         *
+         * When seller starts typing, temporarily hide Cancel.
+         */
+        if (newCustomCategory.value.trim() !== '') {
+
+            cancelNewCustomCategoryBtn.style.display = 'none';
+
+        } else {
+
+            /*
+             * Only show Cancel again if we are actually in
+             * "Add New Group" mode.
+             *
+             * We determine this by checking whether the
+             * select row is currently hidden.
+             */
+            if (customCategorySelectRow.style.display === 'none'
+                && customCategorySelect.innerHTML !==
+                   '<option value="">-- Select Group Name --</option>') {
+
+                cancelNewCustomCategoryBtn.style.display = 'inline-flex';
+
+            }
+
+        }
+
+    });
+
+
+    /*
+    ============================================================
+        ADD BUTTON
+    ============================================================
+    */
+
+    newCustomCategoryBtn.addEventListener('click', function () {
+
+        /*
+         * There must already be a company category.
+         */
+        if (!companyCategorySelect.value.trim()) {
+
+            showMessage();
+
+            companyCategorySelect.focus();
+
+            return;
+        }
+
+        hideMessage();
+
+        /*
+         * Switch from SELECT to INPUT.
+         */
+        showAddNewMode();
+
+    });
+
+
+    /*
+    ============================================================
+        CANCEL BUTTON
+    ============================================================
+    */
+
+    cancelNewCustomCategoryBtn.addEventListener('click', function () {
+
+        /*
+         * Clear the new group input.
+         */
+        newCustomCategory.value = '';
+
+        /*
+         * Return to the SELECT + ADD button.
+         */
+        loadCustomCategories();
+
+    });
+
+
+    /*
+    ============================================================
+        INITIAL PAGE STATE
+    ============================================================
+    */
+
+    /*
+     * We deliberately start with the text input.
+     *
+     * If the form is already loaded with a company category
+     * (for example, edit mode), load the appropriate groups.
+     */
+    if (companyCategorySelect.value.trim() !== '') {
+
+        loadCustomCategories();
+
+    } else {
+
+        showInputMode();
+
+        /*
+         * Do NOT show the warning immediately.
+         *
+         * It appears when the seller actually clicks/focuses
+         * the custom group input.
+         */
+        hideMessage();
+
+    }
 
 });

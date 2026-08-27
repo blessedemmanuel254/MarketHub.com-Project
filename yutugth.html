@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Products Grid</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Poppins", sans-serif;
+            background: #f5f5f5;
+            color: #222;
+        }
+
+        .products-wrapper {
+            width: 100%;
+            max-width: 1299px;
+            margin: 0 auto;
+            padding: 25px;
+        }
+
+        /* =========================
+           HEADER
+        ========================= */
+
+        .products-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .products-title {
+            font-size: 21px;
+            font-weight: 600;
+        }
+
+        .products-count {
+            font-size: 13px;
+            color: #898888;
+        }
+
+        /* =========================
+           PRODUCTS GRID
+        ========================= */
+
+        .products-grid {
+            display: grid;
+
+            /*
+             * Cards will NEVER become smaller
+             * than 100px.
+             */
+            grid-template-columns:
+                repeat(auto-fit, minmax(100px, 1fr));
+
+            gap: 15px;
+            width: 100%;
+        }
+
+        /* =========================
+           PRODUCT CARD
+        ========================= */
+
+        .product-card {
+            position: relative;
+
+            min-width: 0;
+
+            aspect-ratio: 1 / 1.18;
+
+            background: #fff;
+            border: 1px solid #dedede;
+            border-radius: 18px;
+
+            overflow: hidden;
+
+            cursor: pointer;
+
+            transition:
+                transform .2s ease,
+                box-shadow .2s ease,
+                border-color .2s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-3px);
+
+            border-color: #cfcfcf;
+
+            box-shadow:
+                0 8px 25px rgba(0, 0, 0, .08);
+        }
+
+        /* =========================
+           PRODUCT IMAGE
+        ========================= */
+
+        .product-image-container {
+            width: 100%;
+            height: 66%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: #f7f7f7;
+
+            overflow: hidden;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 100%;
+
+            object-fit: cover;
+
+            transition: transform .25s ease;
+        }
+
+        .product-card:hover .product-image {
+            transform: scale(1.04);
+        }
+
+        /* =========================
+           PRODUCT DETAILS
+        ========================= */
+
+        .product-details {
+            height: 34%;
+
+            padding: 8px 10px;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+
+            gap: 2px;
+        }
+
+        .product-name {
+            font-size: 12px;
+            font-weight: 500;
+
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .product-price {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .product-unit {
+            font-size: 10px;
+            color: #898888;
+        }
+
+        /* =========================
+           STOCK BADGE
+        ========================= */
+
+        .stock-badge {
+            position: absolute;
+
+            top: 7px;
+            right: 7px;
+
+            padding: 3px 7px;
+
+            background: rgba(255, 255, 255, .94);
+
+            border-radius: 20px;
+
+            font-size: 9px;
+            color: #555;
+
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, .08);
+        }
+
+        /* =========================
+           VIEW MORE CARD
+        ========================= */
+
+        .view-more-card {
+
+            /*
+             * Same basic dimensions as
+             * the product cards.
+             */
+            aspect-ratio: 1 / 1.18;
+
+            min-width: 0;
+
+            border-radius: 22px;
+
+            border: 1px solid #dedede;
+
+            background: #fafafa;
+
+            display: flex;
+            flex-direction: column;
+
+            align-items: center;
+            justify-content: center;
+
+            gap: 10px;
+
+            cursor: pointer;
+
+            user-select: none;
+
+            transition:
+                transform .22s ease,
+                box-shadow .22s ease,
+                border-color .22s ease,
+                background .22s ease;
+        }
+
+        .view-more-card:hover {
+
+            background: #fff;
+
+            border-color: #088000;
+
+            transform: translateY(-3px);
+
+            box-shadow:
+                0 10px 28px rgba(0, 0, 0, .08);
+        }
+
+        /* =========================
+           VIEW MORE CIRCLE
+        ========================= */
+
+        .view-more-icon {
+
+            width: 46px;
+            height: 46px;
+
+            border-radius: 50%;
+
+            background: #fff;
+
+            border: 1px solid #dedede;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            color: #088000;
+
+            transition:
+                background .22s ease,
+                color .22s ease,
+                border-color .22s ease,
+                transform .22s ease;
+
+            box-shadow:
+                0 3px 10px rgba(0, 0, 0, .05);
+        }
+
+        .view-more-card:hover .view-more-icon {
+
+            background: #088000;
+
+            color: #fff;
+
+            border-color: #088000;
+
+            transform: translateX(3px);
+        }
+
+        .view-more-icon svg {
+
+            width: 20px;
+            height: 20px;
+        }
+
+        /* =========================
+           VIEW MORE TEXT
+        ========================= */
+
+        .view-more-text {
+
+            font-size: 12px;
+
+            font-weight: 500;
+
+            color: #333;
+
+            text-align: center;
+        }
+
+        .view-more-count {
+
+            font-size: 10px;
+
+            color: #898888;
+
+            text-align: center;
+        }
+
+        /* =========================
+           LOADING
+        ========================= */
+
+        .loading {
+
+            pointer-events: none;
+
+            opacity: .65;
+        }
+
+        .loading .view-more-icon {
+
+            animation: spin .8s linear infinite;
+        }
+
+        @keyframes spin {
+
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+
+        }
+
+        /* =========================
+           NO PRODUCTS
+        ========================= */
+
+        .no-products {
+
+            grid-column: 1 / -1;
+
+            min-height: 180px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            text-align: center;
+
+            color: #898888;
+
+            font-size: 13px;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media (max-width: 700px) {
+
+            .products-wrapper {
+                padding: 15px;
+            }
+
+            .products-grid {
+
+                grid-template-columns:
+                    repeat(auto-fit, minmax(100px, 1fr));
+
+                gap: 10px;
+            }
+
+            .product-card,
+            .view-more-card {
+                border-radius: 15px;
+            }
+
+            .view-more-icon {
+
+                width: 38px;
+                height: 38px;
+            }
+
+            .view-more-icon svg {
+
+                width: 17px;
+                height: 17px;
+            }
+
+        }
+
+        @media (max-width: 400px) {
+
+            .products-grid {
+
+                grid-template-columns:
+                    repeat(3, minmax(100px, 1fr));
+
+                overflow-x: auto;
+            }
+
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+
+<div class="products-wrapper">
+
+    <!-- =========================
+         HEADER
+    ========================= -->
+
+    <div class="products-header">
+
+        <div class="products-title">
+            Products
+        </div>
+
+        <div class="products-count" id="productsCount">
+            8 products
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         PRODUCTS GRID
+    ========================= -->
+
+    <div class="products-grid" id="productsGrid">
+
+
+        <!-- PRODUCT 1 -->
+
+        <div class="product-card"
+             data-product-id="1"
+             onclick="selectProduct(this)">
+
+            <div class="stock-badge">
+                24 in stock
+            </div>
+
+            <div class="product-image-container">
+
+                <img
+                    class="product-image"
+                    src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80"
+                    alt="Watch"
+                >
+
+            </div>
+
+            <div class="product-details">
+
+                <div class="product-name">
+                    Classic Watch
+                </div>
+
+                <div class="product-price">
+                    KES 2,500
+                </div>
+
+                <div class="product-unit">
+                    Each
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PRODUCT 2 -->
+
+        <div class="product-card"
+             data-product-id="2"
+             onclick="selectProduct(this)">
+
+            <div class="stock-badge">
+                12 in stock
+            </div>
+
+            <div class="product-image-container">
+
+                <img
+                    class="product-image"
+                    src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80"
+                    alt="Shoes"
+                >
+
+            </div>
+
+            <div class="product-details">
+
+                <div class="product-name">
+                    Sports Shoes
+                </div>
+
+                <div class="product-price">
+                    KES 3,200
+                </div>
+
+                <div class="product-unit">
+                    Pair
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PRODUCT 3 -->
+
+        <div class="product-card"
+             data-product-id="3"
+             onclick="selectProduct(this)">
+
+            <div class="stock-badge">
+                50 in stock
+            </div>
+
+            <div class="product-image-container">
+
+                <img
+                    class="product-image"
+                    src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=500&q=80"
+                    alt="Camera"
+                >
+
+            </div>
+
+            <div class="product-details">
+
+                <div class="product-name">
+                    Digital Camera
+                </div>
+
+                <div class="product-price">
+                    KES 18,500
+                </div>
+
+                <div class="product-unit">
+                    Each
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PRODUCT 4 -->
+
+        <div class="product-card"
+             data-product-id="4"
+             onclick="selectProduct(this)">
+
+            <div class="stock-badge">
+                99+ in stock
+            </div>
+
+            <div class="product-image-container">
+
+                <img
+                    class="product-image"
+                    src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=500&q=80"
+                    alt="Clothes"
+                >
+
+            </div>
+
+            <div class="product-details">
+
+                <div class="product-name">
+                    Fashion Shirt
+                </div>
+
+                <div class="product-price">
+                    KES 1,500
+                </div>
+
+                <div class="product-unit">
+                    Each
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PRODUCT 5 -->
+
+        <div class="product-card"
+             data-product-id="5"
+             onclick="selectProduct(this)">
+
+            <div class="stock-badge">
+                18 in stock
+            </div>
+
+            <div class="product-image-container">
+
+                <img
+                    class="product-image"
+                    src="https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=500&q=80"
+                    alt="Cosmetics"
+                >
+
+            </div>
+
+            <div class="product-details">
+
+                <div class="product-name">
+                    Skin Care Set
+                </div>
+
+                <div class="product-price">
+                    KES 1,800
+                </div>
+
+                <div class="product-unit">
+                    Set
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PRODUCT 6 -->
+
+        <div class="product-card"
+             data-product-id="6"
+             onclick="selectProduct(this)">
+
+            <div class="stock-badge">
+                35 in stock
+            </div>
+
+            <div class="product-image-container">
+
+                <img
+                    class="product-image"
+                    src="https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=500&q=80"
+                    alt="Headphones"
+                >
+
+            </div>
+
+            <div class="product-details">
+
+                <div class="product-name">
+                    Wireless Headphones
+                </div>
+
+                <div class="product-price">
+                    KES 4,500
+                </div>
+
+                <div class="product-unit">
+                    Each
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PRODUCT 7 -->
+
+        <div class="product-card"
+             data-product-id="7"
+             onclick="selectProduct(this)">
+
+            <div class="stock-badge">
+                10 in stock
+            </div>
+
+            <div class="product-image-container">
+
+                <img
+                    class="product-image"
+                    src="https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=500&q=80"
+                    alt="Bottle"
+                >
+
+            </div>
+
+            <div class="product-details">
+
+                <div class="product-name">
+                    Water Bottle
+                </div>
+
+                <div class="product-price">
+                    KES 750
+                </div>
+
+                <div class="product-unit">
+                    Each
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PRODUCT 8 -->
+
+        <div class="product-card"
+             data-product-id="8"
+             onclick="selectProduct(this)">
+
+            <div class="stock-badge">
+                22 in stock
+            </div>
+
+            <div class="product-image-container">
+
+                <img
+                    class="product-image"
+                    src="https://images.unsplash.com/photo-1503602642458-232111445657?auto=format&fit=crop&w=500&q=80"
+                    alt="Chair"
+                >
+
+            </div>
+
+            <div class="product-details">
+
+                <div class="product-name">
+                    Wooden Chair
+                </div>
+
+                <div class="product-price">
+                    KES 5,800
+                </div>
+
+                <div class="product-unit">
+                    Each
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================
+             VIEW MORE
+        ========================= -->
+
+        <div
+            class="view-more-card"
+            id="viewMoreProducts"
+            onclick="loadMoreProducts()">
+
+            <div class="view-more-icon">
+
+                <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
+
+                    <path
+                        d="M5 12H19"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                    />
+
+                    <path
+                        d="M13 6L19 12L13 18"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    />
+
+                </svg>
+
+            </div>
+
+            <div class="view-more-text">
+                View More
+            </div>
+
+            <div class="view-more-count">
+                More products
+            </div>
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+    /* ==========================================
+       PRODUCT DATA
+    ========================================== */
+
+    const additionalProducts = [
+
+        {
+            id: 9,
+            name: "Travel Bag",
+            price: "KES 2,800",
+            unit: "Each",
+            stock: "15 in stock",
+            image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=500&q=80"
+        },
+
+        {
+            id: 10,
+            name: "Smartphone",
+            price: "KES 25,000",
+            unit: "Each",
+            stock: "8 in stock",
+            image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=500&q=80"
+        },
+
+        {
+            id: 11,
+            name: "Coffee Cup",
+            price: "KES 450",
+            unit: "Each",
+            stock: "40 in stock",
+            image: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?auto=format&fit=crop&w=500&q=80"
+        },
+
+        {
+            id: 12,
+            name: "Backpack",
+            price: "KES 2,200",
+            unit: "Each",
+            stock: "27 in stock",
+            image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=500&q=80"
+        }
+
+    ];
+
+
+    /* ==========================================
+       GET ELEMENTS
+    ========================================== */
+
+    const productsGrid =
+        document.getElementById("productsGrid");
+
+    const viewMoreButton =
+        document.getElementById("viewMoreProducts");
+
+    const productsCount =
+        document.getElementById("productsCount");
+
+
+    /* ==========================================
+       PRODUCT CLICK
+    ========================================== */
+
+    function selectProduct(card) {
+
+        const productId =
+            card.dataset.productId;
+
+        console.log(
+            "Selected product:",
+            productId
+        );
+
+        /*
+         * Put your existing POS action here.
+         *
+         * Example:
+         *
+         * addProductToCheckout(productId);
+         */
+
+    }
+
+
+    /* ==========================================
+       CREATE PRODUCT CARD
+    ========================================== */
+
+    function createProductCard(product) {
+
+        const card =
+            document.createElement("div");
+
+        card.className = "product-card";
+
+        card.dataset.productId =
+            product.id;
+
+        card.onclick = function () {
+
+            selectProduct(this);
+
+        };
+
+
+        card.innerHTML = `
+
+            <div class="stock-badge">
+                ${product.stock}
+            </div>
+
+            <div class="product-image-container">
+
+                <img
+                    class="product-image"
+                    src="${product.image}"
+                    alt="${product.name}"
+                    loading="lazy"
+                >
+
+            </div>
+
+            <div class="product-details">
+
+                <div class="product-name">
+                    ${product.name}
+                </div>
+
+                <div class="product-price">
+                    ${product.price}
+                </div>
+
+                <div class="product-unit">
+                    ${product.unit}
+                </div>
+
+            </div>
+
+        `;
+
+
+        return card;
+
+    }
+
+
+    /* ==========================================
+       VIEW MORE
+    ========================================== */
+
+    function loadMoreProducts() {
+
+        /*
+         * Prevent multiple clicks
+         */
+
+        if (viewMoreButton.classList.contains("loading")) {
+            return;
+        }
+
+
+        viewMoreButton.classList.add("loading");
+
+
+        /*
+         * Simulate loading from database.
+         *
+         * In your actual Market Hub system,
+         * replace this section with fetch()
+         * to your PHP endpoint.
+         */
+
+        setTimeout(function () {
+
+
+            additionalProducts.forEach(function(product) {
+
+                const card =
+                    createProductCard(product);
+
+                /*
+                 * Insert product BEFORE
+                 * the View More button.
+                 */
+
+                productsGrid.insertBefore(
+                    card,
+                    viewMoreButton
+                );
+
+            });
+
+
+            /*
+             * Update product count
+             */
+
+            const totalProducts =
+                productsGrid.querySelectorAll(
+                    ".product-card"
+                ).length;
+
+            productsCount.textContent =
+                totalProducts + " products";
+
+
+            /*
+             * Remove loading state
+             */
+
+            viewMoreButton.classList.remove(
+                "loading"
+            );
+
+
+            /*
+             * Change button after
+             * all demo products are loaded.
+             */
+
+            viewMoreButton.innerHTML = `
+
+                <div class="view-more-icon">
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+
+                        <path
+                            d="M5 12H19"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                        />
+
+                        <path
+                            d="M13 6L19 12L13 18"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+
+                    </svg>
+
+                </div>
+
+                <div class="view-more-text">
+                    View More
+                </div>
+
+                <div class="view-more-count">
+                    All loaded
+                </div>
+
+            `;
+
+
+            /*
+             * For this demonstration,
+             * disable the button after
+             * all products are loaded.
+             */
+
+            viewMoreButton.style.opacity = "0.55";
+            viewMoreButton.style.cursor = "default";
+            viewMoreButton.onclick = null;
+
+
+        }, 500);
+
+    }
+
+
+    /* ==========================================
+       INITIAL PRODUCT COUNT
+    ========================================== */
+
+    function updateProductCount() {
+
+        const total =
+            productsGrid.querySelectorAll(
+                ".product-card"
+            ).length;
+
+        productsCount.textContent =
+            total + " products";
+
+    }
+
+
+    updateProductCount();
+
+</script>
+
+</body>
+</html>
