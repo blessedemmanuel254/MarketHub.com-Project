@@ -656,7 +656,7 @@ if (
             }
 
             $price =
-                (float)$product['price'];
+                (float)$product['selling_price'];
 
             $subtotal =
                 $requestedQuantity *
@@ -779,7 +779,7 @@ if (
                 product_id,
                 seller_id,
                 quantity,
-                selling_price,
+                price,
                 subtotal,
                 order_status,
                 payment_status

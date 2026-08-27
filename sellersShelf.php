@@ -889,7 +889,7 @@ $productStmt = $conn->prepare("
         product_name,
         category,
         stock_quantity,
-        price,
+        selling_price,
         image_path
     FROM productservicesrentals
     WHERE user_id = ? AND status = 'active'
