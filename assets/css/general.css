@@ -6704,7 +6704,7 @@ ORDER CHAT LOCATION-TRACKING CSS
   z-index: 99999;
   background: transparent;
   display: none;
-  align-items: center;
+  align-items: center; 
   justify-content: center;
   padding: 15px;
 }
