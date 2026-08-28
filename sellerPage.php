@@ -2757,6 +2757,33 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
   <title>Seller Page | Makethub</title>
 </head>
 <body>
+  
+  <!-- =========================================================
+    CAMERA MODAL
+    ========================================================= -->
+
+  <div id="cameraModal" class="camera-modal" >
+    <div class="camera-box">
+      <div class="camera-header">
+        <span>
+          <img src="Images/Makethub Logo.png" alt="Makethub Logo" width="28"> Take Product Photo
+        </span>
+        <button type="button" id="closeCameraButton" class="camera-close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="camera-view"> 
+        <video id="cameraVideo" autoplay playsinline muted>
+        </video>
+        <canvas id="cameraCanvas" ></canvas>
+      </div>
+      <div class="camera-controls">
+        <button type="button" id="capturePhotoButton" class="capture-photo-button">
+          <span class="capture-circle"></span>
+        </button>
+      </div>
+    </div>
+  </div>
   <div class="confirmation-popup" id="confirmation-popup">
     <h3 id="popupTitle">Confirm Action</h3>
     <p id="popupMessage">Are you sure?</p>
@@ -3716,14 +3743,90 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                       </div>
                   <?php else: ?>
                       <!-- ONLY FOR ADD MODE -->
-                      <div class="inp-box">
-                        <label>Upload Product Image</label>
-                        <input type="file" name="photo" accept="image/png,image/jpeg,image/webp" required>
-                        <div class="note">
-                          400×400 – 1600×1600 px • Max 10MB<br>
-                          Automatically optimized for buyers
+                        <!-- =========================================================
+                            PRODUCT IMAGE
+                            ========================================================= -->
+
+                        <div class="inp-box">
+
+                          <label>Upload Product Image</label>
+
+                          <div class="photo-buttons">
+
+                              <!-- CHOOSE FROM DEVICE -->
+
+                              <label
+                                  for="galleryPhoto"
+                                  class="photo-button"
+                              >
+                                  📁 Choose from device
+                              </label>
+
+
+                              <!-- TAKE PHOTO -->
+
+                              <label
+                                  id="openCameraButton"
+                                  class="photo-button"
+                              >
+                                📷 Take Photo
+                              </label>
+
+                          </div>
+
+
+                          <!--
+                              Normal gallery/file picker.
+
+                              IMPORTANT:
+                              This remains name="photo" so PHP receives:
+
+                              $_FILES['photo']
+                          -->
+
+                          <input
+                              type="file"
+                              id="galleryPhoto"
+                              name="photo"
+                              accept="image/jpeg,image/png,image/webp"
+                              hidden
+                          >
+
+
+                          <!-- =====================================================
+                                IMAGE PREVIEW
+                                ===================================================== -->
+
+                          <div
+                              id="photoPreview"
+                              class="photo-preview"
+                          >
+
+                              <img
+                                  id="photoPreviewImage"
+                                  src=""
+                                  alt="Product image preview"
+                              >
+
+                              <div
+                                  id="removePhoto"
+                                  class="remove-photo"
+                              >
+                                  <i class="fa fa-trash"></i>
+                  </div>
+
+                          </div>
+
+
+                          <div class="note">
+
+                              400×400 – 1600×1600 px • Max 10MB<br>
+                              Automatically optimized for buyers
+
+                          </div>
+
                         </div>
-                      </div>
+
                   <?php endif; ?>
                   <div></div>
 
@@ -3731,6 +3834,659 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                     <?= $editMode ? 'Update Product' : 'Add Product' ?>
                   </button>
                 </div>
+
+
+<script>
+
+/* =========================================================
+   PRODUCT CAMERA
+   ========================================================= */
+
+(function () {
+
+    const galleryPhoto =
+        document.getElementById(
+            "galleryPhoto"
+        );
+
+    const openCameraButton =
+        document.getElementById(
+            "openCameraButton"
+        );
+
+    const closeCameraButton =
+        document.getElementById(
+            "closeCameraButton"
+        );
+
+    const capturePhotoButton =
+        document.getElementById(
+            "capturePhotoButton"
+        );
+
+    const cameraModal =
+        document.getElementById(
+            "cameraModal"
+        );
+
+    const cameraVideo =
+        document.getElementById(
+            "cameraVideo"
+        );
+
+    const cameraCanvas =
+        document.getElementById(
+            "cameraCanvas"
+        );
+
+    const photoPreview =
+        document.getElementById(
+            "photoPreview"
+        );
+
+    const photoPreviewImage =
+        document.getElementById(
+            "photoPreviewImage"
+        );
+
+    const removePhoto =
+        document.getElementById(
+            "removePhoto"
+        );
+
+
+    let cameraStream = null;
+
+    let selectedProductPhoto = null;
+
+    let previewURL = null;
+
+
+    const MAX_FILE_SIZE =
+        10 * 1024 * 1024;
+
+
+    /* =====================================================
+       GALLERY
+       ===================================================== */
+
+    galleryPhoto.addEventListener(
+        "change",
+        function () {
+
+            const file =
+                this.files[0];
+
+            if (!file) {
+                return;
+            }
+
+            useProductPhoto(file);
+
+        }
+    );
+
+
+    /* =====================================================
+       OPEN CAMERA
+       ===================================================== */
+
+    openCameraButton.addEventListener(
+        "click",
+        async function () {
+
+            /*
+             * Make sure the browser supports
+             * camera access.
+             */
+
+            if (
+                !navigator.mediaDevices ||
+                !navigator.mediaDevices.getUserMedia
+            ) {
+
+                alert(
+                    "Your browser does not support camera access. Please choose a photo from your device."
+                );
+
+                return;
+
+            }
+
+
+            try {
+
+                cameraStream =
+                    await navigator.mediaDevices
+                        .getUserMedia({
+
+                            video: {
+
+                                facingMode: {
+                                    ideal: "environment"
+                                },
+
+                                /*
+                                 * Do NOT request
+                                 * a huge camera resolution.
+                                 *
+                                 * We only need a good
+                                 * product image.
+                                 */
+
+                                width: {
+                                    ideal: 1280
+                                },
+
+                                height: {
+                                    ideal: 960
+                                }
+
+                            },
+
+                            audio: false
+
+                        });
+
+
+                cameraVideo.srcObject =
+                    cameraStream;
+
+
+                cameraModal.classList.add(
+                    "active"
+                );
+
+
+                await cameraVideo.play();
+
+
+            } catch (error) {
+
+                console.error(
+                    "Camera error:",
+                    error
+                );
+
+
+                alert(
+                    "Unable to access the camera. Please allow camera permission or choose a photo from your device."
+                );
+
+            }
+
+        }
+    );
+
+
+    /* =====================================================
+       CAPTURE PHOTO
+       ===================================================== */
+
+    capturePhotoButton.addEventListener(
+        "click",
+        function () {
+
+            if (
+                !cameraStream ||
+                !cameraVideo.videoWidth
+            ) {
+
+                return;
+
+            }
+
+
+            /*
+             * IMPORTANT:
+             *
+             * Limit the captured image.
+             *
+             * We do NOT save the camera's
+             * full native resolution.
+             */
+
+            const MAX_WIDTH = 1280;
+
+            const MAX_HEIGHT = 1280;
+
+
+            let width =
+                cameraVideo.videoWidth;
+
+            let height =
+                cameraVideo.videoHeight;
+
+
+            const ratio =
+                Math.min(
+                    MAX_WIDTH / width,
+                    MAX_HEIGHT / height,
+                    1
+                );
+
+
+            width =
+                Math.round(
+                    width * ratio
+                );
+
+            height =
+                Math.round(
+                    height * ratio
+                );
+
+
+            cameraCanvas.width =
+                width;
+
+            cameraCanvas.height =
+                height;
+
+
+            const context =
+                cameraCanvas.getContext(
+                    "2d",
+                    {
+                        alpha: false
+                    }
+                );
+
+
+            context.drawImage(
+                cameraVideo,
+                0,
+                0,
+                width,
+                height
+            );
+
+
+            /*
+             * Convert directly to JPEG.
+             *
+             * 80 quality gives a good
+             * product image while keeping
+             * memory/file size reasonable.
+             */
+
+            cameraCanvas.toBlob(
+                function (blob) {
+
+                    if (!blob) {
+
+                        alert(
+                            "Unable to capture the photo. Please try again."
+                        );
+
+                        return;
+
+                    }
+
+
+                    const file =
+                        new File(
+                            [blob],
+                            "product-camera.jpg",
+                            {
+                                type:
+                                    "image/jpeg",
+                                lastModified:
+                                    Date.now()
+                            }
+                        );
+
+
+                    useProductPhoto(file);
+
+
+                    closeCamera();
+
+
+                },
+
+                "image/jpeg",
+
+                0.80
+
+            );
+
+        }
+    );
+
+
+    /* =====================================================
+       USE PRODUCT PHOTO
+       ===================================================== */
+
+    function useProductPhoto(file) {
+
+
+        if (
+            ![
+                "image/jpeg",
+                "image/png",
+                "image/webp"
+            ].includes(file.type)
+        ) {
+
+            alert(
+                "Please select a JPG, PNG or WEBP image."
+            );
+
+            return;
+
+        }
+
+
+        if (
+            file.size >
+            MAX_FILE_SIZE
+        ) {
+
+            alert(
+                "The image must not exceed 10MB."
+            );
+
+            return;
+
+        }
+
+
+        /*
+         * Store selected file.
+         */
+
+        selectedProductPhoto =
+            file;
+
+
+        /*
+         * Release previous preview.
+         */
+
+        if (previewURL) {
+
+            URL.revokeObjectURL(
+                previewURL
+            );
+
+        }
+
+
+        /*
+         * Lightweight preview.
+         */
+
+        previewURL =
+            URL.createObjectURL(
+                file
+            );
+
+
+        photoPreviewImage.src =
+            previewURL;
+
+
+        photoPreview.style.display =
+            "block";
+
+
+        /*
+         * For gallery images, the actual
+         * input already contains the file.
+         *
+         * For camera images, selectedProductPhoto
+         * is used during form submission.
+         */
+
+    }
+
+
+    /* =====================================================
+       CLOSE CAMERA
+       ===================================================== */
+
+    closeCameraButton.addEventListener(
+        "click",
+        closeCamera
+    );
+
+
+    function closeCamera() {
+
+        if (cameraStream) {
+
+            cameraStream
+                .getTracks()
+                .forEach(
+                    function (track) {
+
+                        track.stop();
+
+                    }
+                );
+
+            cameraStream = null;
+
+        }
+
+
+        cameraVideo.srcObject =
+            null;
+
+
+        cameraModal.classList.remove(
+            "active"
+        );
+
+    }
+
+
+    /* =====================================================
+       REMOVE PHOTO
+       ===================================================== */
+
+    removePhoto.addEventListener(
+        "click",
+        function () {
+
+            selectedProductPhoto =
+                null;
+
+            galleryPhoto.value =
+                "";
+
+            if (previewURL) {
+
+                URL.revokeObjectURL(
+                    previewURL
+                );
+
+                previewURL = null;
+
+            }
+
+            photoPreviewImage.src =
+                "";
+
+            photoPreview.style.display =
+                "none";
+
+        }
+    );
+
+
+    /* =====================================================
+       FORM SUBMISSION
+       =====================================================
+
+       IMPORTANT:
+
+       Your form currently submits normally.
+
+       We intercept it only to ensure that a
+       camera-captured File is sent as:
+
+           $_FILES['photo']
+
+       ===================================================== */
+
+    const productForm =
+        galleryPhoto.closest("form");
+
+
+    if (productForm) {
+
+        productForm.addEventListener(
+            "submit",
+            function (event) {
+
+                /*
+                 * If the seller selected from
+                 * the gallery, the normal form
+                 * submission already contains
+                 * name="photo".
+                 */
+
+                if (
+                    !selectedProductPhoto
+                ) {
+
+                    return;
+
+                }
+
+
+                /*
+                 * If selectedProductPhoto is
+                 * exactly the file already in
+                 * galleryPhoto, let the normal
+                 * browser submission continue.
+                 */
+
+                if (
+                    galleryPhoto.files.length &&
+                    galleryPhoto.files[0] ===
+                    selectedProductPhoto
+                ) {
+
+                    return;
+
+                }
+
+
+                /*
+                 * Camera photo needs to be
+                 * submitted manually.
+                 */
+
+                event.preventDefault();
+
+
+                const formData =
+                    new FormData(
+                        productForm
+                    );
+
+
+                /*
+                 * Replace/add the photo.
+                 */
+
+                formData.set(
+                    "photo",
+                    selectedProductPhoto,
+                    selectedProductPhoto.name
+                );
+
+
+                /*
+                 * Submit to the same PHP page.
+                 */
+
+                fetch(
+                    productForm.action ||
+                    window.location.href,
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                )
+                .then(
+                    function (response) {
+
+                        /*
+                         * Your existing PHP
+                         * returns the normal
+                         * seller page HTML.
+                         */
+
+                        return response.text();
+
+                    }
+                )
+                .then(
+                    function (html) {
+
+                        /*
+                         * Replace the page with
+                         * PHP's normal response.
+                         */
+
+                        document.open();
+
+                        document.write(html);
+
+                        document.close();
+
+                    }
+                )
+                .catch(
+                    function (error) {
+
+                        console.error(
+                            "Product upload error:",
+                            error
+                        );
+
+                        alert(
+                            "Unable to add the product. Please try again."
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       CLEANUP
+       ===================================================== */
+
+    window.addEventListener(
+        "beforeunload",
+        function () {
+
+            closeCamera();
+
+            if (previewURL) {
+
+                URL.revokeObjectURL(
+                    previewURL
+                );
+
+            }
+
+        }
+    );
+
+})();
+
+</script>
 
             </form>
             </div>
@@ -4403,7 +5159,6 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
         <a href="contact.php">Contact Us</a>
       </p>
     </footer>
-  </div>
 
   <!-- Notification container -->
   <div id="notification-container"></div>
