@@ -476,7 +476,7 @@ html body.no-scroll {
   }
 }
 
-.container .overlay, .container .payOverlay, .containerAdmin .navOverlay, .container .cartOverlay, body#adminBody .confirmation-popup-overlay {
+.container .overlay, .container .payOverlay, .containerAdmin .navOverlay, .container .cartOverlay, body#adminBody .confirmation-popup-overlay, body .subGOverlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -502,7 +502,11 @@ html body.no-scroll {
   z-index: 1007;
 }
 
-.container .overlay.active,  .container .payOverlay.active, .containerAdmin .navOverlay.active, .container .cartOverlay.active, body#adminBody .confirmation-popup-overlay.active {
+body .subGOverlay {
+  background-color: rgba(0, 0, 0, 0.048);
+}
+
+.container .overlay.active,  .container .payOverlay.active, .containerAdmin .navOverlay.active, .container .cartOverlay.active, body#adminBody .confirmation-popup-overlay.active, body .subGOverlay.active {
   display: block;
 }
 
@@ -873,21 +877,21 @@ html body.no-scroll {
   STORE CONTAINER
 ========================================================= */
 
-.tabs-container .tab-content .tab-panel .store-page {
+.tabs-container .tab-content .tab-panel .store-page, .container main#salesDashMain .sales-wrapper .store-page {
   width: 100%;
   max-width: 1299px;
   margin: 0 auto;
   margin-top: -10px;
 }
 
-.tabs-container .tab-content .tab-panel .store-page .categorical-navigation {
+.tabs-container .tab-content .tab-panel .store-page .categorical-navigation, .container main#salesDashMain .sales-wrapper .store-page .categorical-navigation {
   position: relative;
   width: 100%;
   display: flex;
   align-items: center;
 }
 
-.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-side {
+.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-side, .container main#salesDashMain .sales-wrapper .store-page .categorical-navigation .category-side {
   position: relative;
   display: flex;
   align-items: center;
@@ -895,7 +899,7 @@ html body.no-scroll {
 }
 
 
-.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-crumb {
+.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-crumb, .container main#salesDashMain .sales-wrapper .store-page .categorical-navigation .category-crumb {
   position: relative;
   display: flex;
   align-items: center;
@@ -913,7 +917,7 @@ html body.no-scroll {
   text-transform: uppercase;
 }
 
-.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-arrow {
+.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-arrow, .container main#salesDashMain .sales-wrapper .store-page .categorical-navigation .category-arrow {
   width: 7px;
   height: 7px;
   border-right: 2px solid currentColor;
@@ -922,7 +926,7 @@ html body.no-scroll {
   transition: transform 0.25s ease;
 }
 
-.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-side.open .category-arrow {
+.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-side.open .category-arrow, .container main#salesDashMain .sales-wrapper .store-page .categorical-navigation .category-side.open .category-arrow {
     transform: rotate(225deg) translateY(-2px);
 }
 
@@ -930,7 +934,7 @@ html body.no-scroll {
 /* =========================================================
   CATEGORY SEPARATOR
 ========================================================= */
-.tabs-container .tab-content .tab-panel .store-page .category-separator {
+.tabs-container .tab-content .tab-panel .store-page .category-separator,  .container main#salesDashMain .sales-wrapper .category-separator {
   margin: 0 14px 0;
   display: flex;
   align-items: center;
@@ -938,7 +942,7 @@ html body.no-scroll {
 }
 
 /* Stylish chevron */
-.tabs-container .tab-content .tab-panel .store-page .category-separator::before {
+.tabs-container .tab-content .tab-panel .store-page .category-separator::before, .container main#salesDashMain .sales-wrapper .store-page .category-separator::before {
   content: "";
   width: 7px;
   height: 7px;
@@ -951,7 +955,7 @@ html body.no-scroll {
    CATEGORY POPUP
 ========================================================= */
 
-.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-side .category-popup {
+.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-side .category-popup,  .container main#salesDashMain .sales-wrapper .store-page .categorical-navigation .category-side .category-popup {
   position: absolute;
   top: calc(100% + 1px);
   left: 0;
@@ -961,15 +965,15 @@ html body.no-scroll {
   border: 1px solid #dedede;
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 8px;/* 
+  padding: 8px;
   opacity: 0;
-  visibility: hidden; */
+  visibility: hidden;
   transform: translateY(18px);
   transition: opacity 0.25s ease, transform 0.3s cubic-bezier(.22,.61,.36,1), visibility 0.3s ease;
 }
 
 /* Open popup */
-.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-side.open .category-popup {
+.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-side.open .category-popup, .container main#salesDashMain .sales-wrapper .store-page .categorical-navigation .category-side.open .category-popup {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
@@ -979,7 +983,7 @@ html body.no-scroll {
   POPUP TITLE
 ========================================================= */
 
-.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-side .category-popup .popup-title {
+.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-side .category-popup .popup-title, .container main#salesDashMain .sales-wrapper .store-page .categorical-navigation .category-side .category-popup .popup-title {
   padding: 9px 10px 8px;
   font-size: 12px;
   color: #898888;
@@ -991,7 +995,7 @@ html body.no-scroll {
   POPUP OPTIONS
 ========================================================= */
 
-.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-side .category-popup .category-option {
+.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-side .category-popup .category-option, .container main#salesDashMain .sales-wrapper .store-page .categorical-navigation .category-side .category-popup .category-option {
   width: 100%;
   display: flex;
   align-items: center;
@@ -1016,28 +1020,28 @@ html body.no-scroll {
 
 /* Seller options normal capitalization */
 
-.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-side .category-popup.seller-popup .category-option {
+.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-side .category-popup.seller-popup .category-option, .container main#salesDashMain .sales-wrapper .store-page .categorical-navigation .category-side .category-popup.seller-popup .category-option {
   text-transform: none;
 }
 
 
 /* Hover */
 
-.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-side .category-popup .category-option:hover {
+.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-side .category-popup .category-option:hover, .container main#salesDashMain .sales-wrapper .store-page .categorical-navigation .category-side .category-popup .category-option:hover {
   background: #dedede8e;
 }
 
 
 /* Active option */
 
-.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-side .category-popup .category-option.active {
+.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-side .category-popup .category-option.active,  .container main#salesDashMain .sales-wrapper .store-page .categorical-navigation .category-side .category-popup .category-option.active {
   color: #088000;
 }
 
 
 /* Check */
 
-.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-side .category-popup .category-option.active::after {
+.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-side .category-popup .category-option.active::after, .container main#salesDashMain .sales-wrapper .store-page .categorical-navigation .category-side .category-popup .category-option.active::after {
   content: "✓";
   font-size: 13px;
   font-weight: 700;
@@ -1046,14 +1050,14 @@ html body.no-scroll {
 /* =========================================================
   SELLER POPUP POSITION
 ========================================================= */
-.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-side .category-popup.seller-popup {
+.tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-side .category-popup.seller-popup, .container main#salesDashMain .sales-wrapper .store-page .categorical-navigation .category-side .category-popup.seller-popup {
   left: 0;
 }
 
 /* =========================================================
   MINI NAVIGATION
 ========================================================= */
-.tabs-container .tab-content .tab-panel .store-page .mini-navigation-wrapper {
+.tabs-container .tab-content .tab-panel .store-page .mini-navigation-wrapper, .container main#salesDashMain .sales-wrapper .store-page .mini-navigation-wrapper {
   width: 100%;
   margin-top: 12px;
   border-bottom: 1px solid #e5e5e5;
@@ -1061,7 +1065,7 @@ html body.no-scroll {
 }
 
 /* Scroll container */
-.tabs-container .tab-content .tab-panel .store-page .mini-navigation-wrapper .mini-navigation-scroll {
+.tabs-container .tab-content .tab-panel .store-page .mini-navigation-wrapper .mini-navigation-scroll, .container main#salesDashMain .sales-wrapper .store-page .mini-navigation-wrapper .mini-navigation-scroll {
   position: relative;
   width: 100%;
   overflow-x: auto;
@@ -1069,14 +1073,14 @@ html body.no-scroll {
   scrollbar-width: none;
 }
 
-.tabs-container .tab-content .tab-panel .store-page .mini-navigation-wrapper .mini-navigation-scroll::-webkit-scrollbar {
+.tabs-container .tab-content .tab-panel .store-page .mini-navigation-wrapper .mini-navigation-scroll::-webkit-scrollbar, .container main#salesDashMain .sales-wrapper .store-page .mini-navigation-wrapper .mini-navigation-scroll::-webkit-scrollbar {
   display: none;
 }
 
 /* =========================================================
   MINI NAVIGATION
 ========================================================= */
-.tabs-container .tab-content .tab-panel .store-page .mini-navigation-wrapper .mini-navigation-scroll .mini-navigation {
+.tabs-container .tab-content .tab-panel .store-page .mini-navigation-wrapper .mini-navigation-scroll .mini-navigation, .container main#salesDashMain .sales-wrapper .store-page .mini-navigation-wrapper .mini-navigation-scroll .mini-navigation {
   position: relative;
   display: flex;
   align-items: center;
@@ -1089,7 +1093,7 @@ html body.no-scroll {
 /* =========================================================
   MINI NAV ITEM
 ========================================================= */
-.tabs-container .tab-content .tab-panel .store-page .mini-navigation-wrapper .mini-navigation-scroll .mini-navigation .mini-nav-item {
+.tabs-container .tab-content .tab-panel .store-page .mini-navigation-wrapper .mini-navigation-scroll .mini-navigation .mini-nav-item, .container main#salesDashMain .sales-wrapper .store-page .mini-navigation-wrapper .mini-navigation-scroll .mini-navigation .mini-nav-item {
   position: relative;
   border: 0;
   background: transparent;
@@ -1103,7 +1107,7 @@ html body.no-scroll {
   border-bottom: 2px solid #ffffff;
 }
 
-.tabs-container .tab-content .tab-panel .store-page .mini-navigation-wrapper .mini-navigation-scroll .mini-navigation .mini-nav-item:hover {
+.tabs-container .tab-content .tab-panel .store-page .mini-navigation-wrapper .mini-navigation-scroll .mini-navigation .mini-nav-item:hover,.container main#salesDashMain .sales-wrapper .store-page .mini-navigation-wrapper .mini-navigation-scroll .mini-navigation .mini-nav-item:hover {
   opacity: .675;
   border-bottom: 2px solid #898888;
 }
@@ -1130,19 +1134,20 @@ html body.no-scroll {
   box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.22), inset 0 -3px 6px rgba(0, 0, 0, 0.22);
 }
 
-.tabs-container .tab-content .tab-panel .store-page .mini-navigation-wrapper .mini-navigation-scroll .mini-navigation .mini-nav-item.active {
+.tabs-container .tab-content .tab-panel .store-page .mini-navigation-wrapper .mini-navigation-scroll .mini-navigation .mini-nav-item.active, .container main#salesDashMain .sales-wrapper .store-page .mini-navigation-wrapper .mini-navigation-scroll .mini-navigation .mini-nav-item.active {
   color: #088000;
-}
-
-.tabs-container .tab-content .tab-panel .store-page .mini-navigation-wrapper .mini-navigation-scroll .mini-navigation .mini-nav-item.active:hover {
   border-bottom: 2px solid #088000;
-}
+}/* 
+
+.tabs-container .tab-content .tab-panel .store-page .mini-navigation-wrapper .mini-navigation-scroll .mini-navigation .mini-nav-item.active:hover, .container main#salesDashMain .sales-wrapper .store-page .mini-navigation-wrapper .mini-navigation-scroll .mini-navigation .mini-nav-item.active:hover {
+  border-bottom: 2px solid #088000;
+} */
 
 /* =========================================================
   YOUTUBE STYLE SLIDING UNDERLINE
 ========================================================= */
 
-.tabs-container .tab-content .tab-panel .store-page .mini-navigation-wrapper .mini-navigation-scroll .mini-navigation .mini-nav-indicator {
+.tabs-container .tab-content .tab-panel .store-page .mini-navigation-wrapper .mini-navigation-scroll .mini-navigation .mini-nav-indicator, .container main#salesDashMain .sales-wrapper .store-page .mini-navigation-wrapper .mini-navigation-scroll .mini-navigation .mini-nav-indicator {
   position: absolute;
   left: 0;
   bottom: 0;
@@ -1174,6 +1179,54 @@ html body.no-scroll {
   font-size: 13px;
 }
 
+/* =========================================================
+  ADD SUB GROUP FORM
+========================================================= */
+body form.subG-form {
+  display: none;
+  flex-direction: column;
+  gap: 20px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #ffffff;
+  z-index: 1010;
+  padding: 20px 16px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #dedede;
+  margin: 0 auto;
+  min-width: 200px;
+  width: clamp(200px, 90%, 500px);
+
+}
+
+body form.subG-form h3 {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+body form.subG-form h3 span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #898888;
+  color: #ffffff;
+  font-size: 16px;
+  border: none;
+  height: 24px !important;
+  width: 24px !important;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+body form.subG-form h3 span:hover {
+  opacity: .875;
+}
 
 .container main#salesDashMain .tab-top .salesSideDiv {
   display: flex;
@@ -1197,7 +1250,7 @@ html body.no-scroll {
 
 .container main#salesDashMain .tab-top .salesSideDiv .salesCounter i {
   font-size: 28px;
-  color: #088000;
+  color: #0f0f0f;
 }
 
 .container main#salesDashMain .tab-top .salesSideDiv .salesCounter p {
@@ -1651,6 +1704,15 @@ html body.no-scroll {
 
 .table-wrapper table tbody tr td {
   font-size: 13px;
+}
+
+.table-wrapper table tbody tr td .newStylOrd {
+  display: flex;
+  flex-direction: column;
+}
+
+.table-wrapper table tbody tr td .newStylOrd p {
+  color: #898888;
 }
 
 /* =========================================
@@ -2439,7 +2501,7 @@ html body.no-scroll {
   margin-bottom: 5px;
 }
 
-.container main .formContainer form p.errorMessage, .container main .formContainer form p.successMessage, .container main form.actpContainer p.errorMessage, .tab-content .tab-panel p.errorMessage, .tab-content .tab-panel p.successMessage, .tab-panel-admin .form-wrapper form .errorMessage, .container.cmng-sn main .content form .successMessage, .container.cmng-sn main .content form .errorMessage, .container main.profile-main .profile-container .errorMessage, .container main.profile-main .profile-container .successMessage, .tab-content .tab-panel .form-wrapper form .inp-box.sold-by .soldByDiv, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .checkout-error {
+.container main .formContainer form p.errorMessage, .container main .formContainer form p.successMessage, .container main form.actpContainer p.errorMessage, .tab-content .tab-panel p.errorMessage, .tab-content .tab-panel p.successMessage, .tab-panel-admin .form-wrapper form .errorMessage, .container.cmng-sn main .content form .successMessage, .container.cmng-sn main .content form .errorMessage, .container main.profile-main .profile-container .errorMessage, .container main.profile-main .profile-container .successMessage, .tab-content .tab-panel .form-wrapper form .inp-box.sold-by .soldByDiv, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .checkout-error, body form.subG-form p.errorMessage, body form.subG-form p.successMessage {
   text-align: start;
   font-size: 13px;
   color: #ff3b3b;
@@ -2467,7 +2529,7 @@ html body.no-scroll {
   background-color: #e7f6ec;
 }
 
-.container main .formContainer form p.successMessage, .tab-content .tab-panel p.successMessage,.tab-panel-admin .form-wrapper form .successMessage, .container.cmng-sn main .content form .successMessage, .container main.profile-main .profile-container .successMessage {
+.container main .formContainer form p.successMessage, .tab-content .tab-panel p.successMessage,.tab-panel-admin .form-wrapper form .successMessage, .container.cmng-sn main .content form .successMessage, .container main.profile-main .profile-container .successMessage, body form.subG-form p.successMessage {
   color: #088000;
 }
 
@@ -2475,7 +2537,7 @@ html body.no-scroll {
   margin-bottom: 20px;
 }
 
-.container main .formContainer form input::placeholder {
+.container main .formContainer form input::placeholder, body form.subG-form input::placeholder {
   font-size: 13px;
 }
 
@@ -2522,7 +2584,7 @@ html body.no-scroll {
   text-decoration: underline;
 }
 
-.container main .formContainer form .or-divider, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .or-divider {
+.container main .formContainer form .or-divider, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .or-divider, .photo-buttons .or-divider {
   display: flex;
   align-items: center;
   text-align: center;
@@ -2532,7 +2594,7 @@ html body.no-scroll {
 }
 
 .container main .formContainer form .or-divider::before,
-.container main .formContainer form .or-divider::after, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .or-divider::before, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .or-divider::after {
+.container main .formContainer form .or-divider::after, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .or-divider::before, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .or-divider::after, .photo-buttons .or-divider::before, .photo-buttons .or-divider::after {
   content: "";
   flex: 1;
   border-bottom: 1px solid #e0e0e0;
@@ -4121,82 +4183,152 @@ a.seller-right {
   background-color:#ff3b3b;
 }
 
-/* =========================
-  VIEW MORE CARD
-========================= */
 
-.view-more-card {
-  border-radius: 22px;
-  overflow: hidden;
-  width: 170px;
-  height: 170px;
+/* =====================================================
+  NAVIGATION CARD
+====================================================== */
+
+.products-navigation-card {
   aspect-ratio: 1 / 1.18;
   min-width: 0;
+  border-radius: 12px;
   border: 1px solid #dedede;
-  background: #fafafa;
+  background: #dedede22;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  cursor: pointer;
   user-select: none;
   transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease, background .22s ease;
-  margin: 0 atuo;
+  height: 170px;
+  width: 170px;
+
 }
 
-.view-more-card:hover {
+.products-navigation-card.salesPageNav {
+  width: 100px;
+  height: 100px;
+}
 
-  background: #ffffff;
-  transform: translateY(-3px);
+.products-navigation-card:hover {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
 }
 
 
-/* =========================
-  VIEW MORE CIRCLE
-========================= */
+/* =====================================================
+  NAVIGATION BUTTONS
+====================================================== */
 
-.view-more-icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: #ffffff;
-  border: 1px solid #dedede;
+.navigation-buttons {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+}
+
+.products-navigation-card.salesPageNav .navigation-buttons {
+  gap: 8px;
+}
+
+
+.navigation-button {
+
+  width: 50px;
+
+  height: 50px;
+
+  border-radius: 50%;
+
+  border: 1px solid #dedede;
+
+  background: #ffffff;
+
+  display: flex;
+
+  align-items: center;
+
   justify-content: center;
-  color: #0f0f0f;
-  transition: background .22s ease, color .22s ease, border-color .22s ease, transform .22s ease;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, .05);
-}
 
-.view-more-card:hover .view-more-icon {
-  background: #0f0f0f;
-  border-color: #dedede;
-  color: #ffffff;
-}
+  cursor: pointer;
 
-.view-more-icon svg {
-  width: 20px;
-  height: 20px;
-}
-
-/* =========================
-  VIEW MORE TEXT
-========================= */
-
-.view-more-text {
-  font-size: 12px;
-  font-weight: 500;
-  color: #0f0f0f;
-  text-align: center;
-}
-
-.view-more-count {
-  font-size: 11px;
   color: #898888;
+
+  transition:
+      background .2s ease,
+      color .2s ease,
+      border-color .2s ease,
+      transform .2s ease,
+      opacity .2s ease;
+
+}
+
+.products-navigation-card.salesPageNav .navigation-button {
+  height: 42px;
+  width: 42px;
+}
+
+.navigation-button:hover:not(:disabled) {
+  background: #0f0f0f;
+  color: #fff;
+  border-color: #0f0f0f;
+  transform: translateY(-2px);
+}
+
+.navigation-button:active:not(:disabled) {
+
+  transform: scale(.94);
+
+}
+
+
+.navigation-button:disabled {
+
+  opacity: .35;
+
+  cursor: default;
+
+}
+
+
+/* =====================================================
+  NAVIGATION SVG
+====================================================== */
+
+.navigation-button svg {
+
+  width: 16px;
+
+  height: 16px;
+
+}
+
+
+/* =====================================================
+  PAGE INFORMATION
+====================================================== */
+
+.navigation-page {
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  color: #333;
+
+}
+
+
+.navigation-count {
+
+  font-size: 12px;
+
+  color: #898888;
+
   text-align: center;
+
 }
 
 .container main#salesDashMain .sales-wrapper .sales-grid .cardContainer .adjust-popup {
@@ -4516,7 +4648,7 @@ a.seller-right {
   border-radius: 4px;
   flex-direction: row;
 }
-.tab-content .tab-panel .form-wrapper form .inp-box label, .tab-panel-admin .form-wrapper form .inp-box label, .tab-panel.agency .dashboard .grid .card.agency-lincods .lincod-box span, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .payMethodDiv label {
+.tab-content .tab-panel .form-wrapper form .inp-box label, .tab-panel-admin .form-wrapper form .inp-box label, .tab-panel.agency .dashboard .grid .card.agency-lincods .lincod-box span, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .payMethodDiv label, body form.subG-form label {
   font-size: 13px;
   color: #0f0f0f;
   width: 100%;
@@ -4558,7 +4690,7 @@ a.seller-right {
   opacity: .875;
 }
 
-.tab-content .tab-panel .form-wrapper form .inp-box input, .tab-panel-admin .form-wrapper input, .tab-content .tab-panel .form-wrapper form .inp-box select, .tab-panel-admin .form-wrapper form .inp-box select, .tab-panel.agency .dashboard .grid .card.agency-lincods input, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .payMethodDiv input {
+.tab-content .tab-panel .form-wrapper form .inp-box input, .tab-panel-admin .form-wrapper input, .tab-content .tab-panel .form-wrapper form .inp-box select, .tab-panel-admin .form-wrapper form .inp-box select, .tab-panel.agency .dashboard .grid .card.agency-lincods input, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .payMethodDiv input, body form.subG-form input {
   padding: 8px 16px;
   border-radius: 4px;
   width: 100%;
@@ -4599,13 +4731,14 @@ a.seller-right {
 .tab-content .tab-panel .form-wrapper form .inp-box .note, .tab-panel-admin .form-wrapper form .inp-box .note {
   font-size: 12px;
   color: #898888;
+  margin: 0 auto;
 }
 
-.tab-content .tab-panel .form-wrapper form .inp-box button, .tab-panel-admin .form-wrapper form .inp-box button {
+.tab-content .tab-panel .form-wrapper form .inp-box button, .tab-panel-admin .form-wrapper form .inp-box button, body form.subG-form button {
   width: 100%;
 }
 
-.tab-content .tab-panel .form-wrapper form .formBody button, .tab-panel-admin .form-wrapper form .formBody button {
+.tab-content .tab-panel .form-wrapper form .formBody button, .tab-panel-admin .form-wrapper form .formBody button, body form.subG-form button {
   background-color: #0f0f0f;
   color: #ffffff;
   border: none;
@@ -4616,7 +4749,7 @@ a.seller-right {
   align-self: flex-end;
 }
 
-.tab-content .tab-panel .form-wrapper form .formBody button:hover, .tab-panel-admin .form-wrapper form .formBody button:hover {
+.tab-content .tab-panel .form-wrapper form .formBody button:hover, .tab-panel-admin .form-wrapper form .formBody button:hover, body form.subG-form button:hover {
   opacity: .875;
 }
 
@@ -6603,7 +6736,7 @@ ORDER CHAT LOCATION-TRACKING CSS
 
     border: 1px solid #dedede;
 
-    border-radius: 12px;
+    border-radius: 4px;
 
     background: #fff;
 
@@ -6632,11 +6765,7 @@ ORDER CHAT LOCATION-TRACKING CSS
 
 .photo-button:hover {
 
-    border-color: #088000;
-
-    color: #088000;
-
-    background: #fafafa;
+    background: #dedede2c;
 
 }
 
@@ -6657,7 +6786,7 @@ ORDER CHAT LOCATION-TRACKING CSS
   display: none;
   width: 120px;
   height: 120px;
-  margin-top: 12px;
+  margin: 0 auto;
   border-radius: 14px;
   overflow: hidden;
   border: 1px solid #dedede;
@@ -6813,11 +6942,13 @@ ORDER CHAT LOCATION-TRACKING CSS
   MOBILE
   ========================================================= */
 
-@media (max-width: 500px) {
-
+@media (max-width: 1233px) {
   .photo-buttons {
     flex-direction: column;
   }
+}
+
+@media (max-width: 500px) {
 
   .camera-modal {
     padding: 10px 15px;

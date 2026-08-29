@@ -692,26 +692,95 @@ if (
         $productStmt->close();
 
         /*
-         * =================================================
-         * GENERATE ORDER CODE
-         * =================================================
-         */
+        * =========================================================
+        * GENERATE UNIQUE MARKET HUB ORDER CODE
+        * =========================================================
+        *
+        * Example:
+        *
+        *     MH-7K4P9X
+        *
+        * The database order_id remains the internal primary key.
+        * This code is the public-facing order reference.
+        */
 
-        $datePart =
-            date('Ymd');
 
         /*
-         * Use microtime + random number to greatly
-         * reduce duplicate order codes.
-         */
-        $randomPart =
-            random_int(10000, 99999);
+        * Characters intentionally exclude:
+        *
+        * 0 O 1 I L
+        *
+        * to avoid confusion when customers read or type
+        * the order code.
+        */
 
-        $orderCode =
-            'ORD-' .
-            $datePart .
-            '-' .
-            $randomPart;
+        $characters =
+          'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+
+
+        $characterCount =
+          strlen($characters);
+
+
+        /*
+        * Generate a 6-character random code.
+        */
+
+        do {
+
+          $randomPart = '';
+
+          for ($i = 0; $i < 6; $i++) {
+
+              $randomPart .=
+                  $characters[
+                      random_int(
+                          0,
+                          $characterCount - 1
+                      )
+                  ];
+
+          }
+
+
+          /*
+            * Final public order code.
+            */
+
+          $orderCode =
+              'MH-' . $randomPart;
+
+
+          /*
+            * Check whether the code already exists.
+            */
+
+          $checkStmt = $conn->prepare("
+              SELECT order_id
+              FROM orders
+              WHERE order_code = ?
+              LIMIT 1
+          ");
+
+          $checkStmt->bind_param(
+              "s",
+              $orderCode
+          );
+
+          $checkStmt->execute();
+
+          $checkResult =
+              $checkStmt->get_result();
+
+          $codeExists =
+              $checkResult->num_rows > 0;
+
+          $checkStmt->close();
+
+
+        } while ($codeExists);
+
+
 
         /*
          * =================================================
@@ -2904,6 +2973,18 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
     </div>
 
     <main class="buyerMain" id="sellerMain">
+      <div id="subGOverlay" class="subGOverlay"></div>
+      <form action="" class="subG-form">
+        <h3>Add sub group 
+          <span>
+            <i class="fa-solid fa-xmark"></i>
+          </span>
+        </h3>
+        <p class="errorMessage">Failed!</p>
+        <label for="subgroup">Enter Sub Group Name</label>
+        <input type="text" placeholder="eg. Cups">
+        <button type="submit">Add</button>
+      </form>
       <div class="tabs-container" id="toggleMarketTypeTab">
         <div class="tabs">
           <button class="tab-btn" data-tab="dashboard">Dashboard</button>
@@ -2938,7 +3019,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
                     <i class="fa-solid fa-receipt icon"></i>
 
-                    <h3>Daily Stats</h3>
+                    <h3>Daily Sales</h3>
 
                     <!-- Total sales -->
                     <div class="stat">
@@ -2946,7 +3027,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                     </div>
 
                     <p class="meta">
-                        Total daily sales
+                        Total daily stats
                     </p>
 
                     <div class="progress">
@@ -3463,49 +3544,79 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                     <div class="product-name"><?= htmlspecialchars($product['product_name']) ?></div>
                   </div>
                 <?php endforeach; ?>
-                  <!-- =========================
-                      VIEW MORE
-                  ========================= -->
                 <div class="card-contain">
-                  <div
-                    class="view-more-card"
-                    id="viewMoreProducts"
-                    onclick="loadMoreProducts()">
+                  <div class="products-navigation-card">
+                    <div class="navigation-buttons">
 
-                    <div class="view-more-icon">
+                        <!-- PREVIOUS -->
 
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg">
+                        <button
+                            type="button"
+                            class="navigation-button"
+                            id="previousProducts"
+                            aria-label="Previous products"
+                        >
 
-                            <path
-                                d="M5 12H19"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                            />
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                            >
 
-                            <path
-                                d="M13 6L19 12L13 18"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            />
+                                <path
+                                    d="M19 12H5"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                />
 
-                        </svg>
+                                <path
+                                    d="M11 6L5 12L11 18"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+
+                            </svg>
+
+                        </button>
+
+
+                        <!-- NEXT -->
+
+                        <button
+                            type="button"
+                            class="navigation-button"
+                            id="nextProducts"
+                            aria-label="Next products"
+                        >
+
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                            >
+
+                                <path
+                                    d="M5 12H19"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                />
+                                <path
+                                    d="M13 6L19 12L13 18"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+
+                            </svg>
+
+                        </button>
 
                     </div>
-
-                    <div class="view-more-text">
-                        View More
-                    </div>
-
-                    <div class="view-more-count">
-                        More products
-                    </div>
-
+                    <div class="navigation-page" id="navigationPage">Page 1 of 2</div>
+                    <div class="navigation-count" id="navigationCount">9 products</div>
                   </div>
                 </div>
                 <?php else: ?>
@@ -3569,7 +3680,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                     </select>
                   </div>
                   <div class="inp-box" id="customCategoryBox">
-                    <label>Group Name</label>
+                    <label>Group Name (optional)</label>
                     <!-- SELECT MODE -->
                     <div class="custom-category-row" id="customCategorySelectRow">
 
@@ -3733,23 +3844,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                           <?php endif; ?>
                       </div>
 
-                      <div class="inp-box">
-                          <label>Change Product Image (optional)</label>
-                          <input type="file" name="photo" accept="image/png,image/jpeg,image/webp">
-                          <div class="note">
-                              400×400 – 1600×1600 px • Max 10MB<br>
-                              Automatically optimized for buyers
-                          </div>
-                      </div>
-                  <?php else: ?>
-                      <!-- ONLY FOR ADD MODE -->
-                        <!-- =========================================================
-                            PRODUCT IMAGE
-                            ========================================================= -->
-
                         <div class="inp-box">
-
-                          <label>Upload Product Image</label>
+                          <label>Change Product Image (optional)</label>
 
                           <div class="photo-buttons">
 
@@ -3762,6 +3858,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                                   📁 Choose from device
                               </label>
 
+                              <div class="or-divider">or</div>
 
                               <!-- TAKE PHOTO -->
 
@@ -3813,7 +3910,94 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                                   class="remove-photo"
                               >
                                   <i class="fa fa-trash"></i>
-                  </div>
+                          </div>
+
+                          </div>
+
+
+                          <div class="note">
+
+                              400×400 – 1600×1600 px • Max 10MB<br>
+                              Automatically optimized for buyers
+
+                          </div>
+
+                        </div>
+                      
+                  <?php else: ?>
+                      <!-- ONLY FOR ADD MODE -->
+                        <!-- =========================================================
+                            PRODUCT IMAGE
+                            ========================================================= -->
+
+                        <div class="inp-box">
+
+                          <label>Upload Product Image</label>
+
+                          <div class="photo-buttons">
+
+                              <!-- CHOOSE FROM DEVICE -->
+
+                              <label
+                                  for="galleryPhoto"
+                                  class="photo-button"
+                              >
+                                  📁 Choose from device
+                              </label>
+
+                              <div class="or-divider">or</div>
+
+                              <!-- TAKE PHOTO -->
+
+                              <label
+                                  id="openCameraButton"
+                                  class="photo-button"
+                              >
+                                📷 Take Photo
+                              </label>
+
+                          </div>
+
+
+                          <!--
+                              Normal gallery/file picker.
+
+                              IMPORTANT:
+                              This remains name="photo" so PHP receives:
+
+                              $_FILES['photo']
+                          -->
+
+                          <input
+                              type="file"
+                              id="galleryPhoto"
+                              name="photo"
+                              accept="image/jpeg,image/png,image/webp"
+                              hidden
+                          >
+
+
+                          <!-- =====================================================
+                                IMAGE PREVIEW
+                                ===================================================== -->
+
+                          <div
+                              id="photoPreview"
+                              class="photo-preview"
+                          >
+
+                              <img
+                                  id="photoPreviewImage"
+                                  src=""
+                                  alt="Product image preview"
+                              >
+
+                              <div
+                                  id="removePhoto"
+                                  class="remove-photo"
+                              >
+                                  <i class="fa fa-trash"></i>
+                          </div>
 
                           </div>
 
@@ -4565,17 +4749,16 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
         <table id="ordersTable">
           <thead>
             <tr>
-              <th>Image</th>
-              <th>Product&nbsp;Qty</th>
+              <th>Order</th>
+              <th>Product</th>
+              <th>Item&nbsp;Qty</th>
               <th>Total</th>
               <th>Buyer</th>
               <th>Payment</th>
               <th>Status</th>
               <th>Actions</th>
-              <th>Receipt</th>
               <th>Paid&nbsp;by</th>
-              <th>Date</th>
-              <th>Order ID</th>
+              <th>Receipt</th>
             </tr>
           </thead>
           <tbody>
@@ -4657,6 +4840,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                                   : "Images/Makethub Logo.png"; // default image
 
                   echo "<tr data-status=\"{$order['order_status']}\">
+                          <td>
+                            <div class='newStylOrd'>
+                              #{$order['order_code']}<p>{$date}</p>
+                            </div>
+                          </td>
                           <td>{$imageHTML}</td>
                           <td>{$productCount}</td>
                           <td>KES {$total}</td>
@@ -4680,10 +4868,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
                   echo "      </div>
                           </td>
-                          <td><div id='receiptTd'><i class='fa-solid fa-barcode'></i></div></td>
                           <td>".htmlspecialchars(ucfirst($order['payment_method'] ?? 'Unknown'))."</td>
-                          <td>{$date}</td>
-                          <td>{$order['order_code']}</td>
+                          <td><div id='receiptTd'><i class='fa-solid fa-receipt'></i></div></td>
                         </tr>";
                   $count++;
               }
@@ -4717,6 +4903,185 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
         </div>
       </div>
       <div class="sales-wrapper">
+            
+            <div class="store-page">
+              
+
+              <div class="categorical-navigation"> 
+                <!-- =================================================
+                      SELLER CUSTOM CATEGORY
+                ================================================== -->
+
+                <div
+                    class="category-side seller-side"
+                    id="sellerCategorySide">
+                    <button
+                        type="button"
+                        class="category-crumb"
+                        id="sellerCategoryButton">
+
+                        <span id="sellerCategoryText">
+                            Utensils
+                        </span>
+
+                        <span class="category-arrow"></span>
+
+                    </button>
+
+
+                    <!-- SELLER POPUP -->
+
+                    <div class="category-popup seller-popup">
+
+                        <div class="popup-title">
+                            Custom Categories
+                        </div>
+
+
+                        <button
+                            type="button"
+                            class="category-option active"
+                            data-seller="Utensils">
+
+                            Utensils
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="category-option"
+                            data-seller="Zippers">
+
+                            Zippers
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="category-option"
+                            data-seller="Mattresses">
+
+                            Mattresses
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="category-option"
+                            data-seller="Shoes">
+
+                            Shoes
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="category-option"
+                            data-seller="Bags">
+
+                            Bags
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="category-option"
+                            data-seller="Lexines">
+
+                            Lexines
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+              </div>
+
+
+
+              <!-- =====================================================
+                  MINI NAVIGATION
+              ====================================================== -->
+
+              <div class="mini-navigation-wrapper">
+
+                <div class="mini-navigation-scroll">
+
+                    <nav
+                        class="mini-navigation"
+                        id="miniNavigation">
+
+
+                        <button
+                            type="button"
+                            class="mini-nav-item active"
+                            data-mini="all">
+
+                            All
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="mini-nav-item"
+                            data-mini="sufurias">
+
+                            Sufurias
+
+                        </button>
+                        <button
+                            type="button"
+                            class="mini-nav-item"
+                            data-mini="basins">
+                            Basins
+                        </button>
+                        <button
+                            type="button"
+                            class="mini-nav-item"
+                            data-mini="knives">
+                            Knives
+                        </button>
+                        <button
+                            type="button"
+                            class="mini-nav-item"
+                            data-mini="stands">
+                            Stands
+                        </button>
+                        <button
+                            type="button"
+                            class="mini-nav-item"
+                            data-mini="cups">
+                            Cups
+                        </button>
+                        <button
+                            type="button"
+                            class="mini-nav-item"
+                            data-mini="plates">
+                            Plates
+                        </button>
+                        <button
+                            type="button"
+                            class="mini-nav-item"
+                            data-mini="spoons">
+                            Spoons
+                        </button>
+                        
+                        <!-- SLIDING INDICATOR -->
+                        <span
+                            class="mini-nav-indicator"
+                            id="miniNavIndicator">
+                        </span>
+                    </nav>
+                </div>
+              </div>
+            </div>
 
         <?php
         $userId = $_SESSION['user_id'] ?? 0;
@@ -4873,6 +5238,80 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
               </div>
 
             <?php endwhile; ?>
+            
+
+                  <div class="products-navigation-card salesPageNav">
+                    <div class="navigation-buttons">
+
+                        <!-- PREVIOUS -->
+
+                        <button
+                            type="button"
+                            class="navigation-button"
+                            id="previousProducts"
+                            aria-label="Previous products"
+                        >
+
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                            >
+
+                                <path
+                                    d="M19 12H5"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                />
+
+                                <path
+                                    d="M11 6L5 12L11 18"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+
+                            </svg>
+
+                        </button>
+
+
+                        <!-- NEXT -->
+
+                        <button
+                            type="button"
+                            class="navigation-button"
+                            id="nextProducts"
+                            aria-label="Next products"
+                        >
+
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                            >
+
+                                <path
+                                    d="M5 12H19"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                />
+                                <path
+                                    d="M13 6L19 12L13 18"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+
+                            </svg>
+
+                        </button>
+
+                    </div>
+                    <div class="navigation-page" id="navigationPage">Page 1 of 2</div>
+                  </div>
 
           </div>
           <div class="fSales-container">
@@ -5016,17 +5455,16 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
         <table id="sellerTransactions">
           <thead>
             <tr>
-              <th>Image</th>
-              <th>Product&nbsp;Qty</th>
+              <th>Order</th>
+              <th>Product</th>
+              <th>Itme&nbsp;Qty</th>
               <th>Total</th>
               <th>Buyer</th>
               <th>Payment</th>
               <th>Status</th>
               <th>Actions</th>
-              <th>Receipt</th>
               <th>Paid&nbsp;by</th>
-              <th>Date</th>
-              <th>Order ID</th>
+              <th>Receipt</th>
             </tr>
           </thead>
           <tbody>
@@ -5108,6 +5546,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                                   : "Images/Makethub Logo.png"; // default image
 
                   echo "<tr data-status=\"{$order['order_status']}\">
+                          <td>
+                            <div class='newStylOrd'>
+                              {$order['order_code']}<p>{$date}</p>
+                            </div>
+                          </td>
                           <td>{$imageHTML}</td>
                           <td>{$productCount}</td>
                           <td>KES {$total}</td>
@@ -5131,10 +5574,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
                   echo "      </div>
                           </td>
-                          <td><div id='receiptTd'><i class='fa-solid fa-barcode'></i></div></td>
                           <td>".htmlspecialchars(ucfirst($order['payment_method'] ?? 'Unknown'))."</td>
-                          <td>{$date}</td>
-                          <td>{$order['order_code']}</td>
+                          <td><div id='receiptTd'><i class='fa-solid fa-barcode'></i></div></td>
                         </tr>";
                   $count++;
               }

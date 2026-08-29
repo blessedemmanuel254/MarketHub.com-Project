@@ -1,16 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Products Grid</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>MarketHub Products</title>
+
+
+    <!-- =====================================================
+         POPPINS
+    ====================================================== -->
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
 
     <style>
+
+        /* =====================================================
+           GLOBAL
+        ====================================================== */
 
         * {
             box-sizing: border-box;
@@ -18,63 +46,99 @@
             padding: 0;
         }
 
+
         body {
+
             font-family: "Poppins", sans-serif;
+
             background: #f5f5f5;
+
             color: #222;
+
         }
+
+
+        /* =====================================================
+           WRAPPER
+        ====================================================== */
 
         .products-wrapper {
+
             width: 100%;
+
             max-width: 1299px;
+
             margin: 0 auto;
+
             padding: 25px;
+
         }
 
-        /* =========================
+
+        /* =====================================================
            HEADER
-        ========================= */
+        ====================================================== */
 
         .products-header {
+
             display: flex;
+
             align-items: center;
+
             justify-content: space-between;
+
             margin-bottom: 20px;
+
         }
+
 
         .products-title {
+
             font-size: 21px;
+
             font-weight: 600;
+
         }
+
 
         .products-count {
+
             font-size: 13px;
+
             color: #898888;
+
         }
 
-        /* =========================
+
+        /* =====================================================
            PRODUCTS GRID
-        ========================= */
+
+           9 PRODUCT CARDS + 1 NAVIGATION CARD
+        ====================================================== */
 
         .products-grid {
+
             display: grid;
 
-            /*
-             * Cards will NEVER become smaller
-             * than 100px.
-             */
             grid-template-columns:
-                repeat(auto-fit, minmax(100px, 1fr));
+                repeat(
+                    auto-fit,
+                    minmax(100px, 1fr)
+                );
 
             gap: 15px;
+
             width: 100%;
+
         }
 
-        /* =========================
+
+        /* =====================================================
            PRODUCT CARD
-        ========================= */
+        ====================================================== */
 
         .product-card {
+
             position: relative;
 
             min-width: 0;
@@ -82,7 +146,9 @@
             aspect-ratio: 1 / 1.18;
 
             background: #fff;
+
             border: 1px solid #dedede;
+
             border-radius: 18px;
 
             overflow: hidden;
@@ -93,115 +159,158 @@
                 transform .2s ease,
                 box-shadow .2s ease,
                 border-color .2s ease;
+
         }
 
+
         .product-card:hover {
+
             transform: translateY(-3px);
 
             border-color: #cfcfcf;
 
             box-shadow:
                 0 8px 25px rgba(0, 0, 0, .08);
+
         }
 
-        /* =========================
+
+        /* =====================================================
            PRODUCT IMAGE
-        ========================= */
+        ====================================================== */
 
         .product-image-container {
+
             width: 100%;
+
             height: 66%;
 
             display: flex;
+
             align-items: center;
+
             justify-content: center;
 
             background: #f7f7f7;
 
             overflow: hidden;
+
         }
 
+
         .product-image {
+
             width: 100%;
+
             height: 100%;
 
             object-fit: cover;
 
-            transition: transform .25s ease;
+            transition:
+                transform .25s ease;
+
         }
 
-        .product-card:hover .product-image {
+
+        .product-card:hover
+        .product-image {
+
             transform: scale(1.04);
+
         }
 
-        /* =========================
+
+        /* =====================================================
            PRODUCT DETAILS
-        ========================= */
+        ====================================================== */
 
         .product-details {
+
             height: 34%;
 
             padding: 8px 10px;
 
             display: flex;
+
             flex-direction: column;
+
             justify-content: center;
 
             gap: 2px;
+
         }
 
+
         .product-name {
+
             font-size: 12px;
+
             font-weight: 500;
 
             white-space: nowrap;
+
             overflow: hidden;
+
             text-overflow: ellipsis;
+
         }
+
 
         .product-price {
+
             font-size: 12px;
+
             font-weight: 600;
+
         }
+
 
         .product-unit {
+
             font-size: 10px;
+
             color: #898888;
+
         }
 
-        /* =========================
+
+        /* =====================================================
            STOCK BADGE
-        ========================= */
+        ====================================================== */
 
         .stock-badge {
+
             position: absolute;
 
             top: 7px;
+
             right: 7px;
 
             padding: 3px 7px;
 
-            background: rgba(255, 255, 255, .94);
+            background:
+                rgba(255,255,255,.94);
 
             border-radius: 20px;
 
             font-size: 9px;
+
             color: #555;
 
             box-shadow:
-                0 2px 8px rgba(0, 0, 0, .08);
+                0 2px 8px rgba(0,0,0,.08);
+
+            z-index: 2;
+
         }
 
-        /* =========================
-           VIEW MORE CARD
-        ========================= */
 
-        .view-more-card {
+        /* =====================================================
+           NAVIGATION CARD
+        ====================================================== */
 
-            /*
-             * Same basic dimensions as
-             * the product cards.
-             */
+        .products-navigation-card {
+
             aspect-ratio: 1 / 1.18;
 
             min-width: 0;
@@ -213,14 +322,14 @@
             background: #fafafa;
 
             display: flex;
+
             flex-direction: column;
 
             align-items: center;
+
             justify-content: center;
 
             gap: 10px;
-
-            cursor: pointer;
 
             user-select: none;
 
@@ -229,52 +338,60 @@
                 box-shadow .22s ease,
                 border-color .22s ease,
                 background .22s ease;
+
         }
 
-        .view-more-card:hover {
 
-            background: #fff;
+        /* =====================================================
+           NAVIGATION BUTTONS
+        ====================================================== */
 
-            border-color: #088000;
+        .navigation-buttons {
 
-            transform: translateY(-3px);
+            display: flex;
 
-            box-shadow:
-                0 10px 28px rgba(0, 0, 0, .08);
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 8px;
+
         }
 
-        /* =========================
-           VIEW MORE CIRCLE
-        ========================= */
 
-        .view-more-icon {
+        .navigation-button {
 
-            width: 46px;
-            height: 46px;
+            width: 42px;
+
+            height: 42px;
 
             border-radius: 50%;
 
-            background: #fff;
-
             border: 1px solid #dedede;
 
+            background: #fff;
+
             display: flex;
+
             align-items: center;
+
             justify-content: center;
 
-            color: #088000;
+            cursor: pointer;
+
+            color: #333;
 
             transition:
-                background .22s ease,
-                color .22s ease,
-                border-color .22s ease,
-                transform .22s ease;
+                background .2s ease,
+                color .2s ease,
+                border-color .2s ease,
+                transform .2s ease,
+                opacity .2s ease;
 
-            box-shadow:
-                0 3px 10px rgba(0, 0, 0, .05);
         }
 
-        .view-more-card:hover .view-more-icon {
+
+        .navigation-button:hover:not(:disabled) {
 
             background: #088000;
 
@@ -282,70 +399,126 @@
 
             border-color: #088000;
 
-            transform: translateX(3px);
+            transform: translateY(-2px);
+
         }
 
-        .view-more-icon svg {
 
-            width: 20px;
-            height: 20px;
+        .navigation-button:active:not(:disabled) {
+
+            transform: scale(.94);
+
         }
 
-        /* =========================
-           VIEW MORE TEXT
-        ========================= */
 
-        .view-more-text {
+        .navigation-button:disabled {
 
-            font-size: 12px;
+            opacity: .35;
 
-            font-weight: 500;
+            cursor: default;
+
+        }
+
+
+        /* =====================================================
+           NAVIGATION SVG
+        ====================================================== */
+
+        .navigation-button svg {
+
+            width: 18px;
+
+            height: 18px;
+
+        }
+
+
+        /* =====================================================
+           PAGE INFORMATION
+        ====================================================== */
+
+        .navigation-page {
+
+            font-size: 11px;
+
+            font-weight: 600;
 
             color: #333;
 
-            text-align: center;
         }
 
-        .view-more-count {
 
-            font-size: 10px;
+        .navigation-count {
+
+            font-size: 9px;
 
             color: #898888;
 
             text-align: center;
+
         }
 
-        /* =========================
-           LOADING
-        ========================= */
 
-        .loading {
+        /* =====================================================
+           LOADING
+        ====================================================== */
+
+        .products-grid.loading {
 
             pointer-events: none;
 
-            opacity: .65;
         }
 
-        .loading .view-more-icon {
 
-            animation: spin .8s linear infinite;
+        .products-grid.loading
+        .product-card {
+
+            opacity: .55;
+
         }
 
-        @keyframes spin {
+
+        /* =====================================================
+           PRODUCT ANIMATION
+        ====================================================== */
+
+        .product-card.product-enter {
+
+            animation:
+                productEnter
+                .25s ease;
+
+        }
+
+
+        @keyframes productEnter {
 
             from {
-                transform: rotate(0deg);
+
+                opacity: 0;
+
+                transform:
+                    translateY(8px)
+                    scale(.98);
+
             }
 
             to {
-                transform: rotate(360deg);
+
+                opacity: 1;
+
+                transform:
+                    translateY(0)
+                    scale(1);
+
             }
 
         }
 
-        /* =========================
+
+        /* =====================================================
            NO PRODUCTS
-        ========================= */
+        ====================================================== */
 
         .no-products {
 
@@ -356,6 +529,7 @@
             display: flex;
 
             align-items: center;
+
             justify-content: center;
 
             text-align: center;
@@ -363,69 +537,98 @@
             color: #898888;
 
             font-size: 13px;
+
         }
 
-        /* =========================
+
+        /* =====================================================
            RESPONSIVE
-        ========================= */
+        ====================================================== */
 
         @media (max-width: 700px) {
 
             .products-wrapper {
+
                 padding: 15px;
+
             }
+
 
             .products-grid {
 
                 grid-template-columns:
-                    repeat(auto-fit, minmax(100px, 1fr));
+                    repeat(
+                        auto-fit,
+                        minmax(100px, 1fr)
+                    );
 
                 gap: 10px;
+
             }
+
 
             .product-card,
-            .view-more-card {
+            .products-navigation-card {
+
                 border-radius: 15px;
+
             }
 
-            .view-more-icon {
 
-                width: 38px;
-                height: 38px;
+            .navigation-button {
+
+                width: 36px;
+
+                height: 36px;
+
             }
 
-            .view-more-icon svg {
 
-                width: 17px;
-                height: 17px;
+            .navigation-button svg {
+
+                width: 15px;
+
+                height: 15px;
+
             }
 
         }
+
 
         @media (max-width: 400px) {
 
             .products-grid {
 
                 grid-template-columns:
-                    repeat(3, minmax(100px, 1fr));
+                    repeat(
+                        3,
+                        minmax(100px, 1fr)
+                    );
 
-                overflow-x: auto;
+                gap: 8px;
+
             }
 
         }
 
     </style>
+
 </head>
 
 
 <body>
 
 
+<!-- =========================================================
+     PRODUCTS SECTION
+========================================================= -->
+
 <div class="products-wrapper">
 
-    <!-- =========================
+
+    <!-- =====================================================
          HEADER
-    ========================= -->
+    ====================================================== -->
 
     <div class="products-header">
 
@@ -433,379 +636,28 @@
             Products
         </div>
 
-        <div class="products-count" id="productsCount">
-            8 products
-        </div>
-
-    </div>
-
-
-    <!-- =========================
-         PRODUCTS GRID
-    ========================= -->
-
-    <div class="products-grid" id="productsGrid">
-
-
-        <!-- PRODUCT 1 -->
-
-        <div class="product-card"
-             data-product-id="1"
-             onclick="selectProduct(this)">
-
-            <div class="stock-badge">
-                24 in stock
-            </div>
-
-            <div class="product-image-container">
-
-                <img
-                    class="product-image"
-                    src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80"
-                    alt="Watch"
-                >
-
-            </div>
-
-            <div class="product-details">
-
-                <div class="product-name">
-                    Classic Watch
-                </div>
-
-                <div class="product-price">
-                    KES 2,500
-                </div>
-
-                <div class="product-unit">
-                    Each
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- PRODUCT 2 -->
-
-        <div class="product-card"
-             data-product-id="2"
-             onclick="selectProduct(this)">
-
-            <div class="stock-badge">
-                12 in stock
-            </div>
-
-            <div class="product-image-container">
-
-                <img
-                    class="product-image"
-                    src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80"
-                    alt="Shoes"
-                >
-
-            </div>
-
-            <div class="product-details">
-
-                <div class="product-name">
-                    Sports Shoes
-                </div>
-
-                <div class="product-price">
-                    KES 3,200
-                </div>
-
-                <div class="product-unit">
-                    Pair
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- PRODUCT 3 -->
-
-        <div class="product-card"
-             data-product-id="3"
-             onclick="selectProduct(this)">
-
-            <div class="stock-badge">
-                50 in stock
-            </div>
-
-            <div class="product-image-container">
-
-                <img
-                    class="product-image"
-                    src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=500&q=80"
-                    alt="Camera"
-                >
-
-            </div>
-
-            <div class="product-details">
-
-                <div class="product-name">
-                    Digital Camera
-                </div>
-
-                <div class="product-price">
-                    KES 18,500
-                </div>
-
-                <div class="product-unit">
-                    Each
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- PRODUCT 4 -->
-
-        <div class="product-card"
-             data-product-id="4"
-             onclick="selectProduct(this)">
-
-            <div class="stock-badge">
-                99+ in stock
-            </div>
-
-            <div class="product-image-container">
-
-                <img
-                    class="product-image"
-                    src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=500&q=80"
-                    alt="Clothes"
-                >
-
-            </div>
-
-            <div class="product-details">
-
-                <div class="product-name">
-                    Fashion Shirt
-                </div>
-
-                <div class="product-price">
-                    KES 1,500
-                </div>
-
-                <div class="product-unit">
-                    Each
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- PRODUCT 5 -->
-
-        <div class="product-card"
-             data-product-id="5"
-             onclick="selectProduct(this)">
-
-            <div class="stock-badge">
-                18 in stock
-            </div>
-
-            <div class="product-image-container">
-
-                <img
-                    class="product-image"
-                    src="https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=500&q=80"
-                    alt="Cosmetics"
-                >
-
-            </div>
-
-            <div class="product-details">
-
-                <div class="product-name">
-                    Skin Care Set
-                </div>
-
-                <div class="product-price">
-                    KES 1,800
-                </div>
-
-                <div class="product-unit">
-                    Set
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- PRODUCT 6 -->
-
-        <div class="product-card"
-             data-product-id="6"
-             onclick="selectProduct(this)">
-
-            <div class="stock-badge">
-                35 in stock
-            </div>
-
-            <div class="product-image-container">
-
-                <img
-                    class="product-image"
-                    src="https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=500&q=80"
-                    alt="Headphones"
-                >
-
-            </div>
-
-            <div class="product-details">
-
-                <div class="product-name">
-                    Wireless Headphones
-                </div>
-
-                <div class="product-price">
-                    KES 4,500
-                </div>
-
-                <div class="product-unit">
-                    Each
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- PRODUCT 7 -->
-
-        <div class="product-card"
-             data-product-id="7"
-             onclick="selectProduct(this)">
-
-            <div class="stock-badge">
-                10 in stock
-            </div>
-
-            <div class="product-image-container">
-
-                <img
-                    class="product-image"
-                    src="https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=500&q=80"
-                    alt="Bottle"
-                >
-
-            </div>
-
-            <div class="product-details">
-
-                <div class="product-name">
-                    Water Bottle
-                </div>
-
-                <div class="product-price">
-                    KES 750
-                </div>
-
-                <div class="product-unit">
-                    Each
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- PRODUCT 8 -->
-
-        <div class="product-card"
-             data-product-id="8"
-             onclick="selectProduct(this)">
-
-            <div class="stock-badge">
-                22 in stock
-            </div>
-
-            <div class="product-image-container">
-
-                <img
-                    class="product-image"
-                    src="https://images.unsplash.com/photo-1503602642458-232111445657?auto=format&fit=crop&w=500&q=80"
-                    alt="Chair"
-                >
-
-            </div>
-
-            <div class="product-details">
-
-                <div class="product-name">
-                    Wooden Chair
-                </div>
-
-                <div class="product-price">
-                    KES 5,800
-                </div>
-
-                <div class="product-unit">
-                    Each
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- =========================
-             VIEW MORE
-        ========================= -->
 
         <div
-            class="view-more-card"
-            id="viewMoreProducts"
-            onclick="loadMoreProducts()">
-
-            <div class="view-more-icon">
-
-                <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg">
-
-                    <path
-                        d="M5 12H19"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                    />
-
-                    <path
-                        d="M13 6L19 12L13 18"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                    />
-
-                </svg>
-
-            </div>
-
-            <div class="view-more-text">
-                View More
-            </div>
-
-            <div class="view-more-count">
-                More products
-            </div>
-
+            class="products-count"
+            id="productsCount"
+        >
+            1–9 of 37 products
         </div>
 
-
     </div>
+
+
+    <!-- =====================================================
+         PRODUCTS GRID
+
+         JavaScript will place ONLY 9 products here.
+    ====================================================== -->
+
+    <div
+        class="products-grid"
+        id="productsGrid"
+    ></div>
+
 
 </div>
 
@@ -813,11 +665,94 @@
 
 <script>
 
-    /* ==========================================
+    /* =========================================================
        PRODUCT DATA
-    ========================================== */
+       
+       In your real MarketHub system, this array should come
+       from PHP/database instead.
+    ========================================================= */
 
-    const additionalProducts = [
+    const products = [
+
+        {
+            id: 1,
+            name: "Classic Watch",
+            price: "KES 2,500",
+            unit: "Each",
+            stock: "24 in stock",
+            image:
+                "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80"
+        },
+
+        {
+            id: 2,
+            name: "Sports Shoes",
+            price: "KES 3,200",
+            unit: "Each",
+            stock: "12 in stock",
+            image:
+                "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80"
+        },
+
+        {
+            id: 3,
+            name: "Digital Camera",
+            price: "KES 18,500",
+            unit: "Each",
+            stock: "50 in stock",
+            image:
+                "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=500&q=80"
+        },
+
+        {
+            id: 4,
+            name: "Fashion Shirt",
+            price: "KES 1,500",
+            unit: "Each",
+            stock: "99+ in stock",
+            image:
+                "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=500&q=80"
+        },
+
+        {
+            id: 5,
+            name: "Skin Care Set",
+            price: "KES 1,800",
+            unit: "Set",
+            stock: "18 in stock",
+            image:
+                "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=500&q=80"
+        },
+
+        {
+            id: 6,
+            name: "Wireless Headphones",
+            price: "KES 4,500",
+            unit: "Each",
+            stock: "35 in stock",
+            image:
+                "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=500&q=80"
+        },
+
+        {
+            id: 7,
+            name: "Water Bottle",
+            price: "KES 750",
+            unit: "Each",
+            stock: "10 in stock",
+            image:
+                "https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=500&q=80"
+        },
+
+        {
+            id: 8,
+            name: "Wooden Chair",
+            price: "KES 5,800",
+            unit: "Each",
+            stock: "22 in stock",
+            image:
+                "https://images.unsplash.com/photo-1503602642458-232111445657?auto=format&fit=crop&w=500&q=80"
+        },
 
         {
             id: 9,
@@ -825,7 +760,8 @@
             price: "KES 2,800",
             unit: "Each",
             stock: "15 in stock",
-            image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=500&q=80"
+            image:
+                "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=500&q=80"
         },
 
         {
@@ -834,7 +770,8 @@
             price: "KES 25,000",
             unit: "Each",
             stock: "8 in stock",
-            image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=500&q=80"
+            image:
+                "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=500&q=80"
         },
 
         {
@@ -843,7 +780,8 @@
             price: "KES 450",
             unit: "Each",
             stock: "40 in stock",
-            image: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?auto=format&fit=crop&w=500&q=80"
+            image:
+                "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?auto=format&fit=crop&w=500&q=80"
         },
 
         {
@@ -852,42 +790,124 @@
             price: "KES 2,200",
             unit: "Each",
             stock: "27 in stock",
-            image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=500&q=80"
+            image:
+                "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=500&q=80"
+        },
+
+        {
+            id: 13,
+            name: "Laptop",
+            price: "KES 65,000",
+            unit: "Each",
+            stock: "7 in stock",
+            image:
+                "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=500&q=80"
+        },
+
+        {
+            id: 14,
+            name: "Office Desk",
+            price: "KES 12,500",
+            unit: "Each",
+            stock: "14 in stock",
+            image:
+                "https://images.unsplash.com/photo-1518455027359-f3f8164ba6b5?auto=format&fit=crop&w=500&q=80"
+        },
+
+        {
+            id: 15,
+            name: "Smart Watch",
+            price: "KES 7,500",
+            unit: "Each",
+            stock: "16 in stock",
+            image:
+                "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80"
+        },
+
+        {
+            id: 16,
+            name: "Backpack Pro",
+            price: "KES 3,900",
+            unit: "Each",
+            stock: "21 in stock",
+            image:
+                "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=500&q=80"
+        },
+
+        {
+            id: 17,
+            name: "Bluetooth Speaker",
+            price: "KES 3,500",
+            unit: "Each",
+            stock: "31 in stock",
+            image:
+                "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?auto=format&fit=crop&w=500&q=80"
+        },
+
+        {
+            id: 18,
+            name: "Sunglasses",
+            price: "KES 1,200",
+            unit: "Each",
+            stock: "45 in stock",
+            image:
+                "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=500&q=80"
         }
 
     ];
 
 
-    /* ==========================================
-       GET ELEMENTS
-    ========================================== */
+    /* =========================================================
+       SETTINGS
+    ========================================================= */
+
+    const PRODUCTS_PER_PAGE = 9;
+
+
+    let currentPage = 1;
+
+
+    const totalPages =
+        Math.ceil(
+            products.length /
+            PRODUCTS_PER_PAGE
+        );
+
+
+    /* =========================================================
+       ELEMENTS
+    ========================================================= */
 
     const productsGrid =
-        document.getElementById("productsGrid");
+        document.getElementById(
+            "productsGrid"
+        );
 
-    const viewMoreButton =
-        document.getElementById("viewMoreProducts");
 
     const productsCount =
-        document.getElementById("productsCount");
+        document.getElementById(
+            "productsCount"
+        );
 
 
-    /* ==========================================
+    /* =========================================================
        PRODUCT CLICK
-    ========================================== */
+    ========================================================= */
 
     function selectProduct(card) {
 
         const productId =
             card.dataset.productId;
 
+
         console.log(
             "Selected product:",
             productId
         );
 
+
         /*
-         * Put your existing POS action here.
+         * PUT YOUR EXISTING POS CODE HERE.
          *
          * Example:
          *
@@ -897,25 +917,32 @@
     }
 
 
-    /* ==========================================
+    /* =========================================================
        CREATE PRODUCT CARD
-    ========================================== */
+    ========================================================= */
 
     function createProductCard(product) {
 
         const card =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
-        card.className = "product-card";
+
+        card.className =
+            "product-card product-enter";
+
 
         card.dataset.productId =
             product.id;
 
-        card.onclick = function () {
 
-            selectProduct(this);
+        card.onclick =
+            function () {
 
-        };
+                selectProduct(this);
+
+            };
 
 
         card.innerHTML = `
@@ -959,88 +986,73 @@
     }
 
 
-    /* ==========================================
-       VIEW MORE
-    ========================================== */
+    /* =========================================================
+       CREATE NAVIGATION CARD
+    ========================================================= */
 
-    function loadMoreProducts() {
+    function createNavigationCard() {
 
-        /*
-         * Prevent multiple clicks
-         */
-
-        if (viewMoreButton.classList.contains("loading")) {
-            return;
-        }
-
-
-        viewMoreButton.classList.add("loading");
-
-
-        /*
-         * Simulate loading from database.
-         *
-         * In your actual Market Hub system,
-         * replace this section with fetch()
-         * to your PHP endpoint.
-         */
-
-        setTimeout(function () {
-
-
-            additionalProducts.forEach(function(product) {
-
-                const card =
-                    createProductCard(product);
-
-                /*
-                 * Insert product BEFORE
-                 * the View More button.
-                 */
-
-                productsGrid.insertBefore(
-                    card,
-                    viewMoreButton
-                );
-
-            });
-
-
-            /*
-             * Update product count
-             */
-
-            const totalProducts =
-                productsGrid.querySelectorAll(
-                    ".product-card"
-                ).length;
-
-            productsCount.textContent =
-                totalProducts + " products";
-
-
-            /*
-             * Remove loading state
-             */
-
-            viewMoreButton.classList.remove(
-                "loading"
+        const navigation =
+            document.createElement(
+                "div"
             );
 
 
-            /*
-             * Change button after
-             * all demo products are loaded.
-             */
+        navigation.className =
+            "products-navigation-card";
 
-            viewMoreButton.innerHTML = `
 
-                <div class="view-more-icon">
+        navigation.innerHTML = `
+
+            <div class="navigation-buttons">
+
+                <!-- PREVIOUS -->
+
+                <button
+                    type="button"
+                    class="navigation-button"
+                    id="previousProducts"
+                    aria-label="Previous products"
+                >
 
                     <svg
                         viewBox="0 0 24 24"
                         fill="none"
-                        xmlns="http://www.w3.org/2000/svg">
+                    >
+
+                        <path
+                            d="M19 12H5"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                        />
+
+                        <path
+                            d="M11 6L5 12L11 18"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+
+                    </svg>
+
+                </button>
+
+
+                <!-- NEXT -->
+
+                <button
+                    type="button"
+                    class="navigation-button"
+                    id="nextProducts"
+                    aria-label="Next products"
+                >
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                    >
 
                         <path
                             d="M5 12H19"
@@ -1048,7 +1060,6 @@
                             stroke-width="2"
                             stroke-linecap="round"
                         />
-
                         <path
                             d="M13 6L19 12L13 18"
                             stroke="currentColor"
@@ -1059,55 +1070,294 @@
 
                     </svg>
 
-                </div>
+                </button>
 
-                <div class="view-more-text">
-                    View More
-                </div>
+            </div>
 
-                <div class="view-more-count">
-                    All loaded
-                </div>
 
-            `;
+            <div
+                class="navigation-page"
+                id="navigationPage"
+            >
+                Page 1 of ${totalPages}
+            </div>
+
+
+            <div
+                class="navigation-count"
+                id="navigationCount"
+            >
+                9 products
+            </div>
+
+        `;
+
+
+        return navigation;
+
+    }
+
+
+    /* =========================================================
+       RENDER CURRENT PAGE
+       
+       IMPORTANT:
+       
+       ONLY 9 PRODUCT CARDS ARE CREATED.
+       
+       The previous page is completely removed from
+       the DOM before the next page is displayed.
+    ========================================================= */
+
+    function renderProducts() {
+
+        productsGrid.classList.add(
+            "loading"
+        );
+
+
+        /*
+         * Small delay gives the transition
+         * a smooth professional feel.
+         */
+
+        setTimeout(function () {
 
 
             /*
-             * For this demonstration,
-             * disable the button after
-             * all products are loaded.
+             * Completely clear the current page.
              */
 
-            viewMoreButton.style.opacity = "0.55";
-            viewMoreButton.style.cursor = "default";
-            viewMoreButton.onclick = null;
+            productsGrid.innerHTML = "";
 
 
-        }, 500);
+            /*
+             * Calculate product range.
+             */
+
+            const startIndex =
+                (
+                    currentPage - 1
+                ) *
+                PRODUCTS_PER_PAGE;
+
+
+            const endIndex =
+                Math.min(
+                    startIndex +
+                    PRODUCTS_PER_PAGE,
+                    products.length
+                );
+
+
+            /*
+             * Get ONLY the products
+             * belonging to this page.
+             */
+
+            const pageProducts =
+                products.slice(
+                    startIndex,
+                    endIndex
+                );
+
+
+            /*
+             * Render current 9 products.
+             */
+
+            pageProducts.forEach(
+                function(product) {
+
+                    productsGrid.appendChild(
+                        createProductCard(
+                            product
+                        )
+                    );
+
+                }
+            );
+
+
+            /*
+             * Add navigation card.
+             *
+             * It occupies the 10th position.
+             */
+
+            if (totalPages > 1) {
+
+                const navigation =
+                    createNavigationCard();
+
+
+                productsGrid.appendChild(
+                    navigation
+                );
+
+
+                /*
+                 * Previous button
+                 */
+
+                const previousButton =
+                    document.getElementById(
+                        "previousProducts"
+                    );
+
+
+                /*
+                 * Next button
+                 */
+
+                const nextButton =
+                    document.getElementById(
+                        "nextProducts"
+                    );
+
+
+                /*
+                 * Page number
+                 */
+
+                const navigationPage =
+                    document.getElementById(
+                        "navigationPage"
+                    );
+
+
+                /*
+                 * Product count
+                 */
+
+                const navigationCount =
+                    document.getElementById(
+                        "navigationCount"
+                    );
+
+
+                /*
+                 * Disable Previous
+                 * on first page.
+                 */
+
+                previousButton.disabled =
+                    currentPage === 1;
+
+
+                /*
+                 * Disable Next
+                 * on last page.
+                 */
+
+                nextButton.disabled =
+                    currentPage === totalPages;
+
+
+                /*
+                 * Update page text.
+                 */
+
+                navigationPage.textContent =
+                    `Page ${currentPage} of ${totalPages}`;
+
+
+                /*
+                 * Number of products
+                 * currently displayed.
+                 */
+
+                navigationCount.textContent =
+                    `${pageProducts.length} products`;
+
+
+                /*
+                 * Previous click.
+                 */
+
+                previousButton.onclick =
+                    function(event) {
+
+                        event.stopPropagation();
+
+                        if (
+                            currentPage > 1
+                        ) {
+
+                            currentPage--;
+
+                            renderProducts();
+
+                        }
+
+                    };
+
+
+                /*
+                 * Next click.
+                 */
+
+                nextButton.onclick =
+                    function(event) {
+
+                        event.stopPropagation();
+
+                        if (
+                            currentPage <
+                            totalPages
+                        ) {
+
+                            currentPage++;
+
+                            renderProducts();
+
+                        }
+
+                    };
+
+            }
+
+
+            /*
+             * Update header count.
+             */
+
+            if (products.length === 0) {
+
+                productsCount.textContent =
+                    "0 products";
+
+            } else {
+
+                productsCount.textContent =
+                    `${startIndex + 1}–${endIndex} of ${products.length} products`;
+
+            }
+
+
+            /*
+             * Remove loading state.
+             */
+
+            productsGrid.classList.remove(
+                "loading"
+            );
+
+
+        }, 120);
 
     }
 
 
-    /* ==========================================
-       INITIAL PRODUCT COUNT
-    ========================================== */
+    /* =========================================================
+       INITIAL RENDER
+    ========================================================= */
 
-    function updateProductCount() {
-
-        const total =
-            productsGrid.querySelectorAll(
-                ".product-card"
-            ).length;
-
-        productsCount.textContent =
-            total + " products";
-
-    }
-
-
-    updateProductCount();
+    renderProducts();
 
 </script>
 
+
 </body>
+
 </html>

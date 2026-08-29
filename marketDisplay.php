@@ -198,10 +198,96 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $conn->begin_transaction();
 
     try {
-        // 1️⃣ Generate unique order code
-        $dateStr = date('Ymd');
-        $randomDigits = str_pad(rand(0, 99999), 5, '0', STR_PAD_LEFT);
-        $orderCode = "ORD-" . $dateStr . "-" . $randomDigits;
+
+
+        /*
+        * =========================================================
+        * GENERATE UNIQUE MARKET HUB ORDER CODE
+        * =========================================================
+        *
+        * Example:
+        *
+        *     MH-7K4P9X
+        *
+        * The database order_id remains the internal primary key.
+        * This code is the public-facing order reference.
+        */
+
+
+        /*
+        * Characters intentionally exclude:
+        *
+        * 0 O 1 I L
+        *
+        * to avoid confusion when customers read or type
+        * the order code.
+        */
+
+        $characters =
+          'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+
+
+        $characterCount =
+          strlen($characters);
+
+
+        /*
+        * Generate a 6-character random code.
+        */
+
+        do {
+
+          $randomPart = '';
+
+          for ($i = 0; $i < 6; $i++) {
+
+              $randomPart .=
+                  $characters[
+                      random_int(
+                          0,
+                          $characterCount - 1
+                      )
+                  ];
+
+          }
+
+
+          /*
+            * Final public order code.
+            */
+
+          $orderCode =
+              'MH-' . $randomPart;
+
+
+          /*
+            * Check whether the code already exists.
+            */
+
+          $checkStmt = $conn->prepare("
+              SELECT order_id
+              FROM orders
+              WHERE order_code = ?
+              LIMIT 1
+          ");
+
+          $checkStmt->bind_param(
+              "s",
+              $orderCode
+          );
+
+          $checkStmt->execute();
+
+          $checkResult =
+              $checkStmt->get_result();
+
+          $codeExists =
+              $checkResult->num_rows > 0;
+
+          $checkStmt->close();
+
+
+        } while ($codeExists);
 
         // 2️⃣ Insert order
         $orderStmt = $conn->prepare("
@@ -277,10 +363,96 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
     $conn->begin_transaction();
     try {
-        // Generate unique order code for this whole order
-        $dateStr = date('Ymd');
-        $randomDigits = str_pad(rand(0, 99999), 5, '0', STR_PAD_LEFT);
-        $orderCode = "ORD-" . $dateStr . "-" . $randomDigits;
+
+
+        /*
+        * =========================================================
+        * GENERATE UNIQUE MARKET HUB ORDER CODE
+        * =========================================================
+        *
+        * Example:
+        *
+        *     MH-7K4P9X
+        *
+        * The database order_id remains the internal primary key.
+        * This code is the public-facing order reference.
+        */
+
+
+        /*
+        * Characters intentionally exclude:
+        *
+        * 0 O 1 I L
+        *
+        * to avoid confusion when customers read or type
+        * the order code.
+        */
+
+        $characters =
+          'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+
+
+        $characterCount =
+          strlen($characters);
+
+
+        /*
+        * Generate a 6-character random code.
+        */
+
+        do {
+
+          $randomPart = '';
+
+          for ($i = 0; $i < 6; $i++) {
+
+              $randomPart .=
+                  $characters[
+                      random_int(
+                          0,
+                          $characterCount - 1
+                      )
+                  ];
+
+          }
+
+
+          /*
+            * Final public order code.
+            */
+
+          $orderCode =
+              'MH-' . $randomPart;
+
+
+          /*
+            * Check whether the code already exists.
+            */
+
+          $checkStmt = $conn->prepare("
+              SELECT order_id
+              FROM orders
+              WHERE order_code = ?
+              LIMIT 1
+          ");
+
+          $checkStmt->bind_param(
+              "s",
+              $orderCode
+          );
+
+          $checkStmt->execute();
+
+          $checkResult =
+              $checkStmt->get_result();
+
+          $codeExists =
+              $checkResult->num_rows > 0;
+
+          $checkStmt->close();
+
+
+        } while ($codeExists);
 
         // Insert order
         $orderStmt = $conn->prepare("
@@ -889,7 +1061,7 @@ $productStmt = $conn->prepare("
         product_name,
         category,
         stock_quantity,
-        price,
+        selling_price,
         image_path
     FROM productservicesrentals
     WHERE user_id = ? AND status = 'active'
@@ -1196,7 +1368,7 @@ if (isset($_GET['seller'])) {
                         <div class="variable-card"
                             data-id="<?= $product['product_id']; ?>"
                             data-name="<?= htmlspecialchars($product['product_name']); ?>"
-                            data-price="<?= $product['price']; ?>"
+                            data-price="<?= $product['selling_price']; ?>"
                             data-image="<?= $product['image_path']; ?>">
 
                             <button class="add-to-cart-btn">Add&nbsp;to&nbsp;cart</button>
@@ -1220,14 +1392,14 @@ if (isset($_GET['seller'])) {
 
                               <div class="price-row">
                                   <div class="price">
-                                      KES <?= number_format($product['price'], 2); ?>
+                                      KES <?= number_format($product['selling_price'], 2); ?>
                                   </div>
                                   <button 
                                     class="buy-btn"
                                     onclick="buyNow(this)"
                                     data-id="<?= $product['product_id']; ?>"
                                     data-name="<?= htmlspecialchars($product['product_name']); ?>"
-                                    data-price="<?= $product['price']; ?>"
+                                    data-price="<?= $product['selling_price']; ?>"
                                     data-image="<?= $product['image_path']; ?>"
                                     data-seller="<?= $sellerId; ?>"
                                     data-seller-name="<?= htmlspecialchars($seller['business_name']); ?>"
