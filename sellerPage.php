@@ -1046,34 +1046,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_product_id']))
     $stmt->close();
 }
 
-// ---------- FETCH SELLER PRODUCTS ----------
-
-$products = [];
-
-$stmt = $conn->prepare("
-    SELECT product_id, product_name, category, 
-    custom_category_id, buying_price, selling_price, stock_quantity, unit, image_path
-    FROM productservicesrentals
-    WHERE user_id = ?
-    ORDER BY created_at DESC
-");
-
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-
-$result = $stmt->get_result();
-
-if ($result) {
-
-    while ($row = $result->fetch_assoc()) {
-
-        $products[] = $row;
-    }
-}
-
-$stmt->close();
-
-
 // =========================================================
 // LOAD PRODUCT FOR EDITING
 // =========================================================
@@ -2266,6 +2238,110 @@ if (empty($error)) {
 }
 
 /* =========================================================
+  FETCH SELLER PRODUCTS + CUSTOM CATEGORY INFORMATION
+  ========================================================= */
+
+$products = [];
+
+$stmt = $conn->prepare("
+  SELECT
+      p.product_id,
+      p.product_name,
+      p.category,
+      p.custom_category_id,
+      p.buying_price,
+      p.selling_price,
+      p.stock_quantity,
+      p.unit,
+      p.image_path,
+
+      cc.name AS custom_category_name,
+      cc.parent_id AS custom_category_parent_id
+
+  FROM productservicesrentals p
+
+  LEFT JOIN custom_categories cc
+      ON p.custom_category_id = cc.custom_category_id
+
+  WHERE p.user_id = ?
+
+  ORDER BY p.created_at DESC
+");
+
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+
+$result = $stmt->get_result();
+
+if ($result) {
+
+  while ($row = $result->fetch_assoc()) {
+
+      $products[] = $row;
+
+  }
+
+}
+
+$stmt->close();
+
+
+/* =========================================================
+  FETCH SELLER CUSTOM CATEGORIES
+========================================================= */
+
+$customCategories = [];
+
+$stmt = $conn->prepare("
+  SELECT
+      custom_category_id,
+      company_category,
+      name,
+      parent_id
+  FROM custom_categories
+  WHERE user_id = ?
+  ORDER BY name ASC
+");
+
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+
+$result = $stmt->get_result();
+
+if ($result) {
+
+  while ($row = $result->fetch_assoc()) {
+
+      $customCategories[] = $row;
+
+  }
+
+}
+
+$stmt->close();
+
+
+/* =========================================================
+  PREPARE CATEGORY DATA FOR JAVASCRIPT
+========================================================= */
+
+$categoryJson = json_encode(
+  $customCategories,
+  JSON_HEX_TAG |
+  JSON_HEX_APOS |
+  JSON_HEX_AMP |
+  JSON_HEX_QUOT
+);
+
+$productJson = json_encode(
+  $products,
+  JSON_HEX_TAG |
+  JSON_HEX_APOS |
+  JSON_HEX_AMP |
+  JSON_HEX_QUOT
+);
+
+/* =========================================================
   LOAD SELLER'S CUSTOM GROUPS
 ========================================================= */
 
@@ -3198,69 +3274,38 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                     <div class="category-popup company-popup">
 
                         <div class="popup-title">
-                            General Categories
+                          General Categories
                         </div>
+                        <?php
 
+                        /*
+                        * Your company categories can remain
+                        * whatever your existing system uses.
+                        */
 
-                        <button
-                            type="button"
-                            class="category-option active"
-                            data-company="HOME ITEMS">
+                        $companyCategories = [
+                            'HOME ITEMS',
+                            'FASHION',
+                            'FOOD',
+                            'STATIONERY',
+                            'ELECTRONICS',
+                            'BEAUTY'
+                        ];
 
-                            HOME ITEMS
+                        foreach ($companyCategories as $index => $company):
 
-                        </button>
+                        ?>
 
+                            <button
+                                type="button"
+                                class="category-option <?= $index === 0 ? 'active' : '' ?>"
+                                data-company="<?= htmlspecialchars($company) ?>">
 
-                        <button
-                            type="button"
-                            class="category-option"
-                            data-company="FASHION">
+                                <?= htmlspecialchars($company) ?>
 
-                            FASHION
+                            </button>
 
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="category-option"
-                            data-company="FOOD">
-
-                            FOOD
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="category-option"
-                            data-company="STATIONERY">
-
-                            STATIONERY
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="category-option"
-                            data-company="ELECTRONICS">
-
-                            ELECTRONICS
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="category-option"
-                            data-company="BEAUTY">
-
-                            BEAUTY
-
-                        </button>
-
+                        <?php endforeach; ?>
                     </div>
 
                 </div>
@@ -3278,13 +3323,14 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                 <div
                     class="category-side seller-side"
                     id="sellerCategorySide">
+
                     <button
                         type="button"
                         class="category-crumb"
                         id="sellerCategoryButton">
 
                         <span id="sellerCategoryText">
-                            Utensils
+                            All
                         </span>
 
                         <span class="category-arrow"></span>
@@ -3295,71 +3341,10 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                     <!-- SELLER POPUP -->
 
                     <div class="category-popup seller-popup">
-
-                        <div class="popup-title">
-                            Custom Categories
-                        </div>
-
-
-                        <button
-                            type="button"
-                            class="category-option active"
-                            data-seller="Utensils">
-
-                            Utensils
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="category-option"
-                            data-seller="Zippers">
-
-                            Zippers
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="category-option"
-                            data-seller="Mattresses">
-
-                            Mattresses
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="category-option"
-                            data-seller="Shoes">
-
-                            Shoes
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="category-option"
-                            data-seller="Bags">
-
-                            Bags
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="category-option"
-                            data-seller="Lexines">
-
-                            Lexines
-
-                        </button>
-
+                      <div class="popup-title">
+                          Custom Categories
+                      </div>
+                      <div id="sellerCategoryOptions"></div>
                     </div>
 
                 </div>
@@ -3377,73 +3362,24 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                 <div class="mini-navigation-scroll">
 
                     <nav
-                        class="mini-navigation"
-                        id="miniNavigation">
+                      class="mini-navigation"
+                      id="miniNavigation">
 
+                      <button type="button" class="mini-nav-item active" data-category-id="all">
 
-                        <button
-                            type="button"
-                            class="mini-nav-item active"
-                            data-mini="all">
+                        All
 
-                            All
+                      </button>
 
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="mini-nav-item"
-                            data-mini="sufurias">
-
-                            Sufurias
-
-                        </button>
-                        <button
-                            type="button"
-                            class="mini-nav-item"
-                            data-mini="basins">
-                            Basins
-                        </button>
-                        <button
-                            type="button"
-                            class="mini-nav-item"
-                            data-mini="knives">
-                            Knives
-                        </button>
-                        <button
-                            type="button"
-                            class="mini-nav-item"
-                            data-mini="stands">
-                            Stands
-                        </button>
-                        <button
-                            type="button"
-                            class="mini-nav-item"
-                            data-mini="cups">
-                            Cups
-                        </button>
-                        <button
-                            type="button"
-                            class="mini-nav-item"
-                            data-mini="plates">
-                            Plates
-                        </button>
-                        <button
-                            type="button"
-                            class="mini-nav-item"
-                            data-mini="spoons">
-                            Spoons
-                        </button>
-                        <button class="subgrou-add-btn">
-                          <i class="fa fa-plus"></i>Add sub group
-                        </button>
-                        
-                        <!-- SLIDING INDICATOR -->
-                        <span
-                            class="mini-nav-indicator"
-                            id="miniNavIndicator">
-                        </span>
+                      <button class="subgrou-add-btn">
+                        <i class="fa fa-plus"></i>Add sub group
+                      </button>
+                      
+                      <!-- SLIDING INDICATOR -->
+                      <span
+                          class="mini-nav-indicator"
+                          id="miniNavIndicator">
+                      </span>
                     </nav>
                 </div>
               </div>
@@ -3451,22 +3387,36 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   PRODUCTS HEADER
               ====================================================== -->
               <div class="products-header">
+
                 <h2
-                  class="products-title" id="productsTitle">
-                  Utensils
+                    class="products-title"
+                    id="productsTitle">
+
+                    All Products
+
                 </h2>
+
                 <span
-                  class="products-count" id="productsCount">
-                  8 products
+                    class="products-count"
+                    id="productsCount">
+
+                    0 products
+
                 </span>
+
               </div>
             </div>
 
             <!-- PRODUCTS GRID -->
-            <div class="products-grid">
+            <div class="products-grid" id="productsGrid">
               <?php if (!empty($products)): ?>
                 <?php foreach ($products as $product): ?>
-                  <div class="card-contain">
+                <div
+                    class="card-contain"
+                    data-product-id="<?= (int)$product['product_id'] ?>"
+                    data-custom-category-id="<?= (int)$product['custom_category_id'] ?>"
+                    data-company-category="<?= htmlspecialchars($product['category'], ENT_QUOTES, 'UTF-8') ?>"
+                >
                     
                     <div class="card">
                       <img src="<?= htmlspecialchars($product['image_path']) ?>" loading="lazy" decoding="async" alt="<?= htmlspecialchars($product['product_name']) ?>">
@@ -3530,93 +3480,83 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                         </div>
                       </div>
                       <div class="card-actions">
-                          <a href="?edit_product_id=<?= $product['product_id'] ?>" class="edit" >
-                            <i class="fa fa-pen"></i>
-                          </a>
-                          <form method="POST" onsubmit="return confirm('Are you sure you want to delete this product?')">
-                            <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
-                            <button type="submit" class="delete">
-                                <i class="fa fa-trash"></i>
-                            </button>
-                          </form>
+                        <a href="?edit_product_id=<?= $product['product_id'] ?>" class="edit" >
+                          <i class="fa fa-pen"></i>
+                        </a>
+                        <form method="POST" onsubmit="return confirm('Are you sure you want to delete this product?')">
+                          <input type="hidden" name="delete_product_id" value="<?= $product['product_id'] ?>">
+                          <button type="submit" class="delete">
+                              <i class="fa fa-trash"></i>
+                          </button>
+                        </form>
                       </div>
+                      
+                      <button class="comm-btn">
+                        <i class="fas fa-ellipsis-vertical"></i>
+                      </button>
                     </div>
                     <div class="product-name"><?= htmlspecialchars($product['product_name']) ?></div>
                   </div>
                 <?php endforeach; ?>
-                <div class="card-contain">
+                <div class="card-contain products-navigation-wrapper" id="productsNavigationWrapper">
                   <div class="products-navigation-card">
-                    <div class="navigation-buttons">
+                      <div class="navigation-buttons">
 
-                        <!-- PREVIOUS -->
+                          <button
+                              type="button"
+                              class="navigation-button"
+                              id="previousProducts"
+                              aria-label="Previous products"
+                          >
+                              <svg viewBox="0 0 24 24" fill="none">
+                                  <path
+                                      d="M19 12H5"
+                                      stroke="currentColor"
+                                      stroke-width="2"
+                                      stroke-linecap="round"
+                                  />
+                                  <path
+                                      d="M11 6L5 12L11 18"
+                                      stroke="currentColor"
+                                      stroke-width="2"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                  />
+                              </svg>
+                          </button>
 
-                        <button
-                            type="button"
-                            class="navigation-button"
-                            id="previousProducts"
-                            aria-label="Previous products"
-                        >
+                          <button
+                              type="button"
+                              class="navigation-button"
+                              id="nextProducts"
+                              aria-label="Next products"
+                          >
+                              <svg viewBox="0 0 24 24" fill="none">
+                                  <path
+                                      d="M5 12H19"
+                                      stroke="currentColor"
+                                      stroke-width="2"
+                                      stroke-linecap="round"
+                                  />
+                                  <path
+                                      d="M13 6L19 12L13 18"
+                                      stroke="currentColor"
+                                      stroke-width="2"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                  />
+                              </svg>
+                          </button>
 
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                            >
+                      </div>
 
-                                <path
-                                    d="M19 12H5"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                />
+                      <div class="navigation-page" id="navigationPage">
+                          Page 1 of 1
+                      </div>
 
-                                <path
-                                    d="M11 6L5 12L11 18"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                />
-
-                            </svg>
-
-                        </button>
-
-
-                        <!-- NEXT -->
-
-                        <button
-                            type="button"
-                            class="navigation-button"
-                            id="nextProducts"
-                            aria-label="Next products"
-                        >
-
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                            >
-
-                                <path
-                                    d="M5 12H19"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                />
-                                <path
-                                    d="M13 6L19 12L13 18"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                />
-
-                            </svg>
-
-                        </button>
-
-                    </div>
-                    <div class="navigation-page" id="navigationPage">Page 1 of 2</div>
-                    <div class="navigation-count" id="navigationCount">9 products</div>
+                      <div class="navigation-count" id="navigationCount">
+                          0 products
+                      </div>
                   </div>
                 </div>
                 <?php else: ?>
@@ -5603,6 +5543,2020 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
   <!-- Notification container -->
   <div id="notification-container"></div>
+<script>
+/* =========================================================
+   MARKET HUB
+   DYNAMIC PRODUCT / CATEGORY NAVIGATION
+   ========================================================= */
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    /* =====================================================
+       PHP DATABASE DATA
+       ===================================================== */
+
+    const products = <?= $productJson ?: '[]' ?>;
+    const customCategories = <?= $categoryJson ?: '[]' ?>;
+
+
+    /* =====================================================
+       CONFIGURATION
+    ===================================================== */
+
+    const PRODUCTS_PER_PAGE = 11;
+
+
+    /* =====================================================
+       ELEMENTS
+    ===================================================== */
+
+    const storePage =
+        document.querySelector(".store-page");
+
+    const companySide =
+        document.getElementById("companyCategorySide");
+
+    const sellerSide =
+        document.getElementById("sellerCategorySide");
+
+    const companyButton =
+        document.getElementById("companyCategoryButton");
+
+    const sellerButton =
+        document.getElementById("sellerCategoryButton");
+
+    const companyText =
+        document.getElementById("companyCategoryText");
+
+    const sellerText =
+        document.getElementById("sellerCategoryText");
+
+    const companyPopup =
+        document.querySelector(".company-popup");
+
+    const sellerPopup =
+        document.querySelector(".seller-popup");
+
+    const miniNavigation =
+        document.getElementById("miniNavigation");
+
+    const productsTitle =
+        document.getElementById("productsTitle");
+
+    const productsCount =
+        document.getElementById("productsCount");
+
+    const productGrid =
+        document.querySelector(".products-grid");
+
+    const previousProducts =
+        document.getElementById("previousProducts");
+
+    const nextProducts =
+        document.getElementById("nextProducts");
+
+    const navigationPage =
+        document.getElementById("navigationPage");
+
+    const navigationCount =
+        document.getElementById("navigationCount");
+
+
+    /* =====================================================
+       SAFETY CHECK
+    ===================================================== */
+
+    if (!storePage || !productGrid) {
+        return;
+    }
+
+
+    /* =====================================================
+       STORE EMPTY CHECK
+       
+       If seller has NO products at all:
+       hide the complete store page.
+    ===================================================== */
+
+    if (!Array.isArray(products) || products.length === 0) {
+
+        storePage.style.display = "none";
+
+        return;
+    }
+
+
+    /* =====================================================
+       STATE
+    ===================================================== */
+
+    let selectedCompanyCategory = null;
+
+    let selectedCustomCategory = null;
+
+    let selectedSubCategory = null;
+
+    let currentProducts = [];
+
+    let currentPage = 1;
+
+
+    /* =====================================================
+       HELPERS
+    ===================================================== */
+
+    function normalize(value) {
+
+        return String(value ?? "")
+            .trim()
+            .toLowerCase();
+
+    }
+
+
+    /* =====================================================
+       DISPLAY NAME
+       
+       Company categories:
+       ALL UPPERCASE
+       
+       Custom groups / subgroups:
+       First letter uppercase,
+       remaining letters lowercase.
+    ===================================================== */
+
+    function formatCompanyName(name) {
+
+        return String(name ?? "")
+            .trim()
+            .toUpperCase();
+
+    }
+
+
+    function formatNormalName(name) {
+
+        const value =
+            String(name ?? "")
+                .trim()
+                .toLowerCase();
+
+        if (!value) {
+            return "";
+        }
+
+        return value.charAt(0).toUpperCase() +
+               value.slice(1);
+
+    }
+
+
+    /* =====================================================
+       GET ROOT CUSTOM GROUPS
+       
+       parent_id = NULL / 0
+       
+       These belong directly to a company category.
+    ===================================================== */
+
+    function getRootCustomGroups(companyCategory) {
+
+        const company =
+            normalize(companyCategory);
+
+        return customCategories.filter(category => {
+
+            const sameCompany =
+                normalize(category.company_category) === company;
+
+            const parent =
+                category.parent_id;
+
+            const isRoot =
+                parent === null ||
+                parent === undefined ||
+                parent === "" ||
+                Number(parent) === 0;
+
+            return sameCompany && isRoot;
+
+        });
+
+    }
+
+
+    /* =====================================================
+       GET SUBGROUPS
+    ===================================================== */
+
+    function getSubGroups(parentId, companyCategory) {
+
+        const company =
+            normalize(companyCategory);
+
+        return customCategories.filter(category => {
+
+            return (
+                normalize(category.company_category) === company &&
+                Number(category.parent_id) === Number(parentId)
+            );
+
+        });
+
+    }
+
+
+    /* =====================================================
+       GET PRODUCTS FOR CUSTOM CATEGORY
+       
+       Includes products directly attached to that
+       custom category.
+    ===================================================== */
+
+    function getProductsForCustomCategory(categoryId) {
+
+        return products.filter(product => {
+
+            return Number(product.custom_category_id) ===
+                   Number(categoryId);
+
+        });
+
+    }
+
+
+    /* =====================================================
+       GET PRODUCTS FOR COMPANY CATEGORY
+       
+       When "All" is selected at custom-group level,
+       display all products belonging to that company
+       category.
+    ===================================================== */
+
+    function getProductsForCompanyCategory(companyCategory) {
+
+        const company =
+            normalize(companyCategory);
+
+        return products.filter(product => {
+
+            return normalize(product.category) === company;
+
+        });
+
+    }
+
+
+    /* =====================================================
+       IMPORTANT:
+       A CUSTOM GROUP SHOULD NOT DISPLAY IF IT HAS NO
+       PRODUCTS.
+       
+       A GROUP is considered to have products if:
+       
+       1. Products are directly attached to it
+       OR
+       2. Its subgroups contain products.
+    ===================================================== */
+
+    function categoryHasProducts(category) {
+
+        const directProducts =
+            getProductsForCustomCategory(
+                category.custom_category_id
+            );
+
+        if (directProducts.length > 0) {
+            return true;
+        }
+
+
+        const children =
+            getSubGroups(
+                category.custom_category_id,
+                category.company_category
+            );
+
+        for (const child of children) {
+
+            if (categoryHasProducts(child)) {
+                return true;
+            }
+
+        }
+
+        return false;
+    }
+
+
+    /* =====================================================
+       BUILD COMPANY CATEGORY LIST
+       
+       Only company categories that actually have products
+       are displayed.
+    ===================================================== */
+
+    function getAvailableCompanyCategories() {
+
+        const companies = [];
+
+        products.forEach(product => {
+
+            const category =
+                String(product.category ?? "").trim();
+
+            if (!category) {
+                return;
+            }
+
+            const exists =
+                companies.some(existing =>
+                    normalize(existing) === normalize(category)
+                );
+
+            if (!exists) {
+                companies.push(category);
+            }
+
+        });
+
+        return companies;
+
+    }
+
+
+    /* =====================================================
+       BUILD COMPANY POPUP
+    ===================================================== */
+
+    function buildCompanyPopup() {
+
+        if (!companyPopup) {
+            return;
+        }
+
+        companyPopup.innerHTML = "";
+
+        const title =
+            document.createElement("div");
+
+        title.className = "popup-title";
+        title.textContent = "General Categories";
+
+        companyPopup.appendChild(title);
+
+
+        const companies =
+            getAvailableCompanyCategories();
+
+
+        companies.forEach((company, index) => {
+
+            const button =
+                document.createElement("button");
+
+            button.type = "button";
+            button.className = "category-option";
+
+            button.dataset.company = company;
+
+            button.textContent =
+                formatCompanyName(company);
+
+            if (
+                normalize(company) ===
+                normalize(selectedCompanyCategory)
+            ) {
+
+                button.classList.add("active");
+
+            }
+
+            companyPopup.appendChild(button);
+
+        });
+
+    }
+
+
+    /* =====================================================
+       BUILD SELLER CUSTOM GROUP POPUP
+       
+       Only groups having products are displayed.
+    ===================================================== */
+
+    function buildSellerPopup() {
+
+        if (!sellerPopup) {
+            return;
+        }
+
+        sellerPopup.innerHTML = "";
+
+        const title =
+            document.createElement("div");
+
+        title.className = "popup-title";
+        title.textContent = "Custom Categories";
+
+        sellerPopup.appendChild(title);
+
+
+        if (!selectedCompanyCategory) {
+            return;
+        }
+
+
+        const groups =
+            getRootCustomGroups(
+                selectedCompanyCategory
+            );
+
+
+        groups.forEach(group => {
+
+            /*
+             * Do not display empty groups.
+             */
+            if (!categoryHasProducts(group)) {
+                return;
+            }
+
+
+            const button =
+                document.createElement("button");
+
+            button.type = "button";
+
+            button.className =
+                "category-option";
+
+            button.dataset.seller =
+                group.custom_category_id;
+
+            button.dataset.categoryName =
+                group.name;
+
+            button.textContent =
+                formatNormalName(group.name);
+
+            if (
+                Number(selectedCustomCategory) ===
+                Number(group.custom_category_id)
+            ) {
+
+                button.classList.add("active");
+
+            }
+
+
+            sellerPopup.appendChild(button);
+
+        });
+
+    }
+
+
+    /* =====================================================
+       BUILD MINI NAVIGATION
+       
+       IMPORTANT:
+       "All" is ALWAYS present and ACTIVE.
+       
+       It displays:
+       - Direct products of the selected group
+       - Products in its subgroups
+       
+       Subgroups with no products are hidden.
+    ===================================================== */
+
+    function buildMiniNavigation(customCategoryId) {
+
+        if (!miniNavigation) {
+            return;
+        }
+
+        miniNavigation.innerHTML = "";
+
+
+        /* ================================================
+           ALL BUTTON
+        ================================================= */
+
+        const allButton =
+            document.createElement("button");
+
+        allButton.type = "button";
+
+        allButton.className =
+            "mini-nav-item active";
+
+        allButton.dataset.mini =
+            "all";
+
+        allButton.textContent =
+            "All";
+
+        miniNavigation.appendChild(
+            allButton
+        );
+
+
+        /* ================================================
+           FIND SELECTED GROUP
+        ================================================= */
+
+        const selectedGroup =
+            customCategories.find(category =>
+                Number(category.custom_category_id) ===
+                Number(customCategoryId)
+            );
+
+
+        if (selectedGroup) {
+
+            const subGroups =
+                getSubGroups(
+                    selectedGroup.custom_category_id,
+                    selectedGroup.company_category
+                );
+
+
+            subGroups.forEach(subGroup => {
+
+                /*
+                 * Hide empty subgroup.
+                 */
+                if (!categoryHasProducts(subGroup)) {
+                    return;
+                }
+
+
+                const button =
+                    document.createElement("button");
+
+                button.type = "button";
+
+                button.className =
+                    "mini-nav-item";
+
+                button.dataset.mini =
+                    subGroup.custom_category_id;
+
+                button.dataset.categoryId =
+                    subGroup.custom_category_id;
+
+                button.textContent =
+                    formatNormalName(
+                        subGroup.name
+                    );
+
+                miniNavigation.appendChild(
+                    button
+                );
+
+            });
+
+        }
+
+
+        /* ================================================
+           ADD SUB GROUP BUTTON
+           
+           ALWAYS VISIBLE
+        ================================================= */
+
+        const addButton =
+            document.createElement("button");
+
+        addButton.type = "button";
+
+        addButton.className =
+            "subgrou-add-btn";
+
+        addButton.innerHTML =
+            '<i class="fa fa-plus"></i>Add sub group';
+
+        miniNavigation.appendChild(
+            addButton
+        );
+
+
+        /* ================================================
+           SLIDING INDICATOR
+        ================================================= */
+
+        const indicator =
+            document.createElement("span");
+
+        indicator.className =
+            "mini-nav-indicator";
+
+        indicator.id =
+            "miniNavIndicator";
+
+        miniNavigation.appendChild(
+            indicator
+        );
+
+
+        attachMiniNavigationEvents();
+
+        requestAnimationFrame(
+            updateMiniIndicator
+        );
+
+    }
+
+
+    /* =====================================================
+       FIND ALL PRODUCTS BELONGING TO A CUSTOM GROUP
+       
+       This includes:
+       - products directly assigned to group
+       - products assigned to its subgroups
+       ===================================================== */
+
+    function getProductsUnderGroup(categoryId) {
+
+        const result = [];
+
+
+        function collect(id) {
+
+            products.forEach(product => {
+
+                if (
+                    Number(product.custom_category_id) ===
+                    Number(id)
+                ) {
+
+                    result.push(product);
+
+                }
+
+            });
+
+
+            customCategories
+                .filter(category =>
+                    Number(category.parent_id) ===
+                    Number(id)
+                )
+                .forEach(child => {
+
+                    collect(
+                        child.custom_category_id
+                    );
+
+                });
+
+        }
+
+
+        collect(categoryId);
+
+
+        /*
+         * Remove duplicate products.
+         */
+
+        const unique =
+            new Map();
+
+        result.forEach(product => {
+
+            unique.set(
+                product.product_id,
+                product
+            );
+
+        });
+
+
+        return Array.from(
+            unique.values()
+        );
+
+    }
+
+
+    /* =====================================================
+       COMPANY CATEGORY FILTER
+    ===================================================== */
+
+    function selectCompanyCategory(companyCategory) {
+
+        selectedCompanyCategory =
+            companyCategory;
+        /* =====================================================
+          REFRESH COMPANY POPUP ACTIVE STATE
+          ===================================================== */
+
+        buildCompanyPopup();
+
+
+        /*
+         * IMPORTANT:
+         *
+         * Changing company category resets:
+         *
+         * 1. Custom group to first available group
+         * 2. Mini navigation to ALL
+         */
+
+        selectedCustomCategory = null;
+        selectedSubCategory = null;
+        currentPage = 1;
+
+
+        companyText.textContent =
+            formatCompanyName(
+                companyCategory
+            );
+
+
+        /*
+         * Find available custom groups.
+         */
+
+        const groups =
+            getRootCustomGroups(
+                companyCategory
+            )
+            .filter(category =>
+                categoryHasProducts(category)
+            );
+
+
+        /*
+         * If there is a custom group,
+         * automatically select the first one.
+         */
+
+        if (groups.length > 0) {
+
+            selectedCustomCategory =
+                groups[0].custom_category_id;
+
+            sellerText.textContent =
+                formatNormalName(
+                    groups[0].name
+                );
+
+        } else {
+
+            /*
+             * No custom group.
+             *
+             * Seller side displays "All".
+             */
+
+            sellerText.textContent =
+                "All";
+
+        }
+
+
+        /*
+         * Rebuild seller popup.
+         */
+
+        buildSellerPopup();
+
+
+        /*
+         * Rebuild mini navigation.
+         */
+
+        if (selectedCustomCategory) {
+
+            buildMiniNavigation(
+                selectedCustomCategory
+            );
+
+        } else {
+
+            buildMiniNavigation(null);
+
+        }
+
+
+        /*
+         * ALWAYS SELECT ALL.
+         */
+
+        requestAnimationFrame(() => {
+
+            const all =
+                miniNavigation.querySelector(
+                    ".mini-nav-item[data-mini='all']"
+                );
+
+            if (all) {
+
+                document
+                    .querySelectorAll(
+                        ".mini-nav-item"
+                    )
+                    .forEach(item =>
+                        item.classList.remove(
+                            "active"
+                        )
+                    );
+
+                all.classList.add(
+                    "active"
+                );
+
+            }
+
+            updateMiniIndicator();
+
+        });
+
+
+        /*
+         * Display products.
+         */
+
+        if (selectedCustomCategory) {
+
+            currentProducts =
+                getProductsUnderGroup(
+                    selectedCustomCategory
+                );
+
+        } else {
+
+            currentProducts =
+                getProductsForCompanyCategory(
+                    selectedCompanyCategory
+                );
+
+        }
+
+
+        renderProducts();
+
+
+        /*
+         * Close popup after selection.
+         */
+
+        companySide.classList.remove(
+            "open"
+        );
+
+    }
+
+
+    /* =====================================================
+       SELECT CUSTOM GROUP
+    ===================================================== */
+
+    function selectCustomCategory(categoryId) {
+
+        const category =
+            customCategories.find(item =>
+                Number(item.custom_category_id) ===
+                Number(categoryId)
+            );
+
+
+        if (!category) {
+            return;
+        }
+
+
+        selectedCustomCategory =
+            category.custom_category_id;
+        /* =====================================================
+          REFRESH CUSTOM POPUP ACTIVE STATE
+          ===================================================== */
+        buildSellerPopup();
+
+        selectedSubCategory = null;
+
+        currentPage = 1;
+
+
+        sellerText.textContent =
+            formatNormalName(
+                category.name
+            );
+
+
+        /*
+         * Rebuild mini navigation.
+         *
+         * ALL becomes active automatically.
+         */
+
+        buildMiniNavigation(
+            selectedCustomCategory
+        );
+
+
+        /*
+         * ALL products under this custom group.
+         */
+
+        currentProducts =
+            getProductsUnderGroup(
+                selectedCustomCategory
+            );
+
+
+        renderProducts();
+
+
+        /*
+         * Close popup.
+         */
+
+        sellerSide.classList.remove(
+            "open"
+        );
+
+    }
+
+
+    /* =====================================================
+       SELECT SUBGROUP
+    ===================================================== */
+
+    function selectSubCategory(categoryId) {
+
+        selectedSubCategory =
+            categoryId;
+
+        currentPage = 1;
+
+
+        currentProducts =
+            getProductsForCustomCategory(
+                categoryId
+            );
+
+
+        renderProducts();
+
+    }
+
+
+    /* =====================================================
+       RENDER PRODUCTS
+       
+       Maximum 11 products per page.
+       
+       12th position:
+       Navigation card
+       
+       ONLY if more than 11 products.
+    ===================================================== */
+
+    function renderProducts() {
+
+        productGrid.innerHTML = "";
+
+
+        const totalProducts =
+            currentProducts.length;
+
+
+        const totalPages =
+            Math.max(
+                1,
+                Math.ceil(
+                    totalProducts /
+                    PRODUCTS_PER_PAGE
+                )
+            );
+
+
+        /*
+         * Protect page number.
+         */
+
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
+        }
+
+        if (currentPage < 1) {
+            currentPage = 1;
+        }
+
+
+        /*
+         * Current page products.
+         */
+
+        const start =
+            (currentPage - 1) *
+            PRODUCTS_PER_PAGE;
+
+
+        const pageProducts =
+            currentProducts.slice(
+                start,
+                start + PRODUCTS_PER_PAGE
+            );
+
+
+        /*
+         * Render products.
+         */
+
+        pageProducts.forEach(product => {
+
+            productGrid.appendChild(
+                createProductCard(product)
+            );
+
+        });
+
+
+        /*
+         * Navigation card only if
+         * there are MORE than 11 products.
+         */
+
+        if (totalProducts > PRODUCTS_PER_PAGE) {
+
+            productGrid.appendChild(
+                createNavigationCard(
+                    totalPages
+                )
+            );
+
+        }
+
+
+        /*
+         * Count.
+         */
+
+        productsCount.textContent =
+            totalProducts +
+            (
+                totalProducts === 1
+                    ? " product"
+                    : " products"
+            );
+
+
+        /*
+         * Navigation information.
+         */
+
+        if (totalProducts > PRODUCTS_PER_PAGE) {
+
+            navigationPage.textContent =
+                "Page " +
+                currentPage +
+                " of " +
+                totalPages;
+
+            navigationCount.textContent =
+                totalProducts +
+                " products";
+
+
+            previousProducts.disabled =
+                currentPage === 1;
+
+            nextProducts.disabled =
+                currentPage === totalPages;
+
+        }
+
+
+        /*
+         * Empty group.
+         */
+
+        if (totalProducts === 0) {
+
+            productGrid.innerHTML = `
+                <div class="empty-products">
+                    No products available in this category.
+                </div>
+            `;
+
+        }
+
+    }
+
+
+    /* =====================================================
+       CREATE PRODUCT CARD
+       
+       Uses your existing card structure.
+    ===================================================== */
+
+    function createProductCard(product) {
+
+        const wrapper =
+            document.createElement("div");
+
+        wrapper.className =
+            "card-contain";
+
+
+        const card =
+            document.createElement("div");
+
+        card.className =
+            "card";
+
+
+        /* ================================================
+           IMAGE
+        ================================================= */
+
+        const image =
+            document.createElement("img");
+
+        image.src =
+            product.image_path || "";
+
+        image.loading =
+            "lazy";
+
+        image.decoding =
+            "async";
+
+        image.alt =
+            product.product_name || "Product";
+
+
+        /* ================================================
+           BODY
+        ================================================= */
+
+        const body =
+            document.createElement("div");
+
+        body.className =
+            "card-body";
+
+
+        /* Buying price */
+
+        const buying =
+            document.createElement("div");
+
+        buying.className =
+            "price buying";
+
+        buying.textContent =
+            "KES " +
+            Number(
+                product.buying_price || 0
+            ).toLocaleString(
+                "en-KE",
+                {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }
+            );
+
+
+        /* Selling price */
+
+        const selling =
+            document.createElement("div");
+
+        selling.className =
+            "price";
+
+        selling.textContent =
+            "KES " +
+            Number(
+                product.selling_price || 0
+            ).toLocaleString(
+                "en-KE",
+                {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }
+            );
+
+
+        /* Unit */
+
+        const unit =
+            document.createElement("div");
+
+        unit.className =
+            "perDiv";
+
+
+        const productUnit =
+            String(
+                product.unit || ""
+            ).trim();
+
+
+        if (
+            normalize(productUnit) ===
+            "each"
+        ) {
+
+            unit.textContent =
+                "Each";
+
+        } else {
+
+            unit.textContent =
+                "Per " +
+                formatNormalName(
+                    productUnit
+                );
+
+        }
+
+
+        /* Stock */
+
+        const stock =
+            document.createElement("div");
+
+        const stockValue =
+            Number(
+                product.stock_quantity || 0
+            );
+
+
+        stock.className =
+            "stock " +
+            (
+                stockValue > 5
+                    ? "in-stock"
+                    : (
+                        stockValue > 0
+                            ? "low-stock"
+                            : "out-stock"
+                    )
+            );
+
+
+        let displayStock;
+
+
+        if (stockValue >= 100) {
+
+            displayStock =
+                "99+";
+
+        } else if (stockValue <= 0) {
+
+            displayStock =
+                "0";
+
+        } else {
+
+            const whole =
+                Math.floor(stockValue);
+
+            const decimal =
+                stockValue - whole;
+
+            let fractionText = "";
+
+
+            if (decimal >= 0.875) {
+
+                displayStock =
+                    String(whole + 1);
+
+            } else if (decimal >= 0.625) {
+
+                fractionText =
+                    "¾";
+
+            } else if (decimal >= 0.375) {
+
+                fractionText =
+                    "½";
+
+            } else if (decimal >= 0.125) {
+
+                fractionText =
+                    "¼";
+
+            }
+
+
+            if (!displayStock) {
+
+                displayStock =
+                    whole > 0
+                        ? whole + fractionText
+                        : fractionText || "0";
+
+            }
+
+        }
+
+
+        const strong =
+            document.createElement("strong");
+
+        strong.textContent =
+            displayStock;
+
+        stock.appendChild(
+            strong
+        );
+
+
+        body.appendChild(buying);
+        body.appendChild(selling);
+        body.appendChild(unit);
+        body.appendChild(stock);
+
+
+        /* ================================================
+           ACTIONS
+        ================================================= */
+
+        const actions =
+            document.createElement("div");
+
+        actions.className =
+            "card-actions";
+
+
+        /* Edit */
+
+        const edit =
+            document.createElement("a");
+
+        edit.href =
+            "?edit_product_id=" +
+            encodeURIComponent(
+                product.product_id
+            );
+
+        edit.className =
+            "edit";
+
+        edit.innerHTML =
+            '<i class="fa fa-pen"></i>';
+
+
+        /* Delete */
+
+        const form =
+            document.createElement("form");
+
+        form.method =
+            "POST";
+
+        form.onsubmit =
+            function () {
+
+                return confirm(
+                    "Are you sure you want to delete this product?"
+                );
+
+            };
+
+
+        const hidden =
+            document.createElement("input");
+
+        hidden.type =
+            "hidden";
+
+        hidden.name =
+            "delete_product_id";
+
+        hidden.value =
+            product.product_id;
+
+
+        const deleteButton =
+            document.createElement("button");
+
+        deleteButton.type =
+            "submit";
+
+        deleteButton.className =
+            "delete";
+
+        deleteButton.innerHTML =
+            '<i class="fa fa-trash"></i>';
+
+
+        form.appendChild(hidden);
+        form.appendChild(deleteButton);
+
+
+        actions.appendChild(edit);
+        actions.appendChild(form);
+
+
+        /* ================================================
+           ASSEMBLE
+        ================================================= */
+
+        card.appendChild(image);
+        card.appendChild(body);
+        card.appendChild(actions);
+
+
+        const name =
+            document.createElement("div");
+
+        name.className =
+            "product-name";
+
+        name.textContent =
+            product.product_name || "";
+
+
+        wrapper.appendChild(card);
+        wrapper.appendChild(name);
+
+
+        return wrapper;
+
+    }
+
+
+    /* =====================================================
+       NAVIGATION CARD
+    ===================================================== */
+
+    function createNavigationCard(totalPages) {
+
+        const wrapper =
+            document.createElement("div");
+
+        wrapper.className =
+            "card-contain";
+
+
+        const navigationCard =
+            document.createElement("div");
+
+        navigationCard.className =
+            "products-navigation-card";
+
+
+        navigationCard.innerHTML = `
+
+            <div class="navigation-buttons">
+
+                <button
+                    type="button"
+                    class="navigation-button"
+                    id="previousProducts"
+                    aria-label="Previous products"
+                >
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                    >
+
+                        <path
+                            d="M19 12H5"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                        />
+
+                        <path
+                            d="M11 6L5 12L11 18"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+
+                    </svg>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="navigation-button"
+                    id="nextProducts"
+                    aria-label="Next products"
+                >
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                    >
+
+                        <path
+                            d="M5 12H19"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                        />
+
+                        <path
+                            d="M13 6L19 12L13 18"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+
+                    </svg>
+
+                </button>
+
+            </div>
+
+
+            <div
+                class="navigation-page"
+                id="navigationPage"
+            >
+                Page ${currentPage} of ${totalPages}
+            </div>
+
+
+            <div
+                class="navigation-count"
+                id="navigationCount"
+            >
+                ${currentProducts.length} products
+            </div>
+
+        `;
+
+
+        wrapper.appendChild(
+            navigationCard
+        );
+
+
+        /*
+         * Attach buttons directly.
+         */
+
+        const previous =
+            navigationCard.querySelector(
+                "#previousProducts"
+            );
+
+        const next =
+            navigationCard.querySelector(
+                "#nextProducts"
+            );
+
+
+        previous.disabled =
+            currentPage === 1;
+
+        next.disabled =
+            currentPage === totalPages;
+
+
+        previous.addEventListener(
+            "click",
+            function () {
+
+                if (currentPage > 1) {
+
+                    currentPage--;
+
+                    renderProducts();
+
+                }
+
+            }
+        );
+
+
+        next.addEventListener(
+            "click",
+            function () {
+
+                if (currentPage < totalPages) {
+
+                    currentPage++;
+
+                    renderProducts();
+
+                }
+
+            }
+        );
+
+
+        return wrapper;
+
+    }
+
+
+    /* =====================================================
+       MINI NAVIGATION EVENTS
+    ===================================================== */
+
+    function attachMiniNavigationEvents() {
+
+        miniNavigation
+            .querySelectorAll(
+                ".mini-nav-item"
+            )
+            .forEach(button => {
+
+                button.addEventListener(
+                    "click",
+                    function () {
+
+                        /*
+                         * Remove active from all.
+                         */
+
+                        miniNavigation
+                            .querySelectorAll(
+                                ".mini-nav-item"
+                            )
+                            .forEach(item =>
+                                item.classList.remove(
+                                    "active"
+                                )
+                            );
+
+
+                        /*
+                         * Activate clicked item.
+                         */
+
+                        this.classList.add(
+                            "active"
+                        );
+
+
+                        /*
+                         * Reset pagination.
+                         */
+
+                        currentPage = 1;
+
+
+                        const value =
+                            this.dataset.mini;
+
+
+                        /*
+                         * ALL
+                         */
+
+                        if (
+                            value === "all"
+                        ) {
+
+                            selectedSubCategory =
+                                null;
+
+                            currentProducts =
+                                getProductsUnderGroup(
+                                    selectedCustomCategory
+                                );
+
+                        }
+
+                        /*
+                         * SUBGROUP
+                         */
+
+                        else {
+
+                            selectedSubCategory =
+                                value;
+
+                            currentProducts =
+                                getProductsForCustomCategory(
+                                    value
+                                );
+
+                        }
+
+
+                        renderProducts();
+
+
+                        updateMiniIndicator();
+
+                    }
+                );
+
+            });
+
+
+        /*
+         * Add subgroup button.
+         */
+
+        const addButton =
+            miniNavigation.querySelector(
+                ".subgrou-add-btn"
+            );
+
+
+        if (addButton) {
+
+            addButton.addEventListener(
+                "click",
+                function () {
+
+                    /*
+                     * Keep your existing
+                     * add-sub-group function here.
+                     *
+                     * Example:
+                     *
+                     * toggleSubGroupAdd(true);
+                     */
+
+                    if (
+                        typeof toggleSubGroupAdd ===
+                        "function"
+                    ) {
+
+                        toggleSubGroupAdd(
+                            true
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+
+    }
+
+
+    /* =====================================================
+       SLIDING UNDERLINE
+    ===================================================== */
+
+    function updateMiniIndicator() {
+
+        const indicator =
+            document.getElementById(
+                "miniNavIndicator"
+            );
+
+        const active =
+            miniNavigation.querySelector(
+                ".mini-nav-item.active"
+            );
+
+
+        if (
+            !indicator ||
+            !active
+        ) {
+
+            return;
+
+        }
+
+
+        indicator.style.left =
+            active.offsetLeft +
+            "px";
+
+
+        indicator.style.width =
+            active.offsetWidth +
+            "px";
+
+    }
+
+
+    /* =====================================================
+       COMPANY POPUP CLICK
+    ===================================================== */
+
+    companyButton.addEventListener(
+        "click",
+        function (event) {
+
+            event.stopPropagation();
+
+
+            sellerSide.classList.remove(
+                "open"
+            );
+
+
+            companySide.classList.toggle(
+                "open"
+            );
+
+        }
+    );
+
+
+    /* =====================================================
+       SELLER POPUP CLICK
+    ===================================================== */
+
+    sellerButton.addEventListener(
+        "click",
+        function (event) {
+
+            event.stopPropagation();
+
+
+            companySide.classList.remove(
+                "open"
+            );
+
+
+            sellerSide.classList.toggle(
+                "open"
+            );
+
+        }
+    );
+
+
+    /* =====================================================
+       COMPANY OPTION EVENTS
+       
+       Delegated because popup is dynamic.
+    ===================================================== */
+
+    companyPopup.addEventListener(
+        "click",
+        function (event) {
+
+            const option =
+                event.target.closest(
+                    ".category-option"
+                );
+
+
+            if (!option) {
+                return;
+            }
+
+
+            event.stopPropagation();
+
+
+            selectCompanyCategory(
+                option.dataset.company
+            );
+
+        }
+    );
+
+
+    /* =====================================================
+       SELLER OPTION EVENTS
+    ===================================================== */
+
+    sellerPopup.addEventListener(
+        "click",
+        function (event) {
+
+            const option =
+                event.target.closest(
+                    ".category-option"
+                );
+
+
+            if (!option) {
+                return;
+            }
+
+
+            event.stopPropagation();
+
+
+            selectCustomCategory(
+                option.dataset.seller
+            );
+
+        }
+    );
+
+
+    /* =====================================================
+       CLOSE POPUPS OUTSIDE
+    ===================================================== */
+
+    document.addEventListener(
+        "click",
+        function () {
+
+            companySide.classList.remove(
+                "open"
+            );
+
+            sellerSide.classList.remove(
+                "open"
+            );
+
+        }
+    );
+
+
+    /* =====================================================
+       STOP POPUP CLICKS
+    ===================================================== */
+
+    document
+        .querySelectorAll(
+            ".category-popup"
+        )
+        .forEach(popup => {
+
+            popup.addEventListener(
+                "click",
+                function (event) {
+
+                    event.stopPropagation();
+
+                }
+            );
+
+        });
+
+
+    /* =====================================================
+       RESIZE
+    ===================================================== */
+
+    window.addEventListener(
+        "resize",
+        function () {
+
+            updateMiniIndicator();
+
+        }
+    );
+
+
+    /* =====================================================
+       INITIALIZATION
+    ===================================================== */
+
+    const availableCompanies =
+        getAvailableCompanyCategories();
+
+
+    if (availableCompanies.length === 0) {
+
+        storePage.style.display =
+            "none";
+
+        return;
+
+    }
+
+
+    /*
+     * Select the first company category
+     * containing products.
+     */
+
+    selectCompanyCategory(
+        availableCompanies[0]
+    );
+
+
+    /*
+     * Build company popup.
+     */
+
+    buildCompanyPopup();
+
+
+    /*
+     * Build seller popup.
+     */
+
+    buildSellerPopup();
+
+
+    /*
+     * Ensure ALL is selected.
+     */
+
+    requestAnimationFrame(
+        updateMiniIndicator
+    );
+
+});
+</script>
   <script>
     const customCategories = <?= json_encode(
         $customCategories,

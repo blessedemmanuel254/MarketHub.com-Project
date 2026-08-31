@@ -1180,6 +1180,368 @@ body .subGOverlay {
 }
 
 /* =========================================================
+   MINI NAVIGATION
+========================================================= */
+
+.mini-navigation-wrapper {
+    width: 100%;
+
+    margin-top: 12px;
+
+    border-bottom: 1px solid #e5e5e5;
+
+    overflow: hidden;
+}
+
+
+.mini-navigation-scroll {
+    width: 100%;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    scrollbar-width: none;
+}
+
+
+.mini-navigation-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+
+.mini-navigation {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+
+    width: max-content;
+
+    min-width: 100%;
+
+    gap: 26px;
+}
+
+
+.mini-nav-item {
+    position: relative;
+
+    border: 0;
+
+    background: transparent;
+
+    padding: 8px 16px;
+
+    color: #898888;
+
+    font-size: 13px;
+
+    font-weight: 500;
+
+    white-space: nowrap;
+
+    cursor: pointer;
+
+    transition: color .25s ease;
+}
+
+
+.mini-nav-item.active {
+    color: #088000;
+}
+
+
+.mini-nav-indicator {
+    position: absolute;
+
+    left: 0;
+    bottom: 0;
+
+    height: 2px;
+
+    width: 0;
+
+    background: #088000;
+
+    transition:
+        left .35s cubic-bezier(.22,.61,.36,1),
+        width .35s cubic-bezier(.22,.61,.36,1);
+}
+
+
+/* =========================================================
+   PRODUCTS HEADER
+========================================================= */
+
+.products-header {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    margin: 24px 0 18px;
+}
+
+
+.products-title {
+    font-size: 20px;
+
+    font-weight: 700;
+}
+
+
+.products-count {
+    color: #898888;
+
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   PRODUCT GRID
+========================================================= */
+
+.products-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(5, minmax(0, 1fr));
+
+    gap: 18px;
+
+    align-items: start;
+}
+
+
+/* =========================================================
+   PAGINATION CARD
+========================================================= */
+
+.products-navigation-card {
+    width: 100%;
+
+    aspect-ratio: 1 / 1;
+
+    border: 1px solid #dedede;
+
+    border-radius: 12px;
+
+    background: #fff;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 18px;
+
+    box-shadow:
+        0 4px 15px rgba(0,0,0,.05);
+
+    transition:
+        transform .25s ease,
+        box-shadow .25s ease;
+}
+
+
+.products-navigation-card:hover {
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 8px 22px rgba(0,0,0,.09);
+}
+
+
+.navigation-buttons {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 12px;
+}
+
+
+.navigation-button {
+    width: 52px;
+    height: 52px;
+
+    border-radius: 50%;
+
+    border: 1px solid #dedede;
+
+    background: #fff;
+
+    color: #444;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    cursor: pointer;
+
+    transition:
+        background .2s ease,
+        color .2s ease,
+        transform .2s ease;
+}
+
+
+.navigation-button:hover:not(:disabled) {
+    background: #088000;
+
+    color: #fff;
+
+    transform: scale(1.05);
+}
+
+
+.navigation-button:disabled {
+    opacity: .25;
+
+    cursor: not-allowed;
+}
+
+
+.navigation-button svg {
+    width: 22px;
+    height: 22px;
+}
+
+
+.navigation-page {
+    font-size: 13px;
+
+    font-weight: 600;
+
+    color: #333;
+}
+
+
+.navigation-count {
+    font-size: 11px;
+
+    color: #898888;
+}
+
+
+/* =========================================================
+   HIDDEN PRODUCT
+========================================================= */
+
+.product-item.pagination-hidden {
+    display: none;
+}
+
+
+/* =========================================================
+   EMPTY
+========================================================= */
+
+.empty-products {
+    display: none;
+
+    width: 100%;
+
+    padding: 55px 20px;
+
+    text-align: center;
+
+    color: #898888;
+
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1000px) {
+
+    .products-grid {
+        grid-template-columns:
+            repeat(4, minmax(0,1fr));
+    }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
+    .store-page {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+
+    .products-grid {
+        grid-template-columns:
+            repeat(3, minmax(0,1fr));
+
+        gap: 12px;
+    }
+
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 520px) {
+
+    .store-page {
+        padding-left: 9px;
+        padding-right: 9px;
+    }
+
+
+    .products-grid {
+        grid-template-columns:
+            repeat(2, minmax(0,1fr));
+
+        gap: 10px;
+    }
+
+
+    .navigation-button {
+        width: 45px;
+        height: 45px;
+    }
+
+
+    .products-title {
+        font-size: 17px;
+    }
+
+}
+
+
+/* =========================================================
+   VERY SMALL
+========================================================= */
+
+@media (max-width: 350px) {
+
+    .products-grid {
+        gap: 8px;
+    }
+
+}
+
+/* =========================================================
   ADD SUB GROUP FORM
 ========================================================= */
 body form.subG-form {
@@ -1917,7 +2279,7 @@ body form.subG-form h3 span:hover {
   width: fit-content;
 }
 
-.table-wrapper table tbody tr td.comm-cell .comm-btn {
+.table-wrapper table tbody tr td.comm-cell .comm-btn, .products-grid .card button.comm-btn {
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -1928,6 +2290,10 @@ body form.subG-form h3 span:hover {
   justify-content: center;
   cursor: pointer;
   transition: opacity .2s ease;
+}
+
+.products-grid .card button.comm-btn {
+  background-color: #ffffff;
 }
 
 .table-wrapper table tbody tr td.comm-cell .comm-btn i {
@@ -4129,7 +4495,7 @@ a.seller-right {
   margin-bottom: 5px 0;
 }
 
-.products-grid .card .card-body .price, .products-grid .card .card-body .perDiv {
+.products-grid .card .card-body .price, .products-grid .card .card-body .perDiv  {
   font-size: 10px;
   position: absolute;
   bottom: -4px;
@@ -4155,6 +4521,19 @@ a.seller-right {
   font-size: 10px;
   color: #ffffff;
   display: none;
+}
+
+.products-grid .card .comm-btn {
+  font-size: 13px;
+  position: absolute;
+  bottom: -4px;
+  right: 4px;
+  transform: translateY(-50%);
+  color: #0f0f0f;
+  background: #ffffff;
+  padding: 1px 2px;
+  border: 1px solid #89898879;
+  font-weight: bold;
 }
 
 .products-grid .card .card-body .stock, .container main#salesDashMain .sales-wrapper .sales-grid .productSalesCard strong.stock {
@@ -4513,7 +4892,7 @@ a.seller-right {
   display: block;
 }
 
-.products-grid .card .card-actions, .tab-panel-admin .products-grid-admin .product-card .card-actions {
+.products-grid .card .card-actions, .tab-panel-admin .products-grid-admin .product-card .card-actions{
   position:absolute;
   display:flex;
   gap: 10px;
@@ -4571,7 +4950,6 @@ a.seller-right {
   font-size: 40px;
   margin-bottom: 10px;
 }
-
 
 /* ADD ITEM CSS */
 .tab-content .tab-panel .form-wrapper, .tab-panel-admin .form-wrapper {
