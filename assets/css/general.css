@@ -64,7 +64,7 @@ html body.no-scroll {
 .container header.pgHeader {
   flex-direction: column;
   gap: 0;
-  padding-top: 10px;
+  padding-top: 25px;
   padding-bottom: 0;
   align-items: normal;
   height: fit-content;
@@ -1054,6 +1054,19 @@ body .subGOverlay {
   left: 0;
 }
 
+
+
+
+
+@media (max-width: 475px) {
+
+  .tabs-container .tab-content .tab-panel .store-page .categorical-navigation .category-side .category-popup.seller-popup {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+}
+
 /* =========================================================
   MINI NAVIGATION
 ========================================================= */
@@ -1166,6 +1179,7 @@ body .subGOverlay {
   justify-content: space-between;
   padding: 8px;
   padding-bottom: 0;
+  margin: 10px 0;
 
 }
 
@@ -1267,36 +1281,6 @@ body .subGOverlay {
         left .35s cubic-bezier(.22,.61,.36,1),
         width .35s cubic-bezier(.22,.61,.36,1);
 }
-
-
-/* =========================================================
-   PRODUCTS HEADER
-========================================================= */
-
-.products-header {
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    margin: 24px 0 18px;
-}
-
-
-.products-title {
-    font-size: 20px;
-
-    font-weight: 700;
-}
-
-
-.products-count {
-    color: #898888;
-
-    font-size: 13px;
-}
-
 
 /* =========================================================
    PRODUCT GRID
@@ -2071,6 +2055,7 @@ body form.subG-form h3 span:hover {
 .table-wrapper table tbody tr td .newStylOrd {
   display: flex;
   flex-direction: column;
+  font-size: 12px;
 }
 
 .table-wrapper table tbody tr td .newStylOrd p {
@@ -2337,6 +2322,12 @@ body form.subG-form h3 span:hover {
 
 .table-wrapper table tbody tr td.comm-cell .comm-dropdown a:hover {
   background: #f1f1f1;
+}
+
+#sellerTransactions tbody tr td.dataTables_empty,
+#sellerTransactions tbody tr td.dt-empty {
+  text-align: left !important;
+  padding-left: 15px !important;
 }
 
 .container main.buyerMain .cards {
@@ -5186,11 +5177,12 @@ a.seller-right {
   flex-shrink: 0;
 }
 
-#customCategoryMessage {
+.tab-content .tab-panel .form-wrapper form .inp-box small, #customCategoryMessage {
   display: block;
   margin-top: 6px;
   font-size: 12px;
   display: none;
+  color: #b36b00;
 }
 
 /* ===========================================

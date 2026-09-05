@@ -1046,6 +1046,455 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_product_id']))
     $stmt->close();
 }
 
+
+
+/* =========================================================
+  FETCH SELLER PRODUCTS + CUSTOM CATEGORY INFORMATION
+  ========================================================= */
+
+$products = [];
+
+$stmt = $conn->prepare("
+  SELECT
+      p.product_id,
+      p.product_name,
+      p.category,
+      p.custom_category_id,
+      p.buying_price,
+      p.selling_price,
+      p.stock_quantity,
+      p.unit,
+      p.image_path,
+
+      cc.name AS custom_category_name,
+      cc.parent_id AS custom_category_parent_id
+
+  FROM productservicesrentals p
+
+  LEFT JOIN custom_categories cc
+      ON p.custom_category_id = cc.custom_category_id
+
+  WHERE p.user_id = ?
+
+  ORDER BY p.created_at DESC
+");
+
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+
+$result = $stmt->get_result();
+
+if ($result) {
+
+  while ($row = $result->fetch_assoc()) {
+
+      $products[] = $row;
+
+  }
+
+}
+
+$stmt->close();
+
+/* =========================================================
+  FETCH SELLER CUSTOM CATEGORIES
+========================================================= */
+
+$customCategories = [];
+
+$stmt = $conn->prepare("
+  SELECT
+      custom_category_id,
+      company_category,
+      name,
+      parent_id
+  FROM custom_categories
+  WHERE user_id = ?
+  ORDER BY name ASC
+");
+
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+
+$result = $stmt->get_result();
+
+if ($result) {
+
+  while ($row = $result->fetch_assoc()) {
+
+      $customCategories[] = $row;
+
+  }
+
+}
+
+$stmt->close();
+
+
+/* =========================================================
+  PREPARE CATEGORY DATA FOR JAVASCRIPT
+========================================================= */
+
+$categoryJson = json_encode(
+  $customCategories,
+  JSON_HEX_TAG |
+  JSON_HEX_APOS |
+  JSON_HEX_AMP |
+  JSON_HEX_QUOT
+);
+
+$productJson = json_encode(
+  $products,
+  JSON_HEX_TAG |
+  JSON_HEX_APOS |
+  JSON_HEX_AMP |
+  JSON_HEX_QUOT
+);
+
+/* =========================================================
+  HANDLE ADD SUB GROUP
+========================================================= */
+
+if (
+  $_SERVER['REQUEST_METHOD'] === 'POST' &&
+  isset($_POST['add_sub_group'])
+) {
+
+  header('Content-Type: application/json; charset=utf-8');
+
+  $subGroupName = trim(
+      $_POST['subgroup'] ?? ''
+  );
+
+  $companyCategory = trim(
+      $_POST['company_category'] ?? ''
+  );
+
+  $parentId = isset($_POST['parent_id'])
+      ? (int) $_POST['parent_id']
+      : 0;
+
+
+    /* =====================================================
+      VALIDATION
+    ===================================================== */
+
+    if ($subGroupName === '') {
+
+      echo json_encode([
+          'success' => false,
+          'message' => 'Please enter a sub group name!'
+      ]);
+
+      exit;
+    }
+
+
+    /* =====================================================
+      MAXIMUM 25 CHARACTERS
+    ===================================================== */
+
+    if (mb_strlen($subGroupName, 'UTF-8') > 25) {
+
+      echo json_encode([
+          'success' => false,
+          'message' => 'Sub group name must not be more than 25 characters!'
+      ]);
+
+      exit;
+    }
+
+
+    /* =====================================================
+      MAXIMUM 2 WORDS
+    ===================================================== */
+
+    $wordCount =
+      preg_match_all(
+          '/\S+/u',
+          $subGroupName,
+          $matches
+      );
+
+
+    if ($wordCount > 2) {
+
+      echo json_encode([
+          'success' => false,
+          'message' => 'Sub group name must not contain more than 2 words!'
+      ]);
+
+      exit;
+    }
+
+
+    /* =====================================================
+      NO SPECIAL CHARACTERS
+    ===================================================== */
+
+    /*
+    * Allows:
+    * - Letters
+    * - Numbers
+    * - Spaces
+    *
+    * Does NOT allow:
+    * - @
+    * - #
+    * - $
+    * - %
+    * - &
+    * - /
+    * - \
+    * - .
+    * - ,
+    * - !
+    * - etc.
+    *
+    * Unicode letters are allowed.
+    */
+
+    if (!preg_match('/^[\p{L}\p{N} ]+$/u', $subGroupName)) {
+
+      echo json_encode([
+          'success' => false,
+          'message' => 'Sub group name must contain only letters, numbers and spaces!'
+      ]);
+
+      exit;
+    }
+
+
+    /* =====================================================
+      COMPANY CATEGORY REQUIRED
+    ===================================================== */
+
+    if ($companyCategory === '') {
+
+      echo json_encode([
+          'success' => false,
+          'message' => 'Please select a company category first!'
+      ]);
+
+      exit;
+    }
+
+
+    /* =====================================================
+      PARENT CUSTOM GROUP REQUIRED
+    ===================================================== */
+
+    if ($parentId <= 0) {
+
+      echo json_encode([
+          'success' => false,
+          'message' => 'Please select a custom group first!'
+      ]);
+
+      exit;
+    }
+
+
+    /* =====================================================
+      SMART TITLE CASE
+    ===================================================== */
+
+    $subGroupName =
+      smartTitleCase($subGroupName);
+
+
+  /* =====================================================
+      VERIFY PARENT
+  ===================================================== */
+
+  $checkParent = $conn->prepare("
+      SELECT custom_category_id
+      FROM custom_categories
+      WHERE custom_category_id = ?
+        AND user_id = ?
+        AND company_category = ?
+        AND (
+              parent_id IS NULL
+              OR parent_id = 0
+            )
+      LIMIT 1
+  ");
+
+
+  if (!$checkParent) {
+
+      echo json_encode([
+          'success' => false,
+          'message' => 'Database error: ' . $conn->error
+      ]);
+
+      exit;
+  }
+
+
+  $checkParent->bind_param(
+      "iis",
+      $parentId,
+      $user_id,
+      $companyCategory
+  );
+
+
+  $checkParent->execute();
+
+
+  $parentResult =
+      $checkParent->get_result();
+
+
+  if ($parentResult->num_rows === 0) {
+
+      $checkParent->close();
+
+      echo json_encode([
+          'success' => false,
+          'message' => 'The selected custom group is invalid!'
+      ]);
+
+      exit;
+  }
+
+
+  $checkParent->close();
+
+
+  /* =====================================================
+      CHECK DUPLICATE SUB GROUP
+  ===================================================== */
+
+  $checkSubGroup = $conn->prepare("
+      SELECT custom_category_id
+      FROM custom_categories
+      WHERE user_id = ?
+        AND company_category = ?
+        AND parent_id = ?
+        AND LOWER(name) = LOWER(?)
+      LIMIT 1
+  ");
+
+
+  if (!$checkSubGroup) {
+
+      echo json_encode([
+          'success' => false,
+          'message' => 'Database error: ' . $conn->error
+      ]);
+
+      exit;
+  }
+
+
+  $checkSubGroup->bind_param(
+      "isis",
+      $user_id,
+      $companyCategory,
+      $parentId,
+      $subGroupName
+  );
+
+
+  $checkSubGroup->execute();
+
+
+  $subResult =
+      $checkSubGroup->get_result();
+
+
+  if ($subResult->num_rows > 0) {
+
+      $checkSubGroup->close();
+
+      echo json_encode([
+          'success' => false,
+          'message' => 'This custom group name already exists!'
+      ]);
+
+      exit;
+  }
+
+
+  $checkSubGroup->close();
+
+
+  /* =====================================================
+      INSERT
+  ===================================================== */
+
+  $insertSubGroup = $conn->prepare("
+      INSERT INTO custom_categories
+      (
+          user_id,
+          company_category,
+          name,
+          parent_id
+      )
+      VALUES
+      (?, ?, ?, ?)
+  ");
+
+
+  if (!$insertSubGroup) {
+
+      echo json_encode([
+          'success' => false,
+          'message' => 'Database error: ' . $conn->error
+      ]);
+
+      exit;
+  }
+
+
+  $insertSubGroup->bind_param(
+      "issi",
+      $user_id,
+      $companyCategory,
+      $subGroupName,
+      $parentId
+  );
+
+
+  if (!$insertSubGroup->execute()) {
+
+      $errorMessage =
+          $insertSubGroup->error;
+
+      $insertSubGroup->close();
+
+      echo json_encode([
+          'success' => false,
+          'message' =>
+              'Failed to add sub group: ' .
+              $errorMessage
+      ]);
+
+      exit;
+  }
+
+
+  $newSubGroupId =
+      $insertSubGroup->insert_id;
+
+
+  $insertSubGroup->close();
+    /* =====================================================
+    SUCCESS
+    ===================================================== */
+
+    echo json_encode([
+        'success' => true,
+        'message' => 'Sub group added successfully!',
+        'id' => $newSubGroupId,
+        'name' => $subGroupName
+    ]);
+
+    exit;
+}
+
 // =========================================================
 // LOAD PRODUCT FOR EDITING
 // =========================================================
@@ -2237,134 +2686,6 @@ if (empty($error)) {
 }
 }
 
-/* =========================================================
-  FETCH SELLER PRODUCTS + CUSTOM CATEGORY INFORMATION
-  ========================================================= */
-
-$products = [];
-
-$stmt = $conn->prepare("
-  SELECT
-      p.product_id,
-      p.product_name,
-      p.category,
-      p.custom_category_id,
-      p.buying_price,
-      p.selling_price,
-      p.stock_quantity,
-      p.unit,
-      p.image_path,
-
-      cc.name AS custom_category_name,
-      cc.parent_id AS custom_category_parent_id
-
-  FROM productservicesrentals p
-
-  LEFT JOIN custom_categories cc
-      ON p.custom_category_id = cc.custom_category_id
-
-  WHERE p.user_id = ?
-
-  ORDER BY p.created_at DESC
-");
-
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-
-$result = $stmt->get_result();
-
-if ($result) {
-
-  while ($row = $result->fetch_assoc()) {
-
-      $products[] = $row;
-
-  }
-
-}
-
-$stmt->close();
-
-
-/* =========================================================
-  FETCH SELLER CUSTOM CATEGORIES
-========================================================= */
-
-$customCategories = [];
-
-$stmt = $conn->prepare("
-  SELECT
-      custom_category_id,
-      company_category,
-      name,
-      parent_id
-  FROM custom_categories
-  WHERE user_id = ?
-  ORDER BY name ASC
-");
-
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-
-$result = $stmt->get_result();
-
-if ($result) {
-
-  while ($row = $result->fetch_assoc()) {
-
-      $customCategories[] = $row;
-
-  }
-
-}
-
-$stmt->close();
-
-
-/* =========================================================
-  PREPARE CATEGORY DATA FOR JAVASCRIPT
-========================================================= */
-
-$categoryJson = json_encode(
-  $customCategories,
-  JSON_HEX_TAG |
-  JSON_HEX_APOS |
-  JSON_HEX_AMP |
-  JSON_HEX_QUOT
-);
-
-$productJson = json_encode(
-  $products,
-  JSON_HEX_TAG |
-  JSON_HEX_APOS |
-  JSON_HEX_AMP |
-  JSON_HEX_QUOT
-);
-
-/* =========================================================
-  LOAD SELLER'S CUSTOM GROUPS
-========================================================= */
-
-$customCategories = [];
-
-$stmt = $conn->prepare("
-  SELECT custom_category_id, company_category, name, parent_id
-  FROM custom_categories
-  WHERE user_id = ?
-  ORDER BY name ASC
-");
-
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-
-$result = $stmt->get_result();
-
-while ($row = $result->fetch_assoc()) {
-  $customCategories[] = $row;
-}
-
-$stmt->close();
-
 // Fetch seller orders
 // ONE ROW PER ORDER
 $sellerOrders = [];
@@ -3050,16 +3371,87 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
     <main class="buyerMain" id="sellerMain">
       <div id="subGOverlay" class="subGOverlay"></div>
-      <form action="" class="subG-form">
-        <h3>Add sub group 
-          <span>
-            <i class="fa-solid fa-xmark"></i>
-          </span>
+      <form
+        action=""
+        method="POST"
+        class="subG-form"
+        id="subGroupForm"
+      >
+
+        <h3>
+            Add sub group
+
+            <span
+                id="closeSubGroupPopup"
+                role="button"
+                tabindex="0"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </span>
         </h3>
-        <p class="errorMessage">Failed!</p>
-        <label for="subgroup">Enter Sub Group Name</label>
-        <input type="text" placeholder="eg. Cups">
-        <button type="submit">Add</button>
+
+
+        <!-- ERROR MESSAGE -->
+
+        <p
+            class="errorMessage"
+            id="subGroupMessage"
+            style="display:none;"
+        ></p>
+
+
+        <!-- SUCCESS MESSAGE -->
+
+        <p
+            class="successMessage"
+            id="subGroupSuccessMessage"
+            data-redirect="sellerPage.php"
+            style="display:none;"
+        ></p>
+
+
+        <label for="subgroup">
+            Enter Sub Group Name
+        </label>
+
+
+        <input
+            type="text"
+            id="subgroup"
+            name="subgroup"
+            value="<?= htmlspecialchars($subGroupName, ENT_QUOTES) ?>"
+            placeholder="eg. Cups"
+            maxlength="100"
+            autocomplete="off"
+            required
+        >
+
+
+        <input
+            type="hidden"
+            name="company_category"
+            id="subGroupCompanyCategory"
+        >
+
+
+        <input
+            type="hidden"
+            name="parent_id"
+            id="subGroupParentId"
+        >
+
+
+        <input
+            type="hidden"
+            name="add_sub_group"
+            value="1"
+        >
+
+
+        <button type="submit">
+            Add
+        </button>
+
       </form>
       <div class="tabs-container" id="toggleMarketTypeTab">
         <div class="tabs">
@@ -3490,10 +3882,26 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                           </button>
                         </form>
                       </div>
-                      
-                      <button class="comm-btn">
-                        <i class="fas fa-ellipsis-vertical"></i>
-                      </button>
+                      <div class="subMvFlder">
+                        <button class="comm-btn">
+                            <i class="fas fa-ellipsis-vertical"></i>
+                        </button>
+                        <section>
+                            <h2>Move to</h2>
+                            <div class="subGroupList" id="subGroupList">
+                                <?php foreach ($customCategories as $category): ?>
+                                    <button
+                                        type="button"
+                                        class="subGroupItem"
+                                        data-product-id="<?= (int)$product['product_id'] ?>"
+                                        data-category-id="<?= (int)$category['id'] ?>"
+                                    >
+                                        <?= htmlspecialchars($category['name']) ?>
+                                    </button>
+                                <?php endforeach; ?>
+                            </div>
+                        </section>
+                      </div>
                     </div>
                     <div class="product-name"><?= htmlspecialchars($product['product_name']) ?></div>
                   </div>
@@ -3747,29 +4155,45 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                     
                   </div>
 
-                  <div class="inp-box">
-                    <label id="priceLabel">Price (KES)</label>
-                    <input
-                        type="number"
-                        name="bPrice"
-                        step="1"
-                        placeholder="Buying price"
-                        value="<?= htmlspecialchars($buyingPrice, ENT_QUOTES) ?>"
-                        oninput="this.value = this.value.replace(/[^0-9.]/g, '')"
-                        min="0"
-                        required
-                    >
-                    <input
-                        type="number"
-                        name="sPrice"
-                        step="1"
-                        placeholder="Selling price"
-                        value="<?= htmlspecialchars($sellingPrice, ENT_QUOTES) ?>"
-                        oninput="this.value = this.value.replace(/[^0-9.]/g, '')"
-                        min="0"
-                        required
-                    >
-                  </div>
+                    <div class="inp-box">
+                        <label id="priceLabel">Price (KES)</label>
+
+                        <!-- BUYING PRICE -->
+                        <input
+                            type="number"
+                            name="bPrice"
+                            id="buyingPrice"
+                            step="1"
+                            placeholder="Buying price"
+                            value="<?= htmlspecialchars($buyingPrice, ENT_QUOTES) ?>"
+                            oninput="this.value = this.value.replace(/[^0-9.]/g, '')"
+                            min="0"
+                            required
+                        >
+
+                        <small id="buyingPriceMessage" style="display:none;">
+                            <i class="fa-solid fa-circle-exclamation"></i>
+                            Buying price!
+                        </small>
+
+                        <!-- SELLING PRICE -->
+                        <input
+                            type="number"
+                            name="sPrice"
+                            id="sellingPrice"
+                            step="1"
+                            placeholder="Selling price"
+                            value="<?= htmlspecialchars($sellingPrice, ENT_QUOTES) ?>"
+                            oninput="this.value = this.value.replace(/[^0-9.]/g, '')"
+                            min="0"
+                            required
+                        >
+
+                        <small id="sellingPriceMessage" style="display:none;">
+                            <i class="fa-solid fa-circle-exclamation"></i>
+                            Selling price!
+                        </small>
+                    </div>
 
                   <?php if ($editMode): ?>
                       <!-- IMAGE PREVIEW ONLY IN EDIT MODE -->
@@ -4278,91 +4702,117 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
         }
     );
 
-
     /* =====================================================
-       USE PRODUCT PHOTO
-       ===================================================== */
+    USE PRODUCT PHOTO
+    ===================================================== */
 
     function useProductPhoto(file) {
 
+    if (
+        ![
+            "image/jpeg",
+            "image/png",
+            "image/webp"
+        ].includes(file.type)
+    ) {
 
-        if (
-            ![
-                "image/jpeg",
-                "image/png",
-                "image/webp"
-            ].includes(file.type)
-        ) {
+        alert(
+            "Please select a JPG, PNG or WEBP image."
+        );
 
-            alert(
-                "Please select a JPG, PNG or WEBP image."
-            );
+        return;
 
-            return;
-
-        }
-
-
-        if (
-            file.size >
-            MAX_FILE_SIZE
-        ) {
-
-            alert(
-                "The image must not exceed 10MB."
-            );
-
-            return;
-
-        }
+    }
 
 
-        /*
-         * Store selected file.
-         */
+    if (file.size > MAX_FILE_SIZE) {
 
-        selectedProductPhoto =
-            file;
+        alert(
+            "The image must not exceed 10MB."
+        );
 
+        return;
 
-        /*
-         * Release previous preview.
-         */
-
-        if (previewURL) {
-
-            URL.revokeObjectURL(
-                previewURL
-            );
-
-        }
+    }
 
 
-        /*
-         * Lightweight preview.
-         */
-
-        previewURL =
-            URL.createObjectURL(
-                file
-            );
+    /*
+        * Store selected file.
+        */
+    selectedProductPhoto = file;
 
 
-        photoPreviewImage.src =
-            previewURL;
+    /*
+        * IMPORTANT:
+        *
+        * Put the selected/captured file into
+        * the REAL file input.
+        *
+        * This makes both:
+        *
+        *     Gallery photo
+        *
+        * and
+        *
+        *     Camera photo
+        *
+        * behave exactly the same during
+        * normal form submission.
+        */
+
+    try {
+
+        const dataTransfer =
+            new DataTransfer();
+
+        dataTransfer.items.add(file);
+
+        galleryPhoto.files =
+            dataTransfer.files;
+
+    } catch (error) {
+
+        console.error(
+            "Unable to attach photo to form:",
+            error
+        );
+
+        alert(
+            "Unable to attach the photo. Please try again."
+        );
+
+        return;
+
+    }
 
 
-        photoPreview.style.display =
-            "block";
+    /*
+        * Release previous preview.
+        */
+
+    if (previewURL) {
+
+        URL.revokeObjectURL(
+            previewURL
+        );
+
+    }
 
 
-        /*
-         * For gallery images, the actual
-         * input already contains the file.
-         *
-         * For camera images, selectedProductPhoto
-         * is used during form submission.
-         */
+    /*
+        * Create preview.
+        */
+
+    previewURL =
+        URL.createObjectURL(file);
+
+
+    photoPreviewImage.src =
+        previewURL;
+
+
+    photoPreview.style.display =
+        "block";
 
     }
 
@@ -4439,154 +4889,6 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
         }
     );
-
-
-    /* =====================================================
-       FORM SUBMISSION
-       =====================================================
-
-       IMPORTANT:
-
-       Your form currently submits normally.
-
-       We intercept it only to ensure that a
-       camera-captured File is sent as:
-
-           $_FILES['photo']
-
-       ===================================================== */
-
-    const productForm =
-        galleryPhoto.closest("form");
-
-
-    if (productForm) {
-
-        productForm.addEventListener(
-            "submit",
-            function (event) {
-
-                /*
-                 * If the seller selected from
-                 * the gallery, the normal form
-                 * submission already contains
-                 * name="photo".
-                 */
-
-                if (
-                    !selectedProductPhoto
-                ) {
-
-                    return;
-
-                }
-
-
-                /*
-                 * If selectedProductPhoto is
-                 * exactly the file already in
-                 * galleryPhoto, let the normal
-                 * browser submission continue.
-                 */
-
-                if (
-                    galleryPhoto.files.length &&
-                    galleryPhoto.files[0] ===
-                    selectedProductPhoto
-                ) {
-
-                    return;
-
-                }
-
-
-                /*
-                 * Camera photo needs to be
-                 * submitted manually.
-                 */
-
-                event.preventDefault();
-
-
-                const formData =
-                    new FormData(
-                        productForm
-                    );
-
-
-                /*
-                 * Replace/add the photo.
-                 */
-
-                formData.set(
-                    "photo",
-                    selectedProductPhoto,
-                    selectedProductPhoto.name
-                );
-
-
-                /*
-                 * Submit to the same PHP page.
-                 */
-
-                fetch(
-                    productForm.action ||
-                    window.location.href,
-                    {
-                        method: "POST",
-                        body: formData
-                    }
-                )
-                .then(
-                    function (response) {
-
-                        /*
-                         * Your existing PHP
-                         * returns the normal
-                         * seller page HTML.
-                         */
-
-                        return response.text();
-
-                    }
-                )
-                .then(
-                    function (html) {
-
-                        /*
-                         * Replace the page with
-                         * PHP's normal response.
-                         */
-
-                        document.open();
-
-                        document.write(html);
-
-                        document.close();
-
-                    }
-                )
-                .catch(
-                    function (error) {
-
-                        console.error(
-                            "Product upload error:",
-                            error
-                        );
-
-                        alert(
-                            "Unable to add the product. Please try again."
-                        );
-
-                    }
-                );
-
-            }
-        );
-
-    }
-
-
     /* =====================================================
        CLEANUP
        ===================================================== */
@@ -5488,7 +5790,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   echo "<tr data-status=\"{$order['order_status']}\">
                           <td>
                             <div class='newStylOrd'>
-                              {$order['order_code']}<p>{$date}</p>
+                              #{$order['order_code']}<p>{$date}</p>
                             </div>
                           </td>
                           <td>{$imageHTML}</td>
@@ -5519,12 +5821,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                         </tr>";
                   $count++;
               }
-          } else {
-            // Display message when no data
+          }/*   else {
+
             echo "<tr>
-                    <td colspan='10' style='text-align:center; color:#888;'>No data available in table</td>
+                    <td colspan='11' style='text-align:center; color:#888;'>No data available in table</td>
                   </tr>";
-            }
+            } */
           ?>
           </tbody>
         </table>
@@ -5621,7 +5923,541 @@ document.addEventListener("DOMContentLoaded", function () {
     const navigationCount =
         document.getElementById("navigationCount");
 
+    /* =========================================================
+      ADD SUB GROUP FORM SUBMISSION
+    ========================================================= */
 
+    const subGroupForm =
+      document.getElementById("subGroupForm");
+
+
+    const subGroupMessage =
+      document.getElementById("subGroupMessage");
+
+
+    const subGroupSuccessMessage =
+      document.getElementById("subGroupSuccessMessage");
+
+
+    const subgroupInput =
+      document.getElementById("subgroup");
+
+
+    const subGroupCompanyCategory =
+      document.getElementById(
+          "subGroupCompanyCategory"
+      );
+
+
+    const subGroupParentId =
+      document.getElementById(
+          "subGroupParentId"
+      );
+
+
+    if (subGroupForm) {
+
+      subGroupForm.addEventListener(
+          "submit",
+          async function (event) {
+
+              /*
+                * STOP NORMAL FORM SUBMISSION.
+                *
+                * This prevents seller.php from
+                * reloading when there is an error.
+                */
+
+              event.preventDefault();
+
+
+              /* =================================================
+                  GET CURRENT CATEGORY/GROUP
+              ================================================= */
+
+              const companyCategory =
+                  selectedCompanyCategory || "";
+
+              const parentId =
+                  selectedCustomCategory || "";
+
+
+              /*
+                * Put the current state into the
+                * hidden inputs.
+                */
+
+              subGroupCompanyCategory.value =
+                  companyCategory;
+
+              subGroupParentId.value =
+                  parentId;
+
+
+              /* =================================================
+                CLEAR PREVIOUS MESSAGES
+              ================================================= */
+
+              if (subGroupMessage) {
+
+                subGroupMessage.innerHTML = "";
+
+                subGroupMessage.style.display =
+                    "none";
+
+              }
+
+
+              if (subGroupSuccessMessage) {
+
+                subGroupSuccessMessage.innerHTML = "";
+
+                subGroupSuccessMessage.style.display =
+                    "none";
+
+              }
+
+
+              /* =================================================
+                  VALIDATE BEFORE SENDING
+              ================================================= */
+
+              if (!companyCategory) {
+
+                  showSubGroupError(
+                      "Please select a company category first."
+                  );
+
+                  return;
+              }
+
+
+              if (!parentId) {
+
+                  showSubGroupError(
+                      "Please select a custom group first."
+                  );
+
+                  return;
+              }
+
+
+              if (
+                  !subgroupInput ||
+                  !subgroupInput.value.trim()
+              ) {
+
+                  showSubGroupError(
+                      "Please enter a sub group name."
+                  );
+
+                  return;
+              }
+
+
+              /* =================================================
+                  FORM DATA
+              ================================================= */
+
+              const formData =
+                  new FormData(subGroupForm);
+
+
+              /*
+                * Make absolutely sure these values
+                * are included.
+                */
+
+              formData.set(
+                  "company_category",
+                  companyCategory
+              );
+
+              formData.set(
+                  "parent_id",
+                  parentId
+              );
+
+              formData.set(
+                  "add_sub_group",
+                  "1"
+              );
+
+
+              /* =================================================
+                  DISABLE BUTTON WHILE SAVING
+              ================================================= */
+
+              const submitButton =
+                  subGroupForm.querySelector(
+                      'button[type="submit"]'
+                  );
+
+
+              if (submitButton) {
+
+                  submitButton.disabled =
+                      true;
+
+                  submitButton.textContent =
+                      "Adding...";
+
+              }
+
+
+              try {
+
+                  /* =============================================
+                      SEND TO PHP
+                  ============================================= */
+
+                  const response =
+                      await fetch(
+                          window.location.href,
+                          {
+                              method: "POST",
+                              body: formData,
+                              headers: {
+                                  "X-Requested-With":
+                                      "XMLHttpRequest"
+                              }
+                          }
+                      );
+
+
+                  /* =============================================
+                      READ JSON
+                  ============================================= */
+
+                  const data =
+                      await response.json();
+
+
+                  /* =============================================
+                      ERROR
+                  ============================================= */
+
+                  if (!data.success) {
+
+                      showSubGroupError(
+                          data.message ||
+                          "Failed to add sub group."
+                      );
+
+
+                      /*
+                        * KEEP POPUP OPEN.
+                        */
+
+                      if (subGroupForm) {
+
+                          subGroupForm.style.display =
+                              "flex";
+
+                      }
+
+                      if (subGOverlay) {
+
+                          subGOverlay.style.display =
+                              "block";
+
+                      }
+
+
+                      return;
+                  }
+
+
+                  /* =============================================
+                      SUCCESS
+                  ============================================= */
+
+                  /*
+                    * Only reload AFTER successful
+                    * database insertion.
+                    */
+
+                showSubGroupSuccess(
+                    data.message || "Sub group added successfully!"
+                );
+
+              }
+
+
+              catch (error) {
+
+                  console.error(
+                      "Sub group error:",
+                      error
+                  );
+
+
+                  showSubGroupError(
+                      "Unable to add sub group. Please try again."
+                  );
+
+
+                  /*
+                    * Keep popup open.
+                    */
+
+                  if (subGroupForm) {
+
+                      subGroupForm.style.display =
+                          "flex";
+
+                  }
+
+                  if (subGOverlay) {
+
+                      subGOverlay.style.display =
+                          "block";
+
+                  }
+
+              }
+
+
+              finally {
+
+                  /*
+                    * Re-enable button.
+                    *
+                    * If successful, page will reload anyway.
+                    */
+
+                  if (submitButton) {
+
+                      submitButton.disabled =
+                          false;
+
+                      submitButton.textContent =
+                          "Add";
+
+                  }
+
+              }
+
+          }
+      );
+
+    }
+    /* =========================================================
+      SHOW SUB GROUP ERROR
+    ========================================================= */
+
+    function showSubGroupError(message) {
+
+      if (!subGroupMessage) {
+          return;
+      }
+
+      subGroupMessage.innerHTML =
+          '<i class="fa-solid fa-circle-exclamation"></i> ' +
+          message;
+
+      subGroupMessage.style.display = "block";
+
+
+      /* Keep popup visible */
+
+      if (subGroupForm) {
+          subGroupForm.style.display = "flex";
+      }
+
+      if (subGOverlay) {
+          subGOverlay.style.display = "block";
+      }
+
+    }
+
+    /* =========================================================
+    SHOW SUB GROUP SUCCESS
+    ========================================================= */
+
+    function showSubGroupSuccess(message) {
+
+    if (!subGroupSuccessMessage) {
+        return;
+    }
+
+    /*
+        * Display the success message.
+        */
+    subGroupSuccessMessage.innerHTML =
+        '<i class="fa-solid fa-circle-check"></i> ' +
+        message +
+        ' <span class="redirect-msg"></span>';
+
+    subGroupSuccessMessage.style.display = "block";
+
+
+    /*
+        * Start the SAME redirect animation
+        * used by the global success system.
+        */
+    const redirectSpan =
+        subGroupSuccessMessage.querySelector(".redirect-msg");
+
+    if (!redirectSpan) {
+        return;
+    }
+
+
+    const redirectUrl =
+        subGroupSuccessMessage.dataset.redirect ||
+        "sellerPage.php";
+
+    const baseText = "Redirecting";
+
+    let dotCount = 0;
+    let i = 0;
+
+
+    /*
+        * Type "Redirecting"
+        */
+    const typing = setInterval(() => {
+
+        if (i < baseText.length) {
+
+            redirectSpan.textContent +=
+                baseText.charAt(i);
+
+            i++;
+
+        } else {
+
+            clearInterval(typing);
+
+
+            /*
+                * Animate dots.
+                */
+            const dots = setInterval(() => {
+
+                dotCount =
+                    (dotCount + 1) % 4;
+
+                redirectSpan.textContent =
+                    baseText +
+                    ".".repeat(dotCount);
+
+            }, 500);
+
+
+            /*
+                * Redirect after the same
+                * 3.5 seconds.
+                */
+            setTimeout(() => {
+
+                clearInterval(dots);
+
+                window.location.href =
+                    redirectUrl;
+
+            }, 3500);
+
+        }
+
+    }, 100);
+
+    }
+    /* =========================================================
+      CLOSE / RESET SUB GROUP POPUP
+    ========================================================= */
+
+    function closeSubGroupPopup() {
+
+      /* =============================================
+          HIDE POPUP AND OVERLAY
+      ============================================= */
+
+      if (subGroupForm) {
+          subGroupForm.style.display = "none";
+      }
+
+      if (subGOverlay) {
+          subGOverlay.style.display = "none";
+      }
+
+
+      /* =============================================
+          RESET FORM
+      ============================================= */
+
+      if (subGroupForm) {
+          subGroupForm.reset();
+      }
+
+
+      /* =============================================
+          CLEAR ERROR MESSAGE
+      ============================================= */
+
+      if (subGroupMessage) {
+
+          subGroupMessage.textContent = "";
+
+          subGroupMessage.style.display = "none";
+
+      }
+
+
+      /* =============================================
+          CLEAR HIDDEN VALUES
+      ============================================= */
+
+      if (subGroupCompanyCategory) {
+          subGroupCompanyCategory.value = "";
+      }
+
+      if (subGroupParentId) {
+          subGroupParentId.value = "";
+      }
+
+
+      /* =============================================
+          CLEAR SUB GROUP INPUT
+      ============================================= */
+
+      if (subgroupInput) {
+          subgroupInput.value = "";
+      }
+
+    }
+    /* =========================================================
+      CLOSE SUB GROUP POPUP
+    ========================================================= */
+
+    /* XMARK */
+
+    const closeSubGroupPopupButton =
+      document.getElementById("closeSubGroupPopup");
+
+    if (closeSubGroupPopupButton) {
+
+      closeSubGroupPopupButton.addEventListener(
+          "click",
+          closeSubGroupPopup
+      );
+
+    }
+
+
+    /* =========================================================
+      CLOSE WHEN CLICKING OVERLAY
+    ========================================================= */
+
+    if (subGOverlay) {
+
+      subGOverlay.addEventListener(
+          "click",
+          closeSubGroupPopup
+      );
+
+    }
     /* =====================================================
        SAFETY CHECK
     ===================================================== */
@@ -6245,168 +7081,265 @@ document.addEventListener("DOMContentLoaded", function () {
        COMPANY CATEGORY FILTER
     ===================================================== */
 
+    /* =====================================================
+      SELECT COMPANY CATEGORY
+    ===================================================== */
+
     function selectCompanyCategory(companyCategory) {
 
-        selectedCompanyCategory =
-            companyCategory;
-        /* =====================================================
-          REFRESH COMPANY POPUP ACTIVE STATE
-          ===================================================== */
+      /*
+        * =====================================================
+        * 1. SET NEW COMPANY CATEGORY
+        * =====================================================
+        */
 
-        buildCompanyPopup();
-
-
-        /*
-         * IMPORTANT:
-         *
-         * Changing company category resets:
-         *
-         * 1. Custom group to first available group
-         * 2. Mini navigation to ALL
-         */
-
-        selectedCustomCategory = null;
-        selectedSubCategory = null;
-        currentPage = 1;
+      selectedCompanyCategory =
+          companyCategory;
 
 
-        companyText.textContent =
-            formatCompanyName(
-                companyCategory
-            );
+      /*
+        * =====================================================
+        * 2. RESET EVERYTHING BELOW COMPANY CATEGORY
+        *
+        * IMPORTANT:
+        * Changing company category always returns to:
+        *
+        * Company Category > All
+        *
+        * The previous custom group/subgroup must have
+        * absolutely no effect on the new company selection.
+        * =====================================================
+        */
+
+      selectedCustomCategory = null;
+      selectedSubCategory = null;
+      currentPage = 1;
 
 
-        /*
-         * Find available custom groups.
-         */
+      /*
+        * =====================================================
+        * 3. UPDATE COMPANY CATEGORY DISPLAY
+        * =====================================================
+        */
 
-        const groups =
-            getRootCustomGroups(
-                companyCategory
-            )
-            .filter(category =>
-                categoryHasProducts(category)
-            );
-
-
-        /*
-         * If there is a custom group,
-         * automatically select the first one.
-         */
-
-        if (groups.length > 0) {
-
-            selectedCustomCategory =
-                groups[0].custom_category_id;
-
-            sellerText.textContent =
-                formatNormalName(
-                    groups[0].name
-                );
-
-        } else {
-
-            /*
-             * No custom group.
-             *
-             * Seller side displays "All".
-             */
-
-            sellerText.textContent =
-                "All";
-
-        }
+      companyText.textContent =
+          formatCompanyName(
+              companyCategory
+          );
 
 
-        /*
-         * Rebuild seller popup.
-         */
+      /*
+        * =====================================================
+        * 4. REBUILD COMPANY POPUP
+        *
+        * This ensures the newly selected company category
+        * gets .active and the ✓ check mark.
+        * =====================================================
+        */
 
-        buildSellerPopup();
-
-
-        /*
-         * Rebuild mini navigation.
-         */
-
-        if (selectedCustomCategory) {
-
-            buildMiniNavigation(
-                selectedCustomCategory
-            );
-
-        } else {
-
-            buildMiniNavigation(null);
-
-        }
+      buildCompanyPopup();
 
 
-        /*
-         * ALWAYS SELECT ALL.
-         */
+      /*
+        * =====================================================
+        * 5. FIND CUSTOM GROUPS BELONGING TO THIS COMPANY
+        *
+        * Only groups which actually contain products
+        * are considered available.
+        * =====================================================
+        */
 
-        requestAnimationFrame(() => {
-
-            const all =
-                miniNavigation.querySelector(
-                    ".mini-nav-item[data-mini='all']"
-                );
-
-            if (all) {
-
-                document
-                    .querySelectorAll(
-                        ".mini-nav-item"
-                    )
-                    .forEach(item =>
-                        item.classList.remove(
-                            "active"
-                        )
-                    );
-
-                all.classList.add(
-                    "active"
-                );
-
-            }
-
-            updateMiniIndicator();
-
-        });
+      const groups =
+          getRootCustomGroups(
+              companyCategory
+          )
+          .filter(category =>
+              categoryHasProducts(category)
+          );
 
 
-        /*
-         * Display products.
-         */
+      /*
+        * =====================================================
+        * 6. SELLER-SIDE VISIBILITY
+        * =====================================================
+        */
 
-        if (selectedCustomCategory) {
-
-            currentProducts =
-                getProductsUnderGroup(
-                    selectedCustomCategory
-                );
-
-        } else {
-
-            currentProducts =
-                getProductsForCompanyCategory(
-                    selectedCompanyCategory
-                );
-
-        }
+      const categorySeparator =
+          document.querySelector(
+              ".category-separator"
+          );
 
 
-        renderProducts();
+      if (groups.length === 0) {
+
+          /*
+            * No custom groups with products.
+            *
+            * Hide seller category side.
+            */
+
+          if (sellerSide) {
+
+              sellerSide.style.display =
+                  "none";
+
+          }
 
 
-        /*
-         * Close popup after selection.
-         */
+          /*
+            * Hide separator.
+            */
 
-        companySide.classList.remove(
-            "open"
-        );
+          if (categorySeparator) {
+
+              categorySeparator.style.display =
+                  "none";
+
+          }
+
+
+          /*
+            * Seller selection is reset.
+            */
+
+          sellerText.textContent =
+              "All";
+
+
+      } else {
+
+          /*
+            * Custom groups exist.
+            *
+            * Show seller category side.
+            */
+
+          if (sellerSide) {
+
+              sellerSide.style.display =
+                  "";
+
+          }
+
+
+          /*
+            * Show separator.
+            */
+
+          if (categorySeparator) {
+
+              categorySeparator.style.display =
+                  "";
+
+          }
+
+
+          /*
+            * IMPORTANT:
+            * Do NOT select the first custom group.
+            *
+            * The default is ALL.
+            */
+
+          sellerText.textContent =
+              "All";
+
+      }
+
+
+      /*
+        * =====================================================
+        * 7. REBUILD SELLER POPUP
+        * =====================================================
+        */
+
+      buildSellerPopup();
+
+
+      /*
+        * =====================================================
+        * 8. RESET MINI NAVIGATION
+        *
+        * Since no custom group is selected, there is no
+        * subgroup currently selected.
+        * =====================================================
+        */
+
+      if (miniNavigation) {
+
+          miniNavigation.innerHTML = "";
+
+      }
+
+
+      /*
+        * =====================================================
+        * 9. DISPLAY ALL PRODUCTS BELONGING TO THE NEW
+        *    COMPANY CATEGORY
+        *
+        * THIS IS THE IMPORTANT PART.
+        *
+        * We deliberately use the company-category filter
+        * here instead of getProductsUnderGroup().
+        *
+        * Therefore:
+        *
+        * ELECTRONICS > All
+        *     => all ELECTRONICS products
+        *
+        * FOOD & SNACKS > All
+        *     => all FOOD & SNACKS products
+        *
+        * FASHIONS > All
+        *     => all FASHIONS products
+        * =====================================================
+        */
+
+      currentProducts =
+          getProductsForCompanyCategory(
+              selectedCompanyCategory
+          );
+
+
+      /*
+        * =====================================================
+        * 10. UPDATE PRODUCTS TITLE
+        *
+        * At company-category level, no custom group is
+        * selected, so show All products.
+        * =====================================================
+        */
+
+      if (productsTitle) {
+
+          productsTitle.textContent =
+              "All products";
+
+      }
+
+
+      /*
+        * =====================================================
+        * 11. RENDER NEW PRODUCTS
+        * =====================================================
+        */
+
+      renderProducts();
+
+
+      /*
+        * =====================================================
+        * 12. CLOSE COMPANY POPUP
+        * =====================================================
+    */
+
+      if (companySide) {
+
+          companySide.classList.remove(
+              "open"
+          );
+
+      }
 
     }
 
@@ -6445,6 +7378,15 @@ document.addEventListener("DOMContentLoaded", function () {
             formatNormalName(
                 category.name
             );
+        /*
+        * Display the selected custom group
+        * as the products title.
+        */
+
+        productsTitle.textContent =
+          formatNormalName(
+              category.name
+          );
 
 
         /*
@@ -6488,19 +7430,44 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function selectSubCategory(categoryId) {
 
-        selectedSubCategory =
-            categoryId;
+      selectedSubCategory =
+          categoryId;
 
-        currentPage = 1;
-
-
-        currentProducts =
-            getProductsForCustomCategory(
-                categoryId
-            );
+      currentPage = 1;
 
 
-        renderProducts();
+      /*
+        * Find selected subgroup.
+        */
+
+      const subCategory =
+          customCategories.find(category =>
+              Number(category.custom_category_id) ===
+              Number(categoryId)
+          );
+
+
+      /*
+        * Display subgroup name as products title.
+        */
+
+      if (subCategory) {
+
+          productsTitle.textContent =
+              formatNormalName(
+                  subCategory.name
+              );
+
+      }
+
+
+      currentProducts =
+          getProductsForCustomCategory(
+              categoryId
+          );
+
+
+      renderProducts();
 
     }
 
@@ -7158,7 +8125,38 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
 
+    function openSubGroupPopup() {
 
+        subGroupCompanyCategory.value =
+            selectedCompanyCategory || "";
+
+        subGroupParentId.value =
+            selectedCustomCategory || "";
+
+
+        subGroupMessage.textContent = "";
+
+        subGroupMessage.style.display =
+            "none";
+
+
+        subgroupInput.value = "";
+
+
+        subGOverlay.style.display =
+            "block";
+
+        subGroupForm.style.display =
+            "flex";
+
+
+        requestAnimationFrame(() => {
+
+            subgroupInput.focus();
+
+        });
+
+    }
     /* =====================================================
        MINI NAVIGATION EVENTS
     ===================================================== */
@@ -7261,39 +8259,22 @@ document.addEventListener("DOMContentLoaded", function () {
          */
 
         const addButton =
-            miniNavigation.querySelector(
-                ".subgrou-add-btn"
-            );
-
+          miniNavigation.querySelector(
+              ".subgrou-add-btn"
+          );
 
         if (addButton) {
 
-            addButton.addEventListener(
-                "click",
-                function () {
+          addButton.addEventListener(
+              "click",
+              function (event) {
 
-                    /*
-                     * Keep your existing
-                     * add-sub-group function here.
-                     *
-                     * Example:
-                     *
-                     * toggleSubGroupAdd(true);
-                     */
+                  event.stopPropagation();
 
-                    if (
-                        typeof toggleSubGroupAdd ===
-                        "function"
-                    ) {
+                  openSubGroupPopup();
 
-                        toggleSubGroupAdd(
-                            true
-                        );
-
-                    }
-
-                }
-            );
+              }
+          );
 
         }
 
@@ -7554,9 +8535,88 @@ document.addEventListener("DOMContentLoaded", function () {
     requestAnimationFrame(
         updateMiniIndicator
     );
+    if (subGroupAddSuccess) {
+
+      /*
+        * The database insertion succeeded.
+        * The page has now reloaded with the new
+        * custom category available.
+        */
+
+      if (subGOverlay) {
+          subGOverlay.style.display = "none";
+      }
+
+      if (subGForm) {
+          subGForm.style.display = "none";
+      }
+
+    }
 
 });
 </script>
+<?php if (!empty($subGroupError)): ?>
+
+<script>
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const form =
+            document.getElementById(
+                "subGroupForm"
+            );
+
+        const overlay =
+            document.getElementById(
+                "subGOverlay"
+            );
+
+        const message =
+            document.getElementById(
+                "subGroupMessage"
+            );
+
+        if (overlay) {
+
+            overlay.style.display =
+                "block";
+
+        }
+
+        if (form) {
+
+            form.style.display =
+                "flex";
+
+        }
+
+        if (message) {
+
+            message.textContent =
+                <?= json_encode($subGroupError) ?>;
+
+            message.style.display =
+                "block";
+
+        }
+
+        const input =
+            document.getElementById(
+                "subgroup"
+            );
+
+        if (input) {
+
+            input.focus();
+
+        }
+
+    }
+);
+</script>
+
+<?php endif; ?>
   <script>
     const customCategories = <?= json_encode(
         $customCategories,
@@ -7566,23 +8626,29 @@ document.addEventListener("DOMContentLoaded", function () {
   
   <script src="assets/js/general.js" type="text/javascript" defer></script>
   <script>
-    // DataTables Script Js
-    $(document).ready(function () {
-      $('#sellerTransactions').DataTable({
-        pagingType: "simple_numbers", // only numbers + prev/next
-        pageLength: 15,               // rows per page
-        lengthChange: false,          // hide "Show X entries"
-        searching: true,              // keep search box
-        ordering: true,               // column sorting
-        stateSave: true,              // ✅ remembers pagination, search & sort
+  $(document).ready(function () {
+
+    $('#sellerTransactions').DataTable({
+
+        pagingType: "simple_numbers",
+        pageLength: 15,
+        lengthChange: false,
+        searching: true,
+        ordering: true,
+        stateSave: true,
+
         language: {
-          paginate: {
-            previous: "PREV",
-            next: "NEXT"
-          }
+            emptyTable: "No data available in table",
+
+            paginate: {
+                previous: "PREV",
+                next: "NEXT"
+            }
         }
-      });
+
     });
+
+  });
   </script>
   <?php if ($editMode): ?>
   <script>

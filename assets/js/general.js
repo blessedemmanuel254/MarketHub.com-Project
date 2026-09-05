@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function () {
 /* Global success redirect system */
 document.addEventListener("DOMContentLoaded", () => {
 
-  const successMessage = document.querySelector(".successMessage");
+  const successMessage = document.querySelector(".successMessage .redirect-msg")?.closest(".successMessage");
 
   if (!successMessage) return;
 
@@ -5550,8 +5550,16 @@ document.addEventListener('DOMContentLoaded', function () {
          */
         const groups = customCategories.filter(function (group) {
 
-            return String(group.company_category).trim().toLowerCase()
-                === companyCategory.toLowerCase();
+            return (
+                String(group.company_category).trim().toLowerCase()
+                === companyCategory.toLowerCase()
+                &&
+                (
+                    group.parent_id === null ||
+                    group.parent_id === '' ||
+                    typeof group.parent_id === 'undefined'
+                )
+            );
 
         });
 
@@ -5793,3 +5801,42 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 });
+
+/* =========================================================
+  PRICE INPUT MESSAGES
+  ========================================================= */
+
+const buyingPrice = document.getElementById("buyingPrice");
+const sellingPrice = document.getElementById("sellingPrice");
+
+const buyingPriceMessage =
+  document.getElementById("buyingPriceMessage");
+
+const sellingPriceMessage =
+  document.getElementById("sellingPriceMessage");
+
+
+if (buyingPrice && buyingPriceMessage) {
+
+  buyingPrice.addEventListener("focus", function () {
+      buyingPriceMessage.style.display = "block";
+  });
+
+  buyingPrice.addEventListener("blur", function () {
+      buyingPriceMessage.style.display = "none";
+  });
+
+}
+
+
+if (sellingPrice && sellingPriceMessage) {
+
+  sellingPrice.addEventListener("focus", function () {
+      sellingPriceMessage.style.display = "block";
+  });
+
+  sellingPrice.addEventListener("blur", function () {
+      sellingPriceMessage.style.display = "none";
+  });
+
+}
