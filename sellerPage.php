@@ -1548,6 +1548,7 @@ if (
 
     exit;
 }
+
 /* =========================================================
   HANDLE ADD SUB GROUP
 ========================================================= */
@@ -5985,7 +5986,13 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
                             </div>
 
+                            <span class="product-price">
+                                KES&nbsp;<?= number_format($price, 2) ?>
+                            </span>
 
+                            <p class="product-name">
+                                <?= $productName ?>
+                            </p>
 
                             <!-- =================================
                                  EXISTING ADJUSTMENT POPUP

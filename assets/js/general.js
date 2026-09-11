@@ -2762,8 +2762,9 @@ function getAvailableStock(card) {
 }
 
 /* =========================================================
-UPDATE VISIBLE STOCK UI
-========================================================= */
+   UPDATE VISIBLE STOCK UI
+   ========================================================= */
+
 function updateProductStockUI(card) {
 
     if (!card) {
@@ -2773,42 +2774,89 @@ function updateProductStockUI(card) {
     const availableStock =
         getAvailableStock(card);
 
+
     /*
-     * Find the stock quantity displayed
-     * on the product card.
-     *
-     * Change ".stock-value" if your
-     * actual stock element has another class.
+     * Find stock element.
      */
+
     const stockElement =
         card.querySelector(".stock");
+
 
     if (!stockElement) {
         return;
     }
 
-    /*
-     * Update the visible quantity.
-     */
-    stockElement.textContent = formatStockForCard(availableStock);
 
     /*
-     * Optional visual state when
-     * nothing remains.
+     * Update visible stock quantity.
      */
+
+    stockElement.textContent =
+        formatStockForCard(
+            availableStock
+        );
+
+
+    /*
+     * Remove ALL previous stock classes.
+     */
+
+    stockElement.classList.remove(
+        "in-stock",
+        "low-stock",
+        "out-stock"
+    );
+
+
+    /*
+     * Apply the correct current
+     * stock state.
+     */
+
+    if (availableStock <= 0) {
+
+        stockElement.classList.add(
+            "out-stock"
+        );
+
+    }
+
+    else if (availableStock <= 5) {
+
+        stockElement.classList.add(
+            "low-stock"
+        );
+
+    }
+
+    else {
+
+        stockElement.classList.add(
+            "in-stock"
+        );
+
+    }
+
+
+    /*
+     * Keep the card-level state too,
+     * if your other CSS uses it.
+     */
+
+    card.classList.remove(
+        "out-of-stock"
+    );
+
+
     if (availableStock <= 0) {
 
         card.classList.add(
             "out-of-stock"
         );
 
-    } else {
-
-        card.classList.remove(
-            "out-of-stock"
-        );
-
     }
+
 }
 
 /* =========================================================
@@ -2889,6 +2937,75 @@ function formatQuantity(quantity) {
   }
 
   return whole + fractionText;
+}
+
+/* =========================================================
+   FORMAT QUANTITY UNIT
+   ========================================================= */
+
+function formatQuantityUnit(quantity, unit) {
+
+  quantity = Number(quantity);
+
+  unit = unit || "Each";
+
+  /*
+    * Keep "Each" unchanged.
+    */
+  if (isEachUnit(unit)) {
+      return unit;
+  }
+
+  /*
+    * More than 1 = plural.
+    * 1 or less = singular.
+    */
+  if (quantity > 1) {
+
+      if (
+          !unit
+              .trim()
+              .toLowerCase()
+              .endsWith("s")
+      ) {
+          return unit + "s";
+      }
+
+  }
+
+  return unit;
+}
+
+/* =========================================================
+   UPDATE POPUP QUANTITY UNIT
+   ========================================================= */
+
+function updateAdjustmentUnit(card) {
+
+  if (!card) {
+      return;
+  }
+
+  const quantityValue =
+      Number(
+          card.dataset.adjustQuantity || 0
+      );
+
+  const unit =
+      card.dataset.unit || "Each";
+
+  const quantityUnit =
+      card.querySelector(".quantity-unit");
+
+  if (!quantityUnit) {
+      return;
+  }
+
+  quantityUnit.textContent =
+      formatQuantityUnit(
+          quantityValue,
+          unit
+      );
 }
 
 /* =========================================================
@@ -3886,6 +4003,8 @@ function resetProductCalculator(card) {
 
       quantityValue.textContent =
           "0";
+      updateAdjustmentUnit(card);
+          
   
 
   }
@@ -4168,6 +4287,7 @@ function openMeasuredProductCalculator(card) {
                 formatQuantity(
                     existingQuantity
                 );
+            updateAdjustmentUnit(card);
 
         }
         /*
@@ -4200,6 +4320,7 @@ function openMeasuredProductCalculator(card) {
 
           quantityValue.textContent =
               "0";
+          updateAdjustmentUnit(card);
 
       }
 
@@ -4632,6 +4753,60 @@ document.addEventListener(
               formatQuantity(
                 currentQuantity
               );
+            /*
+            * Update singular/plural unit.
+            */
+
+            updateAdjustmentUnit(card);
+            /*
+            * Calculate the stock currently represented
+            * by the adjustment.
+            *
+            * For an existing checkout item, the old
+            * quantity is temporarily returned to stock.
+            */
+
+            const originalStock =
+                Number(
+                    card.dataset.stock || 0
+                );
+
+            const currentCheckoutQuantity =
+                saleItems[productId]
+                    ? Number(
+                        saleItems[productId].quantity || 0
+                    )
+                    : 0;
+
+
+            /*
+            * Available stock after the current
+            * adjustment is applied.
+            */
+
+            const previewStock =
+                originalStock -
+                currentQuantity;
+
+
+            /*
+            * Update temporary UI stock.
+            */
+
+            card.dataset.availableStock =
+                String(
+                    Math.max(
+                        0,
+                        previewStock
+                    )
+                );
+
+
+            /*
+            * Update number AND colour.
+            */
+
+            updateProductStockUI(card);
 
           }
         );
@@ -5421,6 +5596,7 @@ document.addEventListener("DOMContentLoaded", function () {
     nextMessage();
 
 });
+
 /* =========================================================
   CUSTOM GROUP HANDLING
 ========================================================= */
