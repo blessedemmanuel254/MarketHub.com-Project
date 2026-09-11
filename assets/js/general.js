@@ -4863,7 +4863,16 @@ document.addEventListener(
         function(event) {
 
           event.preventDefault();
+          /*
+          * CLEAR CHECKOUT ERROR
+          */
+          const checkoutError =
+              document.getElementById("checkoutError");
 
+          if (checkoutError) {
+              checkoutError.innerHTML = "";
+              checkoutError.style.display = "none";
+          }
 
           /*
            * Clear checkout.
@@ -5412,19 +5421,26 @@ document.addEventListener("DOMContentLoaded", function () {
     nextMessage();
 
 });
-
 /* =========================================================
   CUSTOM GROUP HANDLING
 ========================================================= */
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    const companyCategorySelect = document.querySelector('select[name="category"]');
+    const companyCategorySelect =
+        document.querySelector('select[name="category"]');
 
-    const customCategorySelect = document.getElementById('customCategorySelect');
+    const customCategorySelect =
+        document.getElementById('customCategorySelect');
 
+    /*
+     * Product's currently saved custom category ID.
+     *
+     * This comes from:
+     * data-selected-category-id="..."
+     */
     const savedCustomCategoryId =
-    customCategorySelect.dataset.selectedCategoryId || '';
+        customCategorySelect.dataset.selectedCategoryId || '';
 
     const customCategorySelectRow =
         document.getElementById('customCategorySelectRow');
@@ -5468,8 +5484,7 @@ document.addEventListener('DOMContentLoaded', function () {
         newCustomCategoryRow.style.display = 'flex';
 
         /*
-         * The cancel button is hidden when this is the
-         * initial/default input mode.
+         * Default input mode.
          */
         cancelNewCustomCategoryBtn.style.display = 'none';
     }
@@ -5480,19 +5495,31 @@ document.addEventListener('DOMContentLoaded', function () {
         newCustomCategoryRow.style.display = 'none';
 
         customCategorySelectRow.style.display = 'flex';
+
+        cancelNewCustomCategoryBtn.style.display = 'none';
     }
 
 
     function showAddNewMode() {
 
+        /*
+         * IMPORTANT:
+         *
+         * Clear the selected custom category.
+         *
+         * This prevents the form from submitting both:
+         *
+         * custom_category_id = old group
+         * new_custom_category = new group
+         *
+         * when the seller is creating a new group.
+         */
+        customCategorySelect.value = '';
+
         customCategorySelectRow.style.display = 'none';
 
         newCustomCategoryRow.style.display = 'flex';
 
-        /*
-         * Cancel is visible because the seller deliberately
-         * clicked the Add button.
-         */
         cancelNewCustomCategoryBtn.style.display = 'inline-flex';
 
         newCustomCategory.focus();
@@ -5507,12 +5534,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function loadCustomCategories() {
 
-        const companyCategory = companyCategorySelect.value.trim();
+        const companyCategory =
+            companyCategorySelect.value.trim();
 
 
         /*
         --------------------------------------------------------
-            NO COMPANY CATEGORY SELECTED
+            NO COMPANY CATEGORY
         --------------------------------------------------------
         */
 
@@ -5521,15 +5549,12 @@ document.addEventListener('DOMContentLoaded', function () {
             customCategorySelect.innerHTML =
                 '<option value="">-- Select Group Name --</option>';
 
-            /*
-             * Default state is text input.
-             */
+            customCategorySelect.value = '';
+
+            newCustomCategory.value = '';
+
             showInputMode();
 
-            /*
-             * But when the user has not selected a company
-             * category, tell them what they need to do.
-             */
             showMessage();
 
             return;
@@ -5546,14 +5571,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
         /*
-         * Find only groups belonging to this company category.
+         * Find groups belonging to this company category.
          */
         const groups = customCategories.filter(function (group) {
 
             return (
-                String(group.company_category).trim().toLowerCase()
-                === companyCategory.toLowerCase()
+                String(group.company_category)
+                    .trim()
+                    .toLowerCase()
+                ===
+                companyCategory
+                    .toLowerCase()
+
                 &&
+
                 (
                     group.parent_id === null ||
                     group.parent_id === '' ||
@@ -5566,39 +5597,53 @@ document.addEventListener('DOMContentLoaded', function () {
 
         /*
         --------------------------------------------------------
-            THERE ARE EXISTING CUSTOM GROUPS
+            EXISTING CUSTOM GROUPS
         --------------------------------------------------------
         */
 
         if (groups.length > 0) {
 
-            customCategorySelect.innerHTML = '<option value="">-- Select Group Name --</option>';
+            customCategorySelect.innerHTML =
+                '<option value="">-- Select Group Name --</option>';
+
 
             groups.forEach(function (group) {
 
-              const option = document.createElement('option');
+                const option =
+                    document.createElement('option');
 
-              option.value = group.custom_category_id;
+                option.value =
+                    group.custom_category_id;
 
-              option.textContent = group.name;
+                option.textContent =
+                    group.name;
 
-              // Select the product's previously saved custom group
-              if (
-                  savedCustomCategoryId !== '' &&
-                  String(group.custom_category_id) ===
-                  String(savedCustomCategoryId)
-              ) {
-                  option.selected = true;
-              }
 
-              customCategorySelect.appendChild(option);
+                /*
+                 * =================================================
+                 * EDIT MODE:
+                 * Automatically select the product's saved group.
+                 * =================================================
+                 */
+                if (
+                    savedCustomCategoryId !== '' &&
+                    String(group.custom_category_id) ===
+                    String(savedCustomCategoryId)
+                ) {
+
+                    option.selected = true;
+                }
+
+
+                customCategorySelect.appendChild(option);
 
             });
 
+
             /*
-             * Existing groups means:
+             * Existing groups:
              *
-             * SELECT + ADD BUTTON
+             * SELECT + ADD
              */
             showSelectMode();
 
@@ -5607,7 +5652,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         /*
         --------------------------------------------------------
-            THERE ARE NO CUSTOM GROUPS
+            NO EXISTING CUSTOM GROUPS
         --------------------------------------------------------
         */
 
@@ -5616,14 +5661,8 @@ document.addEventListener('DOMContentLoaded', function () {
             customCategorySelect.innerHTML =
                 '<option value="">-- Select Group Name --</option>';
 
-            /*
-             * No existing groups means:
-             *
-             * TEXT INPUT
-             *
-             * No Cancel button because this is the default
-             * state, not "add another group" mode.
-             */
+            customCategorySelect.value = '';
+
             showInputMode();
 
         }
@@ -5640,7 +5679,10 @@ document.addEventListener('DOMContentLoaded', function () {
     companyCategorySelect.addEventListener('change', function () {
 
         /*
-         * Clear anything previously selected/typed.
+         * The seller has changed the general category.
+         *
+         * Therefore the old custom group must no longer
+         * remain selected.
          */
         customCategorySelect.value = '';
 
@@ -5653,23 +5695,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /*
     ============================================================
-        USER CLICKS THE CUSTOM GROUP INPUT
+        USER CLICKS / FOCUSES NEW GROUP INPUT
     ============================================================
     */
 
     newCustomCategory.addEventListener('focus', function () {
 
-        /*
-         * If no company category has been selected,
-         * don't allow them to proceed silently.
-         */
         if (!companyCategorySelect.value.trim()) {
 
             showMessage();
 
-            /*
-             * Keep focus on the company category.
-             */
             companyCategorySelect.focus();
 
             return;
@@ -5682,35 +5717,41 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /*
     ============================================================
-        USER STARTS TYPING
+        USER TYPES A NEW GROUP
     ============================================================
     */
 
     newCustomCategory.addEventListener('input', function () {
 
         /*
-         * Requirement:
-         *
-         * When seller starts typing, temporarily hide Cancel.
+         * If the seller is typing a new group,
+         * the existing SELECT value must be empty.
          */
         if (newCustomCategory.value.trim() !== '') {
 
-            cancelNewCustomCategoryBtn.style.display = 'none';
+            customCategorySelect.value = '';
+
+            /*
+             * IMPORTANT:
+             *
+             * Hide Cancel while typing.
+             */
+            cancelNewCustomCategoryBtn.style.display =
+                'none';
 
         } else {
 
             /*
-             * Only show Cancel again if we are actually in
-             * "Add New Group" mode.
-             *
-             * We determine this by checking whether the
-             * select row is currently hidden.
+             * If the seller deletes everything,
+             * restore Cancel because they are still
+             * in "Add New Group" mode.
              */
-            if (customCategorySelectRow.style.display === 'none'
-                && customCategorySelect.innerHTML !==
-                   '<option value="">-- Select Group Name --</option>') {
+            if (
+                customCategorySelectRow.style.display === 'none'
+            ) {
 
-                cancelNewCustomCategoryBtn.style.display = 'inline-flex';
+                cancelNewCustomCategoryBtn.style.display =
+                    'inline-flex';
 
             }
 
@@ -5721,14 +5762,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /*
     ============================================================
-        ADD BUTTON
+        ADD NEW GROUP BUTTON
     ============================================================
     */
 
     newCustomCategoryBtn.addEventListener('click', function () {
 
         /*
-         * There must already be a company category.
+         * General category is required first.
          */
         if (!companyCategorySelect.value.trim()) {
 
@@ -5742,7 +5783,12 @@ document.addEventListener('DOMContentLoaded', function () {
         hideMessage();
 
         /*
-         * Switch from SELECT to INPUT.
+         * Clear existing selected group.
+         */
+        customCategorySelect.value = '';
+
+        /*
+         * Open new group input.
          */
         showAddNewMode();
 
@@ -5751,19 +5797,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /*
     ============================================================
-        CANCEL BUTTON
+        CANCEL NEW GROUP
     ============================================================
     */
 
     cancelNewCustomCategoryBtn.addEventListener('click', function () {
 
         /*
-         * Clear the new group input.
+         * Clear typed group.
          */
         newCustomCategory.value = '';
 
         /*
-         * Return to the SELECT + ADD button.
+         * Reload existing groups.
+         *
+         * In EDIT MODE this will again select the
+         * product's originally saved group.
          */
         loadCustomCategories();
 
@@ -5772,30 +5821,74 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /*
     ============================================================
+        FORM SUBMISSION
+    ============================================================
+    */
+
+    const form = customCategorySelect.closest('form');
+
+    if (form) {
+
+        form.addEventListener('submit', function () {
+
+            const typedGroup =
+                newCustomCategory.value.trim();
+
+            /*
+             * =================================================
+             * NEW GROUP
+             * =================================================
+             *
+             * Seller typed a new group.
+             *
+             * Make absolutely sure the old SELECT value
+             * is not submitted.
+             */
+            if (typedGroup !== '') {
+
+                customCategorySelect.value = '';
+
+            }
+
+            /*
+             * =================================================
+             * EXISTING GROUP
+             * =================================================
+             *
+             * If seller selected an existing group,
+             * make sure new_custom_category is empty.
+             */
+            else {
+
+                newCustomCategory.value = '';
+            }
+
+        });
+
+    }
+
+
+    /*
+    ============================================================
         INITIAL PAGE STATE
     ============================================================
     */
 
-    /*
-     * We deliberately start with the text input.
-     *
-     * If the form is already loaded with a company category
-     * (for example, edit mode), load the appropriate groups.
-     */
     if (companyCategorySelect.value.trim() !== '') {
 
+        /*
+         * This is particularly important in EDIT MODE.
+         *
+         * loadCustomCategories() will find the product's
+         * saved custom_category_id and mark that option
+         * selected.
+         */
         loadCustomCategories();
 
     } else {
 
         showInputMode();
 
-        /*
-         * Do NOT show the warning immediately.
-         *
-         * It appears when the seller actually clicks/focuses
-         * the custom group input.
-         */
         hideMessage();
 
     }

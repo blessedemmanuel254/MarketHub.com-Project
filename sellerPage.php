@@ -1152,6 +1152,403 @@ $productJson = json_encode(
 );
 
 /* =========================================================
+  HANDLE MOVE PRODUCT TO SUB GROUP
+========================================================= */
+
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST' &&
+    isset($_POST['move_product'])
+) {
+
+    header(
+        'Content-Type: application/json; charset=utf-8'
+    );
+
+
+    $productId =
+        isset($_POST['product_id'])
+            ? (int) $_POST['product_id']
+            : 0;
+
+
+    $targetCategoryId =
+        isset($_POST['target_category_id'])
+            ? (int) $_POST['target_category_id']
+            : 0;
+
+
+    /* =====================================================
+       BASIC VALIDATION
+    ===================================================== */
+
+    if (
+        $productId <= 0 ||
+        $targetCategoryId <= 0
+    ) {
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Invalid product or sub group.'
+        ]);
+
+        exit;
+
+    }
+
+
+    /* =====================================================
+       VERIFY PRODUCT BELONGS TO THIS SELLER
+    ===================================================== */
+
+    $checkProduct =
+        $conn->prepare("
+            SELECT
+                product_id,
+                category,
+                custom_category_id
+            FROM productservicesrentals
+            WHERE product_id = ?
+              AND user_id = ?
+            LIMIT 1
+        ");
+
+
+    if (!$checkProduct) {
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Database error: ' . $conn->error
+        ]);
+
+        exit;
+
+    }
+
+
+    $checkProduct->bind_param(
+        "ii",
+        $productId,
+        $user_id
+    );
+
+
+    $checkProduct->execute();
+
+
+    $productResult =
+        $checkProduct->get_result();
+
+
+    if ($productResult->num_rows === 0) {
+
+        $checkProduct->close();
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Product not found.'
+        ]);
+
+        exit;
+
+    }
+
+
+    $productRow =
+        $productResult->fetch_assoc();
+
+
+    $checkProduct->close();
+
+
+    /* =====================================================
+       PRODUCT COMPANY CATEGORY
+    ===================================================== */
+
+    $companyCategory =
+        trim(
+            $productRow['category']
+        );
+
+
+    /* =====================================================
+       FIND PRODUCT'S ROOT CUSTOM GROUP
+       
+       Example:
+       
+       Drinks
+          ↓
+       Juices
+          ↓
+       Product
+       
+       OR
+       
+       Drinks
+          ↓
+       Sodas
+          ↓
+       Product
+       
+       In both cases, root = Drinks.
+    ===================================================== */
+
+    $currentCategoryId =
+        (int) $productRow['custom_category_id'];
+
+
+    $rootCategoryId =
+        $currentCategoryId;
+
+
+    /* =====================================================
+       FIND ROOT BY WALKING UP parent_id
+    ===================================================== */
+
+    while (true) {
+
+        $findParent =
+            $conn->prepare("
+                SELECT
+                    custom_category_id,
+                    parent_id
+                FROM custom_categories
+                WHERE custom_category_id = ?
+                  AND user_id = ?
+                  AND company_category = ?
+                LIMIT 1
+            ");
+
+
+        if (!$findParent) {
+
+            echo json_encode([
+                'success' => false,
+                'message' =>
+                    'Database error: ' . $conn->error
+            ]);
+
+            exit;
+
+        }
+
+
+        $findParent->bind_param(
+            "iis",
+            $rootCategoryId,
+            $user_id,
+            $companyCategory
+        );
+
+
+        $findParent->execute();
+
+
+        $parentResult =
+            $findParent->get_result();
+
+
+        if ($parentResult->num_rows === 0) {
+
+            $findParent->close();
+
+            /*
+             * Product has no valid custom category.
+             */
+
+            echo json_encode([
+                'success' => false,
+                'message' =>
+                    'The product custom group could not be found.'
+            ]);
+
+            exit;
+
+        }
+
+
+        $categoryRow =
+            $parentResult->fetch_assoc();
+
+
+        $findParent->close();
+
+
+        $parentId =
+            $categoryRow['parent_id'];
+
+
+        /* =================================================
+           ROOT REACHED
+           
+           parent_id = NULL / 0
+        ================================================= */
+
+        if (
+            $parentId === null ||
+            $parentId === '' ||
+            (int)$parentId === 0
+        ) {
+
+            break;
+
+        }
+
+
+        /* =================================================
+           MOVE ONE LEVEL UP
+        ================================================= */
+
+        $rootCategoryId =
+            (int)$parentId;
+
+    }
+
+
+    /* =====================================================
+       VERIFY TARGET SUBGROUP
+       
+       The target must:
+       
+       1. Belong to this seller
+       2. Belong to the product's company category
+       3. Be a DIRECT subgroup of the ROOT GROUP
+    ===================================================== */
+
+    $checkTarget =
+        $conn->prepare("
+            SELECT
+                custom_category_id,
+                name,
+                parent_id
+            FROM custom_categories
+            WHERE custom_category_id = ?
+              AND user_id = ?
+              AND company_category = ?
+              AND parent_id = ?
+            LIMIT 1
+        ");
+
+
+    if (!$checkTarget) {
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Database error: ' . $conn->error
+        ]);
+
+        exit;
+
+    }
+
+
+    $checkTarget->bind_param(
+        "iisi",
+        $targetCategoryId,
+        $user_id,
+        $companyCategory,
+        $rootCategoryId
+    );
+
+
+    $checkTarget->execute();
+
+
+    $targetResult =
+        $checkTarget->get_result();
+
+
+    if ($targetResult->num_rows === 0) {
+
+        $checkTarget->close();
+
+        echo json_encode([
+            'success' => false,
+            'message' =>
+                'The selected sub group does not belong to the product\'s current custom group.'
+        ]);
+
+        exit;
+
+    }
+
+
+    $targetRow =
+        $targetResult->fetch_assoc();
+
+
+    $checkTarget->close();
+
+
+    /* =====================================================
+       UPDATE PRODUCT
+    ===================================================== */
+
+    $updateProduct =
+        $conn->prepare("
+            UPDATE productservicesrentals
+            SET custom_category_id = ?
+            WHERE product_id = ?
+              AND user_id = ?
+            LIMIT 1
+        ");
+
+
+    if (!$updateProduct) {
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Database error: ' . $conn->error
+        ]);
+
+        exit;
+
+    }
+
+
+    $updateProduct->bind_param(
+        "iii",
+        $targetCategoryId,
+        $productId,
+        $user_id
+    );
+
+
+    if (!$updateProduct->execute()) {
+
+        $error =
+            $updateProduct->error;
+
+        $updateProduct->close();
+
+        echo json_encode([
+            'success' => false,
+            'message' =>
+                'Failed to move product: ' . $error
+        ]);
+
+        exit;
+
+    }
+
+
+    $updateProduct->close();
+
+
+    /* =====================================================
+       SUCCESS
+    ===================================================== */
+
+    echo json_encode([
+        'success' => true,
+        'message' => 'Product moved successfully.',
+        'product_id' => $productId,
+        'category_id' => $targetCategoryId,
+        'category_name' => $targetRow['name']
+    ]);
+
+    exit;
+}
+/* =========================================================
   HANDLE ADD SUB GROUP
 ========================================================= */
 
@@ -1615,6 +2012,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['edit_product_id']) &
 
 $productName = smartTitleCase($_POST['name'] ?? '');
 $category    = trim($_POST['category'] ?? '');
+
+$customCategoryId = !empty($_POST['custom_category_id'])
+    ? (int) $_POST['custom_category_id']
+    : null;
+
+$newCustomCategory = smartTitleCase(
+    trim($_POST['new_custom_category'] ?? '')
+);
 $saleType = $_POST['sale_type'] ?? 'Each';
 $unit      = $_POST['unit'] ?? 'Each';
 $buyingPrice       = floatval($_POST['bPrice'] ?? 0);
@@ -1686,7 +2091,6 @@ $error = "You already added a product with this name.";
 $stmt->close();
 
 }
-
 
 /* ---------- IMAGE VALIDATION ---------- */
 
@@ -1942,215 +2346,254 @@ $fileSizeKB = round(filesize($filePath)/1024);
 
 imagedestroy($canvas);
 imagedestroy($source);
-
-/* =========================================================
-  HANDLE CUSTOM CATEGORY
-========================================================= */
-
-$customCategoryId = !empty($_POST['custom_category_id'])
-    ? (int) $_POST['custom_category_id']
-    : null;
-
-$newCustomCategory = smartTitleCase(trim($_POST['new_custom_category'] ?? ''));
+/*
+=========================================================
+HANDLE CUSTOM GROUP DURING PRODUCT ADD
+=========================================================
+*/
 
 $postedCustomCategoryId = !empty($_POST['custom_category_id'])
-  ? (int) $_POST['custom_category_id']
-  : 0;
+    ? (int) $_POST['custom_category_id']
+    : 0;
+
+$newCustomCategory = smartTitleCase(
+    trim($_POST['new_custom_category'] ?? '')
+);
+
+$customCategoryId = null;
 
 
 /*
 ---------------------------------------------------------
-IF SELLER SELECTED AN EXISTING CUSTOM GROUP
+MAKE SURE GENERAL CATEGORY WAS SELECTED
 ---------------------------------------------------------
 */
 
-if ($postedCustomCategoryId > 0) {
+if (empty($category)) {
 
-  $stmt = $conn->prepare("
-      SELECT custom_category_id
-      FROM custom_categories
-      WHERE custom_category_id = ?
-        AND user_id = ?
-        AND company_category = ?
-      LIMIT 1
-  ");
+    $error = "Please select a general category first.";
 
-  $stmt->bind_param(
-      "iis",
-      $postedCustomCategoryId,
-      $user_id,
-      $category
-  );
-
-  $stmt->execute();
-
-  $result = $stmt->get_result();
-
-  if ($row = $result->fetch_assoc()) {
-
-      $customCategoryId = (int) $row['custom_category_id'];
-
-  }
-
-  $stmt->close();
 }
 
 
 /*
 ---------------------------------------------------------
-IF SELLER ENTERED A NEW CUSTOM GROUP
+EXISTING CUSTOM GROUP SELECTED
+---------------------------------------------------------
+*/
+
+elseif ($postedCustomCategoryId > 0) {
+
+    $stmt = $conn->prepare("
+        SELECT custom_category_id
+        FROM custom_categories
+        WHERE custom_category_id = ?
+          AND user_id = ?
+          AND company_category = ?
+          AND parent_id IS NULL
+        LIMIT 1
+    ");
+
+    $stmt->bind_param(
+        "iis",
+        $postedCustomCategoryId,
+        $user_id,
+        $category
+    );
+
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+
+    if ($row = $result->fetch_assoc()) {
+
+        $customCategoryId = (int) $row['custom_category_id'];
+
+    } else {
+
+        $error = "The selected group is invalid.";
+
+    }
+
+    $stmt->close();
+
+}
+
+
+/*
+---------------------------------------------------------
+NEW CUSTOM GROUP ENTERED
 ---------------------------------------------------------
 */
 
 elseif ($newCustomCategory !== '') {
 
-  /*
-    * Check whether this seller already has the same
-    * custom group under this company category.
+    /*
+    Check whether seller already has the same
+    group under this general category.
     */
-  $stmt = $conn->prepare("
-      SELECT custom_category_id
-      FROM custom_categories
-      WHERE user_id = ?
-        AND company_category = ?
-        AND name = ?
-      LIMIT 1
-  ");
 
-  $stmt->bind_param(
-      "iss",
-      $user_id,
-      $category,
-      $newCustomCategory
-  );
+    $stmt = $conn->prepare("
+        SELECT custom_category_id
+        FROM custom_categories
+        WHERE user_id = ?
+          AND company_category = ?
+          AND name = ?
+          AND parent_id IS NULL
+        LIMIT 1
+    ");
 
-  $stmt->execute();
+    $stmt->bind_param(
+        "iss",
+        $user_id,
+        $category,
+        $newCustomCategory
+    );
 
-  $result = $stmt->get_result();
+    $stmt->execute();
 
-  if ($row = $result->fetch_assoc()) {
+    $result = $stmt->get_result();
 
-      /*
-        * Use the existing group instead of creating
-        * a duplicate.
+    if ($row = $result->fetch_assoc()) {
+
+        /*
+        Use existing group instead of creating duplicate.
         */
-      $customCategoryId = (int) $row['custom_category_id'];
 
-  } else {
+        $customCategoryId = (int) $row['custom_category_id'];
 
-      /*
-        * Create the new custom group.
-        *
-        * parent_id is NULL because this is currently
-        * a top-level seller custom group.
+    } else {
+
+        /*
+        Create new top-level custom group.
         */
-      $stmtInsertCategory = $conn->prepare("
-          INSERT INTO custom_categories
-          (
-              user_id,
-              company_category,
-              name,
-              parent_id
-          )
-          VALUES (?, ?, ?, NULL)
-      ");
 
-      $stmtInsertCategory->bind_param(
-          "iss",
-          $user_id,
-          $category,
-          $newCustomCategory
-      );
+        $stmtInsertCategory = $conn->prepare("
+            INSERT INTO custom_categories
+            (
+                user_id,
+                company_category,
+                name,
+                parent_id
+            )
+            VALUES (?, ?, ?, NULL)
+        ");
 
-      if (!$stmtInsertCategory->execute()) {
+        $stmtInsertCategory->bind_param(
+            "iss",
+            $user_id,
+            $category,
+            $newCustomCategory
+        );
 
-          $error = "Failed to create custom group: "
-                  . $stmtInsertCategory->error;
+        if (!$stmtInsertCategory->execute()) {
 
-      } else {
+            $error = "Failed to create custom group: "
+                   . $stmtInsertCategory->error;
 
-          $customCategoryId = $stmtInsertCategory->insert_id;
+        } else {
 
-      }
+            $customCategoryId =
+                $stmtInsertCategory->insert_id;
 
-      $stmtInsertCategory->close();
-  }
+        }
 
-  $stmt->close();
-}
+        $stmtInsertCategory->close();
+    }
 
-/* ---------- INSERT PRODUCT ---------- */
-
-$stmt = $conn->prepare("
-    INSERT INTO productservicesrentals
-    (
-        user_id,
-        product_name,
-        category,
-        custom_category_id,
-        sale_type,
-        unit,
-        buying_price,
-        selling_price,
-        stock_quantity,
-        image_path,
-        image_width,
-        image_height,
-        image_size_kb,
-        image_format,
-        image_hash,
-        image_phash
-    )
-    VALUES
-    (
-        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'webp', ?, ?
-    )
-");
-
-if (!$stmt) {
-    die("Prepare failed: " . $conn->error);
-}
-
-$stmt->bind_param(
-  "ississddisiiiss",
-  $user_id,
-  $productName,
-  $category,
-  $customCategoryId,
-  $saleType,
-  $unit,
-  $buyingPrice,
-  $sellingPrice,
-  $stock,
-  $filePath,
-  $newWidth,
-  $newHeight,
-  $fileSizeKB,
-  $imgHash,
-  $imgPhash
-);
-
-if ($stmt->execute()) {
-
-    $success = "Product added successfully! <span class='redirect-msg'></span>";
-
-    $productName = '';
-    $category = '';
-    $customCategoryId = null;
-    $newCustomCategory = '';
-    $saleType = '';
-    $unit = '';
-    $buyingPrice = '';
-    $sellingPrice = '';
-    $stock = '';
-
-} else {
-
-    die($stmt->error);
+    $stmt->close();
 
 }
 
-$stmt->close();
+
+/*
+---------------------------------------------------------
+NEITHER EXISTING NOR NEW GROUP WAS PROVIDED
+---------------------------------------------------------
+*/
+
+else {
+
+    $error = "Group Name is required either by adding or selecting!";
+
+}
+
+/* =========================================================
+   INSERT PRODUCT ONLY IF THERE IS NO ERROR
+========================================================= */
+
+if (empty($error)) {
+
+    $stmt = $conn->prepare("
+        INSERT INTO productservicesrentals
+        (
+            user_id,
+            product_name,
+            category,
+            custom_category_id,
+            sale_type,
+            unit,
+            buying_price,
+            selling_price,
+            stock_quantity,
+            image_path,
+            image_width,
+            image_height,
+            image_size_kb,
+            image_format,
+            image_hash,
+            image_phash
+        )
+        VALUES
+        (
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'webp', ?, ?
+        )
+    ");
+
+    if (!$stmt) {
+        die("Prepare failed: " . $conn->error);
+    }
+
+    $stmt->bind_param(
+        "ississddisiiiss",
+        $user_id,
+        $productName,
+        $category,
+        $customCategoryId,
+        $saleType,
+        $unit,
+        $buyingPrice,
+        $sellingPrice,
+        $stock,
+        $filePath,
+        $newWidth,
+        $newHeight,
+        $fileSizeKB,
+        $imgHash,
+        $imgPhash
+    );
+
+    if ($stmt->execute()) {
+
+        $success = "Product added successfully! <span class='redirect-msg'></span>";
+
+        $productName = '';
+        $category = '';
+        $customCategoryId = null;
+        $newCustomCategory = '';
+        $saleType = '';
+        $unit = '';
+        $buyingPrice = '';
+        $sellingPrice = '';
+        $stock = '';
+
+    } else {
+
+        die($stmt->error);
+    }
+
+    $stmt->close();
+}
 
 }
 
@@ -2168,7 +2611,11 @@ $saleType = $_POST['sale_type'] ?? 'Each';
 $unit      = $_POST['unit'] ?? 'Each';
 $buyingPrice  = isset($_POST['bPrice']) ? (float)$_POST['bPrice'] : 0;
 $sellingPrice = isset($_POST['sPrice']) ? (float)$_POST['sPrice'] : 0;
-$stock       = intval($_POST['stock'] ?? 0);
+if ($unit === 'Each') {
+    $stock = (int)($_POST['stock'] ?? 0);
+} else {
+    $stock = (float)($_POST['stock'] ?? 0);
+}
 
 /* ---------- BASIC VALIDATION ---------- */
 
@@ -2190,7 +2637,6 @@ $error="Selling price must be greater than zero!";
 elseif ($stock<0) {
 $error="Stock cannot be negative!";
 }
-
 
 /* ---------- CHECK DUPLICATE PRODUCT NAME ---------- */
 
@@ -2516,151 +2962,217 @@ if(isset($source)) imagedestroy($source);
 }
 
 /* =========================================================
-  HANDLE CUSTOM GROUP DURING PRODUCT UPDATE
+   HANDLE CUSTOM GROUP DURING PRODUCT UPDATE
 ========================================================= */
 
 $customCategoryId = !empty($_POST['custom_category_id'])
-  ? (int)$_POST['custom_category_id']
-  : null;
+    ? (int) $_POST['custom_category_id']
+    : 0;
 
-$newCustomCategory = smartTitleCase(trim($_POST['new_custom_category'] ?? ''));
+$newCustomCategory = smartTitleCase(
+    trim($_POST['new_custom_category'] ?? '')
+);
 
 
 /*
 ---------------------------------------------------------
-CREATE NEW CUSTOM GROUP IF SELLER TYPED ONE
+MAKE SURE GENERAL CATEGORY WAS SELECTED
 ---------------------------------------------------------
 */
 
-if ($newCustomCategory !== '') {
+if (empty($category)) {
 
-  /*
-    * Make sure a company category was selected.
-    */
-  if (empty($category)) {
+    $error = "Please select a general category first.";
 
-      $error = "Please select a general category first.";
-
-  } else {
-
-      /*
-        * Check whether this seller already has this group
-        * under the selected company category.
-        */
-      $checkStmt = $conn->prepare("
-          SELECT custom_category_id
-          FROM custom_categories
-          WHERE user_id = ?
-            AND company_category = ?
-            AND name = ?
-          LIMIT 1
-      ");
-
-      $checkStmt->bind_param(
-          "iss",
-          $user_id,
-          $category,
-          $newCustomCategory
-      );
-
-      $checkStmt->execute();
-
-      $checkResult = $checkStmt->get_result();
-
-      if ($checkResult && $checkResult->num_rows > 0) {
-
-          /*
-            * Group already exists.
-            * Use the existing ID instead of creating duplicate.
-            */
-          $existingGroup = $checkResult->fetch_assoc();
-
-          $customCategoryId =
-              (int)$existingGroup['custom_category_id'];
-
-      } else {
-
-          /*
-            * Create the new custom group.
-            */
-          $insertCategory = $conn->prepare("
-              INSERT INTO custom_categories
-              (
-                  user_id,
-                  company_category,
-                  name,
-                  parent_id
-              )
-              VALUES (?, ?, ?, NULL)
-          ");
-
-          $insertCategory->bind_param(
-              "iss",
-              $user_id,
-              $category,
-              $newCustomCategory
-          );
-
-          if ($insertCategory->execute()) {
-
-              /*
-                * Get the newly-created custom category ID.
-                */
-              $customCategoryId =
-                  $insertCategory->insert_id;
-
-          } else {
-
-              $error =
-                  "Failed to create custom group: "
-                  . $insertCategory->error;
-          }
-
-          $insertCategory->close();
-      }
-
-      $checkStmt->close();
-  }
 }
 
+
+/*
+---------------------------------------------------------
+NEW CUSTOM GROUP ENTERED
+---------------------------------------------------------
+*/
+
+elseif ($newCustomCategory !== '') {
+
+    /*
+    Check whether this seller already has this
+    group under the selected general category.
+    */
+
+    $checkStmt = $conn->prepare("
+        SELECT custom_category_id
+        FROM custom_categories
+        WHERE user_id = ?
+          AND company_category = ?
+          AND name = ?
+          AND parent_id IS NULL
+        LIMIT 1
+    ");
+
+    $checkStmt->bind_param(
+        "iss",
+        $user_id,
+        $category,
+        $newCustomCategory
+    );
+
+    $checkStmt->execute();
+
+    $checkResult = $checkStmt->get_result();
+
+    if ($checkResult && $checkResult->num_rows > 0) {
+
+        /*
+        Group already exists.
+        */
+
+        $existingGroup = $checkResult->fetch_assoc();
+
+        $customCategoryId =
+            (int) $existingGroup['custom_category_id'];
+
+    } else {
+
+        /*
+        Create new custom group.
+        */
+
+        $insertCategory = $conn->prepare("
+            INSERT INTO custom_categories
+            (
+                user_id,
+                company_category,
+                name,
+                parent_id
+            )
+            VALUES (?, ?, ?, NULL)
+        ");
+
+        $insertCategory->bind_param(
+            "iss",
+            $user_id,
+            $category,
+            $newCustomCategory
+        );
+
+        if ($insertCategory->execute()) {
+
+            $customCategoryId =
+                $insertCategory->insert_id;
+
+        } else {
+
+            $error =
+                "Failed to create custom group: "
+                . $insertCategory->error;
+        }
+
+        $insertCategory->close();
+    }
+
+    $checkStmt->close();
+
+}
+
+
+/*
+---------------------------------------------------------
+EXISTING CUSTOM GROUP SELECTED
+---------------------------------------------------------
+*/
+
+elseif ($customCategoryId > 0) {
+
+    /*
+    Make sure the selected group actually belongs
+    to this seller and selected general category.
+    */
+
+    $checkStmt = $conn->prepare("
+        SELECT custom_category_id
+        FROM custom_categories
+        WHERE custom_category_id = ?
+          AND user_id = ?
+          AND company_category = ?
+          AND parent_id IS NULL
+        LIMIT 1
+    ");
+
+    $checkStmt->bind_param(
+        "iis",
+        $customCategoryId,
+        $user_id,
+        $category
+    );
+
+    $checkStmt->execute();
+
+    $checkResult = $checkStmt->get_result();
+
+    if (!$checkResult || !$checkResult->fetch_assoc()) {
+
+        $error = "The selected group is invalid.";
+
+        $customCategoryId = 0;
+    }
+
+    $checkStmt->close();
+
+}
+
+
+/*
+---------------------------------------------------------
+NO GROUP PROVIDED
+---------------------------------------------------------
+*/
+
+else {
+
+    $error =
+        "Group Name is required either by adding or selecting!";
+
+    $customCategoryId = 0;
+}
 
 /* ---------- UPDATE PRODUCT ---------- */
 
 if (empty($error)) {
 
     $stmt = $conn->prepare("
-      UPDATE productservicesrentals
-      SET
-          product_name = ?,
-          category = ?,
-          custom_category_id = ?,
-          sale_type = ?,
-          unit = ?,
-          buying_price = ?,
-          selling_price = ?,
-          stock_quantity = ?,
-          image_path = ?,
-          image_hash = ?,
-          image_phash = ?
-      WHERE product_id = ?
+        UPDATE productservicesrentals
+        SET
+            product_name = ?,
+            category = ?,
+            custom_category_id = ?,
+            sale_type = ?,
+            unit = ?,
+            buying_price = ?,
+            selling_price = ?,
+            stock_quantity = ?,
+            image_path = ?,
+            image_hash = ?,
+            image_phash = ?
+        WHERE product_id = ?
         AND user_id = ?
     ");
 
     $stmt->bind_param(
-      "ssissddisssii",
-      $productName,
-      $category,
-      $customCategoryId,
-      $saleType,
-      $unit,
-      $buyingPrice,
-      $sellingPrice,
-      $stock,
-      $imageToSave,
-      $imgHash,
-      $imgPhash,
-      $editProductId,
-      $user_id
+        "ssissddisssii",
+        $productName,
+        $category,
+        $customCategoryId,
+        $saleType,
+        $unit,
+        $buyingPrice,
+        $sellingPrice,
+        $stock,
+        $imageToSave,
+        $imgHash,
+        $imgPhash,
+        $editProductId,
+        $user_id
     );
 
     if ($stmt->execute()) {
@@ -3473,7 +3985,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
           </div> -->
           <div id="dashboard" class="tab-panel">
             <div class="tab-top sales">
-              <p>Dashboard Area <br><strong>Your business operations <i class="fa-regular fa-circle-check"></i></strong></p>
+              <p>Dashboard Area</p>
               <button onclick="toggleSalesDash()">
                 Sale&nbsp;<span><i class="fa-solid fa-tags"></i></span>
               </button>
@@ -3630,7 +4142,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
           <div id="products" class="tab-panel">
             <div class="tab-top">
-              <p>Your Products Shelf<br><strong>Manage your listed items <i class="fa-regular fa-circle-check"></i></strong></p>
+              <p>Your Products Shelf</p>
               <button onclick="toggleProductsAdd(true)">
                 <i class="fa fa-plus"></i>&nbsp;<span>Add&nbsp;Product</span>
               </button>
@@ -3803,12 +4315,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
             <div class="products-grid" id="productsGrid">
               <?php if (!empty($products)): ?>
                 <?php foreach ($products as $product): ?>
-                <div
-                    class="card-contain"
-                    data-product-id="<?= (int)$product['product_id'] ?>"
-                    data-custom-category-id="<?= (int)$product['custom_category_id'] ?>"
+                    .
+                
+                  <div class="subMvFlder">
+                    <div class="card-contain" data-product-id="<?= (int) $product['product_id'] ?>" data-custom-category-id="<?= (int)$product['custom_category_id'] ?>"
                     data-company-category="<?= htmlspecialchars($product['category'], ENT_QUOTES, 'UTF-8') ?>"
-                >
+                    >
                     
                     <div class="card">
                       <img src="<?= htmlspecialchars($product['image_path']) ?>" loading="lazy" decoding="async" alt="<?= htmlspecialchars($product['product_name']) ?>">
@@ -3882,28 +4394,17 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                           </button>
                         </form>
                       </div>
-                      <div class="subMvFlder">
-                        <button class="comm-btn">
-                            <i class="fas fa-ellipsis-vertical"></i>
-                        </button>
-                        <section>
-                            <h2>Move to</h2>
-                            <div class="subGroupList" id="subGroupList">
-                                <?php foreach ($customCategories as $category): ?>
-                                    <button
-                                        type="button"
-                                        class="subGroupItem"
-                                        data-product-id="<?= (int)$product['product_id'] ?>"
-                                        data-category-id="<?= (int)$category['id'] ?>"
-                                    >
-                                        <?= htmlspecialchars($category['name']) ?>
-                                    </button>
-                                <?php endforeach; ?>
-                            </div>
-                        </section>
-                      </div>
                     </div>
                     <div class="product-name"><?= htmlspecialchars($product['product_name']) ?></div>
+                    </div>
+                    <button class="comm-btn">
+                        <i class="fas fa-ellipsis-vertical"></i>
+                    </button>
+                    <section>
+                        <h2>Move to</h2>
+                        <div class="subGroupList">
+                        </div>
+                    </section>
                   </div>
                 <?php endforeach; ?>
                 <div class="card-contain products-navigation-wrapper" id="productsNavigationWrapper">
@@ -4027,47 +4528,65 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                       <option value="Stationery" <?php echo ($category === 'Stationery') ? 'selected' : ''; ?>>Stationery</option>
                     </select>
                   </div>
-                  <div class="inp-box" id="customCategoryBox">
-                    <label>Group Name (optional)</label>
-                    <!-- SELECT MODE -->
-                    <div class="custom-category-row" id="customCategorySelectRow">
+                    <div class="inp-box" id="customCategoryBox">
 
-                    <select
-                        name="custom_category_id"
-                        id="customCategorySelect"
-                        data-selected-category-id="<?= htmlspecialchars((string)($customCategoryId ?? ''), ENT_QUOTES) ?>"
-                    >
-                        <option value="">-- Select Group Name --</option>
-                    </select>
+                        <label>Group Name <span style="color:red;">*</span></label>
 
-                      <button type="button" id="newCustomCategoryBtn" title="Create new group">
-                          <i class="fa-solid fa-plus"></i> Add
-                      </button>
+                        <!-- SELECT MODE -->
+                        <div class="custom-category-row" id="customCategorySelectRow">
 
-                    </div>
-                    <!-- INPUT MODE -->
-                    <div class="custom-category-row" id="newCustomCategoryRow">
+                            <select
+                                name="custom_category_id"
+                                id="customCategorySelect"
+                                data-selected-category-id="<?= htmlspecialchars($customCategoryId ?? '', ENT_QUOTES) ?>"
+                            >
+                                <option value="">-- Select Group Name --</option>
+                            </select>
 
-                        <input
-                            type="text"
-                            name="new_custom_category"
-                            id="newCustomCategory"
-                            placeholder="e.g. Utensils"
-                            maxlength="100"
-                            autocomplete="off"
+                            <button
+                                type="button"
+                                id="newCustomCategoryBtn"
+                                title="Create new group"
+                            >
+                                <i class="fa-solid fa-plus"></i> Add
+                            </button>
+
+                        </div>
+
+
+                        <!-- INPUT MODE -->
+                        <div
+                            class="custom-category-row"
+                            id="newCustomCategoryRow"
+                            style="display:none;"
                         >
 
-                        <button type="button" id="cancelNewCustomCategoryBtn">
-                            Cancel
-                        </button>
+                            <input
+                                type="text"
+                                name="new_custom_category"
+                                id="newCustomCategory"
+                                placeholder="e.g. Utensils"
+                                maxlength="100"
+                                autocomplete="off"
+                            >
+
+                            <button
+                                type="button"
+                                id="cancelNewCustomCategoryBtn"
+                            >
+                                Cancel
+                            </button>
+
+                        </div>
+
+
+                        <!-- MESSAGE -->
+                        <small id="customCategoryMessage">
+                            <i class="fa-solid fa-circle-exclamation"></i>
+                            Select general category first!
+                        </small>
 
                     </div>
-                    <!-- MESSAGE -->
-                    <small id="customCategoryMessage">
-                        <i class="fa-solid fa-circle-exclamation"></i>
-                        Select a general category first!
-                    </small>
-                  </div>
                   <div class="inp-box sold-by">
 
                     <label>Sold by</label>
@@ -5130,40 +5649,98 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
     </main>
     
+<main class="buyerMain" id="salesDashMain">
 
-    <main class="buyerMain" id="salesDashMain">
-      <div class="tab-top">
-        <p>Sale<br><strong>Tap to sale <i class="fa-solid fa-hand-pointer"></i></strong></p>
+    <!-- =========================================================
+         SALES HEADER
+    ========================================================== -->
+
+    <div class="tab-top">
+
+        <p>
+
+            <strong>
+                Tap to sale
+                <i class="fa-solid fa-hand-pointer"></i>
+            </strong>
+        </p>
+
+
         <div class="salesSideDiv">
-          <div class="salesCounter">
-            <i class="fa-solid fa-receipt"></i>
-            <p>0</p>
-          </div>
-          <button onclick="toggleSalesDash()">
-            <i class="fa-solid fa-circle-arrow-left" data-tab="products"></i> <span>Go&nbsp;Back</span>
-          </button>
-        </div>
-      </div>
-      <div class="sales-wrapper">
-            
-            <div class="store-page">
-              
 
-              <div class="categorical-navigation"> 
-                <!-- =================================================
-                      SELLER CUSTOM CATEGORY
-                ================================================== -->
+            <div class="salesCounter">
+
+                <i class="fa-solid fa-receipt"></i>
+
+                <p id="salesCounterValue">
+                    0
+                </p>
+
+            </div>
+
+
+            <button
+                type="button"
+                onclick="toggleSalesDash()"
+            >
+
+                <i
+                    class="fa-solid fa-circle-arrow-left"
+                    data-tab="products"
+                ></i>
+
+                <span>
+                    Go&nbsp;Back
+                </span>
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================================================
+         SALES WRAPPER
+    ========================================================== -->
+
+    <div class="sales-wrapper">
+
+
+        <!-- =====================================================
+             SALES STORE PAGE
+        ====================================================== -->
+
+        <div
+            class="store-page"
+            id="salesStorePage"
+        >
+
+
+            <!-- =================================================
+                 CUSTOM GROUP NAVIGATION
+                 
+                 NO COMPANY CATEGORY HERE
+            ================================================== -->
+
+            <div class="categorical-navigation">
+
 
                 <div
                     class="category-side seller-side"
-                    id="sellerCategorySide">
+                    id="salesSellerCategorySide"
+                >
+
+
                     <button
                         type="button"
                         class="category-crumb"
-                        id="sellerCategoryButton">
+                        id="salesSellerCategoryButton"
+                    >
 
-                        <span id="sellerCategoryText">
-                            Utensils
+                        <span id="salesSellerCategoryText">
+                            Select Group
                         </span>
 
                         <span class="category-arrow"></span>
@@ -5171,326 +5748,378 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                     </button>
 
 
-                    <!-- SELLER POPUP -->
 
-                    <div class="category-popup seller-popup">
+                    <!-- =========================================
+                         CUSTOM GROUP POPUP
+                    ========================================== -->
+
+                    <div
+                        class="category-popup seller-popup"
+                        id="salesSellerCategoryPopup"
+                    >
 
                         <div class="popup-title">
-                            Custom Categories
+                            Custom Groups
                         </div>
 
 
-                        <button
-                            type="button"
-                            class="category-option active"
-                            data-seller="Utensils">
-
-                            Utensils
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="category-option"
-                            data-seller="Zippers">
-
-                            Zippers
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="category-option"
-                            data-seller="Mattresses">
-
-                            Mattresses
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="category-option"
-                            data-seller="Shoes">
-
-                            Shoes
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="category-option"
-                            data-seller="Bags">
-
-                            Bags
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="category-option"
-                            data-seller="Lexines">
-
-                            Lexines
-
-                        </button>
+                        <div
+                            id="salesSellerCategoryOptions"
+                        ></div>
 
                     </div>
 
                 </div>
 
-              </div>
+            </div>
 
 
 
-              <!-- =====================================================
-                  MINI NAVIGATION
-              ====================================================== -->
+            <!-- =================================================
+                 SALES MINI NAVIGATION
 
-              <div class="mini-navigation-wrapper">
+                 ALL + SUBGROUPS + ADD SUBGROUP
+            ================================================== -->
+
+            <div
+                class="mini-navigation-wrapper"
+                id="salesMiniNavigationWrapper"
+            >
 
                 <div class="mini-navigation-scroll">
 
                     <nav
                         class="mini-navigation"
-                        id="miniNavigation">
+                        id="salesMiniNavigation"
+                    >
 
+                        <!-- JavaScript creates:
+                             All
+                             Subgroup 1
+                             Subgroup 2
+                             ...
+                             Add sub group
+                             Sliding indicator
+                        -->
 
-                        <button
-                            type="button"
-                            class="mini-nav-item active"
-                            data-mini="all">
-
-                            All
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="mini-nav-item"
-                            data-mini="sufurias">
-
-                            Sufurias
-
-                        </button>
-                        <button
-                            type="button"
-                            class="mini-nav-item"
-                            data-mini="basins">
-                            Basins
-                        </button>
-                        <button
-                            type="button"
-                            class="mini-nav-item"
-                            data-mini="knives">
-                            Knives
-                        </button>
-                        <button
-                            type="button"
-                            class="mini-nav-item"
-                            data-mini="stands">
-                            Stands
-                        </button>
-                        <button
-                            type="button"
-                            class="mini-nav-item"
-                            data-mini="cups">
-                            Cups
-                        </button>
-                        <button
-                            type="button"
-                            class="mini-nav-item"
-                            data-mini="plates">
-                            Plates
-                        </button>
-                        <button
-                            type="button"
-                            class="mini-nav-item"
-                            data-mini="spoons">
-                            Spoons
-                        </button>
-                        
-                        <!-- SLIDING INDICATOR -->
-                        <span
-                            class="mini-nav-indicator"
-                            id="miniNavIndicator">
-                        </span>
                     </nav>
+
                 </div>
-              </div>
+
             </div>
 
-        <?php
-        $userId = $_SESSION['user_id'] ?? 0;
-
-        $sql = "
-            SELECT
-                product_id,
-                product_name,
-                selling_price,
-                stock_quantity,
-                unit,
-                image_path
-            FROM productservicesrentals
-            WHERE user_id = ?
-              AND status = 'active'
-            ORDER BY product_id DESC
-        ";
-
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $userId);
-        $stmt->execute();
-
-        $result = $stmt->get_result();
-        ?>
-
-        <?php if ($result->num_rows === 0): ?>
-
-          <p>No products here. Click "Go Back" to update your store.</p>
-
-        <?php endif; ?>
+        </div>
 
 
-        <div class="offer-container">
 
-          <div class="sales-grid">
+        <!-- =====================================================
+             NO PRODUCTS MESSAGE
+        ====================================================== -->
 
-            <?php while ($product = $result->fetch_assoc()): ?>
+        <div
+            id="salesNoProductsMessage"
+            style="display:none;"
+        >
 
-              <?php
-              $productId = (int)$product['product_id'];
+            <p>
+                No products here.
+                Click "Go Back" to update your store.
+            </p>
 
-              $productName = htmlspecialchars(
-                  $product['product_name'],
-                  ENT_QUOTES,
-                  'UTF-8'
-              );
-
-              $price = (float)$product['selling_price'];
-              $stock = (float)$product['stock_quantity'];
-
-              $unit = htmlspecialchars(
-                  $product['unit'] ?? 'Each',
-                  ENT_QUOTES,
-                  'UTF-8'
-              );
-
-              $imagePath = !empty($product['image_path'])
-                  ? htmlspecialchars(
-                      $product['image_path'],
-                      ENT_QUOTES,
-                      'UTF-8'
-                  )
-                  : 'Images/Makethub Logo.png';
-
-              $displayStock = rtrim(
-                  rtrim(number_format($stock, 2, '.', ''), '0'),
-                  '.'
-              );
-
-              if ($stock <= 0) {
-                  $stockClass = 'out-stock';
-              } elseif ($stock <= 5) {
-                  $stockClass = 'low-stock';
-              } else {
-                  $stockClass = 'in-stock';
-              }
-              ?>
+        </div>
 
 
-              <div
-                class="cardContainer"
-                data-product-id="<?= $productId ?>"
-                data-product-name="<?= $productName ?>"
-                data-price="<?= $price ?>"
-                data-stock="<?= $stock ?>"
-                data-available-stock="<?= $stock ?>"
-                data-unit="<?= $unit ?>"
-              >
 
-                <div class="productSalesCard">
+        <!-- =====================================================
+             PRODUCTS + CHECKOUT
+        ====================================================== -->
 
-                  <img
-                    src="<?= $imagePath ?>"
-                    alt="<?= $productName ?>"
-                  >
-
-                  <strong class="stock <?= $stockClass ?>">
-                    <?= $displayStock ?>
-                  </strong>
-                </div>
-
-                <div class="adjust-popup">
-
-                  <div class="adjust-buttons">
-
-                    <button type="button" class="adjust-btn minus" data-value="-1">
-                      -1
-                    </button>
-
-                    <button type="button" class="adjust-btn minus" data-value="-0.5">
-                      -½
-                    </button>
-
-                    <button type="button" class="adjust-btn minus" data-value="-0.25">
-                      -¼
-                    </button>
-
-                    <button type="button" class="adjust-btn zero" data-value="0">
-                      0
-                    </button>
-
-                    <button type="button" class="adjust-btn plus" data-value="0.25">
-                      +¼
-                    </button>
-
-                    <button type="button" class="adjust-btn plus" data-value="0.5">
-                      +½
-                    </button>
-
-                    <button type="button" class="adjust-btn plus" data-value="1">
-                      +1
-                    </button>
-
-                  </div>
+        <div
+            class="offer-container"
+            id="salesOfferContainer"
+        >
 
 
-                  <div class="current-adjustment">
+            <!-- =================================================
+                 PRODUCT GRID
 
-                    <span class="quantity-value">0</span>
+                 IMPORTANT:
+                 Product cards are rendered by PHP.
 
-                    <span class="quantity-unit">
-                      <?= $unit ?>
-                    </span>
+                 This preserves compatibility with your existing
+                 checkout JavaScript.
+            ================================================== -->
 
-                  </div>
+            <div
+                class="sales-grid"
+                id="salesProductsGrid"
+            >
 
 
-                  <button type="button" class="add-list-btn">
-                    Add to list
-                  </button>
+                <?php if (empty($products)): ?>
 
-                </div>
+                    <p class="sales-empty-products">
+                        No products here.
+                        Click "Go Back" to update your store.
+                    </p>
 
-              </div>
+                <?php else: ?>
 
-            <?php endwhile; ?>
-            
 
-                  <div class="products-navigation-card salesPageNav">
+                    <?php foreach ($products as $product): ?>
+
+
+                        <?php
+
+                        $productId =
+                            (int)$product['product_id'];
+
+
+                        $productName =
+                            htmlspecialchars(
+                                $product['product_name'] ?? '',
+                                ENT_QUOTES,
+                                'UTF-8'
+                            );
+
+
+                        $price =
+                            (float)$product['selling_price'];
+
+
+                        $stock =
+                            (float)$product['stock_quantity'];
+
+
+                        $unit =
+                            htmlspecialchars(
+                                $product['unit'] ?? 'Each',
+                                ENT_QUOTES,
+                                'UTF-8'
+                            );
+
+
+                        $imagePath =
+                            !empty($product['image_path'])
+                                ? htmlspecialchars(
+                                    $product['image_path'],
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                                )
+                                : 'Images/Makethub Logo.png';
+
+
+                        $customCategoryId =
+                            !empty($product['custom_category_id'])
+                                ? (int)$product['custom_category_id']
+                                : 0;
+
+
+                        $displayStock =
+                            rtrim(
+                                rtrim(
+                                    number_format(
+                                        $stock,
+                                        2,
+                                        '.',
+                                        ''
+                                    ),
+                                    '0'
+                                ),
+                                '.'
+                            );
+
+
+                        if ($stock <= 0) {
+
+                            $stockClass =
+                                'out-stock';
+
+                        } elseif ($stock <= 5) {
+
+                            $stockClass =
+                                'low-stock';
+
+                        } else {
+
+                            $stockClass =
+                                'in-stock';
+
+                        }
+
+                        ?>
+
+
+                        <!-- =====================================
+                             EXISTING CHECKOUT CARD
+
+                             DO NOT CHANGE THE CLASS NAMES.
+                             Your checkout JS uses them.
+                        ====================================== -->
+
+                        <div
+                            class="cardContainer"
+                            data-product-id="<?= $productId ?>"
+                            data-product-name="<?= $productName ?>"
+                            data-price="<?= $price ?>"
+                            data-stock="<?= $stock ?>"
+                            data-available-stock="<?= $stock ?>"
+                            data-unit="<?= $unit ?>"
+                            data-custom-category-id="<?= $customCategoryId ?>"
+                        >
+
+
+                            <div class="productSalesCard">
+
+                                <img
+                                    src="<?= $imagePath ?>"
+                                    alt="<?= $productName ?>"
+                                >
+
+
+                                <strong
+                                    class="stock <?= $stockClass ?>"
+                                >
+                                    <?= $displayStock ?>
+                                </strong>
+
+                            </div>
+
+
+
+                            <!-- =================================
+                                 EXISTING ADJUSTMENT POPUP
+                            ================================== -->
+
+                            <div class="adjust-popup">
+
+
+                                <div class="adjust-buttons">
+
+
+                                    <button
+                                        type="button"
+                                        class="adjust-btn minus"
+                                        data-value="-1"
+                                    >
+                                        -1
+                                    </button>
+
+
+                                    <button
+                                        type="button"
+                                        class="adjust-btn minus"
+                                        data-value="-0.5"
+                                    >
+                                        -½
+                                    </button>
+
+
+                                    <button
+                                        type="button"
+                                        class="adjust-btn minus"
+                                        data-value="-0.25"
+                                    >
+                                        -¼
+                                    </button>
+
+
+                                    <button
+                                        type="button"
+                                        class="adjust-btn zero"
+                                        data-value="0"
+                                    >
+                                        0
+                                    </button>
+
+
+                                    <button
+                                        type="button"
+                                        class="adjust-btn plus"
+                                        data-value="0.25"
+                                    >
+                                        +¼
+                                    </button>
+
+
+                                    <button
+                                        type="button"
+                                        class="adjust-btn plus"
+                                        data-value="0.5"
+                                    >
+                                        +½
+                                    </button>
+
+
+                                    <button
+                                        type="button"
+                                        class="adjust-btn plus"
+                                        data-value="1"
+                                    >
+                                        +1
+                                    </button>
+
+
+                                </div>
+
+
+
+                                <div class="current-adjustment">
+
+                                    <span class="quantity-value">
+                                        0
+                                    </span>
+
+
+                                    <span class="quantity-unit">
+                                        <?= $unit ?>
+                                    </span>
+
+                                </div>
+
+
+
+                                <button
+                                    type="button"
+                                    class="add-list-btn"
+                                >
+                                    Add to list
+                                </button>
+
+
+                            </div>
+
+
+                        </div>
+
+
+                    <?php endforeach; ?>
+
+
+                <?php endif; ?>
+
+
+                <!-- =================================================
+                     NAVIGATION CARD
+
+                     JavaScript controls its visibility/content.
+                     It is NOT permanently shown.
+                ================================================== -->
+
+                <div
+                    class="products-navigation-card salesPageNav"
+                    id="salesProductsNavigationCard"
+                    style="display:none;"
+                >
+
+
                     <div class="navigation-buttons">
 
-                        <!-- PREVIOUS -->
 
                         <button
                             type="button"
                             class="navigation-button"
-                            id="previousProducts"
+                            id="salesPreviousProducts"
                             aria-label="Previous products"
                         >
 
@@ -5519,12 +6148,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                         </button>
 
 
-                        <!-- NEXT -->
 
                         <button
                             type="button"
                             class="navigation-button"
-                            id="nextProducts"
+                            id="salesNextProducts"
                             aria-label="Next products"
                         >
 
@@ -5539,6 +6167,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                                     stroke-width="2"
                                     stroke-linecap="round"
                                 />
+
                                 <path
                                     d="M13 6L19 12L13 18"
                                     stroke="currentColor"
@@ -5551,86 +6180,1759 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
                         </button>
 
+
                     </div>
-                    <div class="navigation-page" id="navigationPage">Page 1 of 2</div>
-                  </div>
 
-          </div>
-          <div class="fSales-container">
-            <form class="cardFSales">
-              <div class="card-title">Checkout List
-                <a class="reset-btn">
-                  <i class="fa-solid fa-rotate-left"></i> Reset
-                </a>
-              </div>
-              <div
-                id="checkoutError"
-                class="checkout-error"
-              ></div>
-              <p class="emptyListP"><i class="fa-solid fa-battery-empty"></i> Click on a product to sale!...</p>
 
-              <div id="checkoutItems" class="checkout-items">
-              </div>
 
-              <div class="summary-row items-total ksh">
-                <span>Items Total</span>
-                <span id="itemsTotal ksh">KES 0.00</span>
-              </div>
+                    <div
+                        class="navigation-page"
+                        id="salesNavigationPage"
+                    >
+                        Page 1 of 1
+                    </div>
 
-              <div class="summary-row ksh">
-                <span>Delivery Fees</span>
-                <span>0</span>
-              </div>
 
-              <div class="summary-row ksh">
-                <span>Promotions</span>
-                <span>0</span>
-              </div>
+                    <div
+                        class="navigation-count"
+                        id="salesNavigationCount"
+                    >
+                        0 products
+                    </div>
 
-              <div class="summary-row total">
-                <span>Total</span>
-                <span id="finalTotal">KES 0.00</span>
-              </div>
 
-              <div class="payMethodDiv">
-                <label>Paid by</label>
-                <div class="paidByDiv">
-
-                  <label class="money-method">
-                    <input type="radio" name="pmethod" value="cash" <?= ($saleType === 'cash') ? 'checked' : '' ?>>
-                    <div class="radio-dot"></div>
-                    Cash
-                  </label>
-                  <label class="money-method">
-                    <input type="radio" name="pmethod" value="bank" <?= ($saleType === 'bank') ? 'checked' : '' ?>>
-                    <div class="radio-dot"></div>
-                    Bank
-                  </label>
                 </div>
-              </div>
-              <button
-                type="button"
-                id="checkoutButton"
-                class="checkout-order"
-                onclick="checkOutOrder()">
 
-                Checkout
-                <span id="checkoutTotal">
-                    KES 0.00
-                </span>
 
-              </button>
-            </form>
-          </div>
+            </div>
+
+
+
+            <!-- =================================================
+                 CHECKOUT PANEL
+
+                 RETAINED FOR YOUR EXISTING CHECKOUT JS
+            ================================================== -->
+
+            <div class="fSales-container">
+
+                <form class="cardFSales">
+
+
+                    <div class="card-title">
+
+                        Checkout List
+
+                        <a
+                            href="javascript:void(0)"
+                            class="reset-btn"
+                        >
+
+                            <i class="fa-solid fa-rotate-left"></i>
+
+                            Reset
+
+                        </a>
+
+                    </div>
+
+
+
+                    <div
+                        id="checkoutError"
+                        class="checkout-error"
+                    ></div>
+
+
+
+                    <p class="emptyListP">
+
+                        <i class="fa-solid fa-battery-empty"></i>
+
+                        Click on a product to sale!...
+
+                    </p>
+
+
+
+                    <div
+                        id="checkoutItems"
+                        class="checkout-items"
+                    ></div>
+
+
+
+                    <div class="summary-row items-total ksh">
+
+                        <span>
+                            Items Total
+                        </span>
+
+                        <span id="itemsTotal">
+                            KES 0.00
+                        </span>
+
+                    </div>
+
+
+
+                    <div class="summary-row ksh">
+
+                        <span>
+                            Delivery Fees
+                        </span>
+
+                        <span>
+                            0
+                        </span>
+
+                    </div>
+
+
+
+                    <div class="summary-row ksh">
+
+                        <span>
+                            Promotions
+                        </span>
+
+                        <span>
+                            0
+                        </span>
+
+                    </div>
+
+
+
+                    <div class="summary-row total">
+
+                        <span>
+                            Total
+                        </span>
+
+                        <span id="finalTotal">
+                            KES 0.00
+                        </span>
+
+                    </div>
+
+
+
+                    <div class="payMethodDiv">
+
+                        <label>
+                            Paid by
+                        </label>
+
+
+                        <div class="paidByDiv">
+
+
+                            <label class="money-method">
+
+                                <input
+                                    type="radio"
+                                    name="pmethod"
+                                    value="cash"
+                                    <?= ($saleType === 'cash') ? 'checked' : '' ?>
+                                >
+
+                                <div class="radio-dot"></div>
+
+                                Cash
+
+                            </label>
+
+
+
+                            <label class="money-method">
+
+                                <input
+                                    type="radio"
+                                    name="pmethod"
+                                    value="bank"
+                                    <?= ($saleType === 'bank') ? 'checked' : '' ?>
+                                >
+
+                                <div class="radio-dot"></div>
+
+                                Bank
+
+                            </label>
+
+
+                        </div>
+
+                    </div>
+
+
+
+                    <button
+                        type="button"
+                        id="checkoutButton"
+                        class="checkout-order"
+                        onclick="checkOutOrder()"
+                    >
+
+                        Checkout
+
+                        <span id="checkoutTotal">
+                            KES 0.00
+                        </span>
+
+                    </button>
+
+
+                </form>
+
+            </div>
+
 
         </div>
 
-        <?php $stmt->close(); ?>
 
-      </div>
 
-      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleSalesDash()">Go&nbsp;back</button> to continue your dashboard.</p>
-    </main>
+        <!-- =====================================================
+             BACK TO DASHBOARD
+        ====================================================== -->
+
+        <p class="toggleOrdersOrMarket">
+
+            Click
+
+            <button
+                type="button"
+                onclick="toggleSalesDash()"
+            >
+                Go&nbsp;back
+            </button>
+
+            to continue to your dashboard.
+
+        </p>
+
+
+    </div>
+
+</main>
+<script>
+/* =========================================================
+   SELLER SALES PAGE
+   CUSTOM GROUP → SUB GROUP → PRODUCTS
+
+   IMPORTANT:
+   This script DOES NOT recreate product cards.
+
+   It filters the existing .cardContainer elements so that
+   the existing checkout JavaScript remains compatible.
+========================================================= */
+
+
+/* =========================================================
+   PHP DATA
+========================================================= */
+
+const salesCustomCategories =
+    <?= $categoryJson ?: '[]' ?>;
+
+
+const salesProducts =
+    <?= $productJson ?: '[]' ?>;
+
+
+/* =========================================================
+   SALES STATE
+
+   Completely isolated from the other product grid.
+========================================================= */
+
+const salesNavigationState = {
+
+    selectedCustomGroupId: null,
+
+    selectedSubGroupId: 'all',
+
+    currentPage: 1,
+
+    productsPerPage: 11
+
+};
+
+
+/* =========================================================
+   DOM READY
+========================================================= */
+
+document.addEventListener(
+    'DOMContentLoaded',
+    function () {
+
+        initializeSellerSalesNavigation();
+
+    }
+);
+
+
+/* =========================================================
+   INITIALIZE
+========================================================= */
+
+function initializeSellerSalesNavigation() {
+
+    const productCards =
+        getSalesProductCards();
+
+
+    const storePage =
+        document.getElementById(
+            'salesStorePage'
+        );
+
+
+    const offerContainer =
+        document.getElementById(
+            'salesOfferContainer'
+        );
+
+
+    const emptyMessage =
+        document.getElementById(
+            'salesNoProductsMessage'
+        );
+
+
+    /* -----------------------------------------------------
+       NO PRODUCTS
+    ----------------------------------------------------- */
+
+    if (
+        productCards.length === 0 ||
+        salesProducts.length === 0
+    ) {
+
+        if (storePage) {
+
+            storePage.style.display =
+                'none';
+
+        }
+
+
+        if (offerContainer) {
+
+            offerContainer.style.display =
+                'none';
+
+        }
+
+
+        if (emptyMessage) {
+
+            emptyMessage.style.display =
+                'block';
+
+        }
+
+
+        return;
+
+    }
+
+
+    /* -----------------------------------------------------
+       FIND CUSTOM GROUPS THAT ACTUALLY HAVE PRODUCTS
+    ----------------------------------------------------- */
+
+    const availableGroups =
+        getSalesAvailableCustomGroups();
+
+
+    /* -----------------------------------------------------
+       NO GROUPS
+    ----------------------------------------------------- */
+
+    if (availableGroups.length === 0) {
+
+        if (storePage) {
+
+            storePage.style.display =
+                'none';
+
+        }
+
+
+        if (offerContainer) {
+
+            offerContainer.style.display =
+                'none';
+
+        }
+
+
+        if (emptyMessage) {
+
+            emptyMessage.style.display =
+                'block';
+
+        }
+
+
+        return;
+
+    }
+
+
+    /* -----------------------------------------------------
+       SELECT FIRST AVAILABLE GROUP
+    ----------------------------------------------------- */
+
+    salesNavigationState.selectedCustomGroupId =
+        Number(
+            availableGroups[0].custom_category_id
+        );
+
+
+    salesNavigationState.selectedSubGroupId =
+        'all';
+
+
+    salesNavigationState.currentPage =
+        1;
+
+
+    renderSalesCustomGroupPopup();
+
+    renderSalesMiniNavigation();
+
+    renderSalesProducts();
+
+    bindSalesPopup();
+
+
+    /* -----------------------------------------------------
+       IMPORTANT:
+       Run after the existing checkout JS has had a chance
+       to initialize if needed.
+    ----------------------------------------------------- */
+
+    requestAnimationFrame(
+        function () {
+
+            updateSalesMiniIndicator();
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   GET EXISTING PRODUCT CARDS
+
+   We DO NOT recreate them.
+========================================================= */
+
+function getSalesProductCards() {
+
+    return Array.from(
+        document.querySelectorAll(
+            '#salesProductsGrid > .cardContainer'
+        )
+    );
+
+}
+
+
+/* =========================================================
+   GET PRODUCTS THAT ACTUALLY EXIST ON PAGE
+========================================================= */
+
+function getSalesAvailableProductIds() {
+
+    return new Set(
+
+        getSalesProductCards()
+            .map(function (card) {
+
+                return Number(
+                    card.dataset.productId
+                );
+
+            })
+
+    );
+
+}
+
+
+/* =========================================================
+   FORMAT CATEGORY NAME
+
+   First letter uppercase.
+   Remaining letters lowercase.
+========================================================= */
+
+function formatSalesCategoryName(name) {
+
+    if (
+        name === null ||
+        name === undefined
+    ) {
+
+        return '';
+
+    }
+
+
+    const value =
+        String(name)
+            .trim()
+            .toLowerCase();
+
+
+    if (!value) {
+
+        return '';
+
+    }
+
+
+    return (
+        value.charAt(0).toUpperCase() +
+        value.slice(1)
+    );
+
+}
+
+
+/* =========================================================
+   GET PRODUCT DATA FOR A CATEGORY
+========================================================= */
+
+function salesProductsBelongingToCategory(
+    categoryId
+) {
+
+    const id =
+        Number(categoryId);
+
+
+    return salesProducts.filter(
+        function (product) {
+
+            return Number(
+                product.custom_category_id
+            ) === id;
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   GET CUSTOM GROUPS
+
+   Top-level categories:
+   parent_id = NULL / empty / 0
+
+   Only groups containing products are returned.
+========================================================= */
+
+function getSalesAvailableCustomGroups() {
+
+    const productCategoryIds =
+        new Set(
+
+            salesProducts
+                .map(function (product) {
+
+                    return Number(
+                        product.custom_category_id
+                    );
+
+                })
+                .filter(function (id) {
+
+                    return id > 0;
+
+                })
+
+        );
+
+
+    return salesCustomCategories.filter(
+        function (category) {
+
+            const parentId =
+                category.parent_id;
+
+
+            const isTopLevel =
+                parentId === null ||
+                parentId === '' ||
+                Number(parentId) === 0;
+
+
+            if (!isTopLevel) {
+
+                return false;
+
+            }
+
+
+            const groupId =
+                Number(
+                    category.custom_category_id
+                );
+
+
+            /*
+             * Direct products
+             */
+
+            if (
+                productCategoryIds.has(groupId)
+            ) {
+
+                return true;
+
+            }
+
+
+            /*
+             * Products in child subgroups
+             */
+
+            const childGroups =
+                salesCustomCategories.filter(
+                    function (child) {
+
+                        return Number(
+                            child.parent_id
+                        ) === groupId;
+
+                    }
+                );
+
+
+            return childGroups.some(
+                function (child) {
+
+                    return productCategoryIds.has(
+                        Number(
+                            child.custom_category_id
+                        )
+                    );
+
+                }
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   GET SELECTED CUSTOM GROUP
+========================================================= */
+
+function getSelectedSalesCustomGroup() {
+
+    return salesCustomCategories.find(
+        function (category) {
+
+            return Number(
+                category.custom_category_id
+            ) === Number(
+                salesNavigationState.selectedCustomGroupId
+            );
+
+        }
+    ) || null;
+
+}
+
+
+/* =========================================================
+   GET SUBGROUPS FOR SELECTED CUSTOM GROUP
+
+   Only subgroups containing products appear.
+========================================================= */
+
+function getSalesAvailableSubGroups(
+    customGroupId
+) {
+
+    const groupId =
+        Number(customGroupId);
+
+
+    const productCategoryIds =
+        new Set(
+
+            salesProducts
+                .map(function (product) {
+
+                    return Number(
+                        product.custom_category_id
+                    );
+
+                })
+                .filter(function (id) {
+
+                    return id > 0;
+
+                })
+
+        );
+
+
+    return salesCustomCategories.filter(
+        function (category) {
+
+            return (
+                Number(category.parent_id) ===
+                groupId
+            ) && productCategoryIds.has(
+                Number(category.custom_category_id)
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   RENDER CUSTOM GROUP POPUP
+========================================================= */
+
+function renderSalesCustomGroupPopup() {
+
+    const options =
+        document.getElementById(
+            'salesSellerCategoryOptions'
+        );
+
+
+    const selectedText =
+        document.getElementById(
+            'salesSellerCategoryText'
+        );
+
+
+    if (!options || !selectedText) {
+
+        return;
+
+    }
+
+
+    const availableGroups =
+        getSalesAvailableCustomGroups();
+
+
+    const selectedGroup =
+        getSelectedSalesCustomGroup();
+
+
+    /* -----------------------------------------------------
+       CURRENT GROUP NAME
+    ----------------------------------------------------- */
+
+    selectedText.textContent =
+        selectedGroup
+            ? formatSalesCategoryName(
+                selectedGroup.name
+            )
+            : 'Select Group';
+
+
+    /* -----------------------------------------------------
+       CLEAR OLD OPTIONS
+    ----------------------------------------------------- */
+
+    options.innerHTML = '';
+
+
+    /* -----------------------------------------------------
+       BUILD GROUP OPTIONS
+    ----------------------------------------------------- */
+
+    availableGroups.forEach(
+        function (group) {
+
+            const button =
+                document.createElement(
+                    'button'
+                );
+
+
+            button.type =
+                'button';
+
+
+            button.className =
+                'category-option';
+
+
+            button.dataset.salesGroupId =
+                group.custom_category_id;
+
+
+            if (
+                Number(
+                    group.custom_category_id
+                ) === Number(
+                    salesNavigationState.selectedCustomGroupId
+                )
+            ) {
+
+                button.classList.add(
+                    'active'
+                );
+
+            }
+
+
+            button.textContent =
+                formatSalesCategoryName(
+                    group.name
+                );
+
+
+            button.addEventListener(
+                'click',
+                function () {
+
+                    selectSalesCustomGroup(
+                        group.custom_category_id
+                    );
+
+                }
+            );
+
+
+            options.appendChild(
+                button
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   SELECT CUSTOM GROUP
+========================================================= */
+
+function selectSalesCustomGroup(
+    groupId
+) {
+
+    salesNavigationState.selectedCustomGroupId =
+        Number(groupId);
+
+
+    /*
+     * IMPORTANT:
+     *
+     * Whenever custom group changes,
+     * subgroup MUST return to All.
+     */
+
+    salesNavigationState.selectedSubGroupId =
+        'all';
+
+
+    salesNavigationState.currentPage =
+        1;
+
+
+    /* -----------------------------------------------------
+       CLOSE POPUP
+    ----------------------------------------------------- */
+
+    const categorySide =
+        document.getElementById(
+            'salesSellerCategorySide'
+        );
+
+
+    if (categorySide) {
+
+        categorySide.classList.remove(
+            'open'
+        );
+
+    }
+
+
+    /* -----------------------------------------------------
+       REBUILD EVERYTHING
+    ----------------------------------------------------- */
+
+    renderSalesCustomGroupPopup();
+
+    renderSalesMiniNavigation();
+
+    renderSalesProducts();
+
+
+    requestAnimationFrame(
+        function () {
+
+            updateSalesMiniIndicator();
+
+        }
+    );
+
+}
+
+/* =========================================================
+   RENDER MINI NAVIGATION
+========================================================= */
+
+function renderSalesMiniNavigation() {
+
+    const navigation =
+        document.getElementById(
+            'salesMiniNavigation'
+        );
+
+
+    if (!navigation) {
+
+        return;
+
+    }
+
+
+    navigation.innerHTML = '';
+
+
+    /* =====================================================
+       ALL BUTTON
+    ====================================================== */
+
+    const allButton =
+        document.createElement(
+            'button'
+        );
+
+
+    allButton.type =
+        'button';
+
+
+    allButton.className =
+        'mini-nav-item';
+
+
+    allButton.dataset.salesMini =
+        'all';
+
+
+    allButton.textContent =
+        'All';
+
+
+    if (
+        salesNavigationState.selectedSubGroupId ===
+        'all'
+    ) {
+
+        allButton.classList.add(
+            'active'
+        );
+
+    }
+
+
+    allButton.addEventListener(
+        'click',
+        function () {
+
+            selectSalesSubGroup(
+                'all'
+            );
+
+        }
+    );
+
+
+    navigation.appendChild(
+        allButton
+    );
+
+
+    /* =====================================================
+       SUBGROUPS
+    ====================================================== */
+
+    const subGroups =
+        getSalesAvailableSubGroups(
+            salesNavigationState.selectedCustomGroupId
+        );
+
+
+    subGroups.forEach(
+        function (subGroup) {
+
+            const button =
+                document.createElement(
+                    'button'
+                );
+
+
+            button.type =
+                'button';
+
+
+            button.className =
+                'mini-nav-item';
+
+
+            button.dataset.salesMini =
+                subGroup.custom_category_id;
+
+
+            button.textContent =
+                formatSalesCategoryName(
+                    subGroup.name
+                );
+
+
+            if (
+                Number(
+                    salesNavigationState.selectedSubGroupId
+                ) === Number(
+                    subGroup.custom_category_id
+                )
+            ) {
+
+                button.classList.add(
+                    'active'
+                );
+
+            }
+
+
+            button.addEventListener(
+                'click',
+                function () {
+
+                    selectSalesSubGroup(
+                        subGroup.custom_category_id
+                    );
+
+                }
+            );
+
+
+            navigation.appendChild(
+                button
+            );
+
+        }
+    );
+
+
+    /* =====================================================
+       SLIDING INDICATOR
+    ====================================================== */
+
+    const indicator =
+        document.createElement(
+            'span'
+        );
+
+
+    indicator.className =
+        'mini-nav-indicator';
+
+
+    indicator.id =
+        'salesMiniNavIndicator';
+
+
+    navigation.appendChild(
+        indicator
+    );
+
+
+    requestAnimationFrame(
+        function () {
+
+            updateSalesMiniIndicator();
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   SELECT SUBGROUP
+========================================================= */
+
+function selectSalesSubGroup(
+    subGroupId
+) {
+
+    salesNavigationState.selectedSubGroupId =
+        subGroupId === 'all'
+            ? 'all'
+            : Number(subGroupId);
+
+
+    salesNavigationState.currentPage =
+        1;
+
+
+    renderSalesMiniNavigation();
+
+    renderSalesProducts();
+
+
+    requestAnimationFrame(
+        function () {
+
+            updateSalesMiniIndicator();
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   SLIDING INDICATOR
+
+   Same effect as your existing navigation but isolated
+   under salesMiniNavIndicator.
+========================================================= */
+
+function updateSalesMiniIndicator() {
+
+    const navigation =
+        document.getElementById(
+            'salesMiniNavigation'
+        );
+
+
+    const indicator =
+        document.getElementById(
+            'salesMiniNavIndicator'
+        );
+
+
+    if (
+        !navigation ||
+        !indicator
+    ) {
+
+        return;
+
+    }
+
+
+    const activeButton =
+        navigation.querySelector(
+            '.mini-nav-item.active'
+        );
+
+
+    if (!activeButton) {
+
+        indicator.style.width =
+            '0px';
+
+        return;
+
+    }
+
+
+    indicator.style.width =
+        activeButton.offsetWidth +
+        'px';
+
+
+    indicator.style.left =
+        activeButton.offsetLeft +
+        'px';
+
+}
+
+
+/* =========================================================
+   GET FILTERED SALES CARDS
+========================================================= */
+
+function getFilteredSalesCards() {
+
+    const selectedGroupId =
+        Number(
+            salesNavigationState.selectedCustomGroupId
+        );
+
+
+    const selectedSubGroup =
+        salesNavigationState.selectedSubGroupId;
+
+
+    const cards =
+        getSalesProductCards();
+
+
+    /* =====================================================
+       SUBGROUP SELECTED
+    ====================================================== */
+
+    if (
+        selectedSubGroup !== 'all'
+    ) {
+
+        return cards.filter(
+            function (card) {
+
+                return Number(
+                    card.dataset.customCategoryId
+                ) === Number(
+                    selectedSubGroup
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       ALL SELECTED
+       
+       Include:
+       - products directly under custom group
+       - products under its subgroups
+    ====================================================== */
+
+    const validCategoryIds =
+        new Set();
+
+
+    validCategoryIds.add(
+        selectedGroupId
+    );
+
+
+    const subGroups =
+        getSalesAvailableSubGroups(
+            selectedGroupId
+        );
+
+
+    subGroups.forEach(
+        function (subGroup) {
+
+            validCategoryIds.add(
+                Number(
+                    subGroup.custom_category_id
+                )
+            );
+
+        }
+    );
+
+
+    return cards.filter(
+        function (card) {
+
+            return validCategoryIds.has(
+                Number(
+                    card.dataset.customCategoryId
+                )
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   RENDER / FILTER PRODUCTS
+
+   IMPORTANT:
+   Existing DOM cards are NEVER destroyed.
+
+   We simply toggle display.
+
+   This protects your checkout JS.
+========================================================= */
+
+function renderSalesProducts() {
+
+    const allCards =
+        getSalesProductCards();
+
+
+    const filteredCards =
+        getFilteredSalesCards();
+
+
+    const navigationCard =
+        document.getElementById(
+            'salesProductsNavigationCard'
+        );
+
+
+    const productsPerPage =
+        salesNavigationState.productsPerPage;
+
+
+    const totalProducts =
+        filteredCards.length;
+
+
+    /* =====================================================
+       TOTAL PAGES
+    ====================================================== */
+
+    const totalPages =
+        Math.max(
+            1,
+            Math.ceil(
+                totalProducts /
+                productsPerPage
+            )
+        );
+
+
+    /* =====================================================
+       CORRECT INVALID PAGE
+    ====================================================== */
+
+    if (
+        salesNavigationState.currentPage >
+        totalPages
+    ) {
+
+        salesNavigationState.currentPage =
+            totalPages;
+
+    }
+
+
+    if (
+        salesNavigationState.currentPage <
+        1
+    ) {
+
+        salesNavigationState.currentPage =
+            1;
+
+    }
+
+
+    /* =====================================================
+       HIDE ALL PRODUCT CARDS FIRST
+    ====================================================== */
+
+    allCards.forEach(
+        function (card) {
+
+            card.style.display =
+                'none';
+
+        }
+    );
+
+
+    /* =====================================================
+       DETERMINE CURRENT PAGE
+    ====================================================== */
+
+    const start =
+        (
+            salesNavigationState.currentPage -
+            1
+        ) *
+        productsPerPage;
+
+
+    const end =
+        start +
+        productsPerPage;
+
+
+    const pageCards =
+        filteredCards.slice(
+            start,
+            end
+        );
+
+
+    /* =====================================================
+       SHOW CURRENT PAGE
+    ====================================================== */
+
+    pageCards.forEach(
+        function (card) {
+
+            card.style.display =
+                '';
+
+        }
+    );
+
+
+    /* =====================================================
+       NAVIGATION CARD
+
+       Only exists visually when:
+       total products > 11
+    ====================================================== */
+
+    if (
+        totalProducts >
+        productsPerPage
+    ) {
+
+        if (navigationCard) {
+
+            navigationCard.style.display =
+                '';
+
+        }
+
+
+        updateSalesPagination(
+            totalProducts,
+            totalPages
+        );
+
+    } else {
+
+        if (navigationCard) {
+
+            navigationCard.style.display =
+                'none';
+
+        }
+
+    }
+
+
+    /* =====================================================
+       NO FILTERED PRODUCTS
+    ====================================================== */
+
+    if (
+        totalProducts === 0
+    ) {
+
+        if (navigationCard) {
+
+            navigationCard.style.display =
+                'none';
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   UPDATE PAGINATION CARD
+========================================================= */
+
+function updateSalesPagination(
+    totalProducts,
+    totalPages
+) {
+
+    const previous =
+        document.getElementById(
+            'salesPreviousProducts'
+        );
+
+
+    const next =
+        document.getElementById(
+            'salesNextProducts'
+        );
+
+
+    const page =
+        document.getElementById(
+            'salesNavigationPage'
+        );
+
+
+    const count =
+        document.getElementById(
+            'salesNavigationCount'
+        );
+
+
+    if (previous) {
+
+        previous.disabled =
+            salesNavigationState.currentPage <= 1;
+
+    }
+
+
+    if (next) {
+
+        next.disabled =
+            salesNavigationState.currentPage >=
+            totalPages;
+
+    }
+
+
+    if (page) {
+
+        page.textContent =
+            `Page ${
+                salesNavigationState.currentPage
+            } of ${
+                totalPages
+            }`;
+
+    }
+
+
+    if (count) {
+
+        count.textContent =
+            `${totalProducts} ${
+                totalProducts === 1
+                    ? 'product'
+                    : 'products'
+            }`;
+
+    }
+
+}
+
+
+/* =========================================================
+   PREVIOUS
+========================================================= */
+
+document.addEventListener(
+    'click',
+    function (event) {
+
+        if (
+            event.target.closest(
+                '#salesPreviousProducts'
+            )
+        ) {
+
+            if (
+                salesNavigationState.currentPage >
+                1
+            ) {
+
+                salesNavigationState.currentPage--;
+
+                renderSalesProducts();
+
+            }
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   NEXT
+========================================================= */
+
+document.addEventListener(
+    'click',
+    function (event) {
+
+        if (
+            event.target.closest(
+                '#salesNextProducts'
+            )
+        ) {
+
+            const filteredCards =
+                getFilteredSalesCards();
+
+
+            const totalPages =
+                Math.max(
+                    1,
+                    Math.ceil(
+                        filteredCards.length /
+                        salesNavigationState.productsPerPage
+                    )
+                );
+
+
+            if (
+                salesNavigationState.currentPage <
+                totalPages
+            ) {
+
+                salesNavigationState.currentPage++;
+
+                renderSalesProducts();
+
+            }
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   POPUP BEHAVIOR
+========================================================= */
+
+function bindSalesPopup() {
+
+    const categorySide =
+        document.getElementById(
+            'salesSellerCategorySide'
+        );
+
+
+    const categoryButton =
+        document.getElementById(
+            'salesSellerCategoryButton'
+        );
+
+
+    const popup =
+        document.getElementById(
+            'salesSellerCategoryPopup'
+        );
+
+
+    if (
+        !categorySide ||
+        !categoryButton ||
+        !popup
+    ) {
+
+        return;
+
+    }
+
+
+    /* =====================================================
+       OPEN / CLOSE
+    ====================================================== */
+
+    categoryButton.addEventListener(
+        'click',
+        function (event) {
+
+            event.stopPropagation();
+
+            categorySide.classList.toggle(
+                'open'
+            );
+
+        }
+    );
+
+
+    /* =====================================================
+       DON'T CLOSE WHEN CLICKING INSIDE POPUP
+    ====================================================== */
+
+    popup.addEventListener(
+        'click',
+        function (event) {
+
+            event.stopPropagation();
+
+        }
+    );
+
+
+    /* =====================================================
+       CLOSE WHEN CLICKING OUTSIDE
+    ====================================================== */
+
+    document.addEventListener(
+        'click',
+        function (event) {
+
+            if (
+                !categorySide.contains(
+                    event.target
+                )
+            ) {
+
+                categorySide.classList.remove(
+                    'open'
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   RESIZE
+
+   Recalculate indicator because button widths can change.
+========================================================= */
+
+window.addEventListener(
+    'resize',
+    function () {
+
+        updateSalesMiniIndicator();
+
+    }
+);
+
+
+/* =========================================================
+   OPTIONAL PUBLIC REFRESH FUNCTION
+
+   Call this after adding/deleting a custom group or
+   subgroup if your existing code changes the categories
+   without reloading the page.
+========================================================= */
+
+function refreshSellerSalesNavigation() {
+
+    renderSalesCustomGroupPopup();
+
+    renderSalesMiniNavigation();
+
+    renderSalesProducts();
+
+    requestAnimationFrame(
+        function () {
+
+            updateSalesMiniIndicator();
+
+        }
+    );
+
+}
+</script>
 
     <main class="buyerMain" id="chatSection">
       <div class="tab-top">
@@ -6600,7 +8902,567 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
     }
+    /* =====================================================
+    FIND ROOT CUSTOM GROUP
+    ===================================================== */
 
+    function findRootCustomCategory(categoryId) {
+
+        let currentCategory =
+            customCategories.find(function (category) {
+
+                return (
+                    Number(category.custom_category_id) ===
+                    Number(categoryId)
+                );
+
+            });
+
+
+        /*
+        * Keep moving upward through parent_id
+        * until we reach the root custom group.
+        */
+
+        while (
+            currentCategory &&
+            currentCategory.parent_id !== null &&
+            currentCategory.parent_id !== undefined &&
+            currentCategory.parent_id !== "" &&
+            Number(currentCategory.parent_id) !== 0
+        ) {
+
+            currentCategory =
+                customCategories.find(function (category) {
+
+                    return (
+                        Number(category.custom_category_id) ===
+                        Number(currentCategory.parent_id)
+                    );
+
+                });
+
+        }
+
+
+        return currentCategory
+            ? Number(currentCategory.custom_category_id)
+            : 0;
+
+    }
+
+/* =====================================================
+   MOVE PRODUCT TO SUB GROUP
+===================================================== */
+
+async function moveProductToSubGroup(
+    productId,
+    targetCategoryId,
+    productFolder
+) {
+
+    if (
+        !productId ||
+        !targetCategoryId
+    ) {
+        return;
+    }
+
+
+    /* =================================================
+       FIND PRODUCT
+    ================================================= */
+
+    const product =
+        products.find(function (item) {
+
+            return (
+                Number(item.product_id) ===
+                Number(productId)
+            );
+
+        });
+
+
+    if (!product) {
+        return;
+    }
+
+
+    /* =================================================
+       FIND TARGET SUBGROUP
+    ================================================= */
+
+    const targetSubGroup =
+        customCategories.find(function (category) {
+
+            return (
+                Number(
+                    category.custom_category_id
+                ) ===
+                Number(targetCategoryId)
+            );
+
+        });
+
+
+    if (!targetSubGroup) {
+
+        alert(
+            "The selected sub group could not be found."
+        );
+
+        return;
+    }
+
+
+    /* =================================================
+       DON'T MOVE IF ALREADY THERE
+    ================================================= */
+
+    if (
+        Number(product.custom_category_id) ===
+        Number(targetCategoryId)
+    ) {
+
+        productFolder.classList.remove(
+            "active"
+        );
+
+        return;
+    }
+
+
+    /* =================================================
+       GET PRODUCT CARD
+    ================================================= */
+
+    const productCard =
+        productFolder.querySelector(".card");
+
+
+    /* =================================================
+       AJAX DATA
+    ================================================= */
+
+    const formData =
+        new FormData();
+
+    formData.append(
+        "move_product",
+        "1"
+    );
+
+    formData.append(
+        "product_id",
+        productId
+    );
+
+    formData.append(
+        "target_category_id",
+        targetCategoryId
+    );
+
+
+    try {
+
+        /* =============================================
+           SEND AJAX REQUEST
+        ============================================= */
+
+        const response =
+            await fetch(
+                window.location.href,
+                {
+                    method: "POST",
+                    body: formData,
+                    headers: {
+                        "X-Requested-With":
+                            "XMLHttpRequest"
+                    }
+                }
+            );
+
+
+        /* =============================================
+           READ RESPONSE
+        ============================================= */
+
+        const data =
+            await response.json();
+
+
+        /* =============================================
+           CHECK SUCCESS
+        ============================================= */
+
+        if (!data.success) {
+
+            alert(
+                data.message ||
+                "Failed to move product."
+            );
+
+            return;
+        }
+
+
+        /* =============================================
+        UPDATE PRODUCT CATEGORY LOCALLY
+        ============================================= */
+
+        product.custom_category_id =
+            Number(targetCategoryId);
+
+
+        /* =============================================
+        FIND ROOT CUSTOM GROUP
+
+        This is important because the product
+        may have been inside another subgroup.
+        ============================================= */
+
+        const rootCategoryId =
+            findRootCustomCategory(
+                targetCategoryId
+            );
+
+
+        if (!rootCategoryId) {
+
+            console.error(
+                "Root custom group could not be found."
+            );
+
+            return;
+        }
+
+
+        /* =============================================
+        KEEP CUSTOM GROUP SELECTED
+        ============================================= */
+
+        selectedCustomCategory =
+            rootCategoryId;
+
+
+        /* =============================================
+        SELECT THE NEW SUBGROUP
+        ============================================= */
+
+        selectedSubCategory =
+            Number(targetCategoryId);
+
+        currentPage = 1;
+
+
+        /* =============================================
+        REBUILD MINI NAVIGATION
+
+        The target subgroup is now selected.
+        ============================================= */
+
+        buildMiniNavigation(
+            selectedCustomCategory
+        );
+
+
+        /* =============================================
+        FIND THE NEWLY SELECTED SUBGROUP BUTTON
+        ============================================= */
+
+        const targetButton =
+            miniNavigation.querySelector(
+                `.mini-nav-item[data-category-id="${targetCategoryId}"]`
+            );
+
+
+        /* =============================================
+        FLY PRODUCT IMAGE
+        ============================================= */
+
+        if (
+            productCard &&
+            targetButton
+        ) {
+
+            flyProductToSubGroup(
+                productFolder,
+                targetCategoryId
+            );
+
+        }
+
+
+        /* =============================================
+        CLOSE MOVE-TO POPUP
+        ============================================= */
+
+        productFolder.classList.remove(
+            "active"
+        );
+
+
+        /* =============================================
+        LOAD PRODUCTS IN NEW SUBGROUP
+        ============================================= */
+
+        currentProducts =
+            getProductsForCustomCategory(
+                targetCategoryId
+            );
+
+
+        /* =============================================
+        DISPLAY NEW SUBGROUP NAME
+        ============================================= */
+
+        productsTitle.textContent =
+            formatNormalName(
+                targetSubGroup.name
+            );
+
+
+        /* =============================================
+        WAIT FOR FLY ANIMATION
+        BEFORE REBUILDING PRODUCT GRID
+        ============================================= */
+
+        setTimeout(() => {
+
+            renderProducts();
+
+            requestAnimationFrame(
+                updateMiniIndicator
+            );
+
+        }, 680);
+
+    } catch (error) {
+
+        console.error(
+            "Move product error:",
+            error
+        );
+
+        alert(
+            "Unable to move product. Please try again."
+        );
+
+    }
+
+}
+
+/* =========================================================
+   FLY PRODUCT IMAGE TO SUBGROUP
+   ========================================================= */
+
+function flyProductToSubGroup(
+    productFolder,
+    targetCategoryId
+) {
+
+    if (!productFolder) {
+        return;
+    }
+
+
+    /* =====================================================
+       SOURCE IMAGE
+       ===================================================== */
+
+    const imageElement =
+        productFolder.querySelector(
+            ".card img"
+        );
+
+    if (!imageElement) {
+        return;
+    }
+
+
+    /* =====================================================
+       TARGET MINI NAVIGATION ITEM
+       ===================================================== */
+
+    const targetElement =
+        document.querySelector(
+            `.mini-nav-item[data-category-id="${targetCategoryId}"]`
+        );
+
+    if (!targetElement) {
+        return;
+    }
+
+
+    /* =====================================================
+       GET POSITIONS
+       ===================================================== */
+
+    const startRect =
+        imageElement.getBoundingClientRect();
+
+    const targetRect =
+        targetElement.getBoundingClientRect();
+
+
+    /* =====================================================
+       CLONE IMAGE
+       ===================================================== */
+
+    const flyingImage =
+        imageElement.cloneNode(true);
+
+
+    flyingImage.classList.add(
+        "fly-move-product"
+    );
+
+
+    /* =====================================================
+       START POSITION
+       ===================================================== */
+
+    flyingImage.style.position =
+        "fixed";
+
+    flyingImage.style.left =
+        startRect.left + "px";
+
+    flyingImage.style.top =
+        startRect.top + "px";
+
+    flyingImage.style.width =
+        startRect.width + "px";
+
+    flyingImage.style.height =
+        startRect.height + "px";
+
+    flyingImage.style.opacity =
+        "1";
+
+    flyingImage.style.transform =
+        "scale(1)";
+
+    flyingImage.style.zIndex =
+        "99999";
+
+
+    document.body.appendChild(
+        flyingImage
+    );
+
+
+    /* =====================================================
+       FORCE INITIAL POSITION
+       ===================================================== */
+
+    flyingImage.offsetWidth;
+
+
+    /* =====================================================
+       TARGET CENTER
+       ===================================================== */
+
+    const targetX =
+        targetRect.left +
+        (targetRect.width / 2) -
+        15;
+
+    const targetY =
+        targetRect.top +
+        (targetRect.height / 2) -
+        15;
+
+
+    /* =====================================================
+       START ANIMATION
+       
+       The image gradually:
+       - moves
+       - becomes smaller
+       - fades
+       ===================================================== */
+
+    requestAnimationFrame(() => {
+
+        flyingImage.style.left =
+            targetX + "px";
+
+        flyingImage.style.top =
+            targetY + "px";
+
+        flyingImage.style.width =
+            "30px";
+
+        flyingImage.style.height =
+            "30px";
+
+        flyingImage.style.opacity =
+            "0.15";
+
+        flyingImage.style.transform =
+            "scale(0.25)";
+
+    });
+
+
+    /* =====================================================
+       DESTINATION FEEDBACK
+       ===================================================== */
+
+    setTimeout(() => {
+
+        targetElement.classList.add(
+            "move-received"
+        );
+
+        setTimeout(() => {
+
+            targetElement.classList.remove(
+                "move-received"
+            );
+
+        }, 180);
+
+    }, 500);
+
+
+    /* =====================================================
+       REMOVE FLYING IMAGE
+       ===================================================== */
+
+    flyingImage.addEventListener(
+        "transitionend",
+        () => {
+
+            flyingImage.remove();
+
+        },
+        {
+            once: true
+        }
+    );
+
+
+    /* =====================================================
+       SAFETY CLEANUP
+       ===================================================== */
+
+    setTimeout(() => {
+
+        if (
+            document.body.contains(
+                flyingImage
+            )
+        ) {
+
+            flyingImage.remove();
+
+        }
+
+    }, 800);
+}
 
     /* =====================================================
        GET PRODUCTS FOR CUSTOM CATEGORY
@@ -6885,7 +9747,13 @@ document.addEventListener("DOMContentLoaded", function () {
         allButton.type = "button";
 
         allButton.className =
-            "mini-nav-item active";
+            "mini-nav-item";
+
+        if (!selectedSubCategory) {
+
+            allButton.classList.add("active");
+
+        }
 
         allButton.dataset.mini =
             "all";
@@ -6923,7 +9791,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 /*
                  * Hide empty subgroup.
                  */
-                if (!categoryHasProducts(subGroup)) {
+                if (
+                    !categoryHasProducts(subGroup) &&
+                    Number(selectedSubCategory) !==
+                    Number(subGroup.custom_category_id)
+                ) {
                     return;
                 }
 
@@ -6938,6 +9810,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 button.dataset.mini =
                     subGroup.custom_category_id;
+
+                button.dataset.categoryId =
+                    subGroup.custom_category_id;
+
+
+                /*
+                * If this is the currently selected subgroup,
+                * make it active immediately.
+                */
+
+                if (
+                    Number(selectedSubCategory) ===
+                    Number(subGroup.custom_category_id)
+                ) {
+
+                    button.classList.add("active");
+
+                }
 
                 button.dataset.categoryId =
                     subGroup.custom_category_id;
@@ -7615,14 +10505,33 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
 
-
     /* =====================================================
-       CREATE PRODUCT CARD
-       
-       Uses your existing card structure.
+    CREATE PRODUCT CARD
+
+    Product structure:
+    Product
+        ↓
+    Current Custom Group
+        ↓
+    All Sub Groups under that group
+
+    The seller can then move the product
+    to any subgroup belonging to its current
+    custom group.
     ===================================================== */
 
     function createProductCard(product) {
+
+        const outer =
+            document.createElement("div");
+
+        outer.className =
+            "subMvFlder";
+
+
+        /* =================================================
+        PRODUCT WRAPPER
+        ================================================= */
 
         const wrapper =
             document.createElement("div");
@@ -7630,6 +10539,19 @@ document.addEventListener("DOMContentLoaded", function () {
         wrapper.className =
             "card-contain";
 
+        wrapper.dataset.productId =
+            product.product_id;
+
+        wrapper.dataset.customCategoryId =
+            product.custom_category_id || "";
+
+        wrapper.dataset.companyCategory =
+            product.category || "";
+
+
+        /* =================================================
+        PRODUCT CARD
+        ================================================= */
 
         const card =
             document.createElement("div");
@@ -7638,8 +10560,8 @@ document.addEventListener("DOMContentLoaded", function () {
             "card";
 
 
-        /* ================================================
-           IMAGE
+        /* =================================================
+        IMAGE
         ================================================= */
 
         const image =
@@ -7658,8 +10580,8 @@ document.addEventListener("DOMContentLoaded", function () {
             product.product_name || "Product";
 
 
-        /* ================================================
-           BODY
+        /* =================================================
+        BODY
         ================================================= */
 
         const body =
@@ -7719,16 +10641,13 @@ document.addEventListener("DOMContentLoaded", function () {
         unit.className =
             "perDiv";
 
-
         const productUnit =
             String(
                 product.unit || ""
             ).trim();
 
-
         if (
-            normalize(productUnit) ===
-            "each"
+            normalize(productUnit) === "each"
         ) {
 
             unit.textContent =
@@ -7745,7 +10664,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
 
-        /* Stock */
+        /* =================================================
+        STOCK
+        ================================================= */
 
         const stock =
             document.createElement("div");
@@ -7754,7 +10675,6 @@ document.addEventListener("DOMContentLoaded", function () {
             Number(
                 product.stock_quantity || 0
             );
-
 
         stock.className =
             "stock " +
@@ -7768,19 +10688,15 @@ document.addEventListener("DOMContentLoaded", function () {
                     )
             );
 
-
         let displayStock;
-
 
         if (stockValue >= 100) {
 
-            displayStock =
-                "99+";
+            displayStock = "99+";
 
         } else if (stockValue <= 0) {
 
-            displayStock =
-                "0";
+            displayStock = "0";
 
         } else {
 
@@ -7792,7 +10708,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
             let fractionText = "";
 
-
             if (decimal >= 0.875) {
 
                 displayStock =
@@ -7800,21 +10715,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
             } else if (decimal >= 0.625) {
 
-                fractionText =
-                    "¾";
+                fractionText = "¾";
 
             } else if (decimal >= 0.375) {
 
-                fractionText =
-                    "½";
+                fractionText = "½";
 
             } else if (decimal >= 0.125) {
 
-                fractionText =
-                    "¼";
+                fractionText = "¼";
 
             }
-
 
             if (!displayStock) {
 
@@ -7845,8 +10756,8 @@ document.addEventListener("DOMContentLoaded", function () {
         body.appendChild(stock);
 
 
-        /* ================================================
-           ACTIONS
+        /* =================================================
+        ACTIONS
         ================================================= */
 
         const actions =
@@ -7921,13 +10832,12 @@ document.addEventListener("DOMContentLoaded", function () {
         form.appendChild(hidden);
         form.appendChild(deleteButton);
 
-
         actions.appendChild(edit);
         actions.appendChild(form);
 
 
-        /* ================================================
-           ASSEMBLE
+        /* =================================================
+        ASSEMBLE PRODUCT CARD
         ================================================= */
 
         card.appendChild(image);
@@ -7948,12 +10858,373 @@ document.addEventListener("DOMContentLoaded", function () {
         wrapper.appendChild(card);
         wrapper.appendChild(name);
 
+        outer.appendChild(wrapper);
 
-        return wrapper;
+
+        /* =================================================
+        THREE DOT BUTTON
+        ================================================= */
+
+        const commBtn =
+            document.createElement("button");
+
+        commBtn.type =
+            "button";
+
+        commBtn.className =
+            "comm-btn";
+
+        commBtn.setAttribute(
+            "aria-label",
+            "Move product"
+        );
+
+        commBtn.innerHTML =
+            '<i class="fas fa-ellipsis-vertical"></i>';
+
+        /*
+        * Show the three-dot button only when
+        * a custom group is selected.
+        *
+        * It will also remain visible when a
+        * subgroup is selected because
+        * selectedCustomCategory remains active.
+        */
+        if (selectedCustomCategory) {
+            outer.appendChild(commBtn);
+        }
+
+
+        /* =================================================
+        MOVE TO SECTION
+        ================================================= */
+
+        const section =
+            document.createElement("section");
+
+        section.className =
+            "move-section";
+
+
+        const heading =
+            document.createElement("h2");
+
+        heading.textContent =
+            "Move to";
+
+        section.appendChild(
+            heading
+        );
+
+
+        /* =================================================
+        SUBGROUP LIST
+        ================================================= */
+
+        const subGroupList =
+            document.createElement("div");
+
+        subGroupList.className =
+            "subGroupList";
+
+
+    /* =================================================
+    FIND ROOT CUSTOM GROUP FOR THIS PRODUCT
+    ================================================= */
+
+    const productCategoryId =
+        Number(
+            product.custom_category_id || 0
+        );
+
+
+    let currentCategory =
+        customCategories.find(category => {
+
+            return (
+                Number(
+                    category.custom_category_id
+                ) === productCategoryId
+            );
+
+        });
+
+
+    /*
+    * Walk upward until we reach the ROOT
+    * custom group.
+    *
+    * Root group:
+    * parent_id = NULL / 0
+    */
+
+    while (
+        currentCategory &&
+        currentCategory.parent_id !== null &&
+        currentCategory.parent_id !== undefined &&
+        currentCategory.parent_id !== "" &&
+        Number(currentCategory.parent_id) !== 0
+    ) {
+
+        currentCategory =
+            customCategories.find(category => {
+
+                return (
+                    Number(
+                        category.custom_category_id
+                    ) ===
+                    Number(
+                        currentCategory.parent_id
+                    )
+                );
+
+            });
 
     }
 
 
+    const currentGroup =
+        currentCategory;
+    /*
+     * If the product currently belongs to a
+     * custom GROUP, display every SUBGROUP
+     * directly under that group.
+     *
+     * We DO NOT check categoryHasProducts()
+     *
+     * This is intentional.
+     *
+     * Empty subgroups must ALSO appear.
+     */
+
+    if (currentGroup) {
+
+        const subGroups =
+            getSubGroups(
+                currentGroup.custom_category_id,
+                currentGroup.company_category
+            );
+
+
+        subGroups.forEach(subGroup => {
+
+            const categoryButton =
+                document.createElement("button");
+
+            categoryButton.type =
+                "button";
+
+            categoryButton.className =
+                "subGroupItem";
+
+            categoryButton.dataset.productId =
+                product.product_id;
+
+            categoryButton.dataset.categoryId =
+                subGroup.custom_category_id;
+
+            categoryButton.dataset.companyCategory =
+                subGroup.company_category;
+
+            categoryButton.textContent =
+                formatNormalName(
+                    subGroup.name
+                );
+
+
+            /*
+             * If the product is already in this
+             * subgroup, mark it visually.
+             */
+
+            if (
+                Number(
+                    product.custom_category_id
+                ) ===
+                Number(
+                    subGroup.custom_category_id
+                )
+            ) {
+
+                categoryButton.classList.add(
+                    "current"
+                );
+
+            }
+
+
+            /*
+             * MOVE PRODUCT
+             */
+
+            categoryButton.addEventListener(
+                "click",
+                function (event) {
+
+                    event.preventDefault();
+
+                    event.stopPropagation();
+
+
+                    const productId =
+                        this.dataset.productId;
+
+                    const targetCategoryId =
+                        this.dataset.categoryId;
+
+
+                    moveProductToSubGroup(
+                        productId,
+                        targetCategoryId,
+                        outer
+                    );
+
+                }
+            );
+
+
+            subGroupList.appendChild(
+                categoryButton
+            );
+
+        });
+
+    }
+
+    /*
+    * If the current custom group has no
+    * subgroups yet.
+    */
+
+    if (
+        subGroupList.children.length === 0
+    ) {
+
+        const emptyMessage =
+            document.createElement("div");
+
+        emptyMessage.className =
+            "no-subgroups";
+
+        /* Create warning icon */
+        const icon =
+            document.createElement("i");
+
+        icon.className =
+            "fa-solid fa-circle-exclamation";
+
+        /* Create message text */
+        const message =
+            document.createElement("span");
+
+        message.textContent =
+            "No sub groups available!";
+
+        /* Put icon + text inside message */
+        emptyMessage.appendChild(icon);
+         emptyMessage.appendChild(message);
+
+        /* Add message to subgroup list */
+        subGroupList.appendChild(
+            emptyMessage
+        );
+
+    }
+
+
+    section.appendChild(
+        subGroupList
+    );
+
+    outer.appendChild(
+        section
+    );
+
+
+    /* =================================================
+       THREE DOT CLICK
+    ================================================= */
+
+    commBtn.addEventListener(
+        "click",
+        function (event) {
+
+            event.preventDefault();
+
+            event.stopPropagation();
+
+
+            /*
+             * Check current state.
+             */
+
+            const isOpen =
+                outer.classList.contains(
+                    "active"
+                );
+
+
+            /*
+             * Close every other Move To section.
+             */
+
+            document
+                .querySelectorAll(
+                    ".products-grid .subMvFlder.active"
+                )
+                .forEach(folder => {
+
+                    folder.classList.remove(
+                        "active"
+                    );
+
+                });
+
+
+            /*
+             * Open this product's section
+             * if it was previously closed.
+             */
+
+            if (!isOpen) {
+
+                outer.classList.add(
+                    "active"
+                );
+
+            }
+
+        }
+    );
+
+
+    return outer;
+}
+
+/* =========================================================
+   CLOSE MOVE POPUP WHEN CLICKING OUTSIDE
+========================================================= */
+
+document.addEventListener("click", function (event) {
+
+    /* If the click happened inside an open product folder,
+       don't close it. */
+    if (event.target.closest(".subMvFlder.active")) {
+        return;
+    }
+
+    /* Close all open Move to popups */
+    document
+        .querySelectorAll(
+            ".products-grid .subMvFlder.active"
+        )
+        .forEach(function (folder) {
+
+            folder.classList.remove("active");
+
+        });
+
+});
     /* =====================================================
        NAVIGATION CARD
     ===================================================== */

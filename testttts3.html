@@ -3,466 +3,1331 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POS Product Grid</title>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-
+<title>MaketHub Seller Dashboard</title>
 <style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,Helvetica,sans-serif;
+/* =========================================================
+   MAKETHUB SELLER DASHBOARD — FRONT-END UI CONCEPT
+   One-file HTML + CSS + JS
+   ========================================================= */
+:root{
+    --black:#0f0f0f;
+    --white:#fff;
+    --gray:#898888;
+    --light:#f5f5f5;
+    --border:#e5e5e5;
+    --green:#088000;
+    --red:#ff3b3b;
+    --yellow:#f2bd00;
+    --blue:#2367d1;
+    --shadow:0 1px 2px rgba(0,0,0,.03);
+    --radius:14px;
 }
-
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
 body{
-background:#f4f5f7;
-overflow-x:hidden;
+    margin:0;
+    font-family:Arial,Helvetica,sans-serif;
+    color:var(--black);
+    background:#fafafa;
+}
+button,input,select{font:inherit}
+button{cursor:pointer}
+a{text-decoration:none;color:inherit}
+
+/* TOP BAR */
+.topbar{
+    height:66px;
+    background:var(--white);
+    border-bottom:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    gap:22px;
+    padding:0 24px;
+    position:sticky;
+    top:0;
+    z-index:50;
+}
+.brand{
+    font-size:21px;
+    font-weight:800;
+    letter-spacing:-.6px;
+    min-width:150px;
+}
+.brand span{color:var(--green)}
+.search{
+    height:40px;
+    max-width:470px;
+    flex:1;
+    background:#f4f4f4;
+    border:1px solid transparent;
+    border-radius:22px;
+    display:flex;
+    align-items:center;
+    padding:0 16px;
+    gap:10px;
+    color:var(--gray);
+}
+.search:focus-within{border-color:#ccc;background:#fff}
+.search input{
+    width:100%;
+    border:0;
+    outline:0;
+    background:transparent;
+}
+.top-actions{
+    margin-left:auto;
+    display:flex;
+    align-items:center;
+    gap:9px;
+}
+.icon-btn{
+    width:38px;height:38px;
+    border:1px solid var(--border);
+    background:#fff;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+}
+.avatar{
+    width:38px;height:38px;
+    border-radius:50%;
+    background:#202020;
+    color:#fff;
+    display:grid;
+    place-items:center;
+    font-weight:700;
 }
 
-/*==========================
-HEADER
-==========================*/
+/* PAGE */
+.page{
+    max-width:1450px;
+    margin:auto;
+    padding:24px;
+}
+.page-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:20px;
+    margin-bottom:20px;
+}
+.page-head h1{
+    margin:0 0 7px;
+    font-size:28px;
+    letter-spacing:-1px;
+}
+.page-head p{
+    margin:0;
+    color:var(--gray);
+    font-size:14px;
+}
+.head-actions{display:flex;gap:9px;flex-wrap:wrap}
+.btn{
+    border:1px solid #d9d9d9;
+    background:#fff;
+    border-radius:9px;
+    padding:10px 15px;
+    font-weight:700;
+}
+.btn.primary{
+    background:var(--black);
+    color:#fff;
+    border-color:var(--black);
+}
+.btn.green{
+    background:var(--green);
+    color:#fff;
+    border-color:var(--green);
+}
+.btn:hover{transform:translateY(-1px)}
 
-header{
-height:70px;
-background:#fff;
-display:flex;
-align-items:center;
-justify-content:space-between;
-padding:0 25px;
-box-shadow:0 2px 10px rgba(0,0,0,.08);
-position:sticky;
-top:0;
-z-index:1000;
+/* NAV TABS */
+.dashboard-nav{
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:6px;
+    display:flex;
+    gap:3px;
+    overflow:auto;
+    margin-bottom:20px;
+}
+.dashboard-nav button{
+    border:0;
+    background:transparent;
+    padding:10px 14px;
+    border-radius:8px;
+    white-space:nowrap;
+    font-size:13px;
+    font-weight:700;
+    color:#666;
+}
+.dashboard-nav button.active{
+    background:#111;
+    color:#fff;
 }
 
-header h2{
-font-size:24px;
-font-weight:bold;
-}
-
-.ticket-btn{
-position:relative;
-cursor:pointer;
-font-size:30px;
-color:#333;
-}
-
-.ticket-count{
-position:absolute;
-top:-8px;
-right:-8px;
-background:red;
-color:#fff;
-width:23px;
-height:23px;
-border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:12px;
-font-weight:bold;
-}
-
-/*==========================
-PRODUCT GRID
-==========================*/
-
+/* GRID SYSTEM */
 .grid{
-  display: grid;
-  grid-template-columns: repeat(auto-fill,minmax(100px,1fr));
-  gap: 20px;
-  padding: 8px 16px;
+    display:grid;
+    gap:16px;
+}
+.kpi-grid{
+    grid-template-columns:repeat(6,minmax(0,1fr));
+}
+.two-col{
+    grid-template-columns:minmax(0,2fr) minmax(280px,1fr);
+}
+.three-col{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+}
+.four-col{
+    grid-template-columns:repeat(4,minmax(0,1fr));
 }
 
-.product {
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  transition: .25s;
-  position: relative;
-  overflow: hidden;
+/* CARDS */
+.card{
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:18px;
+    box-shadow:var(--shadow);
+}
+.card-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:15px;
+}
+.card-title{
+    margin:0;
+    font-size:15px;
+    font-weight:800;
+}
+.card-sub{
+    color:var(--gray);
+    font-size:11px;
+    margin-top:4px;
+}
+.more{
+    border:0;background:transparent;font-size:19px;color:#777;
+}
+.metric{
+    font-size:26px;
+    font-weight:800;
+    letter-spacing:-.8px;
+    margin:8px 0 4px;
+}
+.metric-small{
+    font-size:20px;
+    font-weight:800;
+}
+.change{
+    font-size:11px;
+    font-weight:700;
+}
+.up{color:var(--green)}
+.down{color:var(--red)}
+.muted{color:var(--gray)}
+.divider{
+    height:1px;background:var(--border);margin:15px 0;
 }
 
-.product:hover{
-  transform: translateY(-4px);
+/* KPI */
+.kpi{
+    min-height:140px;
+}
+.kpi .label{
+    font-size:12px;
+    color:#555;
+    font-weight:700;
+}
+.kpi-icon{
+    width:34px;height:34px;border-radius:9px;
+    display:grid;place-items:center;
+    background:#f0f0f0;
+    font-size:16px;
+    margin-bottom:11px;
+}
+.kpi-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+.badge{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    border-radius:20px;
+    padding:5px 9px;
+    font-size:10px;
+    font-weight:800;
+    background:#f2f2f2;
+}
+.badge.green{background:#eaf6e8;color:#076900}
+.badge.red{background:#fff0f0;color:#c90000}
+.badge.yellow{background:#fff8d9;color:#856600}
+
+/* CONTENT LISTS */
+.list{display:flex;flex-direction:column}
+.list-item{
+    display:flex;
+    align-items:center;
+    gap:11px;
+    padding:11px 0;
+    border-bottom:1px solid #eee;
+}
+.list-item:last-child{border-bottom:0}
+.thumb{
+    width:45px;height:45px;
+    border-radius:8px;
+    background:#ececec;
+    display:grid;
+    place-items:center;
+    font-size:20px;
+    flex:none;
+}
+.item-main{min-width:0;flex:1}
+.item-main strong{
+    display:block;
+    font-size:12px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+.item-main small{display:block;color:var(--gray);margin-top:4px;font-size:10px}
+.item-right{text-align:right;font-size:12px;font-weight:800}
+.item-right small{display:block;color:var(--gray);font-weight:400;margin-top:4px}
+
+/* PROGRESS */
+.progress-wrap{margin:13px 0}
+.progress-line{
+    height:7px;background:#ededed;border-radius:10px;overflow:hidden;
+}
+.progress-line span{
+    display:block;height:100%;
+    background:var(--black);
+    border-radius:inherit;
+}
+.progress-line.green span{background:var(--green)}
+.progress-label{
+    display:flex;justify-content:space-between;
+    font-size:11px;margin-bottom:6px;
+}
+.health{
+    display:flex;align-items:center;gap:14px;
+}
+.health-ring{
+    width:72px;height:72px;border-radius:50%;
+    background:conic-gradient(var(--green) 0 92%,#e8e8e8 92% 100%);
+    position:relative;
+    display:grid;place-items:center;
+    flex:none;
+}
+.health-ring:after{
+    content:"";
+    width:54px;height:54px;border-radius:50%;
+    background:#fff;position:absolute;
+}
+.health-ring b{z-index:1;font-size:15px}
+
+/* ORDERS TABLE */
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:620px}
+th,td{
+    padding:12px 8px;
+    text-align:left;
+    border-bottom:1px solid #eee;
+    font-size:11px;
+}
+th{color:#777;font-size:10px;text-transform:uppercase;letter-spacing:.4px}
+td strong{font-size:11px}
+
+/* ALERTS */
+.alert{
+    display:flex;gap:12px;align-items:flex-start;
+    padding:12px;
+    border:1px solid #eee;
+    border-radius:10px;
+    margin-bottom:9px;
+}
+.alert:last-child{margin-bottom:0}
+.alert-icon{
+    width:30px;height:30px;border-radius:8px;
+    display:grid;place-items:center;
+    background:#f2f2f2;
+    flex:none;
+}
+.alert strong{display:block;font-size:12px}
+.alert p{font-size:10px;color:#777;margin:4px 0 0;line-height:1.5}
+.alert.red{border-color:#ffdede}
+.alert.red .alert-icon{background:#fff0f0}
+.alert.green{border-color:#d8efd5}
+.alert.green .alert-icon{background:#eaf6e8}
+
+/* PRODUCT CARDS */
+.products{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:11px;
+}
+.product{
+    border:1px solid #eee;
+    border-radius:10px;
+    overflow:hidden;
+}
+.product-image{
+    height:110px;
+    background:#ededed;
+    display:grid;
+    place-items:center;
+    font-size:34px;
+}
+.product-body{padding:10px}
+.product-body strong{
+    display:block;
+    font-size:11px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.product-body small{display:block;color:#777;margin-top:5px;font-size:10px}
+.product-foot{
+    margin-top:8px;
+    display:flex;justify-content:space-between;
+    font-size:10px;font-weight:800;
 }
 
-.product img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  pointer-events: none;
+/* QUICK ACTIONS */
+.actions{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:9px;
+}
+.action{
+    border:1px solid #e8e8e8;
+    border-radius:10px;
+    padding:12px;
+    background:#fff;
+    text-align:left;
+}
+.action:hover{background:#f7f7f7}
+.action b{font-size:11px;display:block}
+.action small{color:#777;font-size:9px;display:block;margin-top:4px}
+
+/* MINI STATS */
+.mini-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+}
+.mini{
+    background:#f7f7f7;
+    border-radius:10px;
+    padding:12px;
+}
+.mini label{display:block;font-size:10px;color:#777}
+.mini b{display:block;font-size:18px;margin-top:5px}
+
+/* GRAPH SECTION */
+.performance{
+    margin-top:16px;
+}
+.chart-toolbar{
+    display:flex;justify-content:space-between;align-items:center;
+    gap:12px;flex-wrap:wrap;
+}
+.range-buttons{display:flex;gap:4px}
+.range-buttons button{
+    border:1px solid #ddd;background:#fff;
+    border-radius:7px;padding:6px 9px;font-size:10px;
+}
+.range-buttons button.active{background:#111;color:#fff;border-color:#111}
+.chart-box{
+    margin-top:12px;
+    border:1px solid #eee;
+    border-radius:11px;
+    padding:14px;
+    background:#fff;
+}
+.chart{
+    width:100%;
+    height:260px;
+    display:block;
+}
+.legend{
+    display:flex;gap:18px;flex-wrap:wrap;
+    margin-top:10px;
+    font-size:10px;color:#666;
+}
+.legend i{
+    width:9px;height:9px;border-radius:50%;
+    display:inline-block;background:#111;margin-right:5px;
+}
+.legend i.bar{border-radius:2px;background:#999}
+
+/* FOOTER */
+.footer-note{
+    text-align:center;
+    color:#999;
+    font-size:10px;
+    padding:25px 0 8px;
 }
 
-/*==========================
-SIDEBAR
-==========================*/
+/* TOAST */
+.toast{
+    position:fixed;
+    right:22px;bottom:22px;
+    background:#111;color:#fff;
+    padding:12px 16px;border-radius:9px;
+    font-size:12px;font-weight:700;
+    opacity:0;transform:translateY(12px);
+    pointer-events:none;
+    transition:.25s;
+    z-index:100;
+}
+.toast.show{opacity:1;transform:translateY(0)}
 
-.sidebar{
-position:fixed;
-right:-400px;
-top:0;
-width:380px;
-height:100%;
-background:#fff;
-box-shadow:-5px 0 20px rgba(0,0,0,.15);
-transition:.35s;
-z-index:3000;
-display:flex;
-flex-direction:column;
+/* RESPONSIVE */
+@media(max-width:1250px){
+    .kpi-grid{grid-template-columns:repeat(3,1fr)}
+    .products{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:950px){
+    .two-col,.three-col{grid-template-columns:1fr}
+    .four-col{grid-template-columns:repeat(2,1fr)}
+    .search{max-width:none}
+}
+@media(max-width:680px){
+    .topbar{padding:0 13px;gap:10px}
+    .brand{min-width:auto;font-size:18px}
+    .topbar .search{display:none}
+    .page{padding:14px}
+    .page-head{display:block}
+    .head-actions{margin-top:14px}
+    .kpi-grid{grid-template-columns:repeat(2,1fr)}
+    .four-col{grid-template-columns:1fr}
+    .products{grid-template-columns:repeat(2,1fr)}
+    .kpi{min-height:125px}
+    .metric{font-size:22px}
+}
+@media(max-width:420px){
+    .kpi-grid{grid-template-columns:1fr}
+    .products{grid-template-columns:1fr 1fr}
+    .page-head h1{font-size:24px}
 }
 
-.sidebar.show{
-right:0;
-}
-
-.sidebar-header{
-height:70px;
-display:flex;
-align-items:center;
-justify-content:space-between;
-padding:20px;
-border-bottom:1px solid #ddd;
-}
-
-.sidebar-header h2{
-font-size:22px;
-}
-
-.close{
-font-size:28px;
-cursor:pointer;
-}
-
-.ticket-list{
-flex:1;
-overflow:auto;
-padding:15px;
-}
-
-.ticket-item{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:12px;
-margin-bottom:10px;
-background:#f8f8f8;
-border-radius:10px;
-}
-
-.ticket-left{
-display:flex;
-align-items:center;
-gap:10px;
-}
-
-.ticket-left img{
-width:55px;
-height:55px;
-object-fit:cover;
-border-radius:8px;
-}
-
-.qty{
-background:#222;
-color:white;
-padding:4px 10px;
-border-radius:20px;
-font-size:13px;
-}
-
-/*==========================
-FLY IMAGE
-==========================*/
-
-.fly{
-position:fixed;
-z-index:99999;
-pointer-events:none;
-border-radius:10px;
-transition:
-left .7s cubic-bezier(.22,.61,.36,1),
-top .7s cubic-bezier(.22,.61,.36,1),
-width .7s,
-height .7s,
-opacity .7s;
-margin: ;
-}
-
+/* DEMO TAB VISIBILITY */
+[data-section]{display:none}
+[data-section].active-section{display:block}
 </style>
-
 </head>
+
 <body>
 
-<header>
+<header class="topbar">
+    <div class="brand">Maket<span>Hub</span></div>
 
-<h2>Tap to Sale</h2>
-
-<div class="ticket-btn" id="ticketButton">
-
-<i class="fa-solid fa-receipt"></i>
-
-<div class="ticket-count" id="counter">0</div>
-
-</div>
-
-</header>
-
-  <div class="container">
-
-    <div class="grid" id="grid">
-
+    <div class="search">
+        🔎
+        <input type="search" placeholder="Search products, orders, customers...">
     </div>
 
-  </div>
+    <div class="top-actions">
+        <button class="icon-btn" title="Open store" onclick="toast('Opening your store...')">↗</button>
+        <button class="icon-btn" title="Notifications" onclick="toast('You have 4 new notifications')">🔔</button>
+        <button class="icon-btn" title="Help" onclick="toast('Help centre opened')">?</button>
+        <div class="avatar">BE</div>
+    </div>
+</header>
 
+<main class="page">
 
-<!-- SIDEBAR -->
+    <section class="page-head">
+        <div>
+            <h1>Good morning, Blessed 👋</h1>
+            <p>Here's what is happening with your store today.</p>
+        </div>
+        <div class="head-actions">
+            <button class="btn" onclick="toast('Date range selector opened')">Today ▾</button>
+            <button class="btn" onclick="toast('Store preview opened')">View Store</button>
+            <button class="btn primary" onclick="toast('Add product form opened')">＋ Add Product</button>
+        </div>
+    </section>
 
-<div class="sidebar" id="sidebar">
+    <nav class="dashboard-nav" id="dashboardNav">
+        <button class="active" data-target="overview">Overview</button>
+        <button data-target="orders">Orders</button>
+        <button data-target="products">Products</button>
+        <button data-target="inventory">Inventory</button>
+        <button data-target="customers">Customers</button>
+        <button data-target="marketing">Marketing</button>
+        <button data-target="finance">Finance</button>
+        <button data-target="store">Store</button>
+    </nav>
 
-<div class="sidebar-header">
+    <!-- =====================================================
+         OVERVIEW
+         ===================================================== -->
+    <section data-section="overview" class="active-section">
 
-<h2>Sale Ticket</h2>
+        <div class="grid kpi-grid">
 
-<i class="fa-solid fa-xmark close" id="closeSidebar"></i>
+            <article class="card kpi">
+                <div class="kpi-row">
+                    <span class="label">Sales today</span>
+                    <div class="kpi-icon">KSh</div>
+                </div>
+                <div class="metric">KSh 18,450</div>
+                <span class="change up">▲ 18.4% vs yesterday</span>
+            </article>
 
-</div>
+            <article class="card kpi">
+                <div class="kpi-row">
+                    <span class="label">Orders</span>
+                    <div class="kpi-icon">🛍</div>
+                </div>
+                <div class="metric">47</div>
+                <span class="change up">▲ 12 new today</span>
+            </article>
 
-<div class="ticket-list" id="ticketList">
+            <article class="card kpi">
+                <div class="kpi-row">
+                    <span class="label">Products</span>
+                    <div class="kpi-icon">▦</div>
+                </div>
+                <div class="metric">186</div>
+                <span class="change muted">179 active · 7 hidden</span>
+            </article>
 
-</div>
+            <article class="card kpi">
+                <div class="kpi-row">
+                    <span class="label">Customers</span>
+                    <div class="kpi-icon">♙</div>
+                </div>
+                <div class="metric">1,284</div>
+                <span class="change up">+63 this month</span>
+            </article>
 
-</div>
+            <article class="card kpi">
+                <div class="kpi-row">
+                    <span class="label">Pending orders</span>
+                    <div class="kpi-icon">◷</div>
+                </div>
+                <div class="metric">16</div>
+                <span class="change down">8 need attention</span>
+            </article>
+
+            <article class="card kpi">
+                <div class="kpi-row">
+                    <span class="label">Store health</span>
+                    <div class="kpi-icon">✓</div>
+                </div>
+                <div class="metric">92%</div>
+                <span class="change up">Excellent standing</span>
+            </article>
+
+        </div>
+
+        <div class="grid two-col" style="margin-top:16px">
+
+            <!-- SALES SNAPSHOT -->
+            <article class="card">
+                <div class="card-head">
+                    <div>
+                        <h2 class="card-title">Sales snapshot</h2>
+                        <div class="card-sub">Performance for the current period</div>
+                    </div>
+                    <button class="more" onclick="toast('Sales report opened')">⋮</button>
+                </div>
+
+                <div class="grid four-col">
+                    <div class="mini">
+                        <label>Gross sales</label>
+                        <b>KSh 342K</b>
+                        <span class="change up">+14.8%</span>
+                    </div>
+                    <div class="mini">
+                        <label>Net sales</label>
+                        <b>KSh 318K</b>
+                        <span class="change up">+11.2%</span>
+                    </div>
+                    <div class="mini">
+                        <label>Avg. order</label>
+                        <b>KSh 2,940</b>
+                        <span class="change up">+6.4%</span>
+                    </div>
+                    <div class="mini">
+                        <label>Conversion</label>
+                        <b>4.8%</b>
+                        <span class="change up">+0.7%</span>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="card-head" style="margin-bottom:8px">
+                    <div>
+                        <strong style="font-size:12px">Revenue sources</strong>
+                        <div class="card-sub">Where today's sales came from</div>
+                    </div>
+                </div>
+
+                <div class="progress-wrap">
+                    <div class="progress-label"><span>MaketHub online store</span><b>64%</b></div>
+                    <div class="progress-line green"><span style="width:64%"></span></div>
+                </div>
+                <div class="progress-wrap">
+                    <div class="progress-label"><span>Direct / POS sales</span><b>23%</b></div>
+                    <div class="progress-line"><span style="width:23%"></span></div>
+                </div>
+                <div class="progress-wrap">
+                    <div class="progress-label"><span>Other channels</span><b>13%</b></div>
+                    <div class="progress-line"><span style="width:13%"></span></div>
+                </div>
+            </article>
+
+            <!-- IMPORTANT NOTIFICATIONS -->
+            <article class="card">
+                <div class="card-head">
+                    <div>
+                        <h2 class="card-title">Important notifications</h2>
+                        <div class="card-sub">Things that may need your attention</div>
+                    </div>
+                    <span class="badge">4 new</span>
+                </div>
+
+                <div class="alert red">
+                    <div class="alert-icon">!</div>
+                    <div>
+                        <strong>3 products are almost out of stock</strong>
+                        <p>Restock before customers encounter unavailable items.</p>
+                    </div>
+                </div>
+
+                <div class="alert">
+                    <div class="alert-icon">◷</div>
+                    <div>
+                        <strong>8 orders are awaiting fulfilment</strong>
+                        <p>Prepare and update their order status.</p>
+                    </div>
+                </div>
+
+                <div class="alert green">
+                    <div class="alert-icon">✓</div>
+                    <div>
+                        <strong>Your store is performing well</strong>
+                        <p>Sales are 18.4% higher than the previous period.</p>
+                    </div>
+                </div>
+
+                <div class="alert">
+                    <div class="alert-icon">★</div>
+                    <div>
+                        <strong>5 new customer reviews</strong>
+                        <p>Respond to your customers and build trust.</p>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+        <div class="grid two-col" style="margin-top:16px">
+
+            <!-- RECENT ORDERS -->
+            <article class="card">
+                <div class="card-head">
+                    <div>
+                        <h2 class="card-title">Recent orders</h2>
+                        <div class="card-sub">Latest activity in your store</div>
+                    </div>
+                    <button class="btn" onclick="activate('orders')">View all</button>
+                </div>
+
+                <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order</th>
+                            <th>Customer</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>MH-1048</strong></td>
+                            <td>Customer #482</td>
+                            <td>KSh 4,850</td>
+                            <td><span class="badge yellow">Processing</span></td>
+                            <td>8 min ago</td>
+                        </tr>
+                        <tr>
+                            <td><strong>MH-1047</strong></td>
+                            <td>Customer #117</td>
+                            <td>KSh 1,920</td>
+                            <td><span class="badge green">Paid</span></td>
+                            <td>24 min ago</td>
+                        </tr>
+                        <tr>
+                            <td><strong>MH-1046</strong></td>
+                            <td>Customer #903</td>
+                            <td>KSh 7,200</td>
+                            <td><span class="badge">Shipped</span></td>
+                            <td>41 min ago</td>
+                        </tr>
+                        <tr>
+                            <td><strong>MH-1045</strong></td>
+                            <td>Customer #288</td>
+                            <td>KSh 2,680</td>
+                            <td><span class="badge red">Attention</span></td>
+                            <td>1 hr ago</td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+            </article>
+
+            <!-- QUICK ACTIONS -->
+            <article class="card">
+                <div class="card-head">
+                    <div>
+                        <h2 class="card-title">Quick actions</h2>
+                        <div class="card-sub">Frequently used seller tools</div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button class="action" onclick="toast('Add product opened')">
+                        <b>＋ Add product</b><small>Create a new product or service</small>
+                    </button>
+                    <button class="action" onclick="toast('Inventory manager opened')">
+                        <b>▣ Update inventory</b><small>Adjust stock and availability</small>
+                    </button>
+                    <button class="action" onclick="toast('Orders manager opened')">
+                        <b>◷ Process orders</b><small>Pack, ship and update orders</small>
+                    </button>
+                    <button class="action" onclick="toast('Promotion creator opened')">
+                        <b>◇ Create promotion</b><small>Offer discounts and deals</small>
+                    </button>
+                    <button class="action" onclick="toast('Store editor opened')">
+                        <b>⌂ Edit storefront</b><small>Update your public store</small>
+                    </button>
+                    <button class="action" onclick="toast('Reports opened')">
+                        <b>▤ View reports</b><small>Understand your business data</small>
+                    </button>
+                </div>
+            </article>
+        </div>
+
+        <!-- TOP PRODUCTS -->
+        <article class="card" style="margin-top:16px">
+            <div class="card-head">
+                <div>
+                    <h2 class="card-title">Top-performing products</h2>
+                    <div class="card-sub">Products contributing most to your sales</div>
+                </div>
+                <button class="btn" onclick="activate('products')">Manage products</button>
+            </div>
+
+            <div class="products">
+                <div class="product">
+                    <div class="product-image">👟</div>
+                    <div class="product-body">
+                        <strong>Classic Sneakers</strong>
+                        <small>48 sold · 12 remaining</small>
+                        <div class="product-foot"><span>KSh 4,500</span><span class="up">+28%</span></div>
+                    </div>
+                </div>
+                <div class="product">
+                    <div class="product-image">📱</div>
+                    <div class="product-body">
+                        <strong>Samsung Galaxy A Series</strong>
+                        <small>31 sold · 7 remaining</small>
+                        <div class="product-foot"><span>KSh 22,000</span><span class="up">+21%</span></div>
+                    </div>
+                </div>
+                <div class="product">
+                    <div class="product-image">🎒</div>
+                    <div class="product-body">
+                        <strong>Urban Backpack</strong>
+                        <small>26 sold · 18 remaining</small>
+                        <div class="product-foot"><span>KSh 2,800</span><span class="up">+16%</span></div>
+                    </div>
+                </div>
+                <div class="product">
+                    <div class="product-image">⌚</div>
+                    <div class="product-body">
+                        <strong>Smart Watch Pro</strong>
+                        <small>22 sold · 5 remaining</small>
+                        <div class="product-foot"><span>KSh 6,500</span><span class="up">+12%</span></div>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- BUSINESS HEALTH -->
+        <div class="grid three-col" style="margin-top:16px">
+            <article class="card">
+                <div class="card-head">
+                    <div>
+                        <h2 class="card-title">Store health</h2>
+                        <div class="card-sub">Overall readiness of your store</div>
+                    </div>
+                </div>
+                <div class="health">
+                    <div class="health-ring"><b>92%</b></div>
+                    <div>
+                        <strong style="font-size:12px">Excellent</strong>
+                        <p class="card-sub" style="line-height:1.5">Complete your remaining tasks to keep your store healthy.</p>
+                    </div>
+                </div>
+                <div class="divider"></div>
+                <div class="progress-label"><span>Profile</span><b>100%</b></div>
+                <div class="progress-line green"><span style="width:100%"></span></div>
+                <div class="progress-label"><span>Products</span><b>94%</b></div>
+                <div class="progress-line green"><span style="width:94%"></span></div>
+                <div class="progress-label"><span>Store setup</span><b>82%</b></div>
+                <div class="progress-line"><span style="width:82%"></span></div>
+            </article>
+
+            <article class="card">
+                <div class="card-head">
+                    <div>
+                        <h2 class="card-title">Customer experience</h2>
+                        <div class="card-sub">How customers are interacting with you</div>
+                    </div>
+                </div>
+                <div class="mini-grid">
+                    <div class="mini"><label>Rating</label><b>4.8 ★</b></div>
+                    <div class="mini"><label>Response rate</label><b>96%</b></div>
+                    <div class="mini"><label>Repeat buyers</label><b>34%</b></div>
+                    <div class="mini"><label>Returns</label><b>2.1%</b></div>
+                </div>
+                <div class="divider"></div>
+                <span class="change up">✓ Your customer experience is above average</span>
+            </article>
+
+            <article class="card">
+                <div class="card-head">
+                    <div>
+                        <h2 class="card-title">MaketHub updates</h2>
+                        <div class="card-sub">News and seller opportunities</div>
+                    </div>
+                </div>
+                <div class="list">
+                    <div class="list-item">
+                        <div class="thumb">🚀</div>
+                        <div class="item-main"><strong>New seller tools available</strong><small>Explore your updated dashboard</small></div>
+                    </div>
+                    <div class="list-item">
+                        <div class="thumb">📣</div>
+                        <div class="item-main"><strong>Seller promotion week</strong><small>Increase product visibility</small></div>
+                    </div>
+                    <div class="list-item">
+                        <div class="thumb">💡</div>
+                        <div class="item-main"><strong>Improve product photos</strong><small>Better photos can increase sales</small></div>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+    </section>
+
+    <!-- =====================================================
+         ORDERS
+         ===================================================== -->
+    <section data-section="orders">
+        <div class="grid four-col">
+            <article class="card kpi"><span class="label">All orders</span><div class="metric">248</div><span class="change up">+18 this week</span></article>
+            <article class="card kpi"><span class="label">Awaiting fulfilment</span><div class="metric">16</div><span class="change down">Needs attention</span></article>
+            <article class="card kpi"><span class="label">Shipped</span><div class="metric">31</div><span class="change up">8 today</span></article>
+            <article class="card kpi"><span class="label">Returns / issues</span><div class="metric">4</div><span class="change muted">1 new today</span></article>
+        </div>
+        <article class="card" style="margin-top:16px">
+            <div class="card-head">
+                <div><h2 class="card-title">Order management</h2><div class="card-sub">Track every order from payment to delivery</div></div>
+                <button class="btn primary" onclick="toast('Order export prepared')">Export orders</button>
+            </div>
+            <div class="table-wrap">
+            <table>
+                <thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Fulfilment</th><th>Updated</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>MH-1048</strong></td><td>Customer #482</td><td>3</td><td>KSh 4,850</td><td><span class="badge green">Paid</span></td><td><span class="badge yellow">Processing</span></td><td>8 min</td></tr>
+                    <tr><td><strong>MH-1047</strong></td><td>Customer #117</td><td>1</td><td>KSh 1,920</td><td><span class="badge green">Paid</span></td><td><span class="badge">Ready</span></td><td>24 min</td></tr>
+                    <tr><td><strong>MH-1046</strong></td><td>Customer #903</td><td>5</td><td>KSh 7,200</td><td><span class="badge green">Paid</span></td><td><span class="badge">Shipped</span></td><td>41 min</td></tr>
+                    <tr><td><strong>MH-1045</strong></td><td>Customer #288</td><td>2</td><td>KSh 2,680</td><td><span class="badge red">Pending</span></td><td><span class="badge red">Attention</span></td><td>1 hr</td></tr>
+                    <tr><td><strong>MH-1044</strong></td><td>Customer #731</td><td>4</td><td>KSh 9,400</td><td><span class="badge green">Paid</span></td><td><span class="badge">Delivered</span></td><td>2 hrs</td></tr>
+                </tbody>
+            </table>
+            </div>
+        </article>
+    </section>
+
+    <!-- =====================================================
+         PRODUCTS
+         ===================================================== -->
+    <section data-section="products">
+        <div class="grid four-col">
+            <article class="card kpi"><span class="label">Total products</span><div class="metric">186</div><span class="change up">+12 this month</span></article>
+            <article class="card kpi"><span class="label">Active</span><div class="metric">179</div><span class="change up">96.2% active</span></article>
+            <article class="card kpi"><span class="label">Out of stock</span><div class="metric">3</div><span class="change down">Restock now</span></article>
+            <article class="card kpi"><span class="label">Draft / hidden</span><div class="metric">7</div><span class="change muted">Needs review</span></article>
+        </div>
+        <article class="card" style="margin-top:16px">
+            <div class="card-head">
+                <div><h2 class="card-title">Product catalogue</h2><div class="card-sub">Products, services and rentals published to your store</div></div>
+                <div class="head-actions"><button class="btn">Filter ▾</button><button class="btn primary" onclick="toast('Add product form opened')">＋ Add product</button></div>
+            </div>
+            <div class="products">
+                <div class="product"><div class="product-image">👟</div><div class="product-body"><strong>Classic Sneakers</strong><small>Fashion · Each · 12 stock</small><div class="product-foot"><span>KSh 4,500</span><span class="badge green">Active</span></div></div></div>
+                <div class="product"><div class="product-image">📱</div><div class="product-body"><strong>Galaxy A Series</strong><small>Electronics · Each · 7 stock</small><div class="product-foot"><span>KSh 22,000</span><span class="badge green">Active</span></div></div></div>
+                <div class="product"><div class="product-image">🎒</div><div class="product-body"><strong>Urban Backpack</strong><small>Fashion · Each · 18 stock</small><div class="product-foot"><span>KSh 2,800</span><span class="badge green">Active</span></div></div></div>
+                <div class="product"><div class="product-image">⌚</div><div class="product-body"><strong>Smart Watch Pro</strong><small>Electronics · Each · 5 stock</small><div class="product-foot"><span>KSh 6,500</span><span class="badge green">Active</span></div></div></div>
+            </div>
+        </article>
+    </section>
+
+    <!-- =====================================================
+         INVENTORY
+         ===================================================== -->
+    <section data-section="inventory">
+        <div class="grid four-col">
+            <article class="card kpi"><span class="label">Inventory value</span><div class="metric">KSh 1.84M</div><span class="change muted">At selling price</span></article>
+            <article class="card kpi"><span class="label">Low stock</span><div class="metric">14</div><span class="change down">Needs restock</span></article>
+            <article class="card kpi"><span class="label">Out of stock</span><div class="metric">3</div><span class="change down">Potential lost sales</span></article>
+            <article class="card kpi"><span class="label">Stock movement</span><div class="metric">+8.4%</div><span class="change up">vs previous period</span></article>
+        </div>
+        <div class="grid two-col" style="margin-top:16px">
+            <article class="card">
+                <div class="card-head"><div><h2 class="card-title">Inventory alerts</h2><div class="card-sub">Products requiring stock attention</div></div></div>
+                <div class="list">
+                    <div class="list-item"><div class="thumb">⌚</div><div class="item-main"><strong>Smart Watch Pro</strong><small>Only 5 units left</small></div><div class="item-right down">Restock</div></div>
+                    <div class="list-item"><div class="thumb">🎧</div><div class="item-main"><strong>Wireless Headphones</strong><small>Only 2 units left</small></div><div class="item-right down">Restock</div></div>
+                    <div class="list-item"><div class="thumb">👕</div><div class="item-main"><strong>Premium T-Shirt</strong><small>Out of stock</small></div><div class="item-right down">Urgent</div></div>
+                </div>
+            </article>
+            <article class="card">
+                <div class="card-head"><div><h2 class="card-title">Inventory controls</h2><div class="card-sub">Keep stock accurate across your store</div></div></div>
+                <div class="actions">
+                    <button class="action" onclick="toast('Stock adjustment opened')"><b>＋ Adjust stock</b><small>Manually add or remove stock</small></button>
+                    <button class="action" onclick="toast('Low stock settings opened')"><b>⚙ Stock thresholds</b><small>Set low-stock warnings</small></button>
+                    <button class="action" onclick="toast('Supplier records opened')"><b>▣ Suppliers</b><small>Manage supplier information</small></button>
+                    <button class="action" onclick="toast('Inventory report opened')"><b>▤ Inventory report</b><small>View stock movement</small></button>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <!-- =====================================================
+         CUSTOMERS
+         ===================================================== -->
+    <section data-section="customers">
+        <div class="grid four-col">
+            <article class="card kpi"><span class="label">Total customers</span><div class="metric">1,284</div><span class="change up">+63 this month</span></article>
+            <article class="card kpi"><span class="label">New customers</span><div class="metric">63</div><span class="change up">+21.5%</span></article>
+            <article class="card kpi"><span class="label">Repeat customers</span><div class="metric">34%</div><span class="change up">+4.2%</span></article>
+            <article class="card kpi"><span class="label">Average spend</span><div class="metric">KSh 6,420</div><span class="change up">+8.1%</span></article>
+        </div>
+        <div class="grid two-col" style="margin-top:16px">
+            <article class="card">
+                <div class="card-head"><div><h2 class="card-title">Recent customers</h2><div class="card-sub">People who recently interacted with your store</div></div></div>
+                <div class="list">
+                    <div class="list-item"><div class="avatar">AM</div><div class="item-main"><strong>Customer #482</strong><small>3 orders · Last order today</small></div><div class="item-right">KSh 14,800</div></div>
+                    <div class="list-item"><div class="avatar">JK</div><div class="item-main"><strong>Customer #903</strong><small>5 orders · Last order today</small></div><div class="item-right">KSh 32,100</div></div>
+                    <div class="list-item"><div class="avatar">LN</div><div class="item-main"><strong>Customer #117</strong><small>1 order · New customer</small></div><div class="item-right">KSh 1,920</div></div>
+                    <div class="list-item"><div class="avatar">PO</div><div class="item-main"><strong>Customer #731</strong><small>8 orders · Loyal customer</small></div><div class="item-right">KSh 47,300</div></div>
+                </div>
+            </article>
+            <article class="card">
+                <div class="card-head"><div><h2 class="card-title">Customer insights</h2><div class="card-sub">Understand the people buying from you</div></div></div>
+                <div class="mini-grid">
+                    <div class="mini"><label>Local buyers</label><b>58%</b></div>
+                    <div class="mini"><label>National buyers</label><b>35%</b></div>
+                    <div class="mini"><label>New buyers</label><b>66%</b></div>
+                    <div class="mini"><label>Returning</label><b>34%</b></div>
+                </div>
+                <div class="divider"></div>
+                <strong style="font-size:12px">Customer retention</strong>
+                <div class="progress-wrap"><div class="progress-label"><span>Returning within 30 days</span><b>34%</b></div><div class="progress-line green"><span style="width:34%"></span></div></div>
+            </article>
+        </div>
+    </section>
+
+    <!-- =====================================================
+         MARKETING
+         ===================================================== -->
+    <section data-section="marketing">
+        <div class="grid four-col">
+            <article class="card kpi"><span class="label">Campaign sales</span><div class="metric">KSh 86K</div><span class="change up">+24.1%</span></article>
+            <article class="card kpi"><span class="label">Product views</span><div class="metric">12.8K</div><span class="change up">+17.2%</span></article>
+            <article class="card kpi"><span class="label">Wishlist adds</span><div class="metric">386</div><span class="change up">+9.8%</span></article>
+            <article class="card kpi"><span class="label">Conversion</span><div class="metric">4.8%</div><span class="change up">+0.7%</span></article>
+        </div>
+        <div class="grid two-col" style="margin-top:16px">
+            <article class="card">
+                <div class="card-head"><div><h2 class="card-title">Promotions</h2><div class="card-sub">Manage discounts and offers</div></div><button class="btn primary" onclick="toast('Promotion creator opened')">＋ New promotion</button></div>
+                <div class="list">
+                    <div class="list-item"><div class="thumb">%</div><div class="item-main"><strong>Weekend Sale — 15% Off</strong><small>12 products · Ends Sunday</small></div><div class="item-right"><span class="badge green">Active</span></div></div>
+                    <div class="list-item"><div class="thumb">🎁</div><div class="item-main"><strong>Buy 2 Get 1</strong><small>Fashion category · 24 uses</small></div><div class="item-right"><span class="badge">Active</span></div></div>
+                    <div class="list-item"><div class="thumb">🚚</div><div class="item-main"><strong>Free delivery offer</strong><small>Orders above KSh 5,000</small></div><div class="item-right"><span class="badge yellow">Scheduled</span></div></div>
+                </div>
+            </article>
+            <article class="card">
+                <div class="card-head"><div><h2 class="card-title">Marketing opportunities</h2><div class="card-sub">Ways to bring more buyers</div></div></div>
+                <div class="alert"><div class="alert-icon">★</div><div><strong>Promote your top 5 products</strong><p>These products have high views but could get more conversions.</p></div></div>
+                <div class="alert"><div class="alert-icon">📷</div><div><strong>Improve 9 product photos</strong><p>Clearer images may improve customer engagement.</p></div></div>
+                <div class="alert green"><div class="alert-icon">✓</div><div><strong>Store is eligible for promotion</strong><p>Your current store health meets the requirements.</p></div></div>
+            </article>
+        </div>
+    </section>
+
+    <!-- =====================================================
+         FINANCE
+         ===================================================== -->
+    <section data-section="finance">
+        <div class="grid four-col">
+            <article class="card kpi"><span class="label">Available balance</span><div class="metric">KSh 124K</div><span class="change up">Ready to withdraw</span></article>
+            <article class="card kpi"><span class="label">Gross revenue</span><div class="metric">KSh 342K</div><span class="change up">+14.8%</span></article>
+            <article class="card kpi"><span class="label">Expenses / fees</span><div class="metric">KSh 24K</div><span class="change muted">7.1% of revenue</span></article>
+            <article class="card kpi"><span class="label">Estimated profit</span><div class="metric">KSh 91K</div><span class="change up">+12.7%</span></article>
+        </div>
+        <div class="grid two-col" style="margin-top:16px">
+            <article class="card">
+                <div class="card-head"><div><h2 class="card-title">Money movement</h2><div class="card-sub">Recent financial activity</div></div><button class="btn">View statement</button></div>
+                <div class="list">
+                    <div class="list-item"><div class="thumb">＋</div><div class="item-main"><strong>Order MH-1048 payment</strong><small>Today · Customer purchase</small></div><div class="item-right up">+KSh 4,850</div></div>
+                    <div class="list-item"><div class="thumb">−</div><div class="item-main"><strong>MaketHub service fee</strong><small>Today · Order fees</small></div><div class="item-right down">−KSh 145</div></div>
+                    <div class="list-item"><div class="thumb">↑</div><div class="item-main"><strong>Withdrawal</strong><small>Yesterday · M-Pesa</small></div><div class="item-right down">−KSh 20,000</div></div>
+                    <div class="list-item"><div class="thumb">＋</div><div class="item-main"><strong>Order MH-1042 payment</strong><small>Yesterday · Customer purchase</small></div><div class="item-right up">+KSh 7,300</div></div>
+                </div>
+            </article>
+            <article class="card">
+                <div class="card-head"><div><h2 class="card-title">Financial controls</h2><div class="card-sub">Manage your seller finances</div></div></div>
+                <div class="actions">
+                    <button class="action" onclick="toast('Withdrawal flow opened')"><b>↑ Withdraw</b><small>Send available balance to M-Pesa</small></button>
+                    <button class="action" onclick="toast('Statement opened')"><b>▤ Statement</b><small>View income and transactions</small></button>
+                    <button class="action" onclick="toast('Profit report opened')"><b>◉ Profit report</b><small>Track revenue, costs and profit</small></button>
+                    <button class="action" onclick="toast('Payout settings opened')"><b>⚙ Payout settings</b><small>Manage payment preferences</small></button>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <!-- =====================================================
+         STORE
+         ===================================================== -->
+    <section data-section="store">
+        <div class="grid four-col">
+            <article class="card kpi"><span class="label">Store visits</span><div class="metric">18.6K</div><span class="change up">+21.4%</span></article>
+            <article class="card kpi"><span class="label">Product views</span><div class="metric">12.8K</div><span class="change up">+17.2%</span></article>
+            <article class="card kpi"><span class="label">Store rating</span><div class="metric">4.8 ★</div><span class="change up">Excellent</span></article>
+            <article class="card kpi"><span class="label">Store completion</span><div class="metric">92%</div><span class="change up">2 tasks left</span></article>
+        </div>
+        <div class="grid two-col" style="margin-top:16px">
+            <article class="card">
+                <div class="card-head"><div><h2 class="card-title">Store profile</h2><div class="card-sub">What customers see about your business</div></div><button class="btn primary" onclick="toast('Store editor opened')">Edit store</button></div>
+                <div class="list">
+                    <div class="list-item"><div class="thumb">⌂</div><div class="item-main"><strong>Store information</strong><small>Business name, description and contacts</small></div><div class="item-right"><span class="badge green">Complete</span></div></div>
+                    <div class="list-item"><div class="thumb">🖼</div><div class="item-main"><strong>Logo & cover image</strong><small>Brand identity and storefront visuals</small></div><div class="item-right"><span class="badge green">Complete</span></div></div>
+                    <div class="list-item"><div class="thumb">📍</div><div class="item-main"><strong>Location & market scope</strong><small>Local, national or wider selling area</small></div><div class="item-right"><span class="badge green">Complete</span></div></div>
+                    <div class="list-item"><div class="thumb">🚚</div><div class="item-main"><strong>Delivery settings</strong><small>Areas, delivery fees and fulfilment</small></div><div class="item-right"><span class="badge yellow">Review</span></div></div>
+                </div>
+            </article>
+            <article class="card">
+                <div class="card-head"><div><h2 class="card-title">Store visibility</h2><div class="card-sub">How customers discover your business</div></div></div>
+                <div class="mini-grid">
+                    <div class="mini"><label>Search discovery</label><b>78%</b></div>
+                    <div class="mini"><label>Store visits</label><b>18.6K</b></div>
+                    <div class="mini"><label>Product clicks</label><b>12.8K</b></div>
+                    <div class="mini"><label>Wishlist</label><b>386</b></div>
+                </div>
+                <div class="divider"></div>
+                <div class="progress-label"><span>Store completeness</span><b>92%</b></div>
+                <div class="progress-line green"><span style="width:92%"></span></div>
+                <p class="card-sub" style="line-height:1.6">Complete delivery settings and add your return policy to reach 100%.</p>
+            </article>
+        </div>
+    </section>
+
+    <!-- =====================================================
+         GENERAL PERFORMANCE — BOTTOM OF PAGE
+         ===================================================== -->
+    <section class="performance card" id="performance">
+        <div class="chart-toolbar">
+            <div>
+                <h2 class="card-title">General performance</h2>
+                <div class="card-sub">A simple view of how your business is performing over time</div>
+            </div>
+            <div class="range-buttons" id="ranges">
+                <button class="active" data-range="7">7D</button>
+                <button data-range="30">30D</button>
+                <button data-range="90">90D</button>
+            </div>
+        </div>
+
+        <div class="chart-box">
+            <svg class="chart" id="lineChart" viewBox="0 0 1000 260" preserveAspectRatio="none" aria-label="Sales line graph">
+                <g stroke="#e8e8e8" stroke-width="1">
+                    <line x1="55" y1="25" x2="980" y2="25"/>
+                    <line x1="55" y1="75" x2="980" y2="75"/>
+                    <line x1="55" y1="125" x2="980" y2="125"/>
+                    <line x1="55" y1="175" x2="980" y2="175"/>
+                    <line x1="55" y1="225" x2="980" y2="225"/>
+                </g>
+                <g fill="#777" font-size="10">
+                    <text x="8" y="29">50K</text>
+                    <text x="8" y="79">40K</text>
+                    <text x="8" y="129">30K</text>
+                    <text x="8" y="179">20K</text>
+                    <text x="8" y="229">10K</text>
+                </g>
+                <polyline id="salesLine" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+                    points="60,185 190,160 320,170 450,120 580,135 710,80 840,100 970,55"/>
+                <g id="lineDots" fill="#111">
+                    <circle cx="60" cy="185" r="4"/><circle cx="190" cy="160" r="4"/>
+                    <circle cx="320" cy="170" r="4"/><circle cx="450" cy="120" r="4"/>
+                    <circle cx="580" cy="135" r="4"/><circle cx="710" cy="80" r="4"/>
+                    <circle cx="840" cy="100" r="4"/><circle cx="970" cy="55" r="4"/>
+                </g>
+                <g fill="#777" font-size="10">
+                    <text x="55" y="250">Mon</text><text x="180" y="250">Tue</text>
+                    <text x="310" y="250">Wed</text><text x="440" y="250">Thu</text>
+                    <text x="570" y="250">Fri</text><text x="700" y="250">Sat</text>
+                    <text x="830" y="250">Sun</text>
+                </g>
+            </svg>
+
+            <div class="legend">
+                <span><i></i>Sales / revenue trend</span>
+                <span><i class="bar"></i>Order volume (bar graph below)</span>
+            </div>
+        </div>
+
+        <!-- BAR GRAPH -->
+        <div class="chart-box">
+            <div class="card-head" style="margin-bottom:4px">
+                <div>
+                    <strong style="font-size:12px">Order volume</strong>
+                    <div class="card-sub">Number of orders received</div>
+                </div>
+            </div>
+
+            <svg class="chart" id="barChart" viewBox="0 0 1000 260" preserveAspectRatio="none" aria-label="Order volume bar graph">
+                <g stroke="#e8e8e8" stroke-width="1">
+                    <line x1="55" y1="25" x2="980" y2="25"/>
+                    <line x1="55" y1="75" x2="980" y2="75"/>
+                    <line x1="55" y1="125" x2="980" y2="125"/>
+                    <line x1="55" y1="175" x2="980" y2="175"/>
+                    <line x1="55" y1="225" x2="980" y2="225"/>
+                </g>
+                <g fill="#777" font-size="10">
+                    <text x="20" y="29">50</text><text x="20" y="79">40</text>
+                    <text x="20" y="129">30</text><text x="20" y="179">20</text>
+                    <text x="20" y="229">10</text>
+                </g>
+                <g id="bars">
+                    <rect x="75"  y="155" width="70" height="70" rx="4" fill="#999"/>
+                    <rect x="205" y="135" width="70" height="90" rx="4" fill="#999"/>
+                    <rect x="335" y="170" width="70" height="55" rx="4" fill="#999"/>
+                    <rect x="465" y="105" width="70" height="120" rx="4" fill="#999"/>
+                    <rect x="595" y="125" width="70" height="100" rx="4" fill="#999"/>
+                    <rect x="725" y="75" width="70" height="150" rx="4" fill="#999"/>
+                    <rect x="855" y="95" width="70" height="130" rx="4" fill="#999"/>
+                </g>
+                <g fill="#777" font-size="10">
+                    <text x="99" y="250">Mon</text><text x="229" y="250">Tue</text>
+                    <text x="359" y="250">Wed</text><text x="489" y="250">Thu</text>
+                    <text x="619" y="250">Fri</text><text x="749" y="250">Sat</text>
+                    <text x="879" y="250">Sun</text>
+                </g>
+            </svg>
+        </div>
+    </section>
+
+    <div class="footer-note">
+        MaketHub Seller Centre · Front-end dashboard concept · Data shown is sample UI data
+    </div>
+</main>
+
+<div class="toast" id="toast"></div>
 
 <script>
+/* =========================================================
+   SIMPLE FRONT-END INTERACTIONS
+   ========================================================= */
 
-const products=[
+const nav = document.getElementById('dashboardNav');
+const sections = document.querySelectorAll('[data-section]');
 
-{
-id:1,
-image:"https://picsum.photos/300?1"
-},
+function activate(target){
+    sections.forEach(section => {
+        section.classList.toggle('active-section', section.dataset.section === target);
+    });
 
-{
-id:2,
-image:"https://picsum.photos/300?2"
-},
+    nav.querySelectorAll('button').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.target === target);
+    });
 
-{
-id:3,
-name:"Milk",
-price:200,
-image:"https://picsum.photos/300?3"
-},
-
-{
-id:4,
-name:"Bread",
-price:70,
-image:"https://picsum.photos/300?4"
-},
-
-{
-id:5,
-name:"Rice",
-price:320,
-image:"https://picsum.photos/300?5"
-},
-
-{
-id:6,
-name:"Sugar",
-price:170,
-image:"https://picsum.photos/300?6"
-},
-
-{
-id:7,
-name:"Eggs",
-price:450,
-image:"https://picsum.photos/300?7"
-},
-
-{
-id:8,
-name:"Coffee",
-price:600,
-image:"https://picsum.photos/300?8"
+    window.scrollTo({top:0,behavior:'smooth'});
 }
 
-];
+nav.querySelectorAll('button').forEach(button => {
+    button.addEventListener('click', () => activate(button.dataset.target));
+});
 
-const grid=document.getElementById("grid");
-const ticketList=document.getElementById("ticketList");
-const counter=document.getElementById("counter");
+function toast(message){
+    const box = document.getElementById('toast');
+    box.textContent = message;
+    box.classList.add('show');
+    clearTimeout(window.toastTimer);
+    window.toastTimer = setTimeout(() => box.classList.remove('show'), 2200);
+}
 
-let ticket={};
+/* Demo graph range switching */
+const rangeButtons = document.querySelectorAll('#ranges button');
+const line = document.getElementById('salesLine');
+const dots = document.querySelectorAll('#lineDots circle');
 
-renderProducts();
-
-function renderProducts(){
-
-products.forEach(product=>{
-
-const card=document.createElement("div");
-card.className="product";
-
-card.innerHTML=`
-
-<img src="${product.image}">
-
-`;
-
-card.onclick=(e)=>{
-
-flyImage(card.querySelector("img"));
-
-addProduct(product);
-
+const chartSets = {
+    7: {
+        line:"60,185 190,160 320,170 450,120 580,135 710,80 840,100 970,55",
+        dots:[[60,185],[190,160],[320,170],[450,120],[580,135],[710,80],[840,100],[970,55]]
+    },
+    30: {
+        line:"60,200 190,180 320,195 450,145 580,155 710,110 840,120 970,75",
+        dots:[[60,200],[190,180],[320,195],[450,145],[580,155],[710,110],[840,120],[970,75]]
+    },
+    90: {
+        line:"60,210 190,190 320,175 450,185 580,140 710,125 840,90 970,45",
+        dots:[[60,210],[190,190],[320,175],[450,185],[580,140],[710,125],[840,90],[970,45]]
+    }
 };
 
-grid.appendChild(card);
+rangeButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        rangeButtons.forEach(b => b.classList.remove('active'));
+        button.classList.add('active');
 
+        const set = chartSets[button.dataset.range];
+        line.setAttribute('points',set.line);
+
+        set.dots.forEach((point,index) => {
+            if(dots[index]){
+                dots[index].setAttribute('cx',point[0]);
+                dots[index].setAttribute('cy',point[1]);
+            }
+        });
+
+        toast(button.dataset.range + ' day performance selected');
+    });
 });
 
-}
-
-
-function addProduct(product){
-
-if(ticket[product.id]){
-
-ticket[product.id].qty++;
-
-}else{
-
-ticket[product.id]={
-...product,
-qty:1
-};
-
-updateCounter();
-
-}
-
-renderTicket();
-
-}
-
-
-function updateCounter(){
-
-counter.innerHTML=Object.keys(ticket).length;
-
-}
-
-
-function renderTicket(){
-
-ticketList.innerHTML="";
-
-Object.values(ticket).forEach(item=>{
-
-ticketList.innerHTML+=`
-
-<div class="ticket-item">
-
-<div class="ticket-left">
-
-<img src="${item.image}">
-
-<div>
-
-<b>${item.name}</b><br>
-
-KES ${item.price}
-
-</div>
-
-</div>
-
-<div class="qty">
-
-x${item.qty}
-
-</div>
-
-</div>
-
-`;
-
+/* Search demo */
+document.querySelector('.search input').addEventListener('keydown', e => {
+    if(e.key === 'Enter' && e.target.value.trim()){
+        toast('Searching for: ' + e.target.value.trim());
+    }
 });
-
-}
-
-
-/*==========================
-LOYVERSE STYLE FLY
-==========================*/
-
-function flyImage(img){
-
-const clone=img.cloneNode(true);
-
-const rect=img.getBoundingClientRect();
-
-clone.className="fly";
-
-clone.style.left=rect.left+"px";
-clone.style.top=rect.top+"px";
-clone.style.width=rect.width+"px";
-clone.style.height=rect.height+"px";
-
-document.body.appendChild(clone);
-
-const target=document.getElementById("ticketButton");
-
-const targetRect=target.getBoundingClientRect();
-
-requestAnimationFrame(()=>{
-
-clone.style.left=(targetRect.left+15)+"px";
-
-clone.style.top=(targetRect.top+15)+"px";
-
-clone.style.width="25px";
-
-clone.style.height="25px";
-
-clone.style.opacity="0";
-
-});
-
-setTimeout(()=>{
-
-clone.remove();
-
-},700);
-
-}
-
-
-/*==========================
-SIDEBAR
-==========================*/
-
-document.getElementById("ticketButton").onclick=()=>{
-
-document.getElementById("sidebar").classList.add("show");
-
-}
-
-document.getElementById("closeSidebar").onclick=()=>{
-
-document.getElementById("sidebar").classList.remove("show");
-
-}
-
 </script>
 
 </body>

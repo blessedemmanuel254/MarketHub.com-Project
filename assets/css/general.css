@@ -247,8 +247,9 @@ html body.no-scroll {
   position: absolute;
   top: -4px;
   right: -4px;
-  background-color: #088000;
+  background-color: #ff3b3b;
   height: 20px;
+  border: 1px solid #ff3b3b;
   width: 20px;
   border-radius: 50%;
   color: white;
@@ -686,6 +687,12 @@ body .subGOverlay {
   margin: 0 auto;
 }
 
+
+
+.container main.buyerMain h1 {
+  margin-top: 40px;
+}
+
 .container main.buyerMain .filter-bar #statusFilter, .containerAdmin .admin-tab-panel .table-wrapper .filter-bar #statusFilter, .containerAdmin .admin-tab-panel .table-wrapper .filter-bar #regionFilter, .containerAdmin .admin-tab-panel .table-wrapper .filter-bar #kycFilter, .containerAdmin .admin-tab-panel .table-wrapper .filter-bar #productsFilter {
   padding: 8px;
   border-radius: 4px;
@@ -818,7 +825,7 @@ body .subGOverlay {
 }
 
 .tabs-container .tab-content .tab-panel p,  .tabs-container .tab-content .tab-panel-msource p, .container main .tab-top p, .tabs-container .tab-content .tab-panel-mtype p, .tab-panel-admin .tab-top p, .tab-panel-admin p.mproducts-alert-p {
-  font-size: 12px;
+  font-size: 13px;
   color: #898888;
   line-height: 30px;
 }
@@ -881,7 +888,6 @@ body .subGOverlay {
   width: 100%;
   max-width: 1299px;
   margin: 0 auto;
-  margin-top: -10px;
 }
 
 .tabs-container .tab-content .tab-panel .store-page .categorical-navigation, .container main#salesDashMain .sales-wrapper .store-page .categorical-navigation {
@@ -1464,11 +1470,6 @@ body .subGOverlay {
 
 @media (max-width: 700px) {
 
-    .store-page {
-        padding-left: 12px;
-        padding-right: 12px;
-    }
-
 
     .products-grid {
         grid-template-columns:
@@ -1485,12 +1486,6 @@ body .subGOverlay {
 ========================================================= */
 
 @media (max-width: 520px) {
-
-    .store-page {
-        padding-left: 9px;
-        padding-right: 9px;
-    }
-
 
     .products-grid {
         grid-template-columns:
@@ -1619,7 +1614,7 @@ body form.subG-form h3 span:hover {
 .container main#salesDashMain .sales-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 40px;
   width: 100%;
 }
 
@@ -2264,7 +2259,7 @@ body form.subG-form h3 span:hover {
   width: fit-content;
 }
 
-.table-wrapper table tbody tr td.comm-cell .comm-btn, .products-grid .card button.comm-btn {
+.table-wrapper table tbody tr td.comm-cell .comm-btn, .products-grid .subMvFlder button.comm-btn {
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -2277,7 +2272,7 @@ body form.subG-form h3 span:hover {
   transition: opacity .2s ease;
 }
 
-.products-grid .card button.comm-btn {
+.products-grid .subMvFlder button.comm-btn {
   background-color: #ffffff;
 }
 
@@ -4443,16 +4438,104 @@ a.seller-right {
   color: #898888;
 }
 
+.products-grid .subMvFlder {
+  margin: 0 auto;
+  width: fit-content;
+  max-width: 170px;
+  height: fit-content;
+  position: relative;
+}
+
 .products-grid .card-contain {
   display: flex;
   flex-direction: column;
-  margin: 0 auto;
   gap: 10px;
+}
+
+/* =========================================================
+  CUSTOM SCROLLBAR FOR MOVE TO POPUP
+========================================================= */
+
+.products-grid .subMvFlder section::-webkit-scrollbar {
+  width: 4px;
+}
+
+.products-grid .subMvFlder section::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.products-grid .subMvFlder section::-webkit-scrollbar-thumb {
+  background: #898888a6;
+  border-radius: 4px;
+}
+
+.products-grid .subMvFlder section::-webkit-scrollbar-thumb:hover {
+  background: #888888;
+}
+
+.products-grid .subMvFlder .move-section {
+  position: absolute;
+  top: 166px;
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  width: calc(100% - 4px);
+
+  background-color: #ffffff;
+  border: 1px solid #dedede;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  z-index: 100;
+  height: fit-content;
+  max-height: 170px;
+  overflow-y: auto;
+}
+
+.products-grid .subMvFlder.active .move-section {
+  display: block;
+}
+
+.products-grid .subMvFlder section h2 {
+  font-size: 12px;
+  color: #0f0f0f;
+  font-weight: bold;
+  border-bottom: 1px solid #898888;
+  padding: 0 0 3px 3px;
+}
+
+.products-grid .subMvFlder section .subGroupList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.products-grid .subMvFlder section .subGroupList button, .products-grid .subMvFlder section .no-subgroups {
+  border: none;
+  text-align: left;
+  color: #898888;
+  padding: 3px;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #ffffff;
+}
+
+.products-grid .subMvFlder section .no-subgroups {
+  color: #b36b00;
+  font-size: 12px;
+}
+
+.products-grid .subMvFlder section .no-subgroups i {
+  margin-right: 3px;
+}
+
+.products-grid .subMvFlder section .subGroupList button:hover {
+  background-color: #dedede84;
 }
 
 .products-grid .card-contain .product-name {
   font-size: 13px;
-  font-weight: bold;
+  font-weight: normal;
 }
 
 .products-grid .card {
@@ -4496,7 +4579,6 @@ a.seller-right {
   background: #ffffff;
   padding: 1px 2px;
   border: 1px solid #89898879;
-  font-weight: bold;
 
 }
 
@@ -4504,6 +4586,7 @@ a.seller-right {
   font-size: 12px;
   bottom: 16px;
   color: #0f0f0f;
+  font-weight: bold;
 }
 
 .products-grid .card .card-body .price.buying {
@@ -4514,10 +4597,10 @@ a.seller-right {
   display: none;
 }
 
-.products-grid .card .comm-btn {
+.products-grid .subMvFlder .comm-btn {
   font-size: 13px;
   position: absolute;
-  bottom: -4px;
+  top: 145px;
   right: 4px;
   transform: translateY(-50%);
   color: #0f0f0f;
@@ -4525,6 +4608,58 @@ a.seller-right {
   padding: 1px 2px;
   border: 1px solid #89898879;
   font-weight: bold;
+}
+
+/* =========================================================
+  LOYVERSE-STYLE MOVE TO SUBGROUP FLY ANIMATION
+  ========================================================= */
+
+.fly-move-product {
+
+  position: fixed;
+
+  z-index: 99999;
+
+  pointer-events: none;
+
+  object-fit: cover;
+
+  border-radius: 10px;
+
+  margin: 0;
+
+  box-shadow:
+      0 8px 25px rgba(0, 0, 0, 0.25);
+
+  transition:
+      left 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+      top 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+      width 0.65s ease,
+      height 0.65s ease,
+      opacity 0.65s ease,
+      transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+/* Small feedback on the original product */
+
+.product-move-added {
+
+  transform: scale(0.94);
+
+  transition:
+      transform 0.15s ease;
+}
+
+
+/* Destination subgroup feedback */
+
+.mini-nav-item.move-received {
+
+  transform: scale(1.08);
+
+  transition:
+      transform 0.18s ease;
 }
 
 .products-grid .card .card-body .stock, .container main#salesDashMain .sales-wrapper .sales-grid .productSalesCard strong.stock {
@@ -4551,6 +4686,10 @@ a.seller-right {
 }
 .products-grid .card .card-body .stock.out-stock, .container main#salesDashMain .sales-wrapper .sales-grid .productSalesCard strong.stock.out-stock {
   background-color:#ff3b3b;
+}
+
+.products-grid .card .card-body .stock strong, .container main#salesDashMain .sales-wrapper .sales-grid .productSalesCard strong {
+  font-weight: normal;
 }
 
 
