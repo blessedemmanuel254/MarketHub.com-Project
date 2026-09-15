@@ -3823,6 +3823,584 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
     </div>
 
     <main class="buyerMain" id="sellerMain">
+      <div id="slsDetlsOverlay" class="slsDetlsOverlay"></div>
+
+
+        <!-- =========================================================
+            ORDER BOTTOM SHEET
+            ========================================================= -->
+
+        <div
+        id="orderSheet"
+        class="order-sheet"
+        >
+
+
+        <div class="sheet-handle"></div>
+
+
+        <!-- =====================================================
+                HEADER
+                ===================================================== -->
+
+        <div class="sheet-header">
+
+            <div class="sheet-title">
+
+                <strong id="sheetOrderNumber">
+                    Order #MH-1048
+                </strong>
+
+                <span id="sheetOrderDate">
+                    Aug 28, 2026 • 14:32
+                </span>
+
+            </div>
+
+
+            <button
+                type="button"
+                id="closeOrderSheet"
+                class="sheet-close"
+                aria-label="Close"
+            >
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+
+        <!-- =====================================================
+                CONTENT
+                ===================================================== -->
+
+        <div class="sheet-content">
+
+
+            <!-- CUSTOMER -->
+
+            <div class="customer-card">
+
+                <div class="customer-card-title">
+                    BUYER
+                </div>
+
+                <div
+                    class="customer-card-name"
+                    id="sheetCustomerName"
+                >
+                    John Mwangi
+                </div>
+
+                <div
+                    class="customer-card-phone"
+                    id="sheetCustomerPhone"
+                >
+                    +254 712 345 678
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                    ORDER STATUS
+                    ================================================= --><!-- 
+
+            <div class="order-timeline">
+
+                <div class="timeline-line"></div>
+
+
+                <div class="timeline-item active">
+
+                    <div class="timeline-dot">
+
+                        <i class="fa-solid fa-cart-shopping"></i>
+
+                    </div>
+
+                    <div class="timeline-label">
+                        Ordered
+                    </div>
+
+                </div>
+
+
+                <div class="timeline-item active">
+
+                    <div class="timeline-dot">
+
+                        <i class="fa-solid fa-box"></i>
+
+                    </div>
+
+                    <div class="timeline-label">
+                        Shipped
+                    </div>
+
+                </div>
+
+
+                <div class="timeline-item active">
+
+                    <div class="timeline-dot">
+
+                        <i class="fa-solid fa-truck"></i>
+
+                    </div>
+
+                    <div class="timeline-label">
+                        Delivered
+                    </div>
+
+                </div>
+
+
+                <div class="timeline-item active">
+
+                    <div class="timeline-dot">
+
+                        <i class="fa-solid fa-check"></i>
+
+                    </div>
+
+                    <div class="timeline-label">
+                        Complete
+                    </div>
+
+                </div>
+
+            </div> -->
+
+
+            <!-- =================================================
+                    ITEMS
+                    ================================================= -->
+
+            <div class="items-title">
+                Products
+            </div>
+
+
+            <div id="sheetItems">
+
+
+                <!-- ITEM 1 -->
+
+                <div class="sheet-item">
+
+                    <div class="sheet-item-image">
+
+                        <img
+                            src="https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=200&q=80"
+                            alt=""
+                        >
+
+                    </div>
+
+
+                    <div class="sheet-item-info">
+
+                        <div class="sheet-item-name">
+                            Premium Body Lotion
+                        </div>
+
+                        <div class="sheet-item-meta">
+                            25 Grams
+                        </div>
+
+                    </div>
+
+
+                    <div class="sheet-item-price">
+                        KES 2,400
+                    </div>
+
+                </div>
+
+
+                <!-- ITEM 2 -->
+
+                <div class="sheet-item">
+
+                    <div class="sheet-item-image">
+
+                        <img
+                            src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=200&q=80"
+                            alt=""
+                        >
+
+                    </div>
+
+
+                    <div class="sheet-item-info">
+
+                        <div class="sheet-item-name">
+                            Beauty Face Cream
+                        </div>
+
+                        <div class="sheet-item-meta">
+                            1 × KES 650
+                        </div>
+
+                    </div>
+
+
+                    <div class="sheet-item-price">
+
+                        <strong>
+                            KES 650
+                        </strong>
+
+                        <span>
+                            1 Each
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ITEM 3 -->
+
+                <div class="sheet-item">
+
+                    <div class="sheet-item-image">
+
+                        <img
+                            src="https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?auto=format&fit=crop&w=200&q=80"
+                            alt=""
+                        >
+
+                    </div>
+
+
+                    <div class="sheet-item-info">
+
+                        <div class="sheet-item-name">
+                            Body Scrub
+                        </div>
+
+                        <div class="sheet-item-meta">
+                            1 × KES 400
+                        </div>
+
+                    </div>
+
+
+                    <div class="sheet-item-price">
+
+                        <strong>
+                            KES 400
+                        </strong>
+
+                        <span>
+                            1 Each
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+            <!-- =================================================
+                    TOTALS
+                    ================================================= -->
+
+            <div class="order-totals">
+
+                <div class="total-row">
+
+                    <span>
+                        Subtotal
+                    </span>
+
+                    <span>
+                        KES 3,450
+                    </span>
+
+                </div>
+
+
+                <div class="total-row">
+
+                    <span>
+                        Delivery
+                    </span>
+
+                    <span>
+                        KES 0
+                    </span>
+
+                </div>
+
+
+                <div class="total-row grand-total">
+
+                    <span>
+                        Total
+                    </span>
+
+                    <span>
+                        KES 3,450
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                    PAYMENT
+                    ================================================= -->
+
+            <div class="payment-information">
+
+                <div class="payment-information-row">
+
+                    <span>
+                        Payment method
+                    </span>
+
+                    <span>
+                        M-Pesa
+                    </span>
+
+                </div>
+
+
+                <div class="payment-information-row">
+
+                    <span>
+                        Payment status
+                    </span>
+
+                    <span>
+                        Paid
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+                FOOTER
+                ===================================================== -->
+
+        <div class="sheet-footer">
+
+            <button
+                type="button"
+                id="printReceiptButton"
+                class="print-receipt-button"
+            >
+
+                <i class="fa-solid fa-print"></i>
+
+                Print Receipt
+
+            </button>
+
+        </div>
+
+        </div>
+        <!-- =========================================================
+            PRINT RECEIPT
+            ========================================================= -->
+
+        <div id="printReceipt">
+
+            <div class="receipt-content">
+
+                <div class="receipt-header"
+                    style="
+                    "
+                >
+                    <img src="Images/Makethub Logo.png" alt="Makethub Logo" width="25"> <h4>SUPER FASHIONS</h4>
+                </div>
+
+                <div class="headerSpn">
+                    Makethub Online Store
+                </div>
+                
+                <div class="receipt-details"
+                    style="
+                        border-bottom:1px dashed #000;
+                        padding:7px 0;
+                        font-size:11px;
+                    "
+                >
+
+                    <div>
+                        Receipt:
+                        <strong id="printReceiptNumber">
+                            #MH-1048
+                        </strong>
+                    </div>
+
+                    <div>Date:
+
+                        <span id="printReceiptDate">
+                            Aug 28, 2026 • 14:32
+                        </span>
+                    </div>
+
+                    <div>
+                        Buyer:
+                        <span id="printCustomerName">
+                            John Mwangi
+                        </span>
+                    </div>
+
+                </div>
+
+
+                <div class="print-items"
+                    id="printItems"
+                >
+
+
+                    <div>
+
+                        <span>
+                            Premium Body Lotion × 2
+                        </span>
+
+                        <strong>
+                            KES&nbsp;2,400
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            Beauty Face Cream × 1
+                        </span>
+
+                        <strong>
+                            KES&nbsp;650
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            2 Metres Carpet
+                        </span>
+
+                        <strong>
+                            KES&nbsp;400
+                        </strong>
+
+                    </div>
+
+                </div>
+                <div class="slSbSumry"> 
+                    <div class="total-row">
+
+                        <span>
+                            Subtotal
+                        </span>
+
+                        <span>
+                            KES 2,350.00
+                        </span>
+
+                    </div><!-- 
+
+
+                    <div class="total-row discount">
+
+                        <span>
+                            Discount
+                        </span>
+
+                        <span>
+                            - KES 0.00
+                        </span>
+
+                    </div> -->
+
+
+                    <div class="total-row tax">
+
+                        <span>
+                            Tax
+                        </span>
+
+                        <span>
+                            KES 0.00
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div class="totalFDiv">
+
+                    <div
+                        style="
+                            display:flex;
+                            justify-content:space-between;
+                        "
+                    >
+
+                        <span>
+                            Total
+                        </span>
+
+                        <strong>
+                            KES 3,450
+                        </strong>
+
+                    </div>
+
+                    <div
+                        style="
+                            display:flex;
+                            justify-content:space-between;
+                            margin-top:4px;
+                        "
+                    >
+
+                        <span>
+                            Paid by
+                        </span>
+
+                        <span>
+                            Cash
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="thankYouNote">
+
+                    THANK YOU FOR SHOPPING WITH US!
+
+                    <br>
+
+                    www.makethub.com
+
+                </div>
+
+            </div>
+
+        </div>
       <div id="subGOverlay" class="subGOverlay"></div>
       <form
         action=""
@@ -3996,6 +4574,67 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                     </div>
 
                 </div>
+                <!-- PROFIT STATS -->
+                <div class="card">
+
+                    <i class="fa-solid fa-receipt icon"></i>
+
+                    <h3>Net Earnings</h3>
+
+                    <!-- Total sales -->
+                    <div class="stat">
+                        KES <?= number_format($dailySales, 2) ?>
+                    </div>
+
+                    <p class="meta">
+                        Total daily profits
+                    </p>
+
+                    <div class="progress">
+                        <span style="width:<?= min(($dailySales / 20000) * 100, 100) ?>%"></span>
+                    </div>
+
+                    <div class="daily-stats-slider">
+
+                      <p class="small daily-stat-item green">
+                          <?= $dailyOrders ?>
+                          <?= $dailyOrders == 1 ? 'sale' : 'sales' ?>
+                          made today 🎉
+                      </p>
+
+                      <p class="small daily-stat-item green">
+                          KES <?= number_format($dailyCash, 2) ?>
+                          collected by cash today 💸
+                      </p>
+
+                      <p class="small daily-stat-item green">
+                          KES <?= number_format($dailyBank, 2) ?>
+                          collected by bank today 🏦
+                      </p>
+
+                      <?php if ($dailyOutOfStock > 0): ?>
+
+                          <p class="small daily-stat-item red">
+                              <?= $dailyOutOfStock ?>
+                              <?= $dailyOutOfStock == 1 ? 'product is' : 'products are' ?>
+                              out of stock ❗
+                          </p>
+
+                      <?php endif; ?>
+
+                      <?php if ($dailyLowStock > 0): ?>
+
+                          <p class="small daily-stat-item yellow">
+                              <?= $dailyLowStock ?>
+                              <?= $dailyLowStock == 1 ? 'product is' : 'products are' ?>
+                              running low ⚠️
+                          </p>
+
+                      <?php endif; ?>
+
+                    </div>
+
+                </div>
 
                 <!-- WALLET HEALTH --><!-- 
                 <div class="card">
@@ -4013,6 +4652,21 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   <p class="small">KES 0 pending clearance</p>
                 </div> -->
                 <!-- ORDERS SUMMARY -->
+                <div class="card">
+                  <i class="fa fa-box icon"></i>
+                  <h3>Products Summary</h3>
+
+                  <div class="stat">
+                      <?= formatToK($totalOrders) ?> <?= $totalOrders == 1 ? 'Order' : 'Orders' ?>
+                  </div>
+
+                  <p class="meta">
+                      <span class="badge yellow"><?= $processingOrders ?> <?= $processingOrders == 1 ? 'Processing' : 'Processing' ?></span>
+                      <span class="badge blue"><?= $shippedOrders ?> <?= $shippedOrders == 1 ? 'Shipped' : 'Shipped' ?></span>
+                      <span class="badge green"><?= $deliveredOrders ?> <?= $deliveredOrders == 1 ? 'Delivered' : 'Delivered' ?></span>
+                  </p>
+                  <p class="small">In the last 28 days</p>
+                </div>
                 <div class="card">
                   <i class="fa fa-box icon"></i>
                   <h3>Orders Summary</h3>
@@ -4061,7 +4715,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   <i class="fa fa-star icon"></i>
                   <h3>Customer Trust</h3>
                   <div class="stat">4.7 ★</div>
-                  <p class="meta">From 1 review</p>
+                  <p class="meta">Business reviews<!-- From 1 review --></p>
                   <span class="badge green">Excellent</span>
                 </div>
 

@@ -1,0 +1,1900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Makethub Receipt</title>
+
+<!-- Font Awesome -->
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<style>
+
+/* =========================================================
+   GENERAL
+========================================================= */
+
+:root{
+    --black:#0f0f0f;
+    --white:#ffffff;
+    --gray:#898888;
+    --light:#dedede;
+    --green:#088000;
+    --red:#ff3b3b;
+    --yellow:#f2c400;
+    --paper:#ffffff;
+}
+
+*{
+    box-sizing:border-box;
+}
+
+html,
+body{
+    margin:0;
+    padding:0;
+    min-height:100%;
+}
+
+body{
+    font-family:Arial, Helvetica, sans-serif;
+    background:#f1f1f1;
+    color:var(--black);
+}
+
+
+/* =========================================================
+   SCREEN TOOLBAR
+========================================================= */
+
+.receipt-toolbar{
+    width:100%;
+    padding:18px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+    position:sticky;
+    top:0;
+    z-index:100;
+    background:rgba(255,255,255,.94);
+    border-bottom:1px solid #ddd;
+    backdrop-filter:blur(10px);
+}
+
+.receipt-toolbar button{
+    border:none;
+    outline:none;
+    cursor:pointer;
+    height:42px;
+    padding:0 17px;
+    border-radius:8px;
+    font-size:13px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    transition:.2s ease;
+}
+
+.print-btn{
+    background:var(--black);
+    color:#fff;
+}
+
+.print-btn:hover{
+    background:#292929;
+}
+
+.bluetooth-btn{
+    background:#fff;
+    color:var(--black);
+    border:1px solid #ccc !important;
+}
+
+.bluetooth-btn:hover{
+    background:#f5f5f5;
+}
+
+.close-btn{
+    background:#eee;
+    color:#222;
+}
+
+.receipt-status{
+    position:absolute;
+    right:18px;
+    font-size:11px;
+    color:#777;
+}
+
+
+/* =========================================================
+   RECEIPT PREVIEW AREA
+========================================================= */
+
+.receipt-preview-area{
+    width:100%;
+    min-height:calc(100vh - 79px);
+    padding:35px 20px 60px;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+}
+
+
+/* =========================================================
+   RECEIPT
+   58MM THERMAL RECEIPT WIDTH
+========================================================= */
+
+.receipt{
+    width:58mm;
+    min-height:100mm;
+    background:var(--paper);
+    padding:4mm 3.5mm 5mm;
+    box-shadow:0 8px 35px rgba(0,0,0,.15);
+    font-family:"Courier New", Courier, monospace;
+    font-size:10px;
+    line-height:1.35;
+}
+
+
+/* =========================================================
+   STORE HEADER
+========================================================= */
+
+.store-header{
+    text-align:center;
+    padding-bottom:8px;
+}
+
+.store-logo{
+    width:42px;
+    height:42px;
+    margin:0 auto 5px;
+    border-radius:50%;
+    background:#0f0f0f;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:Arial,sans-serif;
+    font-size:16px;
+    font-weight:900;
+}
+
+.store-name{
+    margin:0;
+    font-family:Arial,sans-serif;
+    font-size:16px;
+    font-weight:900;
+    letter-spacing:-.4px;
+}
+
+.store-tagline{
+    margin-top:2px;
+    font-family:Arial,sans-serif;
+    font-size:8px;
+    color:#555;
+}
+
+.store-contact{
+    margin-top:5px;
+    font-size:8px;
+    line-height:1.45;
+}
+
+.store-contact span{
+    display:block;
+}
+
+
+/* =========================================================
+   DIVIDERS
+========================================================= */
+
+.divider{
+    border:0;
+    border-top:1px dashed #000;
+    margin:7px 0;
+}
+
+.double-divider{
+    border:0;
+    border-top:2px solid #000;
+    margin:7px 0;
+}
+
+
+/* =========================================================
+   RECEIPT META
+========================================================= */
+
+.receipt-meta{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:3px 10px;
+    font-size:8.5px;
+}
+
+.meta-row{
+    display:flex;
+    justify-content:space-between;
+    gap:5px;
+}
+
+.meta-label{
+    color:#555;
+}
+
+.meta-value{
+    font-weight:bold;
+    text-align:right;
+}
+
+
+/* =========================================================
+   CUSTOMER
+========================================================= */
+
+.customer-box{
+    margin-top:7px;
+    font-size:8.5px;
+}
+
+.section-title{
+    font-family:Arial,sans-serif;
+    font-size:8px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    margin-bottom:3px;
+}
+
+
+/* =========================================================
+   ITEMS HEADER
+========================================================= */
+
+.items-header{
+    display:grid;
+    grid-template-columns:1fr 25px 48px;
+    gap:3px;
+    font-size:8px;
+    font-weight:bold;
+    padding-bottom:3px;
+}
+
+.items-header span:nth-child(2),
+.items-header span:nth-child(3){
+    text-align:right;
+}
+
+
+/* =========================================================
+   ITEMS
+========================================================= */
+
+.receipt-item{
+    display:grid;
+    grid-template-columns:1fr 25px 48px;
+    gap:3px;
+    padding:4px 0;
+    border-bottom:1px dotted #aaa;
+    align-items:start;
+}
+
+.item-name{
+    font-weight:bold;
+    word-break:break-word;
+}
+
+.item-detail{
+    display:block;
+    color:#666;
+    font-size:7.5px;
+    font-weight:normal;
+    margin-top:1px;
+}
+
+.item-qty{
+    text-align:right;
+}
+
+.item-price{
+    text-align:right;
+    font-weight:bold;
+}
+
+
+/* =========================================================
+   TOTALS
+========================================================= */
+
+.totals{
+    margin-top:7px;
+}
+
+.total-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin:3px 0;
+    font-size:9px;
+}
+
+.total-row span:last-child{
+    text-align:right;
+}
+
+.total-row.grand-total{
+    font-size:12px;
+    font-weight:900;
+    padding:5px 0;
+}
+
+.total-row.discount{
+    color:#555;
+}
+
+.total-row.tax{
+    color:#555;
+}
+
+
+/* =========================================================
+   PAYMENT
+========================================================= */
+
+.payment-box{
+    margin-top:8px;
+    padding:6px 0;
+}
+
+.payment-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:8.5px;
+    margin:2px 0;
+}
+
+.payment-status{
+    font-weight:bold;
+    text-transform:uppercase;
+}
+
+.payment-status.paid{
+    color:#088000;
+}
+
+
+/* =========================================================
+   QR CODE
+========================================================= */
+
+.qr-area{
+    margin-top:9px;
+    text-align:center;
+}
+
+.qr-code{
+    width:65px;
+    height:65px;
+    margin:0 auto 5px;
+    border:3px solid #000;
+    padding:3px;
+    display:grid;
+    grid-template-columns:repeat(9,1fr);
+    grid-template-rows:repeat(9,1fr);
+    gap:1px;
+}
+
+.qr-code span{
+    background:#000;
+}
+
+.qr-code span:nth-child(2n){
+    background:transparent;
+}
+
+.qr-text{
+    font-size:7px;
+    line-height:1.3;
+}
+
+
+/* =========================================================
+   BARCODE
+========================================================= */
+
+.barcode-area{
+    margin-top:8px;
+    text-align:center;
+}
+
+.barcode{
+    height:34px;
+    width:100%;
+    display:flex;
+    justify-content:center;
+    align-items:stretch;
+    gap:2px;
+    overflow:hidden;
+}
+
+.barcode i{
+    display:block;
+    background:#000;
+    width:1px;
+}
+
+.barcode i:nth-child(2n){
+    width:2px;
+}
+
+.barcode i:nth-child(5n){
+    width:3px;
+}
+
+.barcode-number{
+    font-size:8px;
+    letter-spacing:2px;
+    margin-top:3px;
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.receipt-footer{
+    text-align:center;
+    margin-top:10px;
+}
+
+.thank-you{
+    font-family:Arial,sans-serif;
+    font-size:11px;
+    font-weight:900;
+    margin-bottom:4px;
+}
+
+.footer-line{
+    font-size:7.5px;
+    color:#555;
+    line-height:1.5;
+}
+
+.powered{
+    margin-top:6px;
+    font-family:Arial,sans-serif;
+    font-size:7px;
+    color:#888;
+}
+
+
+/* =========================================================
+   COPY / PRINT SMALL SCREEN CONTROLS
+========================================================= */
+
+.receipt-options{
+    margin-top:12px;
+    display:flex;
+    justify-content:center;
+    gap:5px;
+}
+
+.receipt-options button{
+    border:1px solid #ccc;
+    background:#fff;
+    border-radius:5px;
+    padding:5px 8px;
+    font-size:8px;
+    cursor:pointer;
+}
+
+
+/* =========================================================
+   BLUETOOTH STATUS
+========================================================= */
+
+.bluetooth-status{
+    position:fixed;
+    right:20px;
+    bottom:20px;
+    padding:10px 13px;
+    background:#fff;
+    border:1px solid #ddd;
+    border-radius:9px;
+    box-shadow:0 5px 20px rgba(0,0,0,.12);
+    font-family:Arial,sans-serif;
+    font-size:11px;
+    display:none;
+}
+
+.bluetooth-status.show{
+    display:block;
+}
+
+
+/* =========================================================
+   MOBILE SCREEN
+========================================================= */
+
+@media(max-width:500px){
+
+    .receipt-toolbar{
+        padding:10px;
+    }
+
+    .receipt-toolbar button{
+        flex:1;
+        height:40px;
+        padding:0 8px;
+        font-size:11px;
+    }
+
+    .receipt-status{
+        display:none;
+    }
+
+    .receipt-preview-area{
+        padding:20px 10px 40px;
+    }
+
+    .receipt{
+        box-shadow:0 5px 20px rgba(0,0,0,.13);
+    }
+}
+
+
+/* =========================================================
+   PRINT
+========================================================= */
+
+@media print{
+
+    @page{
+        size:58mm auto;
+        margin:0;
+    }
+
+    html,
+    body{
+        width:58mm;
+        margin:0;
+        padding:0;
+        background:#fff;
+    }
+
+    .receipt-toolbar,
+    .receipt-options,
+    .bluetooth-status{
+        display:none !important;
+    }
+
+    .receipt-preview-area{
+        display:block;
+        width:58mm;
+        min-height:auto;
+        padding:0;
+        margin:0;
+    }
+
+    .receipt{
+        width:58mm;
+        min-height:auto;
+        margin:0;
+        padding:3mm 3mm 4mm;
+        box-shadow:none;
+        font-size:9px;
+    }
+
+    .store-logo{
+        print-color-adjust:exact;
+        -webkit-print-color-adjust:exact;
+    }
+
+    .receipt-item,
+    .divider,
+    .double-divider{
+        break-inside:avoid;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+
+<!-- =========================================================
+     SCREEN TOOLBAR
+========================================================= -->
+
+<div class="receipt-toolbar">
+
+    <button class="print-btn" onclick="printReceipt()">
+        <i class="fa-solid fa-print"></i>
+        Print Receipt
+    </button>
+
+    <button class="bluetooth-btn" onclick="bluetoothPrint()">
+        <i class="fa-brands fa-bluetooth-b"></i>
+        Bluetooth
+    </button>
+
+    <button class="close-btn" onclick="closeReceipt()">
+        <i class="fa-solid fa-xmark"></i>
+        Close
+    </button>
+
+    <div class="receipt-status" id="receiptStatus">
+        Receipt ready
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     RECEIPT PREVIEW
+========================================================= -->
+
+<div class="receipt-preview-area">
+
+    <div class="receipt" id="receipt">
+
+
+        <!-- =================================================
+             STORE HEADER
+        ================================================== -->
+
+        <div class="store-header">
+
+            <div class="store-logo">
+                MH
+            </div>
+
+            <h1 class="store-name">
+                MAKETHUB
+            </h1>
+
+            <div class="store-tagline">
+                SHOP • SELL • GROW
+            </div>
+
+            <div class="store-contact">
+                <span>Makethub Online Store</span>
+                <span>+254 700 000 000</span>
+                <span>www.makethub.shop</span>
+            </div>
+
+        </div>
+
+
+        <hr class="double-divider">
+
+
+        <!-- =================================================
+             RECEIPT INFORMATION
+        ================================================== -->
+
+        <div class="receipt-meta">
+
+            <div class="meta-row">
+                <span class="meta-label">Receipt</span>
+                <span class="meta-value" id="receiptNumber">
+                    MH-1048
+                </span>
+            </div>
+
+            <div class="meta-row">
+                <span class="meta-label">Date</span>
+                <span class="meta-value" id="receiptDate">
+                    15/09/2026
+                </span>
+            </div>
+
+            <div class="meta-row">
+                <span class="meta-label">Time</span>
+                <span class="meta-value" id="receiptTime">
+                    14:32
+                </span>
+            </div>
+
+            <div class="meta-row">
+                <span class="meta-label">Cashier</span>
+                <span class="meta-value">
+                    Admin
+                </span>
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             CUSTOMER
+        ================================================== -->
+
+        <div class="customer-box">
+
+            <div class="section-title">
+                Customer
+            </div>
+
+            <div>
+                Customer
+            </div>
+
+            <div>
+                Walk-in customer
+            </div>
+
+        </div>
+
+
+        <hr class="divider">
+
+
+        <!-- =================================================
+             ITEMS
+        ================================================== -->
+
+        <div class="items-header">
+
+            <span>ITEM</span>
+            <span>QTY</span>
+            <span>AMOUNT</span>
+
+        </div>
+
+
+        <div id="receiptItems">
+
+
+            <!-- ITEM 1 -->
+
+            <div class="receipt-item">
+
+                <div class="item-name">
+
+                    Wireless Mouse
+
+                    <span class="item-detail">
+                        KES 850.00 each
+                    </span>
+
+                </div>
+
+                <div class="item-qty">
+                    1
+                </div>
+
+                <div class="item-price">
+                    850.00
+                </div>
+
+            </div>
+
+
+            <!-- ITEM 2 -->
+
+            <div class="receipt-item">
+
+                <div class="item-name">
+
+                    USB-C Cable
+
+                    <span class="item-detail">
+                        KES 500.00 each
+                    </span>
+
+                </div>
+
+                <div class="item-qty">
+                    2
+                </div>
+
+                <div class="item-price">
+                    1,000.00
+                </div>
+
+            </div>
+
+
+            <!-- ITEM 3 -->
+
+            <div class="receipt-item">
+
+                <div class="item-name">
+
+                    Notebook
+
+                    <span class="item-detail">
+                        KES 250.00 each
+                    </span>
+
+                </div>
+
+                <div class="item-qty">
+                    2
+                </div>
+
+                <div class="item-price">
+                    500.00
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <hr class="divider">
+
+
+        <!-- =================================================
+             TOTALS
+        ================================================== -->
+
+        <div class="totals">
+
+            <div class="total-row">
+
+                <span>
+                    Subtotal
+                </span>
+
+                <span>
+                    KES 2,350.00
+                </span>
+
+            </div>
+
+
+            <div class="total-row discount">
+
+                <span>
+                    Discount
+                </span>
+
+                <span>
+                    - KES 0.00
+                </span>
+
+            </div>
+
+
+            <div class="total-row tax">
+
+                <span>
+                    Tax
+                </span>
+
+                <span>
+                    KES 0.00
+                </span>
+
+            </div>
+
+
+            <hr class="divider">
+
+
+            <div class="total-row grand-total">
+
+                <span>
+                    TOTAL
+                </span>
+
+                <span>
+                    KES 2,350.00
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             PAYMENT
+        ================================================== -->
+
+        <div class="payment-box">
+
+            <div class="section-title">
+                Payment
+            </div>
+
+            <div class="payment-row">
+
+                <span>
+                    Method
+                </span>
+
+                <span>
+                    M-PESA
+                </span>
+
+            </div>
+
+            <div class="payment-row">
+
+                <span>
+                    Amount Paid
+                </span>
+
+                <span>
+                    KES 2,350.00
+                </span>
+
+            </div>
+
+            <div class="payment-row">
+
+                <span>
+                    Balance
+                </span>
+
+                <span>
+                    KES 0.00
+                </span>
+
+            </div>
+
+            <div class="payment-row">
+
+                <span>
+                    Status
+                </span>
+
+                <span class="payment-status paid">
+                    PAID
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <hr class="divider">
+
+
+        <!-- =================================================
+             BARCODE
+        ================================================== -->
+
+        <div class="barcode-area">
+
+            <div class="barcode">
+
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+                <i></i>
+
+            </div>
+
+            <div class="barcode-number">
+                MH-1048
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             QR CODE
+        ================================================== -->
+
+        <div class="qr-area">
+
+            <div class="qr-code">
+
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+
+            </div>
+
+            <div class="qr-text">
+                Scan to view order details
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             FOOTER
+        ================================================== -->
+
+        <div class="receipt-footer">
+
+            <div class="thank-you">
+                THANK YOU FOR SHOPPING!
+            </div>
+
+            <div class="footer-line">
+                Keep this receipt for your records.
+            </div>
+
+            <div class="footer-line">
+                Goods sold are subject to store policy.
+            </div>
+
+            <div class="footer-line">
+                For support: +254 700 000 000
+            </div>
+
+            <div class="powered">
+                Powered by MAKETHUB
+            </div>
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     BLUETOOTH STATUS
+========================================================= -->
+
+<div class="bluetooth-status" id="bluetoothStatus">
+    <i class="fa-brands fa-bluetooth-b"></i>
+    <span id="bluetoothText">
+        Preparing printer...
+    </span>
+</div>
+
+
+<script>
+
+/* =========================================================
+   RECEIPT DATA
+========================================================= */
+
+const receiptData = {
+
+    storeName: "MAKETHUB",
+
+    receiptNumber: "MH-1048",
+
+    customerName: "Customer",
+
+    customerPhone: "",
+
+    cashier: "Admin",
+
+    paymentMethod: "M-PESA",
+
+    paymentStatus: "PAID",
+
+    subtotal: 2350,
+
+    discount: 0,
+
+    tax: 0,
+
+    amountPaid: 2350,
+
+    balance: 0
+
+};
+
+
+/* =========================================================
+   FORMAT CURRENCY
+========================================================= */
+
+function formatKES(amount){
+
+    return new Intl.NumberFormat("en-KE", {
+
+        minimumFractionDigits:2,
+        maximumFractionDigits:2
+
+    }).format(Number(amount) || 0);
+
+}
+
+
+/* =========================================================
+   PRINT RECEIPT
+========================================================= */
+
+function printReceipt(){
+
+    updateReceiptTime();
+
+    window.print();
+
+}
+
+
+/* =========================================================
+   UPDATE DATE/TIME
+========================================================= */
+
+function updateReceiptTime(){
+
+    const now = new Date();
+
+    const day =
+        String(now.getDate()).padStart(2,"0");
+
+    const month =
+        String(now.getMonth()+1).padStart(2,"0");
+
+    const year =
+        now.getFullYear();
+
+    const hours =
+        String(now.getHours()).padStart(2,"0");
+
+    const minutes =
+        String(now.getMinutes()).padStart(2,"0");
+
+
+    const dateElement =
+        document.getElementById("receiptDate");
+
+    const timeElement =
+        document.getElementById("receiptTime");
+
+
+    if(dateElement){
+
+        dateElement.textContent =
+            `${day}/${month}/${year}`;
+
+    }
+
+
+    if(timeElement){
+
+        timeElement.textContent =
+            `${hours}:${minutes}`;
+
+    }
+
+}
+
+
+/* =========================================================
+   CLOSE RECEIPT
+========================================================= */
+
+function closeReceipt(){
+
+    /*
+       In Makethub you can replace this with:
+
+       closeCheckoutReceipt();
+
+       or
+
+       document.getElementById("receiptModal").remove();
+
+    */
+
+    if(window.history.length > 1){
+
+        window.history.back();
+
+    }else{
+
+        window.close();
+
+    }
+
+}
+
+
+/* =========================================================
+   BLUETOOTH PRINT
+========================================================= */
+
+async function bluetoothPrint(){
+
+    showBluetoothStatus(
+        "Preparing Bluetooth printer..."
+    );
+
+
+    /*
+       IMPORTANT:
+
+       A normal browser cannot universally send
+       ESC/POS data directly to every Bluetooth
+       thermal printer.
+
+       This function attempts Web Bluetooth where
+       the printer exposes a compatible GATT service.
+
+       Many inexpensive 58mm ESC/POS printers instead
+       use Bluetooth Classic/SPP. Those generally require
+       the printer manufacturer's Android application,
+       native Android app, or WebView/bridge.
+    */
+
+
+    if(!navigator.bluetooth){
+
+        showBluetoothStatus(
+            "Bluetooth printing is not supported by this browser."
+        );
+
+        return;
+    }
+
+
+    try{
+
+        showBluetoothStatus(
+            "Select your thermal printer..."
+        );
+
+
+        const device =
+            await navigator.bluetooth.requestDevice({
+
+                acceptAllDevices:true,
+
+                optionalServices:[
+                    "000018f0-0000-1000-8000-00805f9b34fb"
+                ]
+
+            });
+
+
+        showBluetoothStatus(
+            "Connecting to " +
+            (device.name || "printer") +
+            "..."
+        );
+
+
+        const server =
+            await device.gatt.connect();
+
+
+        showBluetoothStatus(
+            "Printer connected."
+        );
+
+
+        /*
+           The actual characteristic UUID differs
+           between printer manufacturers.
+
+           This section searches available services
+           and characteristics.
+        */
+
+        const services =
+            await server.getPrimaryServices();
+
+
+        let writableCharacteristic = null;
+
+
+        for(const service of services){
+
+            const characteristics =
+                await service.getCharacteristics();
+
+
+            for(const characteristic of characteristics){
+
+                if(
+                    characteristic.properties.write ||
+                    characteristic.properties.writeWithoutResponse
+                ){
+
+                    writableCharacteristic =
+                        characteristic;
+
+                    break;
+
+                }
+
+            }
+
+
+            if(writableCharacteristic){
+
+                break;
+
+            }
+
+        }
+
+
+        if(!writableCharacteristic){
+
+            showBluetoothStatus(
+                "Printer connected, but no writable print channel was found."
+            );
+
+            return;
+
+        }
+
+
+        const escPosData =
+            createESCPOSEncodedReceipt();
+
+
+        /*
+           Send receipt in small chunks.
+           This is safer for inexpensive thermal printers.
+        */
+
+        const chunkSize = 100;
+
+
+        for(
+            let i = 0;
+            i < escPosData.length;
+            i += chunkSize
+        ){
+
+            const chunk =
+                escPosData.slice(i, i + chunkSize);
+
+
+            if(
+                writableCharacteristic.properties
+                .writeWithoutResponse
+            ){
+
+                await writableCharacteristic
+                    .writeValueWithoutResponse(chunk);
+
+            }else{
+
+                await writableCharacteristic
+                    .writeValue(chunk);
+
+            }
+
+        }
+
+
+        showBluetoothStatus(
+            "Receipt sent to printer."
+        );
+
+
+    }catch(error){
+
+        console.error(error);
+
+
+        if(error.name === "NotFoundError"){
+
+            showBluetoothStatus(
+                "Printer selection cancelled."
+            );
+
+        }else{
+
+            showBluetoothStatus(
+                "Bluetooth printing failed."
+            );
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   CREATE ESC/POS RECEIPT
+========================================================= */
+
+function createESCPOSEncodedReceipt(){
+
+    const ESC = 0x1B;
+    const GS  = 0x1D;
+    const LF  = 0x0A;
+
+
+    let data = [];
+
+
+    /* Initialize printer */
+
+    data.push(
+        ESC, 0x40
+    );
+
+
+    /* Center alignment */
+
+    data.push(
+        ESC, 0x61, 0x01
+    );
+
+
+    /* Bold store name */
+
+    data.push(
+        ESC, 0x45, 0x01
+    );
+
+    data.push(
+        ...textBytes("MAKETHUB\n")
+    );
+
+
+    data.push(
+        ESC, 0x45, 0x00
+    );
+
+
+    data.push(
+        ...textBytes(
+            "SHOP • SELL • GROW\n"
+        )
+    );
+
+
+    data.push(
+        ...textBytes(
+            "+254 700 000 000\n"
+        )
+    );
+
+
+    data.push(
+        ...textBytes(
+            "www.makethub.shop\n"
+        )
+    );
+
+
+    data.push(
+        ...textBytes(
+            "--------------------------------\n"
+        )
+    );
+
+
+    /* Left alignment */
+
+    data.push(
+        ESC, 0x61, 0x00
+    );
+
+
+    data.push(
+        ...textBytes(
+            "Receipt : MH-1048\n"
+        )
+    );
+
+
+    data.push(
+        ...textBytes(
+            "Date    : 15/09/2026\n"
+        )
+    );
+
+
+    data.push(
+        ...textBytes(
+            "Cashier : Admin\n"
+        )
+    );
+
+
+    data.push(
+        ...textBytes(
+            "Customer: Customer\n"
+        )
+    );
+
+
+    data.push(
+        ...textBytes(
+            "--------------------------------\n"
+        )
+    );
+
+
+    /* Items */
+
+    data.push(
+        ...textBytes(
+            "Wireless Mouse\n"
+        )
+    );
+
+    data.push(
+        ...textBytes(
+            "  1 x 850.00             850.00\n"
+        )
+    );
+
+
+    data.push(
+        ...textBytes(
+            "USB-C Cable\n"
+        )
+    );
+
+    data.push(
+        ...textBytes(
+            "  2 x 500.00           1,000.00\n"
+        )
+    );
+
+
+    data.push(
+        ...textBytes(
+            "Notebook\n"
+        )
+    );
+
+    data.push(
+        ...textBytes(
+            "  2 x 250.00             500.00\n"
+        )
+    );
+
+
+    data.push(
+        ...textBytes(
+            "--------------------------------\n"
+        )
+    );
+
+
+    data.push(
+        ...textBytes(
+            "Subtotal              KES 2,350.00\n"
+        )
+    );
+
+
+    data.push(
+        ...textBytes(
+            "Discount                 KES 0.00\n"
+        )
+    );
+
+
+    data.push(
+        ...textBytes(
+            "Tax                     KES 0.00\n"
+        )
+    );
+
+
+    data.push(
+        ESC, 0x45, 0x01
+    );
+
+
+    data.push(
+        ...textBytes(
+            "TOTAL                 KES 2,350.00\n"
+        )
+    );
+
+
+    data.push(
+        ESC, 0x45, 0x00
+    );
+
+
+    data.push(
+        ...textBytes(
+            "--------------------------------\n"
+        )
+    );
+
+
+    data.push(
+        ...textBytes(
+            "Payment : M-PESA\n"
+        )
+    );
+
+
+    data.push(
+        ...textBytes(
+            "Status  : PAID\n"
+        )
+    );
+
+
+    data.push(
+        ...textBytes(
+            "Paid    : KES 2,350.00\n"
+        )
+    );
+
+
+    data.push(
+        ...textBytes(
+            "Balance : KES 0.00\n"
+        )
+    );
+
+
+    data.push(
+        LF, LF
+    );
+
+
+    /* Center footer */
+
+    data.push(
+        ESC, 0x61, 0x01
+    );
+
+
+    data.push(
+        ESC, 0x45, 0x01
+    );
+
+
+    data.push(
+        ...textBytes(
+            "THANK YOU!\n"
+        )
+    );
+
+
+    data.push(
+        ESC, 0x45, 0x00
+    );
+
+
+    data.push(
+        ...textBytes(
+            "Thank you for shopping with us.\n"
+        )
+    );
+
+
+    data.push(
+        ...textBytes(
+            "Keep this receipt for your records.\n"
+        )
+    );
+
+
+    data.push(
+        ...textBytes(
+            "Powered by MAKETHUB\n"
+        )
+    );
+
+
+    data.push(
+        LF, LF, LF
+    );
+
+
+    /* Cut paper */
+
+    data.push(
+        GS, 0x56, 0x00
+    );
+
+
+    return new Uint8Array(data);
+
+}
+
+
+/* =========================================================
+   TEXT TO BYTES
+========================================================= */
+
+function textBytes(text){
+
+    const encoder =
+        new TextEncoder();
+
+    return Array.from(
+        encoder.encode(text)
+    );
+
+}
+
+
+/* =========================================================
+   BLUETOOTH STATUS
+========================================================= */
+
+let bluetoothTimer = null;
+
+
+function showBluetoothStatus(message){
+
+    const box =
+        document.getElementById(
+            "bluetoothStatus"
+        );
+
+
+    const text =
+        document.getElementById(
+            "bluetoothText"
+        );
+
+
+    if(!box || !text){
+
+        return;
+
+    }
+
+
+    text.textContent = message;
+
+
+    box.classList.add("show");
+
+
+    clearTimeout(
+        bluetoothTimer
+    );
+
+
+    bluetoothTimer =
+        setTimeout(
+            () => {
+
+                box.classList.remove(
+                    "show"
+                );
+
+            },
+            5000
+        );
+
+}
+
+
+/* =========================================================
+   COPY RECEIPT NUMBER
+========================================================= */
+
+function copyReceiptNumber(){
+
+    const number =
+        receiptData.receiptNumber;
+
+
+    navigator.clipboard.writeText(number)
+        .then(() => {
+
+            showBluetoothStatus(
+                "Receipt number copied."
+            );
+
+        })
+        .catch(() => {
+
+            showBluetoothStatus(
+                "Unable to copy receipt number."
+            );
+
+        });
+
+}
+
+
+/* =========================================================
+   PREVENT ACCIDENTAL PRINTING OF EMPTY PAGE
+========================================================= */
+
+window.addEventListener(
+    "beforeprint",
+    () => {
+
+        updateReceiptTime();
+
+    }
+);
+
+
+/* =========================================================
+   INITIALIZE
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        updateReceiptTime();
+
+    }
+);
+
+</script>
+
+</body>
+</html>
