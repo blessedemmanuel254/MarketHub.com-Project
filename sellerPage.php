@@ -3216,6 +3216,375 @@ if ($result) {
 $stmt->close();
 
 /* =========================================================
+   FETCH SELLER ORDER DETAILS
+========================================================= */
+
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST' &&
+    isset($_POST['action']) &&
+    $_POST['action'] === 'get_order_details'
+) {
+
+    header('Content-Type: application/json; charset=utf-8');
+
+    $orderId = isset($_POST['order_id'])
+        ? (int) $_POST['order_id']
+        : 0;
+
+    if ($orderId <= 0) {
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Invalid order.'
+        ]);
+
+        exit;
+    }
+
+    /* ---------------------------------------------------------
+    GET ORDER + BUYER + SELLER SHOP
+    --------------------------------------------------------- */
+
+    $stmt = $conn->prepare("
+        SELECT
+            o.order_id,
+            o.order_code,
+            o.created_at,
+            o.buyer_id,
+            o.payment_method,
+
+            /* BUYER NAME */
+            CASE
+                WHEN o.buyer_id IS NULL
+                    THEN 'Walk-in customer'
+                ELSE COALESCE(u.full_name, 'Customer')
+            END AS buyer_name,
+
+            /* ENCODED BUYER PHONE */
+            CASE
+                WHEN o.buyer_id IS NULL
+                    THEN ''
+                ELSE COALESCE(u.phone, '')
+            END AS buyer_phone,
+
+            /* SELLER SHOP NAME */
+            COALESCE(s.business_name, '') AS shop_name
+
+        FROM orders o
+
+        /* ONLINE BUYER */
+        LEFT JOIN users u
+            ON o.buyer_id = u.user_id
+
+        /* SELLER */
+        LEFT JOIN users s
+            ON s.user_id = ?
+
+        WHERE o.order_id = ?
+
+        LIMIT 1
+    ");
+
+    $stmt->bind_param(
+        "ii",
+        $user_id,
+        $orderId
+    );
+
+    $stmt->execute();
+
+    $orderResult = $stmt->get_result();
+
+    $order = $orderResult->fetch_assoc();
+
+    $stmt->close();
+
+
+    if (!$order) {
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Order not found.'
+        ]);
+
+        exit;
+    }
+
+    /* ---------------------------------------------------------
+    FORMAT BUYER NAME
+    --------------------------------------------------------- */
+
+    /*
+    * Walk-in customer remains exactly:
+    * Walk-in customer
+    *
+    * Online buyer:
+    * EMMANUEL WERANGAI
+    * becomes:
+    * Emmanuel Werangai
+    */
+
+    if (!empty($order['buyer_id'])) {
+
+        $order['buyer_name'] = ucwords(
+            strtolower(
+                trim($order['buyer_name'] ?? '')
+            )
+        );
+
+        if ($order['buyer_name'] === '') {
+            $order['buyer_name'] = 'Customer';
+        }
+
+    } else {
+
+        $order['buyer_name'] = 'Walk-in customer';
+    }
+
+
+    /* ---------------------------------------------------------
+    DECODE BUYER PHONE
+    --------------------------------------------------------- */
+
+    $buyerPhone = '';
+
+    if (!empty($order['buyer_id']) && !empty($order['buyer_phone'])) {
+
+        $decodedPhone = base64_decode(
+            $order['buyer_phone'],
+            true
+        );
+
+        /*
+        * Only use decoded value when decoding succeeds.
+        */
+        if ($decodedPhone !== false) {
+            $buyerPhone = trim($decodedPhone);
+        } else {
+            /*
+            * Fallback in case an old record wasn't encoded.
+            */
+            $buyerPhone = trim(
+                $order['buyer_phone']
+            );
+        }
+    }
+
+    $order['buyer_phone'] = $buyerPhone;
+
+
+    /* ---------------------------------------------------------
+    SHOP NAME
+    --------------------------------------------------------- */
+
+    $shopName = trim(
+        $order['shop_name'] ?? ''
+    );
+
+    if ($shopName === '') {
+        $shopName = 'MAKETHUB SHOP';
+    }
+
+    $order['shop_name'] = $shopName;
+
+
+    /* ---------------------------------------------------------
+       GET ONLY THIS SELLER'S ITEMS
+    --------------------------------------------------------- */
+
+    $stmt = $conn->prepare("
+        SELECT
+            oi.item_id,
+            oi.product_id,
+            oi.quantity,
+            oi.price,
+            oi.subtotal,
+            oi.order_status,
+            oi.payment_status,
+
+            p.product_name,
+            p.unit,
+            p.sale_type,
+            p.image_path
+
+        FROM order_items oi
+
+        INNER JOIN productservicesrentals p
+            ON oi.product_id = p.product_id
+
+        WHERE
+            oi.order_id = ?
+            AND oi.seller_id = ?
+
+        ORDER BY oi.item_id ASC
+    ");
+
+    $stmt->bind_param(
+        "ii",
+        $orderId,
+        $user_id
+    );
+
+    $stmt->execute();
+
+    $itemsResult = $stmt->get_result();
+
+    $items = [];
+
+    $subtotal = 0;
+
+    while ($item = $itemsResult->fetch_assoc()) {
+
+        $quantity = (float) $item['quantity'];
+        $price    = (float) $item['price'];
+
+        /*
+         * Use the stored subtotal when available.
+         * Otherwise calculate it.
+         */
+        $lineTotal = isset($item['subtotal'])
+            ? (float) $item['subtotal']
+            : ($quantity * $price);
+
+        $subtotal += $lineTotal;
+
+
+        $items[] = [
+            'item_id'     => (int) $item['item_id'],
+            'product_id'  => (int) $item['product_id'],
+            'product_name'=> $item['product_name'],
+            'quantity'    => $quantity,
+            'price'       => $price,
+            'subtotal'    => $lineTotal,
+            'unit'        => $item['unit'],
+            'sale_type'   => $item['sale_type'],
+            'image_path'  => $item['image_path']
+        ];
+    }
+
+    $stmt->close();
+
+
+    /* ---------------------------------------------------------
+       PAYMENT
+    --------------------------------------------------------- */
+
+    $paymentMethod = trim(
+        $order['payment_method'] ?? ''
+    );
+
+    if ($paymentMethod === '') {
+        $paymentMethod = 'Unknown';
+    }
+
+
+    /*
+     * Get payment status for this seller's items.
+     */
+    $paymentStatus = 'Pending';
+
+    $stmt = $conn->prepare("
+        SELECT
+            MAX(payment_status) AS payment_status
+
+        FROM order_items
+
+        WHERE
+            order_id = ?
+            AND seller_id = ?
+    ");
+
+    $stmt->bind_param(
+        "ii",
+        $orderId,
+        $user_id
+    );
+
+    $stmt->execute();
+
+    $paymentResult = $stmt->get_result();
+    $paymentRow = $paymentResult->fetch_assoc();
+
+    if (!empty($paymentRow['payment_status'])) {
+        $paymentStatus = ucfirst(
+            strtolower($paymentRow['payment_status'])
+        );
+    }
+
+    $stmt->close();
+
+
+    /* ---------------------------------------------------------
+       DATE / TIME
+    --------------------------------------------------------- */
+
+    try {
+
+        $dateTime = new DateTime(
+            $order['created_at'],
+            new DateTimeZone('Africa/Nairobi')
+        );
+
+        $formattedDate = $dateTime->format(
+            'd M Y, H:i'
+        );
+
+        $receiptDate = $dateTime->format(
+            'M d, Y • H:i'
+        );
+
+    } catch (Exception $e) {
+
+        $formattedDate = $order['created_at'];
+        $receiptDate   = $order['created_at'];
+    }
+
+
+    /* ---------------------------------------------------------
+       RETURN JSON
+    --------------------------------------------------------- */
+
+    echo json_encode([
+        'success' => true,
+
+        'order' => [
+
+            'order_id'       => (int) $order['order_id'],
+
+            'order_code'     => $order['order_code'],
+
+            'created_at'     => $order['created_at'],
+
+            'formatted_date' => $formattedDate,
+
+            'receipt_date'   => $receiptDate,
+
+            'buyer_id'       => $order['buyer_id']
+                ? (int) $order['buyer_id']
+                : null,
+
+            'buyer_name'     => $order['buyer_name'],
+
+            'buyer_phone'    => $order['buyer_phone'],
+
+            'shop_name'      => $order['shop_name'],
+
+            'payment_method' => $paymentMethod,
+
+            'payment_status' => $paymentStatus,
+
+            'subtotal'       => $subtotal,
+
+            'total'          => $subtotal
+        ],
+
+        'items' => $items
+    ]);
+
+    exit;
+}
+
+/* =========================================================
   DAILY STATS
   Today's seller sales
   ========================================================= */
@@ -3852,7 +4221,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                 </strong>
 
                 <span id="sheetOrderDate">
-                    Aug 28, 2026 • 14:32
+                    30 Aug, 14:32
                 </span>
 
             </div>
@@ -4042,21 +4411,14 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                         </div>
 
                         <div class="sheet-item-meta">
-                            1 × KES 650
+                            x3
                         </div>
 
                     </div>
 
 
                     <div class="sheet-item-price">
-
-                        <strong>
-                            KES 650
-                        </strong>
-
-                        <span>
-                            1 Each
-                        </span>
+                        KES 650
 
                     </div>
 
@@ -4084,22 +4446,14 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                         </div>
 
                         <div class="sheet-item-meta">
-                            1 × KES 400
+                            1 Packet
                         </div>
 
                     </div>
 
 
                     <div class="sheet-item-price">
-
-                        <strong>
-                            KES 400
-                        </strong>
-
-                        <span>
-                            1 Each
-                        </span>
-
+                        KES 400
                     </div>
 
                 </div>
@@ -4120,7 +4474,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                         Subtotal
                     </span>
 
-                    <span>
+                    <span id="sheetSubtotal">
                         KES 3,450
                     </span>
 
@@ -4146,7 +4500,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                         Total
                     </span>
 
-                    <span>
+                    <span id="sheetTotal">
                         KES 3,450
                     </span>
 
@@ -4163,24 +4517,19 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
                 <div class="payment-information-row">
 
-                    <span>
-                        Payment method
-                    </span>
+                    <span>Paid by</span>
 
-                    <span>
-                        M-Pesa
+                    <span id="sheetPaymentMethod">
+                        Cash
                     </span>
 
                 </div>
 
-
                 <div class="payment-information-row">
 
-                    <span>
-                        Payment status
-                    </span>
+                    <span>Payment status</span>
 
-                    <span>
+                    <span id="sheetPaymentStatus">
                         Paid
                     </span>
 
@@ -4224,7 +4573,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                     style="
                     "
                 >
-                    <img src="Images/Makethub Logo.png" alt="Makethub Logo" width="25"> <h4>SUPER FASHIONS</h4>
+                    <img src="Images/Makethub Logo.png" alt="Makethub Logo" width="25"> <h4 id="printShopName">SUPER FASHIONS</h4>
                 </div>
 
                 <div class="headerSpn">
@@ -4574,14 +4923,14 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                     </div>
 
                 </div>
-                <!-- PROFIT STATS -->
+                <!-- PROFIT STATS --><!-- 
                 <div class="card">
 
                     <i class="fa-solid fa-receipt icon"></i>
 
-                    <h3>Net Earnings</h3>
+                    <h3>Net Earnings</h3> -->
 
-                    <!-- Total sales -->
+                    <!-- Total sales --><!-- 
                     <div class="stat">
                         KES <?= number_format($dailySales, 2) ?>
                     </div>
@@ -4634,7 +4983,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
                     </div>
 
-                </div>
+                </div> -->
 
                 <!-- WALLET HEALTH --><!-- 
                 <div class="card">
@@ -4651,7 +5000,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
                   <p class="small">KES 0 pending clearance</p>
                 </div> -->
-                <!-- ORDERS SUMMARY -->
+                <!-- ORDERS SUMMARY --><!-- 
                 <div class="card">
                   <i class="fa fa-box icon"></i>
                   <h3>Products Summary</h3>
@@ -4666,7 +5015,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                       <span class="badge green"><?= $deliveredOrders ?> <?= $deliveredOrders == 1 ? 'Delivered' : 'Delivered' ?></span>
                   </p>
                   <p class="small">In the last 28 days</p>
-                </div>
+                </div> -->
                 <div class="card">
                   <i class="fa fa-box icon"></i>
                   <h3>Orders Summary</h3>
@@ -6143,8 +6492,14 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
                   // Default image
                   $defaultImage = "Images/Makethub Logo.png";
-                  $imageHTML = '<div class="order-product-images">';
-
+                  $imageHTML = '
+                    <div
+                        class="order-product-images order-details-trigger"
+                        data-order-id="' . (int)$order['order_id'] . '"
+                        role="button"
+                        tabindex="0"
+                        aria-label="View order details"
+                    >';
                   foreach ($productImages as $image) {
 
                       $image = trim($image);
@@ -6197,7 +6552,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                                   ? htmlspecialchars($order['image_path']) 
                                   : "Images/Makethub Logo.png"; // default image
 
-                  echo "<tr data-status=\"{$order['order_status']}\">
+                  echo "<tr data-order-id='" . (int)$order ['order_id'] . "' data-status='" . htmlspecialchars($order['order_status'], ENT_QUOTES, 'UTF-8') . "'>
                           <td>
                             <div class='newStylOrd'>
                               #{$order['order_code']}<p>{$date}</p>
@@ -6227,7 +6582,17 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   echo "      </div>
                           </td>
                           <td>".htmlspecialchars(ucfirst($order['payment_method'] ?? 'Unknown'))."</td>
-                          <td><div id='receiptTd'><i class='fa-solid fa-receipt'></i></div></td>
+                          <td>
+                            <div
+                                class='receiptTd order-details-trigger'
+                                data-order-id='{$order['order_id']}'
+                                role='button'
+                                tabindex='0'
+                                aria-label='View order receipt'
+                            >
+                                <i class='fa-solid fa-receipt'></i>
+                            </div>
+                          </td>
                         </tr>";
                   $count++;
               }
@@ -8686,8 +9051,14 @@ function refreshSellerSalesNavigation() {
 
                   // Default image
                   $defaultImage = "Images/Makethub Logo.png";
-                  $imageHTML = '<div class="order-product-images">';
-
+                  $imageHTML = '
+                    <div
+                        class="order-product-images order-details-trigger"
+                        data-order-id="' . (int)$order['order_id'] . '"
+                        role="button"
+                        tabindex="0"
+                        aria-label="View order details"
+                    >';
                   foreach ($productImages as $image) {
 
                       $image = trim($image);
@@ -8740,7 +9111,7 @@ function refreshSellerSalesNavigation() {
                                   ? htmlspecialchars($order['image_path']) 
                                   : "Images/Makethub Logo.png"; // default image
 
-                  echo "<tr data-status=\"{$order['order_status']}\">
+                  echo "<tr data-order-id='" . (int)$order ['order_id'] . "' data-status='" . htmlspecialchars($order['order_status'], ENT_QUOTES, 'UTF-8') . "'>
                           <td>
                             <div class='newStylOrd'>
                               #{$order['order_code']}<p>{$date}</p>
@@ -8770,7 +9141,17 @@ function refreshSellerSalesNavigation() {
                   echo "      </div>
                           </td>
                           <td>".htmlspecialchars(ucfirst($order['payment_method'] ?? 'Unknown'))."</td>
-                          <td><div id='receiptTd'><i class='fa-solid fa-barcode'></i></div></td>
+                          <td>
+                            <div
+                                class='receiptTd order-details-trigger'
+                                data-order-id='{$order['order_id']}'
+                                role='button'
+                                tabindex='0'
+                                aria-label='View order receipt'
+                            >
+                                <i class='fa-solid fa-receipt'></i>
+                            </div>
+                          </td>
                         </tr>";
                   $count++;
               }

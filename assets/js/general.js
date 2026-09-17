@@ -6109,3 +6109,1209 @@ if (sellingPrice && sellingPriceMessage) {
   });
 
 }
+
+/* =========================================================
+   ORDER SHEET
+========================================================= */
+
+const orderSheet = document.getElementById('orderSheet');
+const closeOrderSheet = document.getElementById('closeOrderSheet');
+
+const sheetOrderNumber =
+    document.getElementById('sheetOrderNumber');
+
+const sheetOrderDate =
+    document.getElementById('sheetOrderDate');
+
+const sheetCustomerName =
+    document.getElementById('sheetCustomerName');
+
+const sheetCustomerPhone =
+    document.getElementById('sheetCustomerPhone');
+
+const sheetItems =
+    document.getElementById('sheetItems');
+
+const sheetSubtotal =
+    document.getElementById('sheetSubtotal');
+
+const sheetTotal =
+    document.getElementById('sheetTotal');
+
+const sheetPaymentMethod =
+    document.getElementById('sheetPaymentMethod');
+
+const sheetPaymentStatus =
+    document.getElementById('sheetPaymentStatus');
+
+const printReceiptButton =
+    document.getElementById('printReceiptButton');
+
+
+/* =========================================================
+  FORMAT CURRENCY
+========================================================= */
+
+function formatKES(amount) {
+
+  const value = Number(amount || 0).toLocaleString(
+      'en-KE',
+      {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+      }
+  );
+
+  return `KES&nbsp;${value}`;
+}
+
+/* =========================================================
+  FORMAT QUANTITY AS WHOLE NUMBER / MIXED FRACTION
+========================================================= */
+
+function formatQuantityValue(value) {
+
+  let quantity = Number(value || 0);
+
+  if (!Number.isFinite(quantity)) {
+      quantity = 0;
+  }
+
+  /*
+    * Remove tiny floating-point errors.
+    *
+    * Example:
+    * 0.499999999 → 0.5
+    */
+  quantity =
+      Math.round(quantity * 1000) / 1000;
+
+
+  /*
+    * Whole number
+    *
+    * 1
+    * 2
+    * 10
+    */
+  if (Number.isInteger(quantity)) {
+
+      return quantity.toLocaleString(
+          'en-KE'
+      );
+  }
+
+
+  /*
+    * Separate whole number from fraction.
+    *
+    * Example:
+    *
+    * 2.5
+    * whole = 2
+    * fraction = 0.5
+    */
+  const whole =
+      Math.floor(quantity);
+
+  const fraction =
+      Math.round(
+          (quantity - whole) * 4
+      ) / 4;
+
+
+  /*
+    * Common fractions
+    */
+  const fractionMap = {
+
+      0.25: '¼',
+
+      0.5: '½',
+
+      0.75: '¾'
+  };
+
+
+  const fractionText =
+      fractionMap[fraction] || '';
+
+
+  /*
+    * No fraction
+    */
+  if (!fractionText) {
+
+      return quantity.toLocaleString(
+          'en-KE',
+          {
+              maximumFractionDigits: 0
+          }
+      );
+  }
+
+
+  /*
+    * Fraction less than one
+    *
+    * 0.25 → ¼
+    * 0.5  → ½
+    * 0.75 → ¾
+    */
+  if (whole === 0) {
+
+      return fractionText;
+  }
+
+
+  /*
+    * Mixed fraction
+    *
+    * 1.25 → 1 ¼
+    * 2.5  → 2 ½
+    * 4.75 → 4 ¾
+    */
+  return (
+      whole.toLocaleString('en-KE') +
+      ' ' +
+      fractionText
+  );
+}
+
+
+/* =========================================================
+  FORMAT ORDER QUANTITY + UNIT
+========================================================= */
+
+function formatOrderQuantity(item) {
+
+  const quantity =
+      Number(item.quantity || 0);
+
+  const saleType =
+      String(
+          item.sale_type || ''
+      )
+      .trim()
+      .toLowerCase();
+
+  let unit =
+      String(
+          item.unit || ''
+      ).trim();
+
+
+  /* -----------------------------------------------------
+      EACH
+  ----------------------------------------------------- */
+
+  if (
+      saleType === 'each' ||
+      !unit ||
+      unit.toLowerCase() === 'each'
+  ) {
+
+      return (
+          'x' +
+          formatQuantityValue(quantity)
+      );
+  }
+
+
+  /* -----------------------------------------------------
+      NORMALIZE UNIT
+  ----------------------------------------------------- */
+
+  const unitMap = {
+
+      'kg': 'Kg',
+      'kgs': 'Kg',
+      'kilogram': 'Kg',
+      'kilograms': 'Kg',
+
+      'g': 'Gram',
+      'gram': 'Gram',
+      'grams': 'Gram',
+
+      'l': 'Liter',
+      'liter': 'Liter',
+      'litre': 'Liter',
+      'liters': 'Liter',
+      'litres': 'Liter',
+
+      'm': 'Meter',
+      'meter': 'Meter',
+      'metre': 'Meter',
+      'meters': 'Meter',
+      'metres': 'Meter',
+
+      'cm': 'Centimeter',
+      'centimeter': 'Centimeter',
+      'centimetre': 'Centimeter',
+      'centimeters': 'Centimeter',
+      'centimetres': 'Centimeter',
+
+      'inch': 'Inch',
+      'inches': 'Inch',
+
+      'tone': 'Tone',
+      'tones': 'Tone',
+
+      'dozen': 'Dozen',
+      'dozens': 'Dozen',
+
+      'set': 'Set',
+      'sets': 'Set',
+
+      'plate': 'Plate',
+      'plates': 'Plate',
+
+      'cup': 'Cup',
+      'cups': 'Cup',
+
+      'gallon': 'Gallon',
+      'gallons': 'Gallon',
+
+      'roll': 'Roll',
+      'rolls': 'Roll',
+
+      'm²': 'm²',
+      'm2': 'm²'
+  };
+
+
+  const normalizedUnit =
+      unitMap[
+          unit.toLowerCase()
+      ] || (
+          unit.charAt(0).toUpperCase() +
+          unit.slice(1).toLowerCase()
+      );
+
+
+  /* -----------------------------------------------------
+      FORMAT QUANTITY
+  ----------------------------------------------------- */
+
+  const formattedQuantity =
+      formatQuantityValue(quantity);
+
+
+  /* -----------------------------------------------------
+      KG
+  ----------------------------------------------------- */
+
+  if (
+      normalizedUnit === 'Kg'
+  ) {
+
+      return (
+          formattedQuantity +
+          ' ' +
+          (
+              quantity > 1
+                  ? 'Kgs'
+                  : 'Kg'
+          )
+      );
+  }
+
+
+  /* -----------------------------------------------------
+      ALL OTHER MEASUREMENTS
+  ----------------------------------------------------- */
+
+  let displayUnit =
+      normalizedUnit;
+
+
+  /*
+    * Pluralize full unit names.
+    *
+    * Symbols such as m² are not pluralized.
+    */
+
+  if (quantity > 1) {
+
+      if (
+          displayUnit !== 'm²' &&
+          !displayUnit.toLowerCase().endsWith('s')
+      ) {
+
+          displayUnit += 's';
+      }
+  }
+
+
+  return (
+      formattedQuantity +
+      ' ' +
+      displayUnit
+  );
+}
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHTML(value) {
+
+    const div = document.createElement('div');
+
+    div.textContent = value ?? '';
+
+    return div.innerHTML;
+}
+
+
+/* =========================================================
+   PRODUCT IMAGE
+========================================================= */
+
+function getOrderImage(path) {
+
+    if (!path) {
+        return 'Images/Makethub Logo.png';
+    }
+
+    return path;
+}
+
+
+/* =========================================================
+   OPEN ORDER SHEET
+========================================================= */
+
+async function openOrderSheet(orderId) {
+
+    if (!orderId) {
+        return;
+    }
+
+
+    /*
+     * Show loading state immediately.
+     */
+
+    sheetOrderNumber.textContent = 'Loading order...';
+
+    sheetOrderDate.textContent = '';
+
+    sheetCustomerName.textContent = 'Loading...';
+
+    sheetCustomerPhone.textContent = '';
+
+    sheetItems.innerHTML = `
+        <div class="empty-orders">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <div>Loading order details...</div>
+        </div>
+    `;
+
+    sheetSubtotal.textContent = 'KES 0.00';
+
+    sheetTotal.textContent = 'KES 0.00';
+
+    sheetPaymentMethod.textContent = 'Loading...';
+
+    sheetPaymentStatus.textContent = 'Loading...';
+
+    /*
+     * Open sheet immediately.
+     */
+
+    showOrderSheet();
+
+
+    try {
+
+        const formData = new FormData();
+
+        formData.append(
+            'action',
+            'get_order_details'
+        );
+
+        formData.append(
+            'order_id',
+            orderId
+        );
+
+
+        const response = await fetch(
+            window.location.href,
+            {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+            }
+        );
+
+
+        const data = await response.json();
+
+
+        if (!data.success) {
+
+            throw new Error(
+                data.message ||
+                'Unable to load order.'
+            );
+        }
+
+
+        renderOrderSheet(
+            data.order,
+            data.items
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            'Order sheet error:',
+            error
+        );
+
+
+        sheetItems.innerHTML = `
+            <div class="empty-orders">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <div>
+                    ${escapeHTML(
+                        error.message ||
+                        'Unable to load order details.'
+                    )}
+                </div>
+            </div>
+        `;
+    }
+}
+
+/* =========================================================
+  RENDER ORDER SHEET
+========================================================= */
+
+function renderOrderSheet(order, items) {
+
+  /*
+    * Header
+    */
+
+  sheetOrderNumber.textContent =
+      '#' + order.order_code;
+
+  sheetOrderDate.textContent =
+      order.formatted_date;
+
+
+  /*
+    * Customer
+    */
+
+  sheetCustomerName.textContent =
+      order.buyer_name ||
+      'Walk-in customer';
+
+
+  /*
+    * Walk-in customer has no phone.
+    */
+
+  if (
+      order.buyer_phone &&
+      String(order.buyer_phone).trim() !== ''
+  ) {
+
+      sheetCustomerPhone.textContent =
+          order.buyer_phone;
+
+      sheetCustomerPhone.style.display =
+          '';
+
+  } else {
+
+      sheetCustomerPhone.textContent =
+          '';
+
+      sheetCustomerPhone.style.display =
+          'none';
+  }
+
+
+  /*
+    * Items
+    */
+
+  if (!items || items.length === 0) {
+
+      sheetItems.innerHTML = `
+          <div class="empty-orders">
+              <i class="fa-solid fa-box-open"></i>
+              <div>No products found in this order.</div>
+          </div>
+      `;
+
+  } else {
+
+      sheetItems.innerHTML = items.map(
+          function(item) {
+
+              const image =
+                  getOrderImage(
+                      item.image_path
+                  );
+
+              const quantity =
+                  formatOrderQuantity(item);
+
+              return `
+                  <div class="sheet-item">
+
+                      <div class="sheet-item-image">
+
+                          <img
+                              src="${escapeHTML(image)}"
+                              alt="${escapeHTML(item.product_name)}"
+                              onerror="
+                                  this.src='Images/Makethub Logo.png';
+                              "
+                          >
+
+                      </div>
+
+
+                      <div class="sheet-item-info">
+
+                          <div class="sheet-item-name">
+                              ${escapeHTML(
+                                  item.product_name
+                              )}
+                          </div>
+
+                          <div class="sheet-item-meta">
+                              ${escapeHTML(quantity)}
+                          </div>
+
+                      </div>
+
+
+                      <div class="sheet-item-price">
+                          ${formatKES(item.subtotal)}
+                      </div>
+
+                  </div>
+              `;
+          }
+      ).join('');
+  }
+
+
+  /*
+    * Totals
+    */
+
+  sheetSubtotal.innerHTML =
+      formatKES(order.subtotal);
+
+  sheetTotal.innerHTML =
+      formatKES(order.total);
+
+
+  /*
+    * Payment
+    */
+
+  sheetPaymentMethod.textContent =
+      capitalizePaymentMethod(
+          order.payment_method
+      );
+
+  sheetPaymentStatus.textContent =
+      order.payment_status;
+
+
+  /*
+    * Prepare receipt
+    */
+
+  populatePrintableReceipt(
+      order,
+      items
+  );
+}
+
+/* =========================================================
+  PAYMENT METHOD
+========================================================= */
+
+function capitalizePaymentMethod(method) {
+
+  if (!method) {
+      return 'Unknown';
+  }
+
+  const value = String(method)
+      .trim()
+      .toLowerCase();
+
+  if (value === 'cash') {
+      return 'Cash';
+  }
+
+  if (
+      value === 'bank' ||
+      value === 'bank transfer' ||
+      value === 'bank_transfer'
+  ) {
+      return 'Bank';
+  }
+
+  return value
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, function(char) {
+          return char.toUpperCase();
+      });
+}
+
+/* =========================================================
+  ORDER DETAILS CLICK
+========================================================= */
+
+document.addEventListener(
+  'click',
+  function(event) {
+
+      const trigger =
+          event.target.closest(
+              '.order-details-trigger'
+          );
+
+      if (!trigger) {
+          return;
+      }
+
+
+      const orderId =
+          trigger.dataset.orderId;
+
+
+      if (!orderId) {
+          console.warn(
+              'Missing order ID.'
+          );
+
+          return;
+      }
+
+
+      openOrderSheet(orderId);
+  }
+);
+
+/* =========================================================
+  ORDER DETAILS KEYBOARD SUPPORT
+========================================================= */
+
+document.addEventListener(
+  'keydown',
+  function(event) {
+
+      if (
+          event.key !== 'Enter' &&
+          event.key !== ' '
+      ) {
+          return;
+      }
+
+
+      const trigger =
+          event.target.closest(
+              '.order-details-trigger'
+          );
+
+      if (!trigger) {
+          return;
+      }
+
+
+      event.preventDefault();
+
+
+      const orderId =
+          trigger.dataset.orderId;
+
+
+      if (orderId) {
+          openOrderSheet(orderId);
+      }
+  }
+);
+
+function showOrderSheet() {
+
+    if (!orderSheet) {
+        console.error(
+            'Order sheet element #orderSheet was not found.'
+        );
+        return;
+    }
+
+    orderSheet.classList.add('active');
+
+    slsDetlsOverlay?.classList.add('active');
+}
+
+
+/* =========================================================
+   CLOSE ORDER SHEET
+========================================================= */
+
+function closeOrderSheetNow() {
+
+    if (orderSheet) {
+        orderSheet.classList.remove('active');
+    }
+
+    slsDetlsOverlay?.classList.remove('active');
+}
+
+closeOrderSheet?.addEventListener(
+'click',
+closeOrderSheetNow
+);
+
+const slsDetlsOverlay =
+  document.getElementById(
+      'slsDetlsOverlay'
+  );
+
+slsDetlsOverlay?.addEventListener(
+  'click',
+  closeOrderSheetNow
+);
+
+/* =========================================================
+  RECEIPT CUSTOMER NAME
+========================================================= */
+
+function getReceiptCustomerName(order) {
+
+  /*
+    * Seller POS checkout
+    */
+  if (!order.buyer_id) {
+      return 'Customer';
+  }
+
+
+  /*
+    * Online buyer
+    */
+  return order.buyer_name || 'Customer';
+}
+
+/* =========================================================
+  POPULATE PRINT RECEIPT
+========================================================= */
+
+function populatePrintableReceipt(
+  order,
+  items
+) {
+
+  const receiptNumber =
+      document.getElementById(
+          'printReceiptNumber'
+      );
+
+  const receiptDate =
+      document.getElementById(
+          'printReceiptDate'
+      );
+
+  const printCustomerName =
+      document.getElementById(
+          'printCustomerName'
+      );
+
+  const printShopName =
+      document.getElementById(
+          'printShopName'
+      );
+
+  const printItems =
+      document.getElementById(
+          'printItems'
+      );
+
+
+  /* -----------------------------------------------------
+      SHOP NAME
+  ----------------------------------------------------- */
+
+  if (printShopName) {
+
+      printShopName.textContent =
+          String(
+              order.shop_name ||
+              'MAKETHUB'
+          ).toUpperCase();
+  }
+
+
+  /* -----------------------------------------------------
+      ORDER NUMBER
+  ----------------------------------------------------- */
+
+  if (receiptNumber) {
+
+      receiptNumber.textContent =
+          '#' + order.order_code;
+  }
+
+
+  /* -----------------------------------------------------
+      DATE
+  ----------------------------------------------------- */
+
+  if (receiptDate) {
+
+      receiptDate.textContent =
+          order.receipt_date;
+  }
+
+
+  /* -----------------------------------------------------
+      CUSTOMER
+  ----------------------------------------------------- */
+
+  if (printCustomerName) {
+
+      printCustomerName.textContent =
+          getReceiptCustomerName(order);
+  }
+
+
+  /* -----------------------------------------------------
+      ITEMS
+  ----------------------------------------------------- */
+
+  if (printItems) {
+
+      printItems.innerHTML =
+          (items || []).map(
+              function(item) {
+
+                  const quantity =
+                      formatOrderQuantity(item);
+
+                  return `
+                      <div>
+
+                          <span>
+                              ${escapeHTML(
+                                  item.product_name
+                              )}
+                              ${escapeHTML(
+                                  quantity
+                              )}
+                          </span>
+
+                          <strong>
+                              ${formatKES(
+                                  item.subtotal
+                              )}
+                          </strong>
+
+                      </div>
+                  `;
+              }
+          ).join('');
+  }
+
+
+  /* -----------------------------------------------------
+      SUBTOTAL
+  ----------------------------------------------------- */
+
+  const receiptSummary =
+      document.querySelector(
+          '#printReceipt .slSbSumry'
+      );
+
+  if (receiptSummary) {
+
+      const subtotalRow =
+          receiptSummary.querySelector(
+              '.total-row'
+          );
+
+      if (subtotalRow) {
+
+          const spans =
+              subtotalRow.querySelectorAll(
+                  'span'
+              );
+
+          if (spans.length >= 2) {
+
+              spans[1].innerHTML =
+                  formatKES(
+                      order.subtotal
+                  );
+          }
+      }
+  }
+
+
+  /* -----------------------------------------------------
+      TOTAL
+  ----------------------------------------------------- */
+
+  const totalStrong =
+      document.querySelector(
+          '#printReceipt .totalFDiv strong'
+      );
+
+  if (totalStrong) {
+
+      totalStrong.innerHTML =
+          formatKES(
+              order.total
+          );
+  }
+
+
+  /* -----------------------------------------------------
+      PAYMENT METHOD
+  ----------------------------------------------------- */
+
+  const totalFDiv =
+      document.querySelector(
+          '#printReceipt .totalFDiv'
+      );
+
+  if (totalFDiv) {
+
+      const paymentRows =
+          totalFDiv.querySelectorAll(
+              'div'
+          );
+
+      if (paymentRows.length >= 2) {
+
+          const paymentValue =
+              paymentRows[1].querySelector(
+                  'span:last-child'
+              );
+
+          if (paymentValue) {
+
+              paymentValue.textContent =
+                  capitalizePaymentMethod(
+                      order.payment_method
+                  );
+          }
+      }
+  }
+}
+
+/* =========================================================
+  PRINT RECEIPT
+========================================================= */
+
+let originalReceiptParent = null;
+let originalReceiptNextSibling = null;
+let originalReceiptDisplay = '';
+
+
+/* =========================================================
+  PREPARE RECEIPT
+========================================================= */
+
+function prepareReceiptForPrinting() {
+
+  const receipt =
+      document.getElementById('printReceipt');
+
+  if (!receipt) {
+
+      console.error(
+          'Cannot print: #printReceipt was not found.'
+      );
+
+      return false;
+  }
+
+
+  /*
+    * Save the original location.
+    */
+  originalReceiptParent =
+      receipt.parentNode;
+
+  originalReceiptNextSibling =
+      receipt.nextSibling;
+
+
+  /*
+    * Save original display value.
+    */
+  originalReceiptDisplay =
+      receipt.style.display;
+
+
+  /*
+    * Move receipt directly into BODY.
+    *
+    * This removes it from:
+    *
+    * .container
+    * .buyerMain
+    * .order-sheet
+    * overlays
+    * transforms
+    * overflow:hidden
+    * etc.
+    */
+  document.body.appendChild(receipt);
+
+
+  /*
+    * Show receipt.
+    */
+  receipt.style.display = 'block';
+
+
+  /*
+    * Remove anything that could cause clipping.
+    */
+  receipt.style.position = 'static';
+  receipt.style.transform = 'none';
+  receipt.style.overflow = 'visible';
+
+
+  return true;
+}
+
+
+/* =========================================================
+  RESTORE RECEIPT
+========================================================= */
+
+function restoreReceiptAfterPrinting() {
+
+  const receipt =
+      document.getElementById('printReceipt');
+
+  if (
+      !receipt ||
+      !originalReceiptParent
+  ) {
+      return;
+  }
+
+
+  /*
+    * Restore original position.
+    */
+  if (
+      originalReceiptNextSibling &&
+      originalReceiptNextSibling.parentNode ===
+          originalReceiptParent
+  ) {
+
+      originalReceiptParent.insertBefore(
+          receipt,
+          originalReceiptNextSibling
+      );
+
+  } else {
+
+      originalReceiptParent.appendChild(
+          receipt
+      );
+  }
+
+
+  /*
+    * Restore original inline styles.
+    */
+  receipt.style.display =
+      originalReceiptDisplay;
+
+  receipt.style.position = '';
+  receipt.style.transform = '';
+  receipt.style.overflow = '';
+
+
+  /*
+    * Clear references.
+    */
+  originalReceiptParent = null;
+  originalReceiptNextSibling = null;
+  originalReceiptDisplay = '';
+}
+
+
+/* =========================================================
+  PRINT BUTTON
+========================================================= */
+
+printReceiptButton?.addEventListener(
+  'click',
+  function () {
+
+      const ready =
+          prepareReceiptForPrinting();
+
+      if (!ready) {
+          return;
+      }
+
+
+      /*
+        * Allow the browser to finish moving
+        * and rendering the receipt first.
+        */
+      requestAnimationFrame(function () {
+
+          requestAnimationFrame(function () {
+
+              window.print();
+
+          });
+
+      });
+
+  }
+);
+
+
+/* =========================================================
+  RESTORE AFTER PRINT
+========================================================= */
+
+window.addEventListener(
+  'afterprint',
+  function () {
+
+      restoreReceiptAfterPrinting();
+
+  }
+);
+
+console.log({
+  orderSheet,
+  sheetOrderNumber,
+  sheetOrderDate,
+  sheetCustomerName,
+  sheetCustomerPhone,
+  sheetItems,
+  sheetSubtotal,
+  sheetTotal,
+  sheetPaymentMethod,
+  sheetPaymentStatus,
+  printReceiptButton
+});
