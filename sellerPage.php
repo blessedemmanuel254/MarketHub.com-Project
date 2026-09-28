@@ -432,6 +432,106 @@ if (isset($_GET['download_qr'])) {
   exit();
 }
 
+/* FETCH SELLERS SUBSCRIPTION STATUS */
+$stmt = $conn->prepare("
+    SELECT
+        subscription_status,
+        subscription_started_at,
+        subscription_expires_at,
+        economic_period_count
+    FROM users
+    WHERE user_id = ?
+    LIMIT 1
+");
+
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+
+$subscription =
+    $stmt->get_result()->fetch_assoc();
+
+$stmt->close();
+
+/* Calculate Battery Percentage */
+$batteryPercent = 0;
+$daysRemaining = 0;
+
+if (
+    !empty($subscription['subscription_started_at']) &&
+    !empty($subscription['subscription_expires_at'])
+) {
+
+    $start =
+        strtotime(
+            $subscription['subscription_started_at']
+        );
+
+    $end =
+        strtotime(
+            $subscription['subscription_expires_at']
+        );
+
+    $now = time();
+
+    $totalSeconds =
+        $end - $start;
+
+    $remainingSeconds =
+        max(
+            0,
+            $end - $now
+        );
+
+    if ($totalSeconds > 0) {
+
+        $batteryPercent =
+            round(
+                ($remainingSeconds / $totalSeconds) * 100
+            );
+
+    }
+
+    $daysRemaining =
+        ceil(
+            $remainingSeconds / 86400
+        );
+}
+
+/* ---------- SUBSCRIPTION STATUS ---------- */
+
+$subStmt = $conn->prepare(
+    "SELECT subscription_expires_at
+     FROM users
+     WHERE user_id = ?
+     LIMIT 1"
+);
+
+$subStmt->bind_param(
+    "i",
+    $_SESSION['user_id']
+);
+
+$subStmt->execute();
+
+$subStmt->bind_result(
+    $expiresAt
+);
+
+$subStmt->fetch();
+
+$subStmt->close();
+
+$isExpired = true;
+
+if (!empty($expiresAt)) {
+
+    $isExpired =
+        strtotime($expiresAt) <= time();
+
+}
+
+$hasActiveBattery = !$isExpired;
+
 /* =========================================================
    POS CHECKOUT
    ========================================================= */
@@ -441,6 +541,51 @@ if (
     isset($_POST['action']) &&
     $_POST['action'] === 'checkout_sale'
 ) {
+    $subscriptionCheck =
+        $conn->prepare("
+            SELECT
+                subscription_expires_at
+            FROM users
+            WHERE user_id = ?
+            LIMIT 1
+        ");
+
+    $subscriptionCheck->bind_param(
+        "i",
+        $user_id
+    );
+
+    $subscriptionCheck->execute();
+
+    $subscriptionCheckResult =
+        $subscriptionCheck
+        ->get_result()
+        ->fetch_assoc();
+
+    $subscriptionCheck->close();
+
+    if (
+        empty(
+            $subscriptionCheckResult[
+                'subscription_expires_at'
+            ]
+        ) ||
+
+        strtotime(
+            $subscriptionCheckResult[
+                'subscription_expires_at'
+            ]
+        ) <= time()
+    ) {
+
+        echo json_encode([
+            'success' => false,
+            'message' =>
+                'Store battery is empty. Please recharge your subscription.'
+        ]);
+
+        exit();
+    }
 
     /*
      * Return JSON because the request is sent
@@ -1002,6 +1147,334 @@ if (
          * but order item not created.
          */
         $conn->rollback();
+
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+
+        exit();
+    }
+}
+
+/* =========================================================
+   DELETE SELLER ORDER
+   RESTORE STOCK
+   ========================================================= */
+
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST' &&
+    isset($_POST['action']) &&
+    $_POST['action'] === 'delete_order'
+) {
+
+    header('Content-Type: application/json; charset=utf-8');
+
+    $sellerId = (int)$user_id;
+
+    $orderId = isset($_POST['order_id'])
+        ? (int)$_POST['order_id']
+        : 0;
+
+    if ($sellerId <= 0) {
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Your seller session is invalid.'
+        ]);
+
+        exit();
+    }
+
+    if ($orderId <= 0) {
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Invalid order selected.'
+        ]);
+
+        exit();
+    }
+
+
+    /* =====================================================
+       START TRANSACTION
+       ===================================================== */
+
+    $conn->begin_transaction();
+
+
+    try {
+
+        /* =================================================
+           1. VERIFY ORDER BELONGS TO THIS SELLER
+
+           We also lock the order items so that another
+           operation cannot modify them while deleting.
+           ================================================= */
+
+        $orderStmt = $conn->prepare("
+            SELECT
+                oi.item_id,
+                oi.order_id,
+                oi.product_id,
+                oi.seller_id,
+                oi.quantity,
+                p.product_name,
+                p.stock_quantity
+
+            FROM order_items oi
+
+            INNER JOIN productservicesrentals p
+                ON p.product_id = oi.product_id
+               AND p.user_id = oi.seller_id
+
+            WHERE oi.order_id = ?
+              AND oi.seller_id = ?
+
+            FOR UPDATE
+        ");
+
+
+        if (!$orderStmt) {
+
+            throw new Exception(
+                'Could not prepare order verification.'
+            );
+        }
+
+
+        $orderStmt->bind_param(
+            "ii",
+            $orderId,
+            $sellerId
+        );
+
+
+        if (!$orderStmt->execute()) {
+
+            throw new Exception(
+                'Could not verify the selected order.'
+            );
+        }
+
+
+        $result =
+            $orderStmt->get_result();
+
+
+        $orderItems = [];
+
+
+        while ($row = $result->fetch_assoc()) {
+
+            $orderItems[] = $row;
+        }
+
+
+        $orderStmt->close();
+
+
+        /* =================================================
+           ORDER NOT FOUND
+           ================================================= */
+
+        if (empty($orderItems)) {
+
+            throw new Exception(
+                'Order not found or it does not belong to your store.'
+            );
+        }
+
+
+        /* =================================================
+           2. RESTORE STOCK FOR EVERY PRODUCT
+           ================================================= */
+
+        $stockStmt = $conn->prepare("
+            UPDATE productservicesrentals
+
+            SET
+                stock_quantity =
+                    stock_quantity + ?,
+
+                updated_at = NOW()
+
+            WHERE product_id = ?
+              AND user_id = ?
+        ");
+
+
+        if (!$stockStmt) {
+
+            throw new Exception(
+                'Could not prepare stock restoration.'
+            );
+        }
+
+
+        foreach ($orderItems as $item) {
+
+            $productId =
+                (int)$item['product_id'];
+
+            $quantity =
+                (float)$item['quantity'];
+
+
+            if (
+                $productId <= 0 ||
+                $quantity <= 0
+            ) {
+
+                throw new Exception(
+                    'Invalid product quantity found in this order.'
+                );
+            }
+
+
+            $stockStmt->bind_param(
+                "dii",
+                $quantity,
+                $productId,
+                $sellerId
+            );
+
+
+            if (!$stockStmt->execute()) {
+
+                throw new Exception(
+                    'Could not restore stock for ' .
+                    $item['product_name'] .
+                    '.'
+                );
+            }
+
+
+            /*
+             * Exactly one product row must have been updated.
+             */
+
+            if ($stockStmt->affected_rows !== 1) {
+
+                throw new Exception(
+                    'Could not restore stock for ' .
+                    $item['product_name'] .
+                    '.'
+                );
+            }
+        }
+
+
+        $stockStmt->close();
+
+
+        /* =================================================
+           3. DELETE ORDER ITEMS
+           ================================================= */
+
+        $deleteItemsStmt = $conn->prepare("
+            DELETE FROM order_items
+            WHERE order_id = ?
+              AND seller_id = ?
+        ");
+
+
+        if (!$deleteItemsStmt) {
+
+            throw new Exception(
+                'Could not prepare order item deletion.'
+            );
+        }
+
+
+        $deleteItemsStmt->bind_param(
+            "ii",
+            $orderId,
+            $sellerId
+        );
+
+
+        if (!$deleteItemsStmt->execute()) {
+
+            throw new Exception(
+                'Could not delete the order items.'
+            );
+        }
+
+
+        $deleteItemsStmt->close();
+
+
+        /* =================================================
+           4. DELETE THE ORDER
+           ================================================= */
+
+        $deleteOrderStmt = $conn->prepare("
+            DELETE FROM orders
+            WHERE order_id = ?
+        ");
+
+
+        if (!$deleteOrderStmt) {
+
+            throw new Exception(
+                'Could not prepare order deletion.'
+            );
+        }
+
+
+        $deleteOrderStmt->bind_param(
+            "i",
+            $orderId
+        );
+
+
+        if (!$deleteOrderStmt->execute()) {
+
+            throw new Exception(
+                'Could not delete the order.'
+            );
+        }
+
+
+        if ($deleteOrderStmt->affected_rows !== 1) {
+
+            throw new Exception(
+                'The order could not be deleted.'
+            );
+        }
+
+
+        $deleteOrderStmt->close();
+
+
+        /* =================================================
+           EVERYTHING SUCCEEDED
+           ================================================= */
+
+        $conn->commit();
+
+
+        echo json_encode([
+            'success' => true,
+            'order_id' => $orderId,
+            'message' =>
+                'Order deleted and stock restored successfully.'
+        ]);
+
+        exit();
+
+
+    } catch (Throwable $e) {
+
+        /*
+         * Nothing is permanently changed if anything
+         * above fails.
+         */
+
+        $conn->rollback();
+
 
         echo json_encode([
             'success' => false,
@@ -2849,7 +3322,7 @@ $stmt->close();
 
 /* ---------- VISUAL DUPLICATE CHECK ---------- */
 
-if(empty($error) && isset($imgPhash)){
+if(empty($error) && $newImageUploaded && isset($imgPhash)){
 
 $stmt=$conn->prepare("
 SELECT image_phash
@@ -4082,6 +4555,61 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
     </div>
   </div>
   <div class="container">
+    <!-- ALERT POPUP OVERLAY -->
+    <div class="alertPopupOverlay" id="alertPopupOverlay">
+
+    <div class="alert-popup" id="alert-popup">
+
+        <div class="alert-popup-header">
+        STORE BATTERY EMPTY
+        </div>
+
+        <div class="alert-popup-body">
+
+        <div class="warning-icon">
+            <i class="fa-solid fa-battery-empty"></i>
+        </div>
+
+        <div class="alert-popup-title">
+            Recharge Your Store Battery
+        </div>
+
+        <div class="alert-popup-text">
+
+            Your Makethub POS & Online Store battery has been depleted.
+
+            To continue enjoying:
+
+            • POS sales and checkout<br>
+            • Online store orders<br>
+            • Product management<br>
+            • Inventory tracking<br>
+            • Sales reports and analytics<br>
+            • Other premium business tools
+
+            Your store battery must be recharged.
+
+            Once payment is confirmed, your battery will be refilled for another 28 days.
+
+        </div>
+
+        <div class="buttons">
+
+            <a href="sellerPage.php" class="cancel">
+            Later
+            </a>
+
+            <a href="rechargeBattery.php" class="activate">
+            Recharge Battery
+            </a>
+
+        </div>
+
+        </div>
+
+    </div>
+
+    </div>
     <header class="pgHeader">
       <section>
         <div class="sContainer seller">
@@ -4093,7 +4621,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
             </p>
           </div>
           <div class="sClh">
-            <div class="days-battery" id="daysBattery">
+            <div class="days-battery" id="daysBattery" onclick="<?= $hasActiveBattery ? 'toggleSellerWithdrawals()' : 'showSellerBatteryPopup()' ?>">
               <div class="days-battery-fill" id="daysBatteryFill"></div>
             </div>
           </div>
@@ -4154,7 +4682,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
         <span class="checkmark"></span>
       </label> -->
       <button>Continue</button>
-      <a href="" onclick="togglePaymentOption()" data-tab="dashboard">Cancel&nbsp;Withdrawal</a>
+      <a href="" onclick="togglePaymentOption()" data-tab="dashboard">Cancel&nbsp;payment</a>
 
     </form>
     <div class="overlay" onclick="toggleWhatsAppChat()" id="overlay"></div>
@@ -4253,21 +4781,18 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
             <div class="customer-card">
 
                 <div class="customer-card-title">
-                    BUYER
                 </div>
 
                 <div
                     class="customer-card-name"
                     id="sheetCustomerName"
                 >
-                    John Mwangi
                 </div>
 
                 <div
                     class="customer-card-phone"
                     id="sheetCustomerPhone"
                 >
-                    +254 712 345 678
                 </div>
 
             </div>
@@ -4373,87 +4898,15 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                     <div class="sheet-item-info">
 
                         <div class="sheet-item-name">
-                            Premium Body Lotion
                         </div>
 
                         <div class="sheet-item-meta">
-                            25 Grams
                         </div>
 
                     </div>
 
 
                     <div class="sheet-item-price">
-                        KES 2,400
-                    </div>
-
-                </div>
-
-
-                <!-- ITEM 2 -->
-
-                <div class="sheet-item">
-
-                    <div class="sheet-item-image">
-
-                        <img
-                            src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=200&q=80"
-                            alt=""
-                        >
-
-                    </div>
-
-
-                    <div class="sheet-item-info">
-
-                        <div class="sheet-item-name">
-                            Beauty Face Cream
-                        </div>
-
-                        <div class="sheet-item-meta">
-                            x3
-                        </div>
-
-                    </div>
-
-
-                    <div class="sheet-item-price">
-                        KES 650
-
-                    </div>
-
-                </div>
-
-
-                <!-- ITEM 3 -->
-
-                <div class="sheet-item">
-
-                    <div class="sheet-item-image">
-
-                        <img
-                            src="https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?auto=format&fit=crop&w=200&q=80"
-                            alt=""
-                        >
-
-                    </div>
-
-
-                    <div class="sheet-item-info">
-
-                        <div class="sheet-item-name">
-                            Body Scrub
-                        </div>
-
-                        <div class="sheet-item-meta">
-                            1 Packet
-                        </div>
-
-                    </div>
-
-
-                    <div class="sheet-item-price">
-                        KES 400
                     </div>
 
                 </div>
@@ -4475,7 +4928,6 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                     </span>
 
                     <span id="sheetSubtotal">
-                        KES 3,450
                     </span>
 
                 </div>
@@ -4501,7 +4953,6 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                     </span>
 
                     <span id="sheetTotal">
-                        KES 3,450
                     </span>
 
                 </div>
@@ -4520,7 +4971,6 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                     <span>Paid by</span>
 
                     <span id="sheetPaymentMethod">
-                        Cash
                     </span>
 
                 </div>
@@ -4530,7 +4980,6 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                     <span>Payment status</span>
 
                     <span id="sheetPaymentStatus">
-                        Paid
                     </span>
 
                 </div>
@@ -5843,7 +6292,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   <?php endif; ?>
                   <div></div>
 
-                  <button type="submit">
+                  <button type="submit" onclick="<?= $hasActiveBattery ? 'toggleProductsAdd(true)' : 'showSellerBatteryPopup()' ?>">
                     <?= $editMode ? 'Update Product' : 'Add Product' ?>
                   </button>
                 </div>
@@ -6463,9 +6912,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
               <th>Buyer</th>
               <th>Payment</th>
               <th>Status</th>
-              <th>Actions</th>
               <th>Paid&nbsp;by</th>
               <th>Receipt</th>
+              <th class="actions">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -6564,23 +7013,6 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                           <td>".htmlspecialchars(ucwords(strtolower($order['buyer_name'])))."</td>
                           <td><span class='badge {$paymentClass}'>{$paymentLabel}</span></td>
                           <td><span class='badge {$statusClass}' title=\"".htmlspecialchars($statusTooltip)."\">{$statusLabel}</span></td>
-                          <td class='actions'>
-                        <div>";
-
-                  // Action based on status
-                  if ($statusClass === 'pending') {
-                    echo "<button class='btn-ship' data-id='{$order['order_id']}'>Mark&nbsp;as&nbsp;Shipped</button>";
-                  } else {
-                    echo "<button class='btn-view' 
-                            data-buyer='{$order['buyer_id']}'
-                            data-order='{$order['order_code']}'
-                            data-buyername='".htmlspecialchars($order['buyer_name'], ENT_QUOTES)."'>
-                            <i class='fa-solid fa-eye'></i>
-                          </button>";
-                  }
-
-                  echo "      </div>
-                          </td>
                           <td>".htmlspecialchars(ucfirst($order['payment_method'] ?? 'Unknown'))."</td>
                           <td>
                             <div
@@ -6592,6 +7024,57 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                             >
                                 <i class='fa-solid fa-receipt'></i>
                             </div>
+                          </td>
+                          <td class='actions'>
+                        <div>";
+
+                  // Action based on status
+                  if ($statusClass === 'pending') {
+                    echo "
+                        <button
+                            class='btn-ship'
+                            data-id='{$order['order_id']}'
+                        >
+                            Mark&nbsp;as&nbsp;Shipped
+                        </button>
+
+                        <button
+                            type='button'
+                            class='ordDlte'
+                            data-order-id='{$order['order_id']}'
+                            aria-label='Delete order'
+                            title='Delete order'
+                        >
+                            <i class='fa-solid fa-trash'></i>
+                        </button>
+                    ";
+                  } else {
+                    echo "
+                        <button
+                            class='btn-view'
+                            data-buyer='{$order['buyer_id']}'
+                            data-order='{$order['order_code']}'
+                            data-buyername='".htmlspecialchars(
+                                $order['buyer_name'],
+                                ENT_QUOTES
+                            )."'
+                        >
+                            <i class='fa-solid fa-eye'></i>
+                        </button>
+
+                        <button
+                            type='button'
+                            class='ordDlte'
+                            data-order-id='{$order['order_id']}'
+                            aria-label='Delete order'
+                            title='Delete order'
+                        >
+                            <i class='fa-solid fa-trash'></i>
+                        </button>
+                    ";
+                  }
+
+                  echo "      </div>
                           </td>
                         </tr>";
                   $count++;
@@ -6643,7 +7126,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
             <button
                 type="button"
-                onclick="toggleSalesDash()"
+                onclick="toggleSalesDash(true)"
             >
 
                 <i
@@ -7370,7 +7853,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
             <button
                 type="button"
-                onclick="toggleSalesDash()"
+                onclick="toggleSalesDash(true);"
             >
                 Go&nbsp;back
             </button>
@@ -7424,7 +7907,7 @@ const salesNavigationState = {
 
     currentPage: 1,
 
-    productsPerPage: 11
+    productsPerPage: 14
 
 };
 
@@ -7835,7 +8318,6 @@ function getSalesAvailableSubGroups(
 
 }
 
-
 /* =========================================================
    RENDER CUSTOM GROUP POPUP
 ========================================================= */
@@ -7934,9 +8416,18 @@ function renderSalesCustomGroupPopup() {
     allButton.addEventListener(
         'click',
         function () {
+            /*
+            * Only close checkout on small screens.
+            *
+            * Unlike Go Back, we DO NOT return after closing it.
+            * The subgroup selection must continue normally.
+            */
+            if (window.matchMedia("(max-width: 625px)").matches) {
+                closeCheckoutIfVisible();
+            }
 
             salesNavigationState.selectedCustomGroupId =
-                null;
+                'all';
 
             salesNavigationState.selectedSubGroupId =
                 'all';
@@ -8038,7 +8529,6 @@ function renderSalesCustomGroupPopup() {
 
 }
 
-
 /* =========================================================
    SELECT CUSTOM GROUP
 ========================================================= */
@@ -8046,6 +8536,16 @@ function renderSalesCustomGroupPopup() {
 function selectSalesCustomGroup(
     groupId
 ) {
+    /*
+     * Only close checkout on small screens.
+     *
+     * Unlike Go Back, we DO NOT return after closing it.
+     * The subgroup selection must continue normally.
+     */
+    if (window.matchMedia("(max-width: 625px)").matches) {
+        closeCheckoutIfVisible();
+    }
+
 
     salesNavigationState.selectedCustomGroupId =
         Number(groupId);
@@ -8177,6 +8677,15 @@ function renderSalesMiniNavigation() {
     allButton.addEventListener(
         'click',
         function () {
+            /*
+            * Only close checkout on small screens.
+            *
+            * Unlike Go Back, we DO NOT return after closing it.
+            * The subgroup selection must continue normally.
+            */
+            if (window.matchMedia("(max-width: 625px)").matches) {
+                closeCheckoutIfVisible();
+            }
 
             salesNavigationState.selectedSubGroupId =
                 'all';
@@ -8306,7 +8815,6 @@ function renderSalesMiniNavigation() {
 
 }
 
-
 /* =========================================================
    SELECT SUBGROUP
 ========================================================= */
@@ -8314,7 +8822,17 @@ function renderSalesMiniNavigation() {
 function selectSalesSubGroup(
     subGroupId
 ) {
+    /*
+     * Only close checkout on small screens.
+     *
+     * Unlike Go Back, we DO NOT return after closing it.
+     * The subgroup selection must continue normally.
+     */
+    if (window.matchMedia("(max-width: 625px)").matches) {
+        closeCheckoutIfVisible();
+    }
 
+    
     salesNavigationState.selectedSubGroupId =
         subGroupId === 'all'
             ? 'all'
@@ -9022,9 +9540,9 @@ function refreshSellerSalesNavigation() {
               <th>Buyer</th>
               <th>Payment</th>
               <th>Status</th>
-              <th>Actions</th>
               <th>Paid&nbsp;by</th>
               <th>Receipt</th>
+              <th class="actions">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -9123,23 +9641,6 @@ function refreshSellerSalesNavigation() {
                           <td>".htmlspecialchars(ucwords(strtolower($order['buyer_name'])))."</td>
                           <td><span class='badge {$paymentClass}'>{$paymentLabel}</span></td>
                           <td><span class='badge {$statusClass}' title=\"".htmlspecialchars($statusTooltip)."\">{$statusLabel}</span></td>
-                          <td class='actions'>
-                        <div>";
-
-                  // Action based on status
-                  if ($statusClass === 'pending') {
-                    echo "<button class='btn-ship' data-id='{$order['order_id']}'>Mark&nbsp;as&nbsp;Shipped</button>";
-                  } else {
-                    echo "<button class='btn-view' 
-                            data-buyer='{$order['buyer_id']}'
-                            data-order='{$order['order_code']}'
-                            data-buyername='".htmlspecialchars($order['buyer_name'], ENT_QUOTES)."'>
-                            <i class='fa-solid fa-eye'></i>
-                          </button>";
-                  }
-
-                  echo "      </div>
-                          </td>
                           <td>".htmlspecialchars(ucfirst($order['payment_method'] ?? 'Unknown'))."</td>
                           <td>
                             <div
@@ -9151,6 +9652,57 @@ function refreshSellerSalesNavigation() {
                             >
                                 <i class='fa-solid fa-receipt'></i>
                             </div>
+                          </td>
+                          <td class='actions'>
+                        <div>";
+
+                  // Action based on status
+                  if ($statusClass === 'pending') {
+                    echo "
+                        <button
+                            class='btn-ship'
+                            data-id='{$order['order_id']}'
+                        >
+                            Mark&nbsp;as&nbsp;Shipped
+                        </button>
+
+                        <button
+                            type='button'
+                            class='ordDlte'
+                            data-order-id='{$order['order_id']}'
+                            aria-label='Delete order'
+                            title='Delete order'
+                        >
+                            <i class='fa-solid fa-trash'></i>
+                        </button>
+                    ";
+                  } else {
+                    echo "
+                        <button
+                            class='btn-view'
+                            data-buyer='{$order['buyer_id']}'
+                            data-order='{$order['order_code']}'
+                            data-buyername='".htmlspecialchars(
+                                $order['buyer_name'],
+                                ENT_QUOTES
+                            )."'
+                        >
+                            <i class='fa-solid fa-eye'></i>
+                        </button>
+
+                        <button
+                            type='button'
+                            class='ordDlte'
+                            data-order-id='{$order['order_id']}'
+                            aria-label='Delete order'
+                            title='Delete order'
+                        >
+                            <i class='fa-solid fa-trash'></i>
+                        </button>
+                    ";
+                  }
+
+                  echo "      </div>
                           </td>
                         </tr>";
                   $count++;
@@ -9830,11 +10382,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let currentPage = 1;
 
+    let isRestoringState = false;
+
     /* =====================================================
     LOCAL STORAGE STATE
     ===================================================== */
 
     function saveStoreState() {
+
+        if (isRestoringState) {
+            return;
+        }
 
         localStorage.setItem(
             "storeState",
@@ -10214,7 +10772,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 Number(targetCategoryId);
 
             currentPage = 1;
-
+            
 
             /* =============================================
             REBUILD MINI NAVIGATION
@@ -11098,7 +11656,7 @@ function flyProductToSubGroup(
       selectedCustomCategory = null;
       selectedSubCategory = null;
       currentPage = 1;
-
+      
 
       /*
         * =====================================================
@@ -11464,6 +12022,9 @@ function flyProductToSubGroup(
             });
         
         saveStoreState();
+        buildMiniNavigation(
+            selectedCustomCategory
+        );
         renderProducts();
 
     }
@@ -12530,7 +13091,7 @@ document.addEventListener("click", function (event) {
 
                             selectedSubCategory =
                                 null;
-
+                            saveStoreState();
                             currentProducts =
                                 getProductsUnderGroup(
                                     selectedCustomCategory
@@ -12890,6 +13451,8 @@ document.addEventListener("click", function (event) {
     const savedState =
         loadStoreState();
 
+    isRestoringState = true;
+
     if (
         savedState &&
         savedState.company
@@ -12918,7 +13481,7 @@ document.addEventListener("click", function (event) {
             }
 
         }
-
+        isRestoringState = false;
         currentPage =
             savedState.page || 1;
 
@@ -12929,7 +13492,7 @@ document.addEventListener("click", function (event) {
         );
 
     }
-
+    isRestoringState = false;
     buildCompanyPopup();
     buildSellerPopup();
 
@@ -12941,23 +13504,6 @@ document.addEventListener("click", function (event) {
     requestAnimationFrame(
         updateMiniIndicator
     );
-    if (subGroupAddSuccess) {
-
-      /*
-        * The database insertion succeeded.
-        * The page has now reloaded with the new
-        * custom category available.
-        */
-
-      if (subGOverlay) {
-          subGOverlay.style.display = "none";
-      }
-
-      if (subGForm) {
-          subGForm.style.display = "none";
-      }
-
-    }
 
 });
 </script>
@@ -13029,7 +13575,24 @@ document.addEventListener(
         JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT
     ) ?>;
   </script>
-  
+    <script>
+
+    const SUBSCRIPTION_DATA = {
+
+        batteryPercent:
+            <?= (int)$batteryPercent ?>,
+
+        daysRemaining:
+            <?= (int)$daysRemaining ?>,
+
+        subscriptionStatus:
+            <?= json_encode(
+                $subscription['subscription_status']
+            ) ?>
+
+    };
+
+    </script>
   <script src="assets/js/general.js" type="text/javascript" defer></script>
   <script>
   $(document).ready(function () {
@@ -13358,10 +13921,75 @@ document.addEventListener(
     });
   }
 
-  function goBack() {
-    document.getElementById("chatSection").style.display = "none";
-    document.getElementById("sellerMain").style.display = "flex";
-  }
+    /* =========================================================
+    CHECKOUT FORM HELPER
+    ========================================================= */
+
+    function closeCheckoutIfVisible() {
+
+    const salesGrid =
+        document.querySelector("#salesDashMain .sales-grid");
+
+    const checkoutForm =
+        document.querySelector("#salesDashMain form.cardFSales");
+
+    if (!salesGrid || !checkoutForm) {
+        return false;
+    }
+
+    const checkoutStyle =
+        window.getComputedStyle(checkoutForm);
+
+    const checkoutVisible =
+        checkoutStyle.display !== "none" &&
+        checkoutStyle.visibility !== "hidden" &&
+        checkoutStyle.opacity !== "0";
+
+    if (!checkoutVisible) {
+        return false;
+    }
+
+    checkoutForm.style.transition =
+        "opacity 0.25s ease, transform 0.25s ease";
+
+    checkoutForm.style.opacity = "0";
+    checkoutForm.style.transform =
+        "translateX(15px)";
+
+    setTimeout(function () {
+
+        checkoutForm.style.display = "none";
+
+        salesGrid.style.display = "grid";
+        salesGrid.style.opacity = "0";
+        salesGrid.style.transform =
+            "translateX(-15px)";
+
+        salesGrid.style.transition =
+            "opacity 0.25s ease, transform 0.25s ease";
+
+        requestAnimationFrame(function () {
+
+            salesGrid.style.opacity = "1";
+            salesGrid.style.transform =
+                "translateX(0)";
+
+        });
+
+    }, 150);
+
+    return true;
+    }
+
+
+    /* =========================================================
+    GO BACK
+    ========================================================= */
+    function goBack() {
+
+        document.getElementById("chatSection").style.display = "none";
+        document.getElementById("sellerMain").style.display = "flex";
+    }
 
   document.querySelectorAll(".btn-view").forEach(btn => {
     btn.addEventListener("click", function () {

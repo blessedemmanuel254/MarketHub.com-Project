@@ -161,6 +161,22 @@ html body.no-scroll {
   animation: batteryShine 2.5s infinite;
 }
 
+/* =========================================================
+  BATTERY STATES
+========================================================= */
+
+.container header.pgHeader section .sContainer.seller .sClh .days-battery.low .days-battery-fill {
+  background: #856404;
+}
+
+.container header.pgHeader section .sContainer.seller .sClh .days-battery.critical .days-battery-fill {
+  background: #ff3b3b;
+}
+
+.container header.pgHeader section .sContainer.seller .sClh .days-battery.empty .days-battery-fill {
+  background: transparent;
+}
+
 @keyframes batteryShine {
   0% {
     left: -40%;
@@ -2054,6 +2070,10 @@ body form.subG-form h3 span:hover {
   font-weight: normal;
 }
 
+.table-wrapper table thead tr th.actions {
+  text-align: center;
+}
+
 .table-wrapper table tbody tr td {
   font-size: 13px;
 }
@@ -2246,6 +2266,11 @@ body form.subG-form h3 span:hover {
   gap: 5px;
   width: fit-content;
 }
+
+.table-wrapper table tbody tr td.actions button.btn-view {
+  display: none;
+}
+
 .table-wrapper table tbody tr td.actions button.btn-cancel, .cards .order-card .card-actions button.btn-cancel { background:#fdecea; color:#ff3b3b;
 }
 .table-wrapper table tbody tr td.actions button.btn-edit {
@@ -2263,6 +2288,10 @@ body form.subG-form h3 span:hover {
 .table-wrapper table tbody tr td.actions button.btn-ship, .container main.buyerMain .cards .order-card .card-actions button.btn-ship {
   background-color: #088000;
   color: #ffffff;
+}
+
+.table-wrapper table tbody tr td.actions button.btn-ship {
+  display: none;
 }
 
 .table-wrapper table tbody tr td.comm-cell {
@@ -4349,6 +4378,11 @@ a.seller-right {
   opacity: .875;
 }
 
+.ordDlte {
+  background-color: #0f0f0f;
+  color: #ffffff;
+}
+
 .containerInner .card p.small {
   font-size:12px;
 }
@@ -4726,6 +4760,8 @@ a.seller-right {
 .products-navigation-card.salesPageNav {
   width: 100px;
   height: 100px;
+  margin: 0 auto;
+  gap: 5px;
 }
 
 .products-navigation-card:hover {
@@ -4783,8 +4819,8 @@ a.seller-right {
 }
 
 .products-navigation-card.salesPageNav .navigation-button {
-  height: 42px;
-  width: 42px;
+  height: 40px;
+  width: 40px;
 }
 
 .navigation-button:hover:not(:disabled) {
@@ -6679,7 +6715,7 @@ AGENT ALERT VERIFICATION POPUP CSS
 
 /* HEADER */
 
-.container .alertPopupOverlay .alert-popup-header{
+.container .alertPopupOverlay .alert-popup-header {
 
   background: #898888;
   color:  white;
@@ -7672,6 +7708,7 @@ MOBILE
   border-radius: 12px;
 
   margin-bottom: 15px;
+  display: none;
 
 }
 
@@ -7974,6 +8011,7 @@ MOBILE
   border: 1px solid #eeeeee;
 
   border-radius: 12px;
+  display: none;
 
 }
 

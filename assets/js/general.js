@@ -347,29 +347,90 @@ function toggleSellerOrdersTrack() {
   }
 }
 
+/* =========================================================
+  TOGGLE SALES DASHBOARD
+========================================================= */
 
-function toggleSalesDash() {
-  const sellerMain = document.getElementById("sellerMain");
-  const ordersTrackMain = document.getElementById("ordersTrackMain");
-  const salesDashMain = document.getElementById("salesDashMain");
+function toggleSalesDash(fromGoBack = false) {
 
-  const isSalesVisible = getComputedStyle(salesDashMain).display !== "none";
+  /*
+    * Only perform the checkout check when:
+    *
+    * 1. This function was called by Go Back
+    * 2. The screen is small (625px or below)
+    */
+  if (
+      fromGoBack &&
+      window.matchMedia("(max-width: 625px)").matches
+  ) {
+
+      const checkoutForm =
+          document.querySelector(
+              "#salesDashMain form.cardFSales"
+          );
+
+
+      /*
+        * Check whether checkout is currently visible.
+        */
+      if (
+          checkoutForm &&
+          window.getComputedStyle(checkoutForm).display !== "none"
+      ) {
+
+          /*
+            * Checkout is visible.
+            *
+            * Close it and STOP.
+            *
+            * The next Go Back click will then perform
+            * the normal dashboard navigation.
+            */
+          closeCheckoutIfVisible();
+
+          return;
+      }
+  }
+
+
+  const sellerMain =
+      document.getElementById("sellerMain");
+
+  const ordersTrackMain =
+      document.getElementById("ordersTrackMain");
+
+  const salesDashMain =
+      document.getElementById("salesDashMain");
+
+
+  const isSalesVisible =
+      getComputedStyle(salesDashMain).display !== "none";
+
 
   if (isSalesVisible) {
-      // Return to Seller Main
+
+      /* Return to Seller Main */
       salesDashMain.style.display = "none";
+
       ordersTrackMain.style.display = "none";
+
       sellerMain.style.display = "flex";
 
       resetScrollFor();
+
   } else {
-      // Open Sales Dashboard
+
+      /* Open Sales Dashboard */
       sellerMain.style.display = "none";
+
       ordersTrackMain.style.display = "none";
+
       salesDashMain.style.display = "flex";
 
       resetScrollFor();
+
   }
+
 }
 
 function toggleAgentOrdersTrack() {  
@@ -2405,6 +2466,50 @@ function hideAgentAlertPopup() {
   document.body.classList.remove("no-scroll");
 }
 
+// ===============================
+// AGENT ALERT VERIFICATION POPUP
+// ===============================
+function showSellerBatteryPopup() {
+  const overlay = document.getElementById("alertPopupOverlay");
+  const alertPopup = document.getElementById("alert-popup");
+
+  if (!overlay || !alertPopup) return; // exit if elements are missing
+
+  // Show overlay & popup
+  overlay.style.display = "flex";
+  document.body.classList.add("no-scroll");
+
+  // Shake animation on first appearance
+  alertPopup.classList.add("shake");
+  setTimeout(() => {
+    alertPopup.classList.remove("shake");
+  }, 500);
+
+  // Clicking overlay hides popup
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) { // only if overlay itself clicked
+      hideBatteryAlertPopup();
+    }
+  });
+
+  // Clicking Cancel hides popup
+  const cancelBtn = overlay.querySelector(".cancel");
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", (e) => {
+      e.preventDefault(); // prevent default link
+      hideBatteryAlertPopup();
+    });
+  }
+}
+
+// Function to hide the popup
+function hideBatteryAlertPopup() {
+  const overlay = document.getElementById("alertPopupOverlay");
+  if (!overlay) return;
+  overlay.style.display = "none";
+  document.body.classList.remove("no-scroll");
+}
+
 document.addEventListener("DOMContentLoaded", () => {
 
   // Textarea character count
@@ -3966,6 +4071,207 @@ function updateSaleTotals(itemsTotal) {
   }
 }
 
+/* =========================================================
+   DELETE ORDER
+========================================================= */
+
+document.addEventListener(
+    'click',
+    async function (event) {
+
+        const deleteButton =
+            event.target.closest('.ordDlte');
+
+        if (!deleteButton) {
+            return;
+        }
+
+
+        event.preventDefault();
+
+
+        /* -------------------------------------------------
+           GET ORDER ID
+        ------------------------------------------------- */
+
+        const orderId =
+            deleteButton.dataset.orderId;
+
+
+        if (!orderId) {
+
+            showNotification(
+                'Unable to identify this order.',
+                3000,
+                'error'
+            );
+
+            return;
+        }
+
+
+        /* -------------------------------------------------
+           CONFIRM DELETION
+        ------------------------------------------------- */
+
+        const confirmed =
+            window.confirm(
+                'Are you sure you want to delete this order?\n\n' +
+
+                'Deleting this order will affect your future ' +
+                'sales statistics and reports.\n\n' +
+
+                'This action cannot be undone.'
+            );
+
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        /* -------------------------------------------------
+           PREVENT DOUBLE CLICK
+        ------------------------------------------------- */
+
+        if (deleteButton.disabled) {
+            return;
+        }
+
+
+        deleteButton.disabled = true;
+
+        deleteButton.classList.add(
+            'processing'
+        );
+
+
+        const originalHTML =
+            deleteButton.innerHTML;
+
+
+        deleteButton.innerHTML =
+            '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+
+        try {
+
+            /* ---------------------------------------------
+               SEND DELETE REQUEST
+               --------------------------------------------- */
+
+            const formData =
+                new FormData();
+
+
+            formData.append(
+                'action',
+                'delete_order'
+            );
+
+
+            formData.append(
+                'order_id',
+                orderId
+            );
+
+
+            const response =
+                await fetch(
+                    'sellerPage.php',
+                    {
+                        method: 'POST',
+                        body: formData,
+                        credentials: 'same-origin'
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            /* ---------------------------------------------
+               CHECK RESPONSE
+               --------------------------------------------- */
+
+            if (!data.success) {
+
+                throw new Error(
+                    data.message ||
+                    'Unable to delete the order.'
+                );
+            }
+
+
+            /* ---------------------------------------------
+               REMOVE ROW FROM TABLE
+               --------------------------------------------- */
+
+            const row =
+                deleteButton.closest('tr');
+
+
+            if (row) {
+
+                row.remove();
+
+            }
+
+
+            /* ---------------------------------------------
+               RELOAD AFTER SHORT DELAY
+               
+               This makes sure:
+               - statistics update
+               - order count updates
+               - totals update
+               - stock is fetched again
+               - deleted order disappears
+               --------------------------------------------- */
+
+            setTimeout(
+                function () {
+
+                    window.location.reload();
+
+                },
+                700
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                'Delete order error:',
+                error
+            );
+
+
+            showNotification(
+                error.message ||
+                'Unable to delete the order.',
+                4000,
+                'error'
+            );
+
+
+            /* ---------------------------------------------
+               RESTORE BUTTON
+               --------------------------------------------- */
+
+            deleteButton.disabled =
+                false;
+
+            deleteButton.classList.remove(
+                'processing'
+            );
+
+            deleteButton.innerHTML =
+                originalHTML;
+        }
+    }
+);
 
 /* =========================================================
    CLOSE ALL POPUPS
@@ -4704,33 +5010,21 @@ document.addEventListener(
             }
 
 
-            /*
-            * The calculator is editing the
-            * CURRENT checkout quantity.
-            *
-            * Therefore we can use:
-            *
-            * remaining stock
-            * +
-            * old checkout quantity
-            *
-            * as the maximum.
-            */
-            const maximumQuantity =
-                stock +
-                existingQuantity;
+            const originalStockUp =
+                Number(
+                    card.dataset.stock || 0
+                );
 
             /*
-            * Never exceed the amount that
-            * can actually be available after
-            * returning the old quantity.
+            * Maximum allowed quantity is the
+            * actual stock from the database.
             */
             if (
-                currentQuantity > maximumQuantity
+                currentQuantity > originalStockUp
             ) {
 
                 currentQuantity =
-                    maximumQuantity;
+                    originalStockUp;
 
             }
 
@@ -4862,52 +5156,34 @@ document.addEventListener(
               return;
 
             }
-
-
-            /*
-            * Current remaining UI stock.
-            */
-
-            const availableStock =
-              getAvailableStock(card);
-
+            
+            const originalStock =
+                Number(
+                    card.dataset.stock || 0
+                );
 
             /*
             * Product currently in checkout?
             */
-
             const productId =
-              String(
-                card.dataset.productId
-              );
-
+                String(
+                    card.dataset.productId
+                );
 
             const existingItem =
-              saleItems[productId];
-
-
-            /*
-            * Existing checkout quantity.
-            *
-            * This matters because measured
-            * products REPLACE their quantity.
-            */
+                saleItems[productId];
 
             const oldQuantity =
-              existingItem
-                ? Number(existingItem.quantity || 0)
-                : 0;
-
+                existingItem
+                    ? Number(existingItem.quantity || 0)
+                    : 0;
 
             /*
-            * When replacing an existing quantity,
-            * temporarily return the old quantity
-            * to available stock.
+            * Measured products can never exceed
+            * original stock.
             */
-
             const availableForReplacement =
-              availableStock +
-              oldQuantity;
+                originalStock;
 
 
             /*
@@ -4961,12 +5237,14 @@ document.addEventListener(
               * already been returned to the
               * available amount above.
               */
-
               card.dataset.availableStock =
-                String(
-                availableForReplacement -
-                quantity
-              );
+                  String(
+                      Math.max(
+                          0,
+                          originalStock -
+                          quantity
+                      )
+                  );
 
               updateProductStockUI(card);
             /*
@@ -6522,7 +6800,6 @@ async function openOrderSheet(orderId) {
 
     showOrderSheet();
 
-
     try {
 
         const formData = new FormData();
@@ -6773,14 +7050,14 @@ function capitalizePaymentMethod(method) {
           return char.toUpperCase();
       });
 }
-
 /* =========================================================
   ORDER DETAILS CLICK
+  ALL TABLES
 ========================================================= */
 
 document.addEventListener(
   'click',
-  function(event) {
+  function (event) {
 
       const trigger =
           event.target.closest(
@@ -6791,22 +7068,30 @@ document.addEventListener(
           return;
       }
 
-
       const orderId =
-          trigger.dataset.orderId;
+          trigger.getAttribute('data-order-id');
 
+      console.log(
+          'Order details clicked:',
+          {
+              table: trigger.closest('table')?.id,
+              orderId: orderId,
+              trigger: trigger
+          }
+      );
 
       if (!orderId) {
           console.warn(
-              'Missing order ID.'
+              'Missing order ID.',
+              trigger
           );
-
           return;
       }
 
-
       openOrderSheet(orderId);
-  }
+
+  },
+  true
 );
 
 /* =========================================================
@@ -7302,16 +7587,74 @@ window.addEventListener(
   }
 );
 
-console.log({
-  orderSheet,
-  sheetOrderNumber,
-  sheetOrderDate,
-  sheetCustomerName,
-  sheetCustomerPhone,
-  sheetItems,
-  sheetSubtotal,
-  sheetTotal,
-  sheetPaymentMethod,
-  sheetPaymentStatus,
-  printReceiptButton
-});
+
+/* =========================================================
+  BATTERY PERCENTAGE LOGIC
+========================================================= */
+function initializeStoreBattery() {
+
+  if (
+      typeof SUBSCRIPTION_DATA ===
+      "undefined"
+  ) {
+      return;
+  }
+
+  const battery =
+      document.getElementById(
+          "daysBattery"
+      );
+
+  const fill =
+      document.getElementById(
+          "daysBatteryFill"
+      );
+
+  if (!battery || !fill) {
+      return;
+  }
+
+  const percent =
+      Number(
+          SUBSCRIPTION_DATA
+          .batteryPercent || 0
+      );
+
+  fill.style.width =
+      percent + "%";
+
+  battery.classList.remove(
+      "low",
+      "critical",
+      "empty"
+  );
+
+  if (percent <= 0) {
+
+      battery.classList.add(
+          "empty"
+      );
+
+  } else if (percent <= 15) {
+
+      battery.classList.add(
+          "critical"
+      );
+
+  } else if (percent <= 40) {
+
+      battery.classList.add(
+          "low"
+      );
+
+  }
+}
+
+document.addEventListener(
+  "DOMContentLoaded",
+  function () {
+
+      initializeStoreBattery();
+
+  }
+);
