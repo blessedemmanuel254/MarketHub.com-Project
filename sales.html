@@ -1,0 +1,812 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Makethub | Daily Sales</title>
+
+<style>
+:root {
+    --red: #ff3b3b;
+    --dark: #171b23;
+    --muted: #7c8494;
+    --border: #e9edf3;
+    --bg: #f5f7fb;
+    --green: #088000;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: #192130;
+    font-family: Inter, Arial, sans-serif;
+}
+
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+
+.app {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 235px;
+    flex-shrink: 0;
+    background: var(--dark);
+    color: white;
+    padding: 25px 14px;
+    display: flex;
+    flex-direction: column;
+}
+
+.logo {
+    padding: 0 12px 30px;
+    font-size: 29px;
+    font-weight: 900;
+    letter-spacing: -1px;
+}
+
+.logo span { color: var(--red); }
+
+.logo small {
+    display: block;
+    margin-top: 7px;
+    color: #a7afbc;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0;
+}
+
+.nav {
+    display: grid;
+    gap: 7px;
+}
+
+.nav a {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 14px 15px;
+    border-radius: 10px;
+    color: #d6dbe4;
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.nav a.active {
+    background: var(--red);
+    color: white;
+    font-weight: 700;
+}
+
+.nav a:hover:not(.active) { background: #282e39; }
+
+.nav-icon {
+    width: 20px;
+    text-align: center;
+    font-size: 17px;
+}
+
+.sidebar-promo {
+    margin-top: auto;
+    margin-bottom: 25px;
+    padding: 17px;
+    border: 1px solid #49252c;
+    border-radius: 13px;
+    background: linear-gradient(145deg, #291d25, #191e28);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.sidebar-promo strong { color: var(--red); }
+
+.shop-profile {
+    padding: 12px 5px 0;
+    border-top: 1px solid #343944;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-size: 12px;
+}
+
+.avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #edf0f5;
+    color: #303746;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+}
+
+.shop-profile small {
+    display: block;
+    margin-top: 4px;
+    color: #aab1bf;
+}
+
+.main {
+    min-width: 0;
+    flex: 1;
+}
+
+.topbar {
+    height: 65px;
+    padding: 0 30px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 20px;
+    background: white;
+    border-bottom: 1px solid var(--border);
+}
+
+.topbar button {
+    border: 0;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.content {
+    max-width: 1500px;
+    margin: auto;
+    padding: 30px;
+}
+
+.page-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 26px;
+}
+
+.heading-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.heading-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 13px;
+    display: grid;
+    place-items: center;
+    background: var(--red);
+    color: white;
+    font-size: 23px;
+}
+
+h1 {
+    margin: 0;
+    font-size: 27px;
+    letter-spacing: -0.8px;
+}
+
+.heading-subtitle {
+    margin-top: 7px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.date-control {
+    padding: 11px 13px;
+    border: 1px solid #dfe4ed;
+    border-radius: 10px;
+    background: white;
+    color: #283243;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 15px;
+    margin-bottom: 26px;
+}
+
+.stat {
+    padding: 20px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    min-width: 0;
+}
+
+.stat-icon {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 11px;
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+.stat-label {
+    color: #626c7c;
+    font-size: 12px;
+    margin-bottom: 10px;
+}
+
+.stat-value {
+    font-size: clamp(18px, 2vw, 25px);
+    font-weight: 800;
+    letter-spacing: -0.6px;
+    overflow-wrap: anywhere;
+}
+
+.stat-note {
+    margin-top: 11px;
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.stat-note span { color: var(--green); font-weight: 700; }
+
+.green { background: #e8f8ee; color: #078447; }
+.blue { background: #eaf1ff; color: #2463eb; }
+.purple { background: #f2eaff; color: #8b35d9; }
+.orange { background: #fff2db; color: #d78a00; }
+
+.payment-stats {
+    display: flex;
+    gap: 20px;
+    margin-top: 15px;
+}
+
+.payment-stats div { flex: 1; }
+.payment-stats small { color: var(--muted); }
+.payment-stats strong {
+    display: block;
+    margin-top: 5px;
+    font-size: 18px;
+}
+
+.tools {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+.search-wrap span {
+    position: absolute;
+    top: 12px;
+    left: 14px;
+    color: #8791a2;
+}
+
+.search {
+    width: 100%;
+    height: 43px;
+    padding: 10px 15px 10px 40px;
+    border: 1px solid #dfe4ed;
+    border-radius: 10px;
+    outline: none;
+    background: white;
+}
+
+.search:focus, .date-control:focus { border-color: var(--red); }
+
+.filters {
+    display: flex;
+    gap: 8px;
+}
+
+.filter {
+    min-width: 74px;
+    padding: 10px 16px;
+    border: 1px solid #dfe4ed;
+    border-radius: 10px;
+    background: white;
+    color: #414a59;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.filter.active {
+    background: var(--red);
+    border-color: var(--red);
+    color: white;
+}
+
+.table-card {
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: white;
+}
+
+.table-scroll { overflow-x: auto; }
+
+table {
+    width: 100%;
+    min-width: 650px;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+thead { background: var(--dark); color: white; }
+
+th {
+    padding: 17px 20px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+td {
+    padding: 14px 20px;
+    border-bottom: 1px solid #edf0f5;
+    font-size: 12px;
+}
+
+tbody tr:hover { background: #fffafa; }
+tbody tr:last-child td { border-bottom: 0; }
+
+.product {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 190px;
+}
+
+.product-image {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    background: #f4f6f9;
+    font-size: 24px;
+}
+
+.product-name { font-weight: 700; }
+
+.product-qty {
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.price, .total {
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.payment {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 12px;
+    border-radius: 30px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.payment.mpesa { color: #087d40; background: #e5f8ed; }
+.payment.cash { color: #455064; background: #eef1f5; }
+
+.table-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    padding: 20px 24px;
+    border-top: 1px solid var(--border);
+    background: #fbfcfe;
+}
+
+.muted { color: var(--muted); font-size: 12px; }
+
+.day-total {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.day-total strong {
+    color: #172132;
+    font-size: 21px;
+}
+
+.empty {
+    display: none;
+    padding: 50px 20px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.empty strong {
+    display: block;
+    color: #172132;
+    margin-bottom: 8px;
+    font-size: 16px;
+}
+
+.bottom-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 18px;
+}
+
+.print-btn {
+    border: 1px solid #dfe4ed;
+    border-radius: 9px;
+    padding: 11px 16px;
+    background: white;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.print-btn:hover { border-color: var(--red); color: var(--red); }
+
+@media (max-width: 1050px) {
+    .sidebar { width: 200px; }
+    .content { padding: 22px; }
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 700px) {
+    .sidebar { display: none; }
+    .topbar { height: 55px; padding: 0 16px; }
+    .content { padding: 20px 14px; }
+
+    .page-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .date-control { width: 100%; }
+    h1 { font-size: 23px; }
+    .heading-subtitle { line-height: 1.5; }
+
+    .stats { gap: 10px; }
+    .stat { padding: 14px; }
+    .stat-icon { margin-bottom: 12px; }
+    .stat-value { font-size: 18px; }
+    .payment-stats { gap: 8px; }
+
+    .tools { flex-direction: column; }
+    .filters { display: grid; grid-template-columns: repeat(3, 1fr); }
+    .filter { min-width: 0; padding: 11px 8px; }
+
+    .table-footer {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 17px;
+    }
+
+    .day-total { flex-wrap: wrap; }
+    .day-total strong { font-size: 20px; }
+}
+
+@media print {
+    body { background: white; }
+    .sidebar, .topbar, .date-control, .tools, .bottom-actions {
+        display: none !important;
+    }
+    .content { padding: 0; }
+    .app { display: block; }
+    .stats { grid-template-columns: repeat(4, 1fr); }
+    .stat { padding: 12px; }
+    .table-card { overflow: visible; }
+    table { min-width: 0; }
+    th, td { padding: 10px; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <aside class="sidebar">
+        <div class="logo">
+            make<span>thub</span>
+            <small>Local Shops · Online · Nationwide</small>
+        </div>
+
+        <nav class="nav">
+            <a href="#"><span class="nav-icon">⌂</span> Dashboard</a>
+            <a href="#"><span class="nav-icon">▣</span> Orders</a>
+            <a href="#" class="active"><span class="nav-icon">▥</span> Sales Reports</a>
+            <a href="#"><span class="nav-icon">◇</span> Products</a>
+            <a href="#"><span class="nav-icon">▦</span> Inventory</a>
+            <a href="#"><span class="nav-icon">♧</span> Customers</a>
+            <a href="#"><span class="nav-icon">▣</span> Payouts</a>
+            <a href="#"><span class="nav-icon">⚙</span> Settings</a>
+        </nav>
+
+        <div class="sidebar-promo">
+            <div style="font-size:22px;margin-bottom:7px">▣</div>
+            <strong>Grow your business with Makethub</strong>
+            <div style="margin-top:8px;color:#b7bdc8">
+                More visibility. More customers. More sales.
+            </div>
+        </div>
+
+        <div class="shop-profile">
+            <div class="avatar">S</div>
+            <div>
+                <strong>SHOP NAME</strong>
+                <small>SELLER</small>
+            </div>
+            <span style="margin-left:auto">⌄</span>
+        </div>
+    </aside>
+
+    <main class="main">
+
+        <header class="topbar">
+            <button aria-label="Notifications">♧ <span style="color:var(--red)">●</span></button>
+            <button>◉ &nbsp; Seller &nbsp;⌄</button>
+        </header>
+
+        <div class="content">
+
+            <section class="page-heading">
+                <div class="heading-left">
+                    <div class="heading-icon">▥</div>
+                    <div>
+                        <h1>Daily Sales</h1>
+                        <div class="heading-subtitle">
+                            View your sales for a specific day, including completed orders.
+                        </div>
+                    </div>
+                </div>
+
+                <input
+                    class="date-control"
+                    id="reportDate"
+                    type="date"
+                    value="2026-10-12"
+                    aria-label="Choose report date"
+                >
+            </section>
+
+            <section class="stats">
+
+                <div class="stat">
+                    <div class="stat-icon green">▤</div>
+                    <div class="stat-label">Total Sales</div>
+                    <div class="stat-value" id="salesSummary">KSh 1,740.00</div>
+                    <div class="stat-note"><span>●</span> Sales for selected day</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-icon blue">🛒</div>
+                    <div class="stat-label">Items Sold</div>
+                    <div class="stat-value" id="itemsSummary">26</div>
+                    <div class="stat-note">Total quantity sold</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-icon purple">▤</div>
+                    <div class="stat-label">Sale Items</div>
+                    <div class="stat-value" id="transactionsSummary">8</div>
+                    <div class="stat-note">Different item entries</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-icon orange">▣</div>
+                    <div class="stat-label">Payment Methods</div>
+                    <div class="payment-stats">
+                        <div>
+                            <small>Cash</small>
+                            <strong id="cashSummary">4</strong>
+                        </div>
+                        <div>
+                            <small>M-Pesa</small>
+                            <strong id="mpesaSummary">4</strong>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <section class="tools">
+                <div class="search-wrap">
+                    <span>⌕</span>
+                    <input
+                        id="salesSearch"
+                        class="search"
+                        type="search"
+                        placeholder="Search items or payment method..."
+                    >
+                </div>
+
+                <div class="filters">
+                    <button class="filter active" data-filter="all">All</button>
+                    <button class="filter" data-filter="Cash">Cash</button>
+                    <button class="filter" data-filter="M-Pesa">M-Pesa</button>
+                </div>
+            </section>
+
+            <section class="table-card">
+
+                <div class="table-scroll">
+                    <table id="salesTable">
+                        <thead>
+                            <tr>
+                                <th>Items in the order</th>
+                                <th>Price per item</th>
+                                <th>Total amount</th>
+                                <th>Paid by</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="salesBody"></tbody>
+                    </table>
+                </div>
+
+                <div id="emptyMessage" class="empty">
+                    <strong>No sales found</strong>
+                    Try another search or payment method.
+                </div>
+
+                <footer class="table-footer">
+                    <div class="muted" id="showingCount">Showing 8 items</div>
+
+                    <div class="day-total">
+                        <span>Total for displayed items:</span>
+                        <strong id="visibleTotal">KSh 1,740.00</strong>
+                    </div>
+                </footer>
+
+            </section>
+
+            <div class="bottom-actions">
+                <button class="print-btn" id="printButton">⎙ &nbsp; Print report</button>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<script>
+/*
+ * FRONTEND DEMO DATA ONLY.
+ * Replace this array with data from your backend when ready.
+ * Amounts are in Kenyan shillings.
+ */
+const demoSales = [
+    { name: "Aqua Pure Water 500ml", qty: 5, price: 40, total: 200, paidBy: "M-Pesa", icon: "🧴" },
+    { name: "Tasty Chips 50g", qty: 3, price: 30, total: 90, paidBy: "Cash", icon: "🍟" },
+    { name: "Safari Soap", qty: 4, price: 60, total: 240, paidBy: "M-Pesa", icon: "🧼" },
+    { name: "White Bread", qty: 2, price: 70, total: 140, paidBy: "Cash", icon: "🍞" },
+    { name: "Fresh Milk 1L", qty: 3, price: 120, total: 360, paidBy: "M-Pesa", icon: "🥛" },
+    { name: "Digestive Biscuits", qty: 2, price: 80, total: 160, paidBy: "Cash", icon: "🍪" },
+    { name: "Soda 500ml", qty: 6, price: 50, total: 300, paidBy: "M-Pesa", icon: "🥤" },
+    { name: "Cooking Oil 500ml", qty: 1, price: 250, total: 250, paidBy: "Cash", icon: "🫒" }
+];
+
+let selectedPayment = "all";
+
+const body = document.getElementById("salesBody");
+const search = document.getElementById("salesSearch");
+
+function money(amount) {
+    return "KSh " + amount.toLocaleString("en-KE", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, function (char) {
+        return {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        }[char];
+    });
+}
+
+function renderSales() {
+    const term = search.value.trim().toLowerCase();
+
+    const filtered = demoSales.filter(sale => {
+        const matchesSearch =
+            sale.name.toLowerCase().includes(term) ||
+            sale.paidBy.toLowerCase().includes(term);
+
+        const matchesPayment =
+            selectedPayment === "all" ||
+            sale.paidBy === selectedPayment;
+
+        return matchesSearch && matchesPayment;
+    });
+
+    body.innerHTML = filtered.map(sale => `
+        <tr>
+            <td>
+                <div class="product">
+                    <div class="product-image">${escapeHTML(sale.icon)}</div>
+                    <div>
+                        <div class="product-name">${escapeHTML(sale.name)}</div>
+                        <div class="product-qty">Qty: ${sale.qty}</div>
+                    </div>
+                </div>
+            </td>
+            <td class="price">${money(sale.price)}</td>
+            <td class="total">${money(sale.total)}</td>
+            <td>
+                <span class="payment ${sale.paidBy === "M-Pesa" ? "mpesa" : "cash"}">
+                    ${sale.paidBy === "M-Pesa" ? "▣" : "▱"}
+                    ${escapeHTML(sale.paidBy)}
+                </span>
+            </td>
+        </tr>
+    `).join("");
+
+    document.getElementById("emptyMessage").style.display =
+        filtered.length ? "none" : "block";
+
+    document.getElementById("salesTable").style.display =
+        filtered.length ? "table" : "none";
+
+    const total = filtered.reduce((sum, sale) => sum + sale.total, 0);
+    const quantity = filtered.reduce((sum, sale) => sum + sale.qty, 0);
+    const cashCount = filtered.filter(sale => sale.paidBy === "Cash").length;
+    const mpesaCount = filtered.filter(sale => sale.paidBy === "M-Pesa").length;
+
+    document.getElementById("salesSummary").textContent = money(total);
+    document.getElementById("itemsSummary").textContent = quantity;
+    document.getElementById("transactionsSummary").textContent = filtered.length;
+    document.getElementById("cashSummary").textContent = cashCount;
+    document.getElementById("mpesaSummary").textContent = mpesaCount;
+
+    document.getElementById("showingCount").textContent =
+        `Showing ${filtered.length} item${filtered.length === 1 ? "" : "s"}`;
+
+    document.getElementById("visibleTotal").textContent = money(total);
+}
+
+search.addEventListener("input", renderSales);
+
+document.querySelectorAll(".filter").forEach(button => {
+    button.addEventListener("click", () => {
+        selectedPayment = button.dataset.filter;
+
+        document.querySelectorAll(".filter").forEach(item => {
+            item.classList.toggle("active", item === button);
+        });
+
+        renderSales();
+    });
+});
+
+document.getElementById("reportDate").addEventListener("change", () => {
+    // UI demonstration only: changing the date does not fetch real data.
+    renderSales();
+});
+
+document.getElementById("printButton").addEventListener("click", () => {
+    window.print();
+});
+
+renderSales();
+</script>
+
+</body>
+</html>

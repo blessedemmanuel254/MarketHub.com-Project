@@ -1,3 +1,16 @@
+This gives every current seller one 28-day battery cycle before you activate Daraja payments.
+
+
+UPDATE users
+SET
+subscription_started_at = NOW(),
+subscription_expires_at =
+DATE_ADD(NOW(), INTERVAL 28 DAY),
+subscription_status='active'
+WHERE account_type='seller'
+AND subscription_expires_at IS NULL;
+
+
 ALTER TABLE users
 ADD COLUMN timezone VARCHAR(64)
 NOT NULL DEFAULT 'Africa/Nairobi';

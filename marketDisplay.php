@@ -1525,6 +1525,8 @@ if (isset($_GET['seller'])) {
   <div id="notification-container"></div>
   
   <script src="assets/js/general.js" type="text/javascript" defer></script>
+  <script src="assets/js/cart.js" type="text/javascript" defer></script>
+  <script src="assets/js/marketDisplay.js" type="text/javascript" defer></script>
 
   <script>
   document.querySelectorAll(".toggle").forEach(btn => {

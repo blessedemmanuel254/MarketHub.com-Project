@@ -273,9 +273,9 @@ $userData = $userQuery->fetch_assoc();
 $agentQuery = $conn->query("
   SELECT 
     COUNT(*) AS total_agents,
-    SUM(status = 'active') AS active_agents,
+    SUM(subscription_status = 'active') AS active_agents,
     SUM(is_verified = 1) AS verified_agents,
-    SUM(status = 'suspended') AS under_review
+    SUM(subscription_status = 'suspended') AS under_review
   FROM users
   WHERE account_type = 'sales_agent'
 ");
@@ -296,7 +296,7 @@ $agentsStmt = $conn->prepare("
     a.email,
     a.phone,
     a.profile_image,
-    a.status,
+    a.subscription_status,
     a.is_verified,
     a.created_at,
     a.updated_at,
@@ -360,7 +360,7 @@ $totalCommissions = $commissionData['total_commissions'] ?? 0;
 // Fetch sellers
 $sellerQuery = $conn->query("
   SELECT 
-  user_id, full_name, username, email, phone, profile_image, is_verified, status, created_at, updated_at
+  user_id, full_name, username, email, phone, profile_image, is_verified, subscription_status, created_at, updated_at
   FROM users
   WHERE account_type='seller'
   ORDER BY user_id DESC
@@ -394,8 +394,8 @@ $totalBuyersQuery = "SELECT COUNT(*) AS total FROM users WHERE account_type='buy
 $totalBuyersResult = mysqli_query($conn, $totalBuyersQuery);
 $totalBuyers = mysqli_fetch_assoc($totalBuyersResult)['total'];
 
-// Active buyers (assuming status column exists in users table)
-$activeBuyersQuery = "SELECT COUNT(*) AS active FROM users WHERE account_type='buyer' AND status='Active'";
+// Active buyers (assuming subscription_status column exists in users table)
+$activeBuyersQuery = "SELECT COUNT(*) AS active FROM users WHERE account_type='buyer' AND subscription_status='Active'";
 $activeBuyersResult = mysqli_query($conn, $activeBuyersQuery);
 $activeBuyers = mysqli_fetch_assoc($activeBuyersResult)['active'];
 
@@ -406,7 +406,7 @@ $totalOrders = mysqli_fetch_assoc($totalOrdersResult)['total_orders'];
 
 // ---------- Fetch buyers table data ----------
 $buyersQuery = "
-  SELECT u.user_id, u.full_name, u.email, u.phone, u.status, u.created_at, u.updated_at,
+  SELECT u.user_id, u.full_name, u.email, u.phone, u.subscription_status, u.created_at, u.updated_at,
           COUNT(o.order_id) AS orders_count,
           SUM(o.total_amount) AS total_spend
   FROM users u
@@ -427,7 +427,7 @@ $ownersQuery = $conn->query("
     phone,
     profile_image,
     is_verified,
-    status,
+    subscription_status,
     created_at,
     updated_at
   FROM users
@@ -1908,7 +1908,7 @@ $marginPercent = $gmv > 0 ? round(($platformBalance / $gmv) * 100) : 0;
               }
 
               // Badge Logic
-              if ($agent['status'] === 'suspended') {
+              if ($agent['subscription_status'] === 'suspended') {
                   $badgeClass = "suspendedSpan";
                   $badgeText = "Suspended";
               } elseif ($agent['is_verified'] == 1) {
@@ -1957,7 +1957,7 @@ $marginPercent = $gmv > 0 ? round(($platformBalance / $gmv) * 100) : 0;
                 <i class="fa-solid fa-pen"></i>
                 </button>
 
-                <?php if ($agent['status'] === 'suspended'): ?>
+                <?php if ($agent['subscription_status'] === 'suspended'): ?>
 
                 <button class="btn-restore action-btn"
                 data-action="restore"
@@ -2140,7 +2140,7 @@ $marginPercent = $gmv > 0 ? round(($platformBalance / $gmv) * 100) : 0;
                   $email = decodeEmail($seller['email']);
                   $maskedEmail = maskEmail($email);
               ?>
-              <tr data-user-id="<?= $seller['user_id'] ?>" data-status="<?= htmlspecialchars($seller['status']) ?>" data-kyc="<?= $kycText ?>">
+              <tr data-user-id="<?= $seller['user_id'] ?>" data-status="<?= htmlspecialchars($seller['subscription_status']) ?>" data-kyc="<?= $kycText ?>">
                   <td><?= $count++ ?>.</td>
                   <td>
                       <div class="adm-user-profile">
@@ -2151,7 +2151,7 @@ $marginPercent = $gmv > 0 ? round(($platformBalance / $gmv) * 100) : 0;
                   <td><?= $productCounts[$seller['user_id']] ?? 0 ?></td>
                   <td>KES <?= number_format($seller['wallet'] ?? 0) ?></td>
                   <td><span class="badge <?= $kycBadge ?>"><?= $kycText ?></span></td>
-                  <td><span class="badge <?= strtolower($seller['status']) ?>"><?= ucfirst($seller['status']) ?></span></td>
+                  <td><span class="badge <?= strtolower($seller['subscription_status']) ?>"><?= ucfirst($seller['subscription_status']) ?></span></td>
                   <td class="actions">
                     <div>
                       <button class="btn-view"><i class="fa-solid fa-eye"></i></button>
@@ -2159,7 +2159,7 @@ $marginPercent = $gmv > 0 ? round(($platformBalance / $gmv) * 100) : 0;
                       class="btn-edit" data-user-id="<?= $seller['user_id'] ?>" 
                       data-tab="edit-forms" onclick="editRecord('seller', <?= (int)$seller['user_id'] ?>)">
                       <i class="fa-solid fa-pen"></i>
-                      </button>                <?php if ($seller['status'] === 'suspended'): ?>
+                      </button>                <?php if ($seller['subscription_status'] === 'suspended'): ?>
 
                       <button class="btn-restore action-btn"
                       data-action="restore"
@@ -3467,6 +3467,7 @@ $marginPercent = $gmv > 0 ? round(($platformBalance / $gmv) * 100) : 0;
     </footer>
   </div>
   <script src="assets/js/general.js" type="text/javascript" defer></script>
+  <script src="assets/js/admin.js" type="text/javascript" defer></script>
   <script>
   $(document).ready(function () {
 

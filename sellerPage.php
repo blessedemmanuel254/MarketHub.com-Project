@@ -2336,22 +2336,33 @@ if ($editMode) {
     }
 }
 
-/* ---------- PROFILE LETTER ---------- */
-$profileLetter = strtoupper(substr($username, 0, 1));
+/* ---------- FORMAT BUSINESS NAME ---------- */
+$businessName = trim($businessName);
 
-/* ---------- FORMAT USERNAME ---------- */
-$username = trim($username);
-
-$formattedUsername =
-    strtoupper(substr($username, 0, 1)) .
-    strtolower(substr($username, 1));
+/* ---------- ALL CAPS BUSINESS NAME ---------- */
+$formattedBusinessName = strtoupper($businessName);
 
 /* ---------- PROFILE LETTER ---------- */
-$profileLetter = strtoupper(substr($formattedUsername, 0, 1));
+$profileLetter = strtoupper(substr($formattedBusinessName, 0, 1));
 
 /* ---------- SAFE OUTPUT ---------- */
-$safeUsername = htmlspecialchars($formattedUsername, ENT_QUOTES, 'UTF-8');
-$safeLetter = htmlspecialchars($profileLetter, ENT_QUOTES, 'UTF-8');
+$safeBusinessName = htmlspecialchars(
+    $formattedBusinessName,
+    ENT_QUOTES,
+    'UTF-8'
+);
+
+$safeLetter = htmlspecialchars(
+    $profileLetter,
+    ENT_QUOTES,
+    'UTF-8'
+);
+
+$safeLetter = htmlspecialchars(
+    $profileLetter,
+    ENT_QUOTES,
+    'UTF-8'
+);
 
 $defaultAvatar = "Images/Makethub Logo.png";
 
@@ -2466,7 +2477,6 @@ $error = "Buying must be greater than zero!";
 elseif ($sellingPrice <= 0) {
 $error = "Selling price must be greater than zero!";
 }
-
 elseif ($stock < 0) {
 $error = "Stock cannot be negative!";
 }
@@ -4599,8 +4609,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
             Later
             </a>
 
-            <a href="rechargeBattery.php" class="activate">
-            Recharge Battery
+            <a href="#" class="activate" onclick="togglePaymentOption(); return false;">
+                Recharge Battery
             </a>
 
         </div>
@@ -4616,8 +4626,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
           <div class="sCrh">
             <img src="<?php echo $safeProfileImage; ?>" alt="Profile" class="avatar-img">
             <p class="wcmTxt">
-              Welcome,<br>
-              <span><?php echo $safeUsername; ?></span>
+                Welcome to,<br>
+                <span><?php echo $safeBusinessName; ?></span>
             </p>
           </div>
           <div class="sClh">
@@ -4663,26 +4673,58 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
       <div class="overlay" onclick="toggleProfileOption()" id="overlay1"></div>
     </header>
     <div class="payOverlay" onclick="togglePaymentOption()" id="payOverlay"></div>
+
     <form class="paymentContainer" action="" id="paymentContainer">
-      <h1>Choose&nbsp;Account <br><span>You can set your default account in settings</span></h1>
-      <label class="radio-container">
-        <div class="rightDiv">
-          <img src="Images/M-PESA_LOGO-01.svg.png" alt="Mpesa Logo" width="60">
-          <p>MPESA<br><span>254759578630</span></p>
-        </div>
-        <input type="radio" name="payment" value="mpesa">
-        <span class="checkmark"></span>
-      </label><!-- 
-      <label class="radio-container">
-        <div class="rightDiv">
-          <img src="Images/credit-card-01.jpg" alt="Mpesa Logo" width="60">
-          <p>Card&nbsp;Payment</p>
-        </div>
-        <input type="radio" name="payment" value="card">
-        <span class="checkmark"></span>
-      </label> -->
-      <button>Continue</button>
-      <a href="" onclick="togglePaymentOption()" data-tab="dashboard">Cancel&nbsp;payment</a>
+
+        <h1>
+            Choose&nbsp;Account
+            <br>
+            <span>You can set your default account in settings</span>
+        </h1>
+
+        <p class="successPrompt">Prompt sent for amount : KES 495. Please check your phone for STK Menu...</p>
+        <label class="radio-container">
+
+            <div class="rightDiv">
+                <img
+                    src="Images/M-PESA_LOGO-01.svg.png"
+                    alt="Mpesa Logo"
+                    width="60"
+                >
+
+                <p>
+                    MPESA
+                    <br>
+                    <span>Use your registered M-Pesa number</span>
+                </p>
+            </div>
+
+            <input
+                type="radio"
+                name="payment"
+                value="mpesa"
+            >
+
+            <span class="checkmark"></span>
+
+        </label>
+
+        <button id="btrPayBtn" type="submit">
+            Continue
+        </button>
+        
+
+        <div class="or-divider">or</div>
+        <button id="antrNoTxt"><i class="fa-regular fa-pen-to-square"></i>Pay with another number</button>
+        <button class="mnulPay-btn">Manual Payment</button>
+
+        <a
+            href="#"
+            onclick="togglePaymentOption(); return false;"
+            data-tab="dashboard"
+        >
+            Cancel&nbsp;payment
+        </a>
 
     </form>
     <div class="overlay" onclick="toggleWhatsAppChat()" id="overlay"></div>
@@ -4719,486 +4761,486 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
       </div>
     </div>
 
-    <main class="buyerMain" id="sellerMain">
-      <div id="slsDetlsOverlay" class="slsDetlsOverlay"></div>
+    <div id="slsDetlsOverlay" class="slsDetlsOverlay"></div>
 
 
-        <!-- =========================================================
-            ORDER BOTTOM SHEET
-            ========================================================= -->
+    <!-- =========================================================
+        ORDER BOTTOM SHEET
+        ========================================================= -->
 
-        <div
-        id="orderSheet"
-        class="order-sheet"
+    <div
+    id="orderSheet"
+    class="order-sheet"
+    >
+
+
+    <div class="sheet-handle"></div>
+
+
+    <!-- =====================================================
+            HEADER
+            ===================================================== -->
+
+    <div class="sheet-header">
+
+        <div class="sheet-title">
+
+            <strong id="sheetOrderNumber">
+                Order #MH-1048
+            </strong>
+
+            <span id="sheetOrderDate">
+                30 Aug, 14:32
+            </span>
+
+        </div>
+
+
+        <button
+            type="button"
+            id="closeOrderSheet"
+            class="sheet-close"
+            aria-label="Close"
         >
 
+            <i class="fa-solid fa-xmark"></i>
 
-        <div class="sheet-handle"></div>
+        </button>
+
+    </div>
 
 
-        <!-- =====================================================
-                HEADER
-                ===================================================== -->
+    <!-- =====================================================
+            CONTENT
+            ===================================================== -->
 
-        <div class="sheet-header">
+    <div class="sheet-content">
 
-            <div class="sheet-title">
 
-                <strong id="sheetOrderNumber">
-                    Order #MH-1048
-                </strong>
+        <!-- CUSTOMER -->
 
-                <span id="sheetOrderDate">
-                    30 Aug, 14:32
+        <div class="customer-card">
+
+            <div class="customer-card-title">
+            </div>
+
+            <div
+                class="customer-card-name"
+                id="sheetCustomerName"
+            >
+            </div>
+
+            <div
+                class="customer-card-phone"
+                id="sheetCustomerPhone"
+            >
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+                ORDER STATUS
+                ================================================= --><!-- 
+
+        <div class="order-timeline">
+
+            <div class="timeline-line"></div>
+
+
+            <div class="timeline-item active">
+
+                <div class="timeline-dot">
+
+                    <i class="fa-solid fa-cart-shopping"></i>
+
+                </div>
+
+                <div class="timeline-label">
+                    Ordered
+                </div>
+
+            </div>
+
+
+            <div class="timeline-item active">
+
+                <div class="timeline-dot">
+
+                    <i class="fa-solid fa-box"></i>
+
+                </div>
+
+                <div class="timeline-label">
+                    Shipped
+                </div>
+
+            </div>
+
+
+            <div class="timeline-item active">
+
+                <div class="timeline-dot">
+
+                    <i class="fa-solid fa-truck"></i>
+
+                </div>
+
+                <div class="timeline-label">
+                    Delivered
+                </div>
+
+            </div>
+
+
+            <div class="timeline-item active">
+
+                <div class="timeline-dot">
+
+                    <i class="fa-solid fa-check"></i>
+
+                </div>
+
+                <div class="timeline-label">
+                    Complete
+                </div>
+
+            </div>
+
+        </div> -->
+
+
+        <!-- =================================================
+                ITEMS
+                ================================================= -->
+
+        <div class="items-title">
+            Products
+        </div>
+
+
+        <div id="sheetItems">
+
+
+            <!-- ITEM 1 -->
+
+            <div class="sheet-item">
+
+                <div class="sheet-item-image">
+
+                    <img
+                        src="https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=200&q=80"
+                        alt=""
+                    >
+
+                </div>
+
+
+                <div class="sheet-item-info">
+
+                    <div class="sheet-item-name">
+                    </div>
+
+                    <div class="sheet-item-meta">
+                    </div>
+
+                </div>
+
+
+                <div class="sheet-item-price">
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- =================================================
+                TOTALS
+                ================================================= -->
+
+        <div class="order-totals">
+
+            <div class="total-row">
+
+                <span>
+                    Subtotal
+                </span>
+
+                <span id="sheetSubtotal">
                 </span>
 
             </div>
 
 
-            <button
-                type="button"
-                id="closeOrderSheet"
-                class="sheet-close"
-                aria-label="Close"
-            >
+            <div class="total-row">
 
-                <i class="fa-solid fa-xmark"></i>
+                <span>
+                    Delivery
+                </span>
 
-            </button>
+                <span>
+                    KES 0
+                </span>
+
+            </div>
+
+
+            <div class="total-row grand-total">
+
+                <span>
+                    Total
+                </span>
+
+                <span id="sheetTotal">
+                </span>
+
+            </div>
 
         </div>
 
 
-        <!-- =====================================================
-                CONTENT
-                ===================================================== -->
+        <!-- =================================================
+                PAYMENT
+                ================================================= -->
 
-        <div class="sheet-content">
+        <div class="payment-information">
+
+            <div class="payment-information-row">
+
+                <span>Paid by</span>
+
+                <span id="sheetPaymentMethod">
+                </span>
+
+            </div>
+
+            <div class="payment-information-row">
+
+                <span>Payment status</span>
+
+                <span id="sheetPaymentStatus">
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
 
 
-            <!-- CUSTOMER -->
+    <!-- =====================================================
+            FOOTER
+            ===================================================== -->
 
-            <div class="customer-card">
+    <div class="sheet-footer">
 
-                <div class="customer-card-title">
+        <button
+            type="button"
+            id="printReceiptButton"
+            class="print-receipt-button"
+        >
+
+            <i class="fa-solid fa-print"></i>
+
+            Print Receipt
+
+        </button>
+
+    </div>
+
+    </div>
+    <!-- =========================================================
+        PRINT RECEIPT
+        ========================================================= -->
+
+    <div id="printReceipt">
+
+        <div class="receipt-content">
+
+            <div class="receipt-header"
+                style="
+                "
+            >
+                <img src="Images/Makethub Logo.png" alt="Makethub Logo" width="25"> <h4 id="printShopName">SUPER FASHIONS</h4>
+            </div>
+
+            <div class="headerSpn">
+                Makethub Online Store
+            </div>
+            
+            <div class="receipt-details"
+                style="
+                    border-bottom:1px dashed #000;
+                    padding:7px 0;
+                    font-size:11px;
+                "
+            >
+
+                <div>
+                    Receipt:
+                    <strong id="printReceiptNumber">
+                        #MH-1048
+                    </strong>
                 </div>
 
-                <div
-                    class="customer-card-name"
-                    id="sheetCustomerName"
-                >
+                <div>Date:
+
+                    <span id="printReceiptDate">
+                        Aug 28, 2026 • 14:32
+                    </span>
                 </div>
 
-                <div
-                    class="customer-card-phone"
-                    id="sheetCustomerPhone"
-                >
+                <div>
+                    Buyer:
+                    <span id="printCustomerName">
+                        John Mwangi
+                    </span>
                 </div>
 
             </div>
 
 
-            <!-- =================================================
-                    ORDER STATUS
-                    ================================================= --><!-- 
-
-            <div class="order-timeline">
-
-                <div class="timeline-line"></div>
+            <div class="print-items"
+                id="printItems"
+            >
 
 
-                <div class="timeline-item active">
+                <div>
 
-                    <div class="timeline-dot">
+                    <span>
+                        Premium Body Lotion × 2
+                    </span>
 
-                        <i class="fa-solid fa-cart-shopping"></i>
-
-                    </div>
-
-                    <div class="timeline-label">
-                        Ordered
-                    </div>
+                    <strong>
+                        KES&nbsp;2,400
+                    </strong>
 
                 </div>
 
 
-                <div class="timeline-item active">
+                <div>
 
-                    <div class="timeline-dot">
+                    <span>
+                        Beauty Face Cream × 1
+                    </span>
 
-                        <i class="fa-solid fa-box"></i>
-
-                    </div>
-
-                    <div class="timeline-label">
-                        Shipped
-                    </div>
+                    <strong>
+                        KES&nbsp;650
+                    </strong>
 
                 </div>
 
 
-                <div class="timeline-item active">
+                <div>
 
-                    <div class="timeline-dot">
+                    <span>
+                        2 Metres Carpet
+                    </span>
 
-                        <i class="fa-solid fa-truck"></i>
-
-                    </div>
-
-                    <div class="timeline-label">
-                        Delivered
-                    </div>
+                    <strong>
+                        KES&nbsp;400
+                    </strong>
 
                 </div>
-
-
-                <div class="timeline-item active">
-
-                    <div class="timeline-dot">
-
-                        <i class="fa-solid fa-check"></i>
-
-                    </div>
-
-                    <div class="timeline-label">
-                        Complete
-                    </div>
-
-                </div>
-
-            </div> -->
-
-
-            <!-- =================================================
-                    ITEMS
-                    ================================================= -->
-
-            <div class="items-title">
-                Products
-            </div>
-
-
-            <div id="sheetItems">
-
-
-                <!-- ITEM 1 -->
-
-                <div class="sheet-item">
-
-                    <div class="sheet-item-image">
-
-                        <img
-                            src="https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=200&q=80"
-                            alt=""
-                        >
-
-                    </div>
-
-
-                    <div class="sheet-item-info">
-
-                        <div class="sheet-item-name">
-                        </div>
-
-                        <div class="sheet-item-meta">
-                        </div>
-
-                    </div>
-
-
-                    <div class="sheet-item-price">
-                    </div>
-
-                </div>
-
 
             </div>
-
-
-            <!-- =================================================
-                    TOTALS
-                    ================================================= -->
-
-            <div class="order-totals">
-
+            <div class="slSbSumry"> 
                 <div class="total-row">
 
                     <span>
                         Subtotal
                     </span>
 
-                    <span id="sheetSubtotal">
+                    <span>
+                        KES 2,350.00
+                    </span>
+
+                </div><!-- 
+
+
+                <div class="total-row discount">
+
+                    <span>
+                        Discount
+                    </span>
+
+                    <span>
+                        - KES 0.00
+                    </span>
+
+                </div> -->
+
+
+                <div class="total-row tax">
+
+                    <span>
+                        Tax
+                    </span>
+
+                    <span>
+                        KES 0.00
                     </span>
 
                 </div>
 
+            </div>
 
-                <div class="total-row">
+            <div class="totalFDiv">
 
-                    <span>
-                        Delivery
-                    </span>
-
-                    <span>
-                        KES 0
-                    </span>
-
-                </div>
-
-
-                <div class="total-row grand-total">
+                <div
+                    style="
+                        display:flex;
+                        justify-content:space-between;
+                    "
+                >
 
                     <span>
                         Total
                     </span>
 
-                    <span id="sheetTotal">
-                    </span>
+                    <strong>
+                        KES 3,450
+                    </strong>
 
                 </div>
 
-            </div>
-
-
-            <!-- =================================================
-                    PAYMENT
-                    ================================================= -->
-
-            <div class="payment-information">
-
-                <div class="payment-information-row">
-
-                    <span>Paid by</span>
-
-                    <span id="sheetPaymentMethod">
-                    </span>
-
-                </div>
-
-                <div class="payment-information-row">
-
-                    <span>Payment status</span>
-
-                    <span id="sheetPaymentStatus">
-                    </span>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- =====================================================
-                FOOTER
-                ===================================================== -->
-
-        <div class="sheet-footer">
-
-            <button
-                type="button"
-                id="printReceiptButton"
-                class="print-receipt-button"
-            >
-
-                <i class="fa-solid fa-print"></i>
-
-                Print Receipt
-
-            </button>
-
-        </div>
-
-        </div>
-        <!-- =========================================================
-            PRINT RECEIPT
-            ========================================================= -->
-
-        <div id="printReceipt">
-
-            <div class="receipt-content">
-
-                <div class="receipt-header"
+                <div
                     style="
-                    "
-                >
-                    <img src="Images/Makethub Logo.png" alt="Makethub Logo" width="25"> <h4 id="printShopName">SUPER FASHIONS</h4>
-                </div>
-
-                <div class="headerSpn">
-                    Makethub Online Store
-                </div>
-                
-                <div class="receipt-details"
-                    style="
-                        border-bottom:1px dashed #000;
-                        padding:7px 0;
-                        font-size:11px;
+                        display:flex;
+                        justify-content:space-between;
+                        margin-top:4px;
                     "
                 >
 
-                    <div>
-                        Receipt:
-                        <strong id="printReceiptNumber">
-                            #MH-1048
-                        </strong>
-                    </div>
+                    <span>
+                        Paid by
+                    </span>
 
-                    <div>Date:
-
-                        <span id="printReceiptDate">
-                            Aug 28, 2026 • 14:32
-                        </span>
-                    </div>
-
-                    <div>
-                        Buyer:
-                        <span id="printCustomerName">
-                            John Mwangi
-                        </span>
-                    </div>
-
-                </div>
-
-
-                <div class="print-items"
-                    id="printItems"
-                >
-
-
-                    <div>
-
-                        <span>
-                            Premium Body Lotion × 2
-                        </span>
-
-                        <strong>
-                            KES&nbsp;2,400
-                        </strong>
-
-                    </div>
-
-
-                    <div>
-
-                        <span>
-                            Beauty Face Cream × 1
-                        </span>
-
-                        <strong>
-                            KES&nbsp;650
-                        </strong>
-
-                    </div>
-
-
-                    <div>
-
-                        <span>
-                            2 Metres Carpet
-                        </span>
-
-                        <strong>
-                            KES&nbsp;400
-                        </strong>
-
-                    </div>
-
-                </div>
-                <div class="slSbSumry"> 
-                    <div class="total-row">
-
-                        <span>
-                            Subtotal
-                        </span>
-
-                        <span>
-                            KES 2,350.00
-                        </span>
-
-                    </div><!-- 
-
-
-                    <div class="total-row discount">
-
-                        <span>
-                            Discount
-                        </span>
-
-                        <span>
-                            - KES 0.00
-                        </span>
-
-                    </div> -->
-
-
-                    <div class="total-row tax">
-
-                        <span>
-                            Tax
-                        </span>
-
-                        <span>
-                            KES 0.00
-                        </span>
-
-                    </div>
-
-                </div>
-
-                <div class="totalFDiv">
-
-                    <div
-                        style="
-                            display:flex;
-                            justify-content:space-between;
-                        "
-                    >
-
-                        <span>
-                            Total
-                        </span>
-
-                        <strong>
-                            KES 3,450
-                        </strong>
-
-                    </div>
-
-                    <div
-                        style="
-                            display:flex;
-                            justify-content:space-between;
-                            margin-top:4px;
-                        "
-                    >
-
-                        <span>
-                            Paid by
-                        </span>
-
-                        <span>
-                            Cash
-                        </span>
-
-                    </div>
-
-                </div>
-
-
-                <div class="thankYouNote">
-
-                    THANK YOU FOR SHOPPING WITH US!
-
-                    <br>
-
-                    www.makethub.com
+                    <span>
+                        Cash
+                    </span>
 
                 </div>
 
             </div>
 
+
+            <div class="thankYouNote">
+
+                THANK YOU FOR SHOPPING WITH US!
+
+                <br>
+
+                www.makethub.com
+
+            </div>
+
         </div>
+
+    </div>
+    <main class="buyerMain" id="sellerMain">
       <div id="subGOverlay" class="subGOverlay"></div>
       <form
         action=""
@@ -5282,9 +5324,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
         </button>
 
       </form>
+      <script src="assets/js/tab-system.js" type="text/javascript" defer></script>
       <div class="tabs-container" id="toggleMarketTypeTab">
         <div class="tabs">
           <button class="tab-btn" data-tab="dashboard">Dashboard</button>
+          <button class="tab-btn" data-tab="my-sales">My&nbsp;Sales</button>
           <button class="tab-btn" data-tab="products">Store</button>
           <!-- <button class="tab-btn" data-tab="funds">Funds</button> -->
         </div>
@@ -5868,6 +5912,240 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                 <?php endif; ?>
               </div>
             </div>
+
+
+          <div id="my-sales" class="tab-panel">
+            <div class="tab-top sales">
+              <p>Today Sales</p>
+              <button onclick="toggleSalesDash()">
+                Select&nbsp;Date&nbsp;<span><i class="fa-solid fa-calendar"></i></span>
+              </button>
+
+            </div>
+            <div class="containerInner">
+
+              <div class="grid">
+                <!-- DAILY STATS -->
+                <div class="card">
+
+                    <i class="fa-solid fa-receipt icon"></i>
+
+                    <h3>Daily Sales</h3>
+
+                    <!-- Total sales -->
+                    <div class="stat">
+                        KES <?= number_format($dailySales, 2) ?>
+                    </div>
+
+                    <p class="meta">
+                        Total daily stats
+                    </p>
+
+                    <div class="progress">
+                        <span style="width:<?= min(($dailySales / 20000) * 100, 100) ?>%"></span>
+                    </div>
+
+                    <div class="daily-stats-slider">
+
+                      <p class="small daily-stat-item green">
+                          <?= $dailyOrders ?>
+                          <?= $dailyOrders == 1 ? 'sale' : 'sales' ?>
+                          made today 🎉
+                      </p>
+
+                      <p class="small daily-stat-item green">
+                          KES <?= number_format($dailyCash, 2) ?>
+                          collected by cash today 💸
+                      </p>
+
+                      <p class="small daily-stat-item green">
+                          KES <?= number_format($dailyBank, 2) ?>
+                          collected by bank today 🏦
+                      </p>
+
+                      <?php if ($dailyOutOfStock > 0): ?>
+
+                          <p class="small daily-stat-item red">
+                              <?= $dailyOutOfStock ?>
+                              <?= $dailyOutOfStock == 1 ? 'product is' : 'products are' ?>
+                              out of stock ❗
+                          </p>
+
+                      <?php endif; ?>
+
+                      <?php if ($dailyLowStock > 0): ?>
+
+                          <p class="small daily-stat-item yellow">
+                              <?= $dailyLowStock ?>
+                              <?= $dailyLowStock == 1 ? 'product is' : 'products are' ?>
+                              running low ⚠️
+                          </p>
+
+                      <?php endif; ?>
+
+                    </div>
+
+                </div>
+                <!-- PROFIT STATS --><!-- 
+                <div class="card">
+
+                    <i class="fa-solid fa-receipt icon"></i>
+
+                    <h3>Net Earnings</h3> -->
+
+                    <!-- Total sales --><!-- 
+                    <div class="stat">
+                        KES <?= number_format($dailySales, 2) ?>
+                    </div>
+
+                    <p class="meta">
+                        Total daily profits
+                    </p>
+
+                    <div class="progress">
+                        <span style="width:<?= min(($dailySales / 20000) * 100, 100) ?>%"></span>
+                    </div>
+
+                    <div class="daily-stats-slider">
+
+                      <p class="small daily-stat-item green">
+                          <?= $dailyOrders ?>
+                          <?= $dailyOrders == 1 ? 'sale' : 'sales' ?>
+                          made today 🎉
+                      </p>
+
+                      <p class="small daily-stat-item green">
+                          KES <?= number_format($dailyCash, 2) ?>
+                          collected by cash today 💸
+                      </p>
+
+                      <p class="small daily-stat-item green">
+                          KES <?= number_format($dailyBank, 2) ?>
+                          collected by bank today 🏦
+                      </p>
+
+                      <?php if ($dailyOutOfStock > 0): ?>
+
+                          <p class="small daily-stat-item red">
+                              <?= $dailyOutOfStock ?>
+                              <?= $dailyOutOfStock == 1 ? 'product is' : 'products are' ?>
+                              out of stock ❗
+                          </p>
+
+                      <?php endif; ?>
+
+                      <?php if ($dailyLowStock > 0): ?>
+
+                          <p class="small daily-stat-item yellow">
+                              <?= $dailyLowStock ?>
+                              <?= $dailyLowStock == 1 ? 'product is' : 'products are' ?>
+                              running low ⚠️
+                          </p>
+
+                      <?php endif; ?>
+
+                    </div>
+
+                </div> -->
+
+                <!-- WALLET HEALTH --><!-- 
+                <div class="card">
+                  <i class="fa fa-wallet icon"></i>
+                  <h3>Wallet Health</h3>
+
+                  <div class="stat">KES <?= number_format($walletBalance, 2) ?></div>
+
+                  <p class="meta">Available for withdrawal</p>
+
+                  <div class="progress">
+                    <span style="width:<?= min(($walletBalance/20000)*100,100) ?>%"></span>
+                  </div>
+
+                  <p class="small">KES 0 pending clearance</p>
+                </div> -->
+                <!-- ORDERS SUMMARY --><!-- 
+                <div class="card">
+                  <i class="fa fa-box icon"></i>
+                  <h3>Products Summary</h3>
+
+                  <div class="stat">
+                      <?= formatToK($totalOrders) ?> <?= $totalOrders == 1 ? 'Order' : 'Orders' ?>
+                  </div>
+
+                  <p class="meta">
+                      <span class="badge yellow"><?= $processingOrders ?> <?= $processingOrders == 1 ? 'Processing' : 'Processing' ?></span>
+                      <span class="badge blue"><?= $shippedOrders ?> <?= $shippedOrders == 1 ? 'Shipped' : 'Shipped' ?></span>
+                      <span class="badge green"><?= $deliveredOrders ?> <?= $deliveredOrders == 1 ? 'Delivered' : 'Delivered' ?></span>
+                  </p>
+                  <p class="small">In the last 28 days</p>
+                </div> -->
+                <div class="card">
+                  <i class="fa fa-box icon"></i>
+                  <h3>Orders Summary</h3>
+
+                  <div class="stat">
+                      <?= formatToK($totalOrders) ?> <?= $totalOrders == 1 ? 'Order' : 'Orders' ?>
+                  </div>
+
+                  <p class="meta">
+                      <span class="badge yellow"><?= $processingOrders ?> <?= $processingOrders == 1 ? 'Processing' : 'Processing' ?></span>
+                      <span class="badge blue"><?= $shippedOrders ?> <?= $shippedOrders == 1 ? 'Shipped' : 'Shipped' ?></span>
+                      <span class="badge green"><?= $deliveredOrders ?> <?= $deliveredOrders == 1 ? 'Delivered' : 'Delivered' ?></span>
+                  </p>
+                  <p class="small">In the last 28 days</p>
+                </div>
+
+                <!-- WITHDRAWAL STATUS --><!-- 
+                <div class="card">
+                  <i class="fa fa-money-bill-wave icon"></i>
+                  <h3>Withdrawal Status</h3>
+
+                  <span class="badge <?= $withdrawClass ?>">
+                    <?= $withdrawStatus ?>
+                  </span>
+
+                  <p class="meta">
+                    Minimum withdrawal KES 500
+                  </p>
+
+                  <div class="actions">
+                    <button 
+                      onclick="togglePaymentOption()"
+                      <?= !$isEligible ? 'disabled' : '' ?>
+                    >
+                      Withdraw
+                    </button>
+                  </div>
+
+                  <p class="small">
+                    Available: KES <?= number_format($walletBalance) ?>
+                  </p>
+                </div> -->
+
+                <!-- CUSTOMER TRUST -->
+                <div class="card">
+                  <i class="fa fa-star icon"></i>
+                  <h3>Customer Trust</h3>
+                  <div class="stat">4.7 ★</div>
+                  <p class="meta">Business reviews<!-- From 1 review --></p>
+                  <span class="badge green">Excellent</span>
+                </div>
+
+                <!-- GROWTH INSIGHTS -->
+                <div class="card">
+                  <i class="fa fa-seedling icon"></i>
+                  <h3>Growth Tips</h3>
+                  <p class="meta">Improve visibility</p>
+                  <p class="small">
+                    ✔ Encourage ratings<br>
+                    ✔ Enable fast delivery<br>
+                    ✔ Respond to reviews
+                  </p>
+                </div>
+
+              </div>
+            </div>
+          </div>
           
           <div id="add-products" class="tab-panel">
             <div class="tab-top">
@@ -6830,7 +7108,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
             </form>
             </div>
-          </div><!-- 
+          </div>
+          <!-- 
           
           <div id="funds" class="tab-panel">
             <p>Access your earnings</em> <br><strong>Withdraw funds you’ve earned from completed sales <i class="fa-regular fa-circle-check"></i></strong></p>
@@ -7866,6 +8145,271 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
     </div>
 
 </main>
+
+    <main class="buyerMain" id="chatSection">
+      <div class="tab-top">
+        <p>Track customer for delivery<br><strong>Get to chat with customer using our in-built chat feature <i class="fa-regular fa-circle-check"></i></strong></p>
+        <button onclick="goBack()">
+          <i class="fa-solid fa-circle-arrow-left" data-tab="products"></i> <span>Go&nbsp;Back</span>
+        </button>
+      </div>
+
+      <div class="chat-wrapper">
+
+        <!-- HEADER -->
+        <div class="chat-header">
+          <h3 id="chatTitle">Order Chat • Seller: Alex</h3>
+          <div class="meta" id="chatOrderCode">Order Code: ORD-XXXX</div>
+          <div class="status" id="orderStatus">Order in progress...</div>
+        </div>
+
+        <!-- CHAT BODY -->
+        <div class="chat-body" id="chatBody">
+
+          <!-- Seller Message -->
+          <div class="chat-message seller">
+            <div class="bubble">
+              Hello 👋 I’m ready to deliver your order.
+              <span class="time">10:32 AM</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="chat-footer" id="chatFooter">
+          
+          <div class="chat-input">
+            <textarea id="chatInput" placeholder="Type a message..."></textarea>
+            <img src="Images/Send-35.png" alt="Send Icon" width="45" onclick="sendMessage()">
+          </div>
+
+          <div class="chat-actions">
+            <button class="location-btn" onclick="shareLocation()">📍 Share Location</button>
+            <button class="complete-btn" onclick="completeOrder()">✔ I have Received Order</button>
+          </div>
+
+        </div>
+
+      </div>
+      <div class="locationModal" id="locationModal" style="display:none; position:fixed; bottom:0; background:lightblue; width:100%; padding:15px;">
+        <h4>Describe your location</h4>
+        <input type="text" id="manualLocation" placeholder="e.g. Blue gate, near church" style="width:100%; padding:10px;">
+        <button onclick="confirmLocation()">Confirm Location</button>
+      </div>
+
+    </main>
+
+    <main class="buyerMain" id="ordersTrackMain">
+      <div class="tab-top">
+        <p>Track customer orders<br><strong>Monitor order status easily <i class="fa-regular fa-circle-check"></i></strong></p>
+        <button onclick="toggleSellerOrdersTrack()">
+          <i class="fa-solid fa-circle-arrow-left" data-tab="products"></i> <span>Go&nbsp;Back</span>
+        </button>
+      </div>
+      <div class="table-wrapper sellerOrdersTrack">
+        <table id="sellerTransactions">
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Product</th>
+              <th>Itme&nbsp;Qty</th>
+              <th>Total</th>
+              <th>Buyer</th>
+              <th>Payment</th>
+              <th>Status</th>
+              <th>Paid&nbsp;by</th>
+              <th>Receipt</th>
+              <th class="actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+          <?php
+          if (!empty($sellerOrders)) {
+              $count = 1;
+              foreach ($sellerOrders as $order) {
+                  // -----------------------------------------
+                  // PRODUCT IMAGES
+                  // -----------------------------------------
+
+                  $productImages = [];
+
+                  if (!empty($order['product_images'])) {
+
+                      $images = explode('|||', $order['product_images']);
+
+                      // Remove empty values
+                      $images = array_filter($images);
+
+                      // Maximum of 3 images
+                      $productImages = array_slice($images, 0, 3);
+                  }
+
+                  // Default image
+                  $defaultImage = "Images/Makethub Logo.png";
+                  $imageHTML = '
+                    <div
+                        class="order-product-images order-details-trigger"
+                        data-order-id="' . (int)$order['order_id'] . '"
+                        role="button"
+                        tabindex="0"
+                        aria-label="View order details"
+                    >';
+                  foreach ($productImages as $image) {
+
+                      $image = trim($image);
+
+                      if (
+                          empty($image) ||
+                          !file_exists($image)
+                      ) {
+                          $image = $defaultImage;
+                      }
+
+                      $image = htmlspecialchars($image, ENT_QUOTES, 'UTF-8');
+
+                      $imageHTML .= "
+                          <img
+                              src=\"{$image}\"
+                              alt=\"Product\"
+                              loading=\"lazy\"
+                          >
+                      ";
+                  }
+
+                  $imageHTML .= '</div>';
+                  $productCount = (int)$order['product_count'];
+
+                  $total = number_format($order['seller_total'], 2);
+                  $date = formatDate($order['created_at']);
+
+                  // Payment badge
+                  $paymentStatus = strtolower($order['payment_status'] ?? '');
+                  $paymentClass = $paymentStatus === 'paid' ? 'paid' : 'pending';
+                  $paymentLabel = ucfirst($paymentStatus ?: 'Pending');
+
+                  // Order status badge
+                  $statusClass = strtolower($order['order_status'] ?? '');
+                  $statusLabel = ucfirst($order['order_status'] ?? 'Pending');
+
+                  // Optional tooltip for shipped/delivered timestamps
+                  $statusTooltip = '';
+                  if (!empty($order['shipped_at'])) {
+                      $statusTooltip .= "Shipped: " . date("d M Y H:i", strtotime($order['shipped_at']));
+                  }
+                  if (!empty($order['delivered_at'])) {
+                      if ($statusTooltip) $statusTooltip .= "\n";
+                      $statusTooltip .= "Delivered: " . date("d M Y H:i", strtotime($order['delivered_at']));
+                  }
+                  
+                  // Product image
+                  $productImage = !empty($order['image_path']) && file_exists($order['image_path']) 
+                                  ? htmlspecialchars($order['image_path']) 
+                                  : "Images/Makethub Logo.png"; // default image
+
+                  echo "<tr data-order-id='" . (int)$order ['order_id'] . "' data-status='" . htmlspecialchars($order['order_status'], ENT_QUOTES, 'UTF-8') . "'>
+                          <td>
+                            <div class='newStylOrd'>
+                              #{$order['order_code']}<p>{$date}</p>
+                            </div>
+                          </td>
+                          <td>{$imageHTML}</td>
+                          <td>{$productCount}</td>
+                          <td>KES {$total}</td>
+                          <td>".htmlspecialchars(ucwords(strtolower($order['buyer_name'])))."</td>
+                          <td><span class='badge {$paymentClass}'>{$paymentLabel}</span></td>
+                          <td><span class='badge {$statusClass}' title=\"".htmlspecialchars($statusTooltip)."\">{$statusLabel}</span></td>
+                          <td>".htmlspecialchars(ucfirst($order['payment_method'] ?? 'Unknown'))."</td>
+                          <td>
+                            <div
+                                class='receiptTd order-details-trigger'
+                                data-order-id='{$order['order_id']}'
+                                role='button'
+                                tabindex='0'
+                                aria-label='View order receipt'
+                            >
+                                <i class='fa-solid fa-receipt'></i>
+                            </div>
+                          </td>
+                          <td class='actions'>
+                        <div>";
+
+                  // Action based on status
+                  if ($statusClass === 'pending') {
+                    echo "
+                        <button
+                            class='btn-ship'
+                            data-id='{$order['order_id']}'
+                        >
+                            Mark&nbsp;as&nbsp;Shipped
+                        </button>
+
+                        <button
+                            type='button'
+                            class='ordDlte'
+                            data-order-id='{$order['order_id']}'
+                            aria-label='Delete order'
+                            title='Delete order'
+                        >
+                            <i class='fa-solid fa-trash'></i>
+                        </button>
+                    ";
+                  } else {
+                    echo "
+                        <button
+                            class='btn-view'
+                            data-buyer='{$order['buyer_id']}'
+                            data-order='{$order['order_code']}'
+                            data-buyername='".htmlspecialchars(
+                                $order['buyer_name'],
+                                ENT_QUOTES
+                            )."'
+                        >
+                            <i class='fa-solid fa-eye'></i>
+                        </button>
+
+                        <button
+                            type='button'
+                            class='ordDlte'
+                            data-order-id='{$order['order_id']}'
+                            aria-label='Delete order'
+                            title='Delete order'
+                        >
+                            <i class='fa-solid fa-trash'></i>
+                        </button>
+                    ";
+                  }
+
+                  echo "      </div>
+                          </td>
+                        </tr>";
+                  $count++;
+              }
+          }/*   else {
+
+            echo "<tr>
+                    <td colspan='11' style='text-align:center; color:#888;'>No data available in table</td>
+                  </tr>";
+            } */
+          ?>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleSellerOrdersTrack()">Go&nbsp;back</button> to continue delivering.</p>
+    </main>
+    <footer>
+      <p>&copy; 2025/2026, Makethub.shop, All Rights Reserved.</p><br>
+      <p>
+        <a href="privacy.php">Privacy Policy</a> |
+        <a href="terms.php">Terms & Conditions</a> |
+        <a href="contact.php">Contact Us</a>
+      </p>
+    </footer>
+
+  <!-- Notification container -->
+  <div id="notification-container"></div>
+
 <script>
 /* =========================================================
    SELLER SALES PAGE
@@ -9467,270 +10011,6 @@ function refreshSellerSalesNavigation() {
 
 }
 </script>
-
-    <main class="buyerMain" id="chatSection">
-      <div class="tab-top">
-        <p>Track customer for delivery<br><strong>Get to chat with customer using our in-built chat feature <i class="fa-regular fa-circle-check"></i></strong></p>
-        <button onclick="goBack()">
-          <i class="fa-solid fa-circle-arrow-left" data-tab="products"></i> <span>Go&nbsp;Back</span>
-        </button>
-      </div>
-
-      <div class="chat-wrapper">
-
-        <!-- HEADER -->
-        <div class="chat-header">
-          <h3 id="chatTitle">Order Chat • Seller: Alex</h3>
-          <div class="meta" id="chatOrderCode">Order Code: ORD-XXXX</div>
-          <div class="status" id="orderStatus">Order in progress...</div>
-        </div>
-
-        <!-- CHAT BODY -->
-        <div class="chat-body" id="chatBody">
-
-          <!-- Seller Message -->
-          <div class="chat-message seller">
-            <div class="bubble">
-              Hello 👋 I’m ready to deliver your order.
-              <span class="time">10:32 AM</span>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- FOOTER -->
-        <div class="chat-footer" id="chatFooter">
-          
-          <div class="chat-input">
-            <textarea id="chatInput" placeholder="Type a message..."></textarea>
-            <img src="Images/Send-35.png" alt="Send Icon" width="45" onclick="sendMessage()">
-          </div>
-
-          <div class="chat-actions">
-            <button class="location-btn" onclick="shareLocation()">📍 Share Location</button>
-            <button class="complete-btn" onclick="completeOrder()">✔ I have Received Order</button>
-          </div>
-
-        </div>
-
-      </div>
-      <div class="locationModal" id="locationModal" style="display:none; position:fixed; bottom:0; background:lightblue; width:100%; padding:15px;">
-        <h4>Describe your location</h4>
-        <input type="text" id="manualLocation" placeholder="e.g. Blue gate, near church" style="width:100%; padding:10px;">
-        <button onclick="confirmLocation()">Confirm Location</button>
-      </div>
-
-    </main>
-
-    <main class="buyerMain" id="ordersTrackMain">
-      <div class="tab-top">
-        <p>Track customer orders<br><strong>Monitor order status easily <i class="fa-regular fa-circle-check"></i></strong></p>
-        <button onclick="toggleSellerOrdersTrack()">
-          <i class="fa-solid fa-circle-arrow-left" data-tab="products"></i> <span>Go&nbsp;Back</span>
-        </button>
-      </div>
-      <div class="table-wrapper sellerOrdersTrack">
-        <table id="sellerTransactions">
-          <thead>
-            <tr>
-              <th>Order</th>
-              <th>Product</th>
-              <th>Itme&nbsp;Qty</th>
-              <th>Total</th>
-              <th>Buyer</th>
-              <th>Payment</th>
-              <th>Status</th>
-              <th>Paid&nbsp;by</th>
-              <th>Receipt</th>
-              <th class="actions">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-          <?php
-          if (!empty($sellerOrders)) {
-              $count = 1;
-              foreach ($sellerOrders as $order) {
-                  // -----------------------------------------
-                  // PRODUCT IMAGES
-                  // -----------------------------------------
-
-                  $productImages = [];
-
-                  if (!empty($order['product_images'])) {
-
-                      $images = explode('|||', $order['product_images']);
-
-                      // Remove empty values
-                      $images = array_filter($images);
-
-                      // Maximum of 3 images
-                      $productImages = array_slice($images, 0, 3);
-                  }
-
-                  // Default image
-                  $defaultImage = "Images/Makethub Logo.png";
-                  $imageHTML = '
-                    <div
-                        class="order-product-images order-details-trigger"
-                        data-order-id="' . (int)$order['order_id'] . '"
-                        role="button"
-                        tabindex="0"
-                        aria-label="View order details"
-                    >';
-                  foreach ($productImages as $image) {
-
-                      $image = trim($image);
-
-                      if (
-                          empty($image) ||
-                          !file_exists($image)
-                      ) {
-                          $image = $defaultImage;
-                      }
-
-                      $image = htmlspecialchars($image, ENT_QUOTES, 'UTF-8');
-
-                      $imageHTML .= "
-                          <img
-                              src=\"{$image}\"
-                              alt=\"Product\"
-                              loading=\"lazy\"
-                          >
-                      ";
-                  }
-
-                  $imageHTML .= '</div>';
-                  $productCount = (int)$order['product_count'];
-
-                  $total = number_format($order['seller_total'], 2);
-                  $date = formatDate($order['created_at']);
-
-                  // Payment badge
-                  $paymentStatus = strtolower($order['payment_status'] ?? '');
-                  $paymentClass = $paymentStatus === 'paid' ? 'paid' : 'pending';
-                  $paymentLabel = ucfirst($paymentStatus ?: 'Pending');
-
-                  // Order status badge
-                  $statusClass = strtolower($order['order_status'] ?? '');
-                  $statusLabel = ucfirst($order['order_status'] ?? 'Pending');
-
-                  // Optional tooltip for shipped/delivered timestamps
-                  $statusTooltip = '';
-                  if (!empty($order['shipped_at'])) {
-                      $statusTooltip .= "Shipped: " . date("d M Y H:i", strtotime($order['shipped_at']));
-                  }
-                  if (!empty($order['delivered_at'])) {
-                      if ($statusTooltip) $statusTooltip .= "\n";
-                      $statusTooltip .= "Delivered: " . date("d M Y H:i", strtotime($order['delivered_at']));
-                  }
-                  
-                  // Product image
-                  $productImage = !empty($order['image_path']) && file_exists($order['image_path']) 
-                                  ? htmlspecialchars($order['image_path']) 
-                                  : "Images/Makethub Logo.png"; // default image
-
-                  echo "<tr data-order-id='" . (int)$order ['order_id'] . "' data-status='" . htmlspecialchars($order['order_status'], ENT_QUOTES, 'UTF-8') . "'>
-                          <td>
-                            <div class='newStylOrd'>
-                              #{$order['order_code']}<p>{$date}</p>
-                            </div>
-                          </td>
-                          <td>{$imageHTML}</td>
-                          <td>{$productCount}</td>
-                          <td>KES {$total}</td>
-                          <td>".htmlspecialchars(ucwords(strtolower($order['buyer_name'])))."</td>
-                          <td><span class='badge {$paymentClass}'>{$paymentLabel}</span></td>
-                          <td><span class='badge {$statusClass}' title=\"".htmlspecialchars($statusTooltip)."\">{$statusLabel}</span></td>
-                          <td>".htmlspecialchars(ucfirst($order['payment_method'] ?? 'Unknown'))."</td>
-                          <td>
-                            <div
-                                class='receiptTd order-details-trigger'
-                                data-order-id='{$order['order_id']}'
-                                role='button'
-                                tabindex='0'
-                                aria-label='View order receipt'
-                            >
-                                <i class='fa-solid fa-receipt'></i>
-                            </div>
-                          </td>
-                          <td class='actions'>
-                        <div>";
-
-                  // Action based on status
-                  if ($statusClass === 'pending') {
-                    echo "
-                        <button
-                            class='btn-ship'
-                            data-id='{$order['order_id']}'
-                        >
-                            Mark&nbsp;as&nbsp;Shipped
-                        </button>
-
-                        <button
-                            type='button'
-                            class='ordDlte'
-                            data-order-id='{$order['order_id']}'
-                            aria-label='Delete order'
-                            title='Delete order'
-                        >
-                            <i class='fa-solid fa-trash'></i>
-                        </button>
-                    ";
-                  } else {
-                    echo "
-                        <button
-                            class='btn-view'
-                            data-buyer='{$order['buyer_id']}'
-                            data-order='{$order['order_code']}'
-                            data-buyername='".htmlspecialchars(
-                                $order['buyer_name'],
-                                ENT_QUOTES
-                            )."'
-                        >
-                            <i class='fa-solid fa-eye'></i>
-                        </button>
-
-                        <button
-                            type='button'
-                            class='ordDlte'
-                            data-order-id='{$order['order_id']}'
-                            aria-label='Delete order'
-                            title='Delete order'
-                        >
-                            <i class='fa-solid fa-trash'></i>
-                        </button>
-                    ";
-                  }
-
-                  echo "      </div>
-                          </td>
-                        </tr>";
-                  $count++;
-              }
-          }/*   else {
-
-            echo "<tr>
-                    <td colspan='11' style='text-align:center; color:#888;'>No data available in table</td>
-                  </tr>";
-            } */
-          ?>
-          </tbody>
-        </table>
-      </div>
-
-      <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleSellerOrdersTrack()">Go&nbsp;back</button> to continue delivering.</p>
-    </main>
-    <footer>
-      <p>&copy; 2025/2026, Makethub.shop, All Rights Reserved.</p><br>
-      <p>
-        <a href="privacy.php">Privacy Policy</a> |
-        <a href="terms.php">Terms & Conditions</a> |
-        <a href="contact.php">Contact Us</a>
-      </p>
-    </footer>
-
-  <!-- Notification container -->
-  <div id="notification-container"></div>
 <script>
 /* =========================================================
    MARKET HUB

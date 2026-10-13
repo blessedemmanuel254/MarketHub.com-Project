@@ -493,7 +493,7 @@ html body.no-scroll {
   }
 }
 
-.container .overlay, .container .payOverlay, .containerAdmin .navOverlay, .container .cartOverlay, body#adminBody .confirmation-popup-overlay, body .subGOverlay, .container main.buyerMain .slsDetlsOverlay {
+.container .overlay, .container .payOverlay, .containerAdmin .navOverlay, .container .cartOverlay, body#adminBody .confirmation-popup-overlay, body .subGOverlay, .container .slsDetlsOverlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -511,6 +511,8 @@ html body.no-scroll {
 
 .container .payOverlay {
   background-color: rgba(0, 0, 0, 0.205);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 1009;
 }
 
@@ -523,11 +525,11 @@ body .subGOverlay {
   background-color: rgba(0, 0, 0, 0.048);
 }
 
-.container main.buyerMain .slsDetlsOverlay {
+.container .slsDetlsOverlay {
   background-color: rgba(0, 0, 0, 0.296);/* 
   z-index: 1009; */
 }
-.container .overlay.active,  .container .payOverlay.active, .containerAdmin .navOverlay.active, .container .cartOverlay.active, body#adminBody .confirmation-popup-overlay.active, body .subGOverlay.active, .container main.buyerMain .slsDetlsOverlay.active {
+.container .overlay.active,  .container .payOverlay.active, .containerAdmin .navOverlay.active, .container .cartOverlay.active, body#adminBody .confirmation-popup-overlay.active, body .subGOverlay.active, .container .slsDetlsOverlay.active {
   display: block;
 }
 
@@ -2976,7 +2978,7 @@ body form.subG-form h3 span:hover {
   text-decoration: underline;
 }
 
-.container main .formContainer form .or-divider, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .or-divider, .photo-buttons .or-divider {
+.container main .formContainer form .or-divider, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .or-divider, .photo-buttons .or-divider, .container form.paymentContainer .or-divider {
   display: flex;
   align-items: center;
   text-align: center;
@@ -2985,8 +2987,12 @@ body form.subG-form h3 span:hover {
   margin: 16px 0;
 }
 
+.container form.paymentContainer .or-divider {
+  width: 100%;
+}
+
 .container main .formContainer form .or-divider::before,
-.container main .formContainer form .or-divider::after, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .or-divider::before, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .or-divider::after, .photo-buttons .or-divider::before, .photo-buttons .or-divider::after {
+.container main .formContainer form .or-divider::after, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .or-divider::before, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .or-divider::after, .photo-buttons .or-divider::before, .photo-buttons .or-divider::after, .container form.paymentContainer .or-divider::before, .container form.paymentContainer .or-divider::after {
   content: "";
   flex: 1;
   border-bottom: 1px solid #e0e0e0;
@@ -3669,6 +3675,8 @@ a.seller-right {
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border: 1px solid #dedede;
+  min-width: 300px;
+  max-width: 415px;
 
 }
 
@@ -3688,7 +3696,16 @@ a.seller-right {
 
 .container form.paymentContainer p {
   font-size: 13px;
-  margin-right: 15px;
+  margin-right: 10px;
+}
+
+.container form.paymentContainer p.successPrompt {
+  background-color: #0980001f;
+  color: #088000;
+  margin: 0;
+  border-radius: 4px;
+  padding: 8px 16px;
+  width: 100%;
 }
 
 .container form.paymentContainer p span {
@@ -3774,7 +3791,28 @@ a.seller-right {
   background-color: #dedede;
   font-size: 13px;
   cursor: pointer;
-  color: #898888;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.container form.paymentContainer button#btrPayBtn {
+  background-color: #088000;
+}
+
+.container form.paymentContainer button:hover {
+  opacity: .875;
+}
+
+.container form.paymentContainer button#antrNoTxt {
+  background-color: #fef3c7;
+  color: #0f0f0f;
+}
+
+.container form.paymentContainer button.mnulPay-btn {
+  background-color: #0f0f0f;
 }
 
 .container form.paymentContainer a {
@@ -6693,6 +6731,9 @@ AGENT ALERT VERIFICATION POPUP CSS
   width: 100%;
   height: 100%;
   background:rgba(0, 0, 0, 0.212);
+  
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: none;
   align-items: center;
   justify-content:center;
@@ -7534,7 +7575,7 @@ MOBILE
   ORDER BOTTOM SHEET
   ===================================================== */
 
-.container main.buyerMain .order-sheet {
+.container .order-sheet {
   position: fixed;
   left: 50%;
   bottom: 0;
@@ -7554,7 +7595,7 @@ MOBILE
   padding-bottom: 20px;
 }
 
-.container main.buyerMain .order-sheet.active {
+.container .order-sheet.active {
   transform: translate(-50%, 0);
 
 }
@@ -7564,7 +7605,7 @@ MOBILE
   SHEET HANDLE
   ===================================================== */
 
-.container main.buyerMain .order-sheet .sheet-handle {
+.container .order-sheet .sheet-handle {
   width: 42px;
   height: 4px;
   border-radius: 10px;
@@ -7578,7 +7619,7 @@ MOBILE
   SHEET HEADER
   ===================================================== */
 
-.container main.buyerMain .order-sheet .sheet-header {
+.container .order-sheet .sheet-header {
 
   padding: 10px 18px 14px;
 
@@ -7593,7 +7634,7 @@ MOBILE
 }
 
 
-.container main.buyerMain .order-sheet .sheet-header .sheet-title {
+.container .order-sheet .sheet-header .sheet-title {
 
   display: flex;
 
@@ -7602,7 +7643,7 @@ MOBILE
 }
 
 
-.container main.buyerMain .order-sheet .sheet-header .sheet-title strong {
+.container .order-sheet .sheet-header .sheet-title strong {
 
   font-size: 14px;
 
@@ -7611,7 +7652,7 @@ MOBILE
 }
 
 
-.container main.buyerMain .order-sheet .sheet-header .sheet-title span {
+.container .order-sheet .sheet-header .sheet-title span {
 
   margin-top: 2px;
 
@@ -7622,7 +7663,7 @@ MOBILE
 }
 
 
-.container main.buyerMain .order-sheet .sheet-header button.sheet-close {
+.container .order-sheet .sheet-header button.sheet-close {
 
   width: 28px;
 
@@ -7647,7 +7688,7 @@ MOBILE
 
 }
 
-.container main.buyerMain .order-sheet .sheet-header button.sheet-close:hover {
+.container .order-sheet .sheet-header button.sheet-close:hover {
   opacity: .875;
 }
 
@@ -7655,7 +7696,7 @@ MOBILE
   SHEET CONTENT
 ===================================================== */
 
-.container main.buyerMain .order-sheet .sheet-content {
+.container .order-sheet .sheet-content {
   overflow-y: auto;
   padding: 17px;
 
@@ -7668,28 +7709,28 @@ MOBILE
   WEBKIT SCROLLBAR
 ===================================================== */
 
-.container main.buyerMain .order-sheet .sheet-content::-webkit-scrollbar {
+.container .order-sheet .sheet-content::-webkit-scrollbar {
   width: 5px;
 }
 
-.container main.buyerMain .order-sheet .sheet-content::-webkit-scrollbar-track {
+.container .order-sheet .sheet-content::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.container main.buyerMain .order-sheet .sheet-content::-webkit-scrollbar-thumb {
+.container .order-sheet .sheet-content::-webkit-scrollbar-thumb {
   background: #898888;
   border-radius: 20px;
 }
 
 /* Hide the up/down arrow buttons */
-.container main.buyerMain .order-sheet .sheet-content::-webkit-scrollbar-button {
+.container .order-sheet .sheet-content::-webkit-scrollbar-button {
   display: none;
   width: 0;
   height: 0;
 }
 
 /* Optional: slightly darker while dragging/hovering */
-.container main.buyerMain .order-sheet .sheet-content::-webkit-scrollbar-thumb:hover {
+.container .order-sheet .sheet-content::-webkit-scrollbar-thumb:hover {
   background: #898888;
 }
 
@@ -7697,7 +7738,7 @@ MOBILE
   CUSTOMER CARD
   ===================================================== */
 
-.container main.buyerMain .order-sheet .sheet-content .customer-card {
+.container .order-sheet .sheet-content .customer-card {
 
   padding: 8px;
 
@@ -7713,7 +7754,7 @@ MOBILE
 }
 
 
-.container main.buyerMain .order-sheet .sheet-content .customer-card .customer-card-title {
+.container .order-sheet .sheet-content .customer-card .customer-card-title {
 
   font-size: 10px;
 
@@ -7724,7 +7765,7 @@ MOBILE
 }
 
 
-.container main.buyerMain .order-sheet .sheet-content .customer-card .customer-card-name {
+.container .order-sheet .sheet-content .customer-card .customer-card-name {
 
   font-size: 13px;
   font-weight: bod;
@@ -7732,7 +7773,7 @@ MOBILE
 }
 
 
-.container main.buyerMain .order-sheet .sheet-content .customer-card .customer-card-phone {
+.container .order-sheet .sheet-content .customer-card .customer-card-phone {
 
   font-size: 11px;
 
@@ -7746,7 +7787,7 @@ MOBILE
   ORDER TIMELINE
   ===================================================== */
 
-.container main.buyerMain .order-sheet .sheet-content .order-timeline {
+.container .order-sheet .sheet-content .order-timeline {
 
   display: flex;
 
@@ -7760,7 +7801,7 @@ MOBILE
 
 }
 
-.container main.buyerMain .order-sheet .sheet-content .order-timeline .timeline-line {
+.container .order-sheet .sheet-content .order-timeline .timeline-line {
 
   position: absolute;
 
@@ -7778,7 +7819,7 @@ MOBILE
 
 }
 
-.container main.buyerMain .order-sheet .sheet-content .order-timeline .timeline-item {
+.container .order-sheet .sheet-content .order-timeline .timeline-item {
 
   position: relative;
 
@@ -7791,7 +7832,7 @@ MOBILE
 }
 
 
-.container main.buyerMain .order-sheet .sheet-content .order-timeline .timeline-item .timeline-dot {
+.container .order-sheet .sheet-content .order-timeline .timeline-item .timeline-dot {
 
   width: 25px;
 
@@ -7816,7 +7857,7 @@ MOBILE
 }
 
 
-.container main.buyerMain .order-sheet .sheet-content .order-timeline .timeline-item.active .timeline-dot {
+.container .order-sheet .sheet-content .order-timeline .timeline-item.active .timeline-dot {
 
   background: #088000;
 
@@ -7825,7 +7866,7 @@ MOBILE
 }
 
 
-.container main.buyerMain .order-sheet .sheet-content .order-timeline .timeline-item .timeline-label {
+.container .order-sheet .sheet-content .order-timeline .timeline-item .timeline-label {
 
   font-size: 9px;
 
@@ -7834,7 +7875,7 @@ MOBILE
 }
 
 
-.container main.buyerMain .order-sheet .sheet-content .order-timeline .timeline-item.active .timeline-label {
+.container .order-sheet .sheet-content .order-timeline .timeline-item.active .timeline-label {
 
   color: #088000;
   font-weight: 600;
@@ -7846,7 +7887,7 @@ MOBILE
   ORDER ITEMS
   ===================================================== */
 
-.container main.buyerMain .order-sheet .sheet-content .items-title {
+.container .order-sheet .sheet-content .items-title {
 
   font-size: 12px;
 
@@ -7857,7 +7898,7 @@ MOBILE
 }
 
 
-.container main.buyerMain .order-sheet .sheet-content .sheet-item {
+.container .order-sheet .sheet-content .sheet-item {
 
   display: flex;
 
@@ -7872,14 +7913,14 @@ MOBILE
 }
 
 
-.container main.buyerMain .order-sheet .sheet-content .sheet-item:last-child {
+.container .order-sheet .sheet-content .sheet-item:last-child {
 
   border-bottom: none;
 
 }
 
 
-.container main.buyerMain .order-sheet .sheet-content .sheet-item .sheet-item-image {
+.container .order-sheet .sheet-content .sheet-item .sheet-item-image {
 
   width: 45px;
 
@@ -7896,7 +7937,7 @@ MOBILE
 }
 
 
-.container main.buyerMain .order-sheet .sheet-content .sheet-item .sheet-item-image img {
+.container .order-sheet .sheet-content .sheet-item .sheet-item-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -7904,14 +7945,14 @@ MOBILE
 }
 
 
-.container main.buyerMain .order-sheet .sheet-content .sheet-item .sheet-item-info {
+.container .order-sheet .sheet-content .sheet-item .sheet-item-info {
   flex: 1;
   min-width: 0;
 
 }
 
 
-.container main.buyerMain .order-sheet .sheet-content .sheet-item .sheet-item-name {
+.container .order-sheet .sheet-content .sheet-item .sheet-item-name {
 
   font-size: 13px;
 
@@ -7920,7 +7961,7 @@ MOBILE
 }
 
 
-.container main.buyerMain .order-sheet .sheet-content .sheet-item .sheet-item-meta {
+.container .order-sheet .sheet-content .sheet-item .sheet-item-meta {
 
   color: #898888;
 
@@ -7931,7 +7972,7 @@ MOBILE
 }
 
 
-.container main.buyerMain .order-sheet .sheet-content .sheet-item .sheet-item-price {
+.container .order-sheet .sheet-content .sheet-item .sheet-item-price {
 
   text-align: right;
 
@@ -7951,7 +7992,7 @@ MOBILE
   TOTALS
   ===================================================== */
 
-.container main.buyerMain .order-sheet .sheet-content .order-totals {
+.container .order-sheet .sheet-content .order-totals {
 
   margin-top: 10px;
 
@@ -7962,7 +8003,7 @@ MOBILE
 }
 
 
-.container main.buyerMain .order-sheet .sheet-content .total-row {
+.container .order-sheet .sheet-content .total-row {
 
   display: flex;
 
@@ -7979,7 +8020,7 @@ MOBILE
 }
 
 
-.container main.buyerMain .order-sheet .sheet-content .total-row.grand-total {
+.container .order-sheet .sheet-content .total-row.grand-total {
 
   margin-top: 6px;
 
@@ -8000,7 +8041,7 @@ MOBILE
   PAYMENT INFORMATION
   ===================================================== */
 
-.container main.buyerMain .order-sheet .sheet-content .payment-information {
+.container .order-sheet .sheet-content .payment-information {
 
   margin-top: 15px;
 
@@ -8011,43 +8052,34 @@ MOBILE
   border: 1px solid #eeeeee;
 
   border-radius: 12px;
-  display: none;
+  display: block;
 
 }
 
 
-.container main.buyerMain .order-sheet .sheet-content .payment-information .payment-information-row {
-
+.container .order-sheet .sheet-content .payment-information .payment-information-row {
   display: flex;
-
   justify-content: space-between;
-
   padding: 3px 0;
-
   font-size: 12px;
-
 }
 
-
-.container main.buyerMain .order-sheet .sheet-content .payment-information .payment-information-row span:first-child {
-
+.container .order-sheet .sheet-content .payment-information .payment-information-row span:first-child {
   color: #898888;
-
 }
 
-
-.container main.buyerMain .order-sheet .sheet-content .payment-information .payment-information-row span:last-child {
-
+.container .order-sheet .sheet-content .payment-information .payment-information-row span:last-child {
   font-weight: 500;
-
 }
-
+.container .order-sheet .sheet-content .payment-information .payment-information-row:last-child {
+  display: none;
+}
 
 /* =====================================================
   SHEET FOOTER
   ===================================================== */
 
-.container main.buyerMain .order-sheet .sheet-footer {
+.container .order-sheet .sheet-footer {
 
   padding: 13px 17px;
   border-top: 1px solid #eeeeee;
@@ -8055,7 +8087,7 @@ MOBILE
 
 }
 
-.container main.buyerMain .order-sheet .sheet-footer .print-receipt-button {
+.container .order-sheet .sheet-footer .print-receipt-button {
   min-height: 46px;
   border: none;
   border-radius: 11px;
@@ -8073,14 +8105,14 @@ MOBILE
 }
 
 
-.container main.buyerMain .order-sheet .sheet-footer .print-receipt-button:hover {
+.container .order-sheet .sheet-footer .print-receipt-button:hover {
 
   background: #222;
 
 }
 
 
-.container main.buyerMain .order-sheet .sheet-footer .close-sheet-button {
+.container .order-sheet .sheet-footer .close-sheet-button {
 
   width: 46px;
 
@@ -8103,7 +8135,7 @@ MOBILE
   EMPTY STATE
   ===================================================== */
 
-.container main.buyerMain .order-sheet .sheet-content .empty-orders {
+.container .order-sheet .sheet-content .empty-orders {
 
   padding: 60px 20px;
 
@@ -8114,7 +8146,7 @@ MOBILE
 }
 
 
-.container main.buyerMain .order-sheet .sheet-content .empty-orders i {
+.container .order-sheet .sheet-content .empty-orders i {
 
   font-size: 30px;
 
