@@ -848,6 +848,7 @@ $checkFollow->store_result();
 $isFollowing = $checkFollow->num_rows > 0;
 $checkFollow->close();
 
+
 // Fetch seller orders
 $sellerOrders = [];
 $stmt = $conn->prepare("

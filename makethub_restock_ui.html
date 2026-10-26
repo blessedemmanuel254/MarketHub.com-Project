@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAKETHUB | Restock</title>
+<style>
+:root {
+  --ink:#17211d; --muted:#69756f; --line:#e4eae6; --surface:#fff;
+  --page:#f5f7f5; --green:#16834a; --green-dark:#11683a; --green-soft:#e8f6ed;
+  --red:#c83b3b; --red-soft:#fff0ef; --amber:#a86708; --amber-soft:#fff5df;
+  --blue:#2865bb; --blue-soft:#edf4ff; --radius:16px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.app{max-width:1280px;margin:auto;padding:24px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:26px}
+.brand{display:flex;align-items:center;gap:11px;font-weight:850;letter-spacing:.3px}
+.brand-mark{width:42px;height:42px;border-radius:13px;background:var(--green);color:white;display:grid;place-items:center;font-size:18px}
+.brand small{display:block;color:var(--muted);font-size:12px;font-weight:500;letter-spacing:0;margin-top:2px}
+.top-actions{display:flex;align-items:center;gap:10px}
+.ghost-btn,.primary-btn{border:1px solid var(--line);border-radius:10px;background:white;padding:10px 14px;font-weight:700;color:var(--ink)}
+.primary-btn{background:var(--green);border-color:var(--green);color:white}
+.primary-btn:hover{background:var(--green-dark)}
+.page-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;margin-bottom:22px}
+.eyebrow{color:var(--green);font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:1.5px}
+h1{font-size:clamp(27px,4vw,36px);letter-spacing:-1.2px;margin:5px 0 7px}
+.subheading{color:var(--muted);margin:0;font-size:14px;line-height:1.5}
+.summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:24px}
+.summary-item{background:white;border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:13px}
+.summary-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;font-size:20px;flex-shrink:0}
+.summary-item strong{font-size:25px;display:block;line-height:1.1}
+.summary-item span:last-child{font-size:12px;color:var(--muted);display:block;margin-top:5px}
+.summary-item.urgent .summary-icon{background:var(--red-soft);color:var(--red)}
+.summary-item.low .summary-icon{background:var(--amber-soft);color:var(--amber)}
+.summary-item.demand .summary-icon{background:var(--blue-soft);color:var(--blue)}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 15px;flex-wrap:wrap}
+.search-wrap{position:relative;flex:1;min-width:220px;max-width:400px}
+.search-wrap span{position:absolute;left:13px;top:10px;color:#7b8780}
+.search-wrap input{width:100%;padding:10px 12px 10px 38px;border:1px solid var(--line);border-radius:10px;background:white;outline:none}
+.search-wrap input:focus,.control:focus{border-color:#65b58a;box-shadow:0 0 0 3px #16834a17}
+.toolbar-right{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:13px}
+.control{border:1px solid var(--line);background:white;padding:9px 11px;border-radius:9px;color:var(--ink);outline:none}
+.category{background:white;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-bottom:18px;box-shadow:0 3px 12px #16251b05}
+.category-head{padding:17px 19px;display:flex;align-items:center;justify-content:space-between;gap:14px;border-bottom:1px solid var(--line)}
+.category-title{display:flex;align-items:center;gap:11px;min-width:0}
+.category-symbol{width:38px;height:38px;display:grid;place-items:center;border-radius:11px;font-size:18px;flex-shrink:0}
+.category-title h2{font-size:16px;margin:0 0 4px;letter-spacing:-.2px}
+.category-title p{font-size:12px;color:var(--muted);margin:0}
+.count-pill{font-size:11px;font-weight:800;padding:5px 9px;border-radius:20px;white-space:nowrap}
+.urgent .category-head{background:linear-gradient(90deg,#fff7f6,#fff 65%)}
+.urgent .category-symbol{background:var(--red-soft);color:var(--red)}
+.urgent .count-pill{background:var(--red-soft);color:var(--red)}
+.low .category-head{background:linear-gradient(90deg,#fffbf1,#fff 65%)}
+.low .category-symbol{background:var(--amber-soft);color:var(--amber)}
+.low .count-pill{background:var(--amber-soft);color:var(--amber)}
+.demand .category-head{background:linear-gradient(90deg,#f5f8ff,#fff 65%)}
+.demand .category-symbol{background:var(--blue-soft);color:var(--blue)}
+.demand .count-pill{background:var(--blue-soft);color:var(--blue)}
+.product-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px;padding:0 18px}
+.product-row{display:flex;align-items:center;gap:11px;min-width:0;padding:13px 0;border-bottom:1px solid #edf0ee}
+.product-image{width:48px;height:48px;object-fit:cover;border-radius:10px;background:#f1f4f1;flex-shrink:0;border:1px solid #e9eeea}
+.product-info{min-width:0;flex:1}
+.product-name{font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}
+.product-group{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.product-meta{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-top:7px}
+.qty{font-size:11px;color:#3f4b44;background:#f1f4f2;padding:4px 7px;border-radius:6px;white-space:nowrap}
+.qty.critical{color:var(--red);background:var(--red-soft)}
+.qty.suggested{color:var(--amber);background:var(--amber-soft)}
+.qty.demand-tag{color:var(--blue);background:var(--blue-soft)}
+.restock-btn{border:1px solid #b9dfc7;background:#f0faf3;color:var(--green-dark);padding:8px 10px;border-radius:8px;font-size:11px;font-weight:800;white-space:nowrap;flex-shrink:0}
+.restock-btn:hover{background:var(--green);color:white;border-color:var(--green)}
+.category-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 18px;background:#fcfdfc}
+.pagination{display:flex;align-items:center;gap:6px}
+.page-btn{border:1px solid var(--line);background:white;color:var(--ink);border-radius:8px;min-width:32px;height:32px;padding:0 9px;font-size:12px;font-weight:700}
+.page-btn:disabled{opacity:.35;cursor:not-allowed}
+.page-btn.current{background:var(--green);border-color:var(--green);color:white}
+.page-note{font-size:11px;color:var(--muted)}
+.empty-state{padding:28px 18px;text-align:center;color:var(--muted);font-size:13px;grid-column:1/-1}
+.hidden{display:none!important}
+.footer-note{font-size:12px;color:var(--muted);padding:4px 2px 20px}
+.modal-backdrop{position:fixed;inset:0;background:#101b15a8;display:none;align-items:center;justify-content:center;padding:18px;z-index:10}
+.modal-backdrop.open{display:flex}
+.modal{width:min(100%,440px);background:white;border-radius:18px;box-shadow:0 25px 80px #0003;overflow:hidden;animation:pop .18s ease-out}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+.modal-head{padding:20px 22px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px}
+.modal-head h2{font-size:19px;margin:0 0 5px}
+.modal-head p{font-size:12px;color:var(--muted);margin:0}
+.close-btn{border:0;background:#f1f4f2;border-radius:9px;width:34px;height:34px;font-size:21px;line-height:1;flex-shrink:0}
+.modal-body{padding:20px 22px}
+.modal-product{display:flex;align-items:center;gap:12px;background:#f7f9f7;border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:19px}
+.modal-product img{width:54px;height:54px;object-fit:cover;border-radius:9px}
+.modal-product strong{display:block;font-size:14px;margin-bottom:5px}
+.modal-product span{font-size:12px;color:var(--muted)}
+.stock-facts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.fact{padding:12px;background:#f7f9f7;border-radius:10px}
+.fact span{font-size:11px;color:var(--muted);display:block;margin-bottom:5px}
+.fact strong{font-size:18px}
+.field-label{font-size:12px;font-weight:800;display:block;margin-bottom:8px}
+.quantity-input{width:100%;border:1px solid #cfd8d1;border-radius:10px;padding:12px;font-size:18px;font-weight:750;outline:none}
+.quantity-input:focus{border-color:var(--green);box-shadow:0 0 0 3px #16834a17}
+.help-text{font-size:11px;color:var(--muted);margin-top:7px;line-height:1.5}
+.modal-actions{display:flex;gap:9px;margin-top:20px}
+.modal-actions button{flex:1;padding:12px;border-radius:10px;font-weight:800}
+.cancel-btn{border:1px solid var(--line);background:white}
+.save-btn{border:1px solid var(--green);background:var(--green);color:white}
+.toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,20px);background:#17211d;color:white;border-radius:10px;padding:12px 16px;font-size:13px;box-shadow:0 10px 30px #0002;opacity:0;pointer-events:none;transition:.22s;z-index:20;max-width:calc(100% - 32px);text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:760px){.app{padding:16px}.topbar{margin-bottom:22px}.page-heading{align-items:flex-start;flex-direction:column}.summary{gap:9px}.summary-item{padding:12px;gap:9px}.summary-icon{width:34px;height:34px}.summary-item strong{font-size:21px}.product-grid{grid-template-columns:1fr}.category-head{padding:14px}.product-grid{padding:0 14px}.category-foot{padding:12px 14px}}
+@media(max-width:480px){.app{padding:12px}.brand{font-size:13px}.brand-mark{width:37px;height:37px}.top-actions .ghost-btn{display:none}.summary{grid-template-columns:1fr}.summary-item{padding:11px 14px}.summary-item strong{font-size:20px}.toolbar{align-items:stretch}.search-wrap{max-width:none;min-width:100%}.toolbar-right{justify-content:space-between}.category-title h2{font-size:14px}.category-title p{max-width:220px;line-height:1.4}.product-row{gap:8px}.product-image{width:42px;height:42px}.restock-btn{padding:8px;font-size:10px}.category-foot{align-items:flex-start;flex-direction:column}.modal-head,.modal-body{padding-left:17px;padding-right:17px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><div class="brand-mark">mh</div><div>MAKETHUB<small>Seller dashboard / Inventory</small></div></div>
+    <div class="top-actions"><button class="ghost-btn" id="refreshBtn">↻ Refresh list</button><button class="primary-btn" id="exportBtn">Export list ↓</button></div>
+  </header>
+
+  <section class="page-heading">
+    <div><div class="eyebrow">Inventory management</div><h1>Restock products</h1><p class="subheading">Keep your shelves ready. Review urgent stock, low inventory and products trending in demand.</p></div>
+  </section>
+
+  <section class="summary" aria-label="Restock summary">
+    <div class="summary-item urgent"><div class="summary-icon">!</div><div><strong id="outSummary">0</strong><span>Out of stock</span></div></div>
+    <div class="summary-item low"><div class="summary-icon">↘</div><div><strong id="lowSummary">0</strong><span>Running low</span></div></div>
+    <div class="summary-item demand"><div class="summary-icon">↗</div><div><strong id="demandSummary">0</strong><span>Demand recommendations</span></div></div>
+  </section>
+
+  <div class="toolbar">
+    <div class="search-wrap"><span>⌕</span><input id="searchInput" type="search" placeholder="Search product or product group…" aria-label="Search products"></div>
+    <div class="toolbar-right"><label for="pageSize">Products per category</label><select class="control" id="pageSize"><option value="5">5</option><option value="10">10</option><option value="15" selected>15</option><option value="20">20</option><option value="30">30</option></select></div>
+  </div>
+
+  <main id="categories">
+    <section class="category urgent" id="outSection">
+      <div class="category-head"><div class="category-title"><div class="category-symbol">!</div><div><h2>Out of stock</h2><p>Unavailable products that need immediate attention.</p></div></div><span class="count-pill" id="outCount">0 products</span></div>
+      <div class="product-grid" id="outGrid"></div>
+      <div class="category-foot"><span class="page-note" id="outPageNote"></span><div class="pagination" id="outPagination"></div></div>
+    </section>
+
+    <section class="category low" id="lowSection">
+      <div class="category-head"><div class="category-title"><div class="category-symbol">↘</div><div><h2>Running low</h2><p>Stock is below the preferred level. Suggested quantity included.</p></div></div><span class="count-pill" id="lowCount">0 products</span></div>
+      <div class="product-grid" id="lowGrid"></div>
+      <div class="category-foot"><span class="page-note" id="lowPageNote"></span><div class="pagination" id="lowPagination"></div></div>
+    </section>
+
+    <section class="category demand" id="demandSection">
+      <div class="category-head"><div class="category-title"><div class="category-symbol">↗</div><div><h2>Recommended by demand</h2><p>Popular products that may need extra stock to meet demand.</p></div></div><span class="count-pill" id="demandCount">0 products</span></div>
+      <div class="product-grid" id="demandGrid"></div>
+      <div class="category-foot"><span class="page-note" id="demandPageNote"></span><div class="pagination" id="demandPagination"></div></div>
+    </section>
+  </main>
+  <p class="footer-note">Demo interface · Sample products and quantities are for UI preview only. Connect this page to your inventory database to use real stock data.</p>
+</div>
+
+<div class="modal-backdrop" id="restockModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <div class="modal-head"><div><h2 id="modalTitle">Restock product</h2><p>Review current stock and enter the new total quantity.</p></div><button class="close-btn" id="closeModal" aria-label="Close dialog">×</button></div>
+    <form id="restockForm">
+      <div class="modal-body">
+        <div class="modal-product"><img id="modalImage" src="" alt=""><div><strong id="modalProductName"></strong><span id="modalProductGroup"></span></div></div>
+        <div class="stock-facts"><div class="fact"><span>Current quantity</span><strong id="modalCurrent">0</strong></div><div class="fact"><span>Suggested addition</span><strong id="modalSuggested">—</strong></div></div>
+        <label class="field-label" for="newQuantity">New total stock quantity</label>
+        <input class="quantity-input" type="number" id="newQuantity" min="0" step="any" required placeholder="Enter new total quantity">
+        <p class="help-text">Enter the total quantity you expect to have after restocking, not just the number of units being added.</p>
+        <div class="modal-actions"><button type="button" class="cancel-btn" id="cancelModal">Cancel</button><button type="submit" class="save-btn">Update stock</button></div>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* FRONT-END DEMO DATA
+   Replace these arrays with product data returned by your PHP/database endpoint.
+   `qty` is current stock; `suggested` is the recommended additional quantity. */
+const inventory = {
+  out: [
+    {id:1,name:"Fresh Milk 500ml",group:"Dairy & Chilled",qty:0,unit:"pcs",suggested:24,image:"https://images.unsplash.com/photo-1563636619-e9143da7973b?w=120&h=120&fit=crop"},
+    {id:2,name:"White Bread",group:"Bakery",qty:0,unit:"loaves",suggested:18,image:"https://images.unsplash.com/photo-1509440159596-0249088772ff?w=120&h=120&fit=crop"},
+    {id:3,name:"Maize Flour 2kg",group:"Flour & Cereals",qty:0,unit:"packets",suggested:20,image:"https://images.unsplash.com/photo-1601593768792-6e5c0e7c9f0b?w=120&h=120&fit=crop"},
+    {id:4,name:"Cooking Oil 1L",group:"Cooking Essentials",qty:0,unit:"bottles",suggested:12,image:"https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=120&h=120&fit=crop"},
+    {id:5,name:"Bottled Water 1L",group:"Drinks",qty:0,unit:"bottles",suggested:24,image:"https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=120&h=120&fit=crop"},
+    {id:6,name:"Sugar 1kg",group:"Sugar & Sweeteners",qty:0,unit:"packets",suggested:15,image:"https://images.unsplash.com/photo-1581441363689-1f3c3c414635?w=120&h=120&fit=crop"}
+  ],
+  low: [
+    {id:7,name:"Eggs Tray (30)",group:"Dairy & Eggs",qty:4,unit:"trays",suggested:12,image:"https://images.unsplash.com/photo-1506976785307-8732e854ad03?w=120&h=120&fit=crop"},
+    {id:8,name:"Rice 2kg",group:"Flour & Cereals",qty:3,unit:"packets",suggested:10,image:"https://images.unsplash.com/photo-1586201375761-83865001e31c?w=120&h=120&fit=crop"},
+    {id:9,name:"Soda 500ml",group:"Drinks",qty:6,unit:"bottles",suggested:24,image:"https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=120&h=120&fit=crop"},
+    {id:10,name:"Bar Soap",group:"Home Care",qty:5,unit:"bars",suggested:15,image:"https://images.unsplash.com/photo-1600857544200-b2f666a9a2ec?w=120&h=120&fit=crop"},
+    {id:11,name:"Tea Leaves 250g",group:"Tea & Coffee",qty:2,unit:"packets",suggested:8,image:"https://images.unsplash.com/photo-1597318181409-cf64d0b5d8a2?w=120&h=120&fit=crop"},
+    {id:12,name:"Toilet Paper",group:"Home Care",qty:4,unit:"rolls",suggested:20,image:"https://images.unsplash.com/photo-1584556812952-905ffd0c611a?w=120&h=120&fit=crop"},
+    {id:13,name:"Bottled Juice 1L",group:"Drinks",qty:3,unit:"bottles",suggested:10,image:"https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=120&h=120&fit=crop"}
+  ],
+  demand: [
+    {id:14,name:"Potatoes 1kg",group:"Fresh Produce",qty:18,unit:"kg",suggested:20,image:"https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=120&h=120&fit=crop"},
+    {id:15,name:"Bananas",group:"Fresh Produce",qty:12,unit:"bunches",suggested:10,image:"https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=120&h=120&fit=crop"},
+    {id:16,name:"Instant Noodles",group:"Quick Meals",qty:16,unit:"packets",suggested:24,image:"https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=120&h=120&fit=crop"},
+    {id:17,name:"Bottled Water 500ml",group:"Drinks",qty:22,unit:"bottles",suggested:30,image:"https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=120&h=120&fit=crop"},
+    {id:18,name:"Mandazi",group:"Bakery",qty:8,unit:"pcs",suggested:20,image:"https://images.unsplash.com/photo-1608198093002-ad4e005484c5?w=120&h=120&fit=crop"},
+    {id:19,name:"Laundry Detergent",group:"Home Care",qty:10,unit:"packets",suggested:12,image:"https://images.unsplash.com/photo-1585421514285-efb74c2b69ba?w=120&h=120&fit=crop"}
+  ]
+};
+
+const categoryConfig = {
+  out:{grid:"outGrid",pagination:"outPagination",note:"outPageNote",count:"outCount",summary:"outSummary",label:"Out of stock"},
+  low:{grid:"lowGrid",pagination:"lowPagination",note:"lowPageNote",count:"lowCount",summary:"lowSummary",label:"Running low"},
+  demand:{grid:"demandGrid",pagination:"demandPagination",note:"demandPageNote",count:"demandCount",summary:"demandSummary",label:"Recommended by demand"}
+};
+const pageState = {out:1,low:1,demand:1};
+let pageSize = 15;
+let selectedProduct = null;
+let toastTimer;
+
+const escapeHtml = value => String(value).replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[ch]));
+function productList(category) {
+  const query = document.getElementById("searchInput").value.trim().toLowerCase();
+  return inventory[category].filter(p => !query || p.name.toLowerCase().includes(query) || p.group.toLowerCase().includes(query));
+}
+function productRow(product, category) {
+  const quantityClass = category === "out" ? "qty critical" : "qty";
+  const suggested = category === "low"
+    ? `<span class="qty suggested">Suggested: +${escapeHtml(product.suggested)} ${escapeHtml(product.unit)}</span>`
+    : category === "demand" ? `<span class="qty demand-tag">High demand</span>` : "";
+  return `<article class="product-row">
+    <img class="product-image" src="${escapeHtml(product.image)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22 viewBox=%220 0 48 48%22%3E%3Crect width=%2248%22 height=%2248%22 rx=%228%22 fill=%22%23eef2ef%22/%3E%3Cpath d=%22M12 32l8-9 5 5 5-7 7 11z%22 fill=%22%23aab8ae%22/%3E%3Ccircle cx=%2218%22 cy=%2216%22 r=%224%22 fill=%22%23aab8ae%22/%3E%3C/svg%3E'">
+    <div class="product-info"><div class="product-name" title="${escapeHtml(product.name)}">${escapeHtml(product.name)}</div>
+    <div class="product-group">${escapeHtml(product.group)}</div><div class="product-meta"><span class="${quantityClass}">Stock: ${escapeHtml(product.qty)} ${escapeHtml(product.unit)}</span>${suggested}</div></div>
+    <button class="restock-btn" data-restock="${product.id}" data-category="${category}">＋ Restock</button>
+  </article>`;
+}
+function renderCategory(category) {
+  const config = categoryConfig[category];
+  const list = productList(category);
+  const totalPages = Math.max(1,Math.ceil(list.length/pageSize));
+  pageState[category] = Math.min(pageState[category],totalPages);
+  const start = (pageState[category]-1)*pageSize;
+  const pageItems = list.slice(start,start+pageSize);
+  document.getElementById(config.grid).innerHTML = pageItems.length ? pageItems.map(p=>productRow(p,category)).join("") : `<div class="empty-state">No products found in this category.</div>`;
+  document.getElementById(config.count).textContent = `${list.length} product${list.length===1?"":"s"}`;
+  document.getElementById(config.summary).textContent = inventory[category].length;
+  document.getElementById(config.note).textContent = list.length ? `Showing ${start+1}–${Math.min(start+pageSize,list.length)} of ${list.length}` : "0 products";
+  const pagination = document.getElementById(config.pagination);
+  if (totalPages <= 1) { pagination.innerHTML = ""; return; }
+  let buttons = `<button class="page-btn" data-page="${category}:${pageState[category]-1}" ${pageState[category]===1?"disabled":""} aria-label="Previous page">‹</button>`;
+  for(let p=1;p<=totalPages;p++){
+    if(totalPages>7 && p>2 && p<totalPages-1 && Math.abs(p-pageState[category])>1){
+      if(p===3 || p===totalPages-2) buttons += `<span class="page-note">…</span>`;
+      continue;
+    }
+    buttons += `<button class="page-btn ${p===pageState[category]?"current":""}" data-page="${category}:${p}" aria-label="Page ${p}">${p}</button>`;
+  }
+  buttons += `<button class="page-btn" data-page="${category}:${pageState[category]+1}" ${pageState[category]===totalPages?"disabled":""} aria-label="Next page">›</button>`;
+  pagination.innerHTML = buttons;
+}
+function renderAll(){Object.keys(categoryConfig).forEach(renderCategory);}
+function openRestock(product,category){
+  selectedProduct = {product,category};
+  document.getElementById("modalProductName").textContent = product.name;
+  document.getElementById("modalProductGroup").textContent = product.group;
+  document.getElementById("modalImage").src = product.image;
+  document.getElementById("modalImage").onerror = function(){this.style.visibility="hidden";};
+  document.getElementById("modalCurrent").textContent = `${product.qty} ${product.unit}`;
+  document.getElementById("modalSuggested").textContent = category === "out" ? `${product.suggested} ${product.unit}` : `+${product.suggested} ${product.unit}`;
+  const input = document.getElementById("newQuantity");
+  input.value = product.qty + product.suggested;
+  input.min = product.qty;
+  document.getElementById("restockModal").classList.add("open");
+  setTimeout(()=>input.focus(),50);
+}
+function closeRestock(){document.getElementById("restockModal").classList.remove("open");selectedProduct=null;}
+function showToast(message){const toast=document.getElementById("toast");toast.textContent=message;toast.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove("show"),3000);}
+
+document.getElementById("categories").addEventListener("click",e=>{
+  const restockButton=e.target.closest("[data-restock]");
+  if(restockButton){
+    const category=restockButton.dataset.category;
+    const product=inventory[category].find(p=>p.id===Number(restockButton.dataset.restock));
+    if(product)openRestock(product,category);
+    return;
+  }
+  const pageButton=e.target.closest("[data-page]");
+  if(pageButton && !pageButton.disabled){
+    const [category,page]=pageButton.dataset.page.split(":");
+    pageState[category]=Number(page);
+    renderCategory(category);
+  }
+});
+document.getElementById("searchInput").addEventListener("input",()=>{Object.keys(pageState).forEach(k=>pageState[k]=1);renderAll();});
+document.getElementById("pageSize").addEventListener("change",e=>{pageSize=Number(e.target.value);Object.keys(pageState).forEach(k=>pageState[k]=1);renderAll();});
+document.getElementById("closeModal").addEventListener("click",closeRestock);
+document.getElementById("cancelModal").addEventListener("click",closeRestock);
+document.getElementById("restockModal").addEventListener("click",e=>{if(e.target.id==="restockModal")closeRestock();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeRestock();});
+document.getElementById("restockForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  if(!selectedProduct)return;
+  const quantity=Number(document.getElementById("newQuantity").value);
+  if(!Number.isFinite(quantity)||quantity<selectedProduct.product.qty){showToast("New stock must be at least the current quantity.");return;}
+  const {product,category}=selectedProduct;
+  const oldQty=product.qty;
+  product.qty=quantity;
+  // Demo behavior: remove a product from Out of stock once its quantity is above zero.
+  if(category==="out" && quantity>0){
+    inventory.out=inventory.out.filter(p=>p.id!==product.id);
+    // It now belongs in normal inventory; this demo doesn't auto-classify it into another section.
+  }
+  closeRestock();
+  renderAll();
+  showToast(`${product.name}: stock updated from ${oldQty} to ${quantity} ${product.unit}. Demo only — connect your backend to save permanently.`);
+});
+document.getElementById("refreshBtn").addEventListener("click",()=>{renderAll();showToast("List refreshed from the current demo data.");});
+document.getElementById("exportBtn").addEventListener("click",()=>{
+  const rows=[["Category","Product","Product group","Current quantity","Unit","Suggested restock quantity"]];
+  Object.entries(inventory).forEach(([category,products])=>products.forEach(p=>rows.push([category,p.name,p.group,p.qty,p.unit,p.suggested])));
+  const csv=rows.map(row=>row.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\r\n");
+  const url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8;"}));
+  const a=document.createElement("a");a.href=url;a.download="makethub-restock-list.csv";a.click();URL.revokeObjectURL(url);
+});
+renderAll();
+</script>
+</body>
+</html>

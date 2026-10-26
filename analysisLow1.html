@@ -1,0 +1,1921 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POS Sales Analytics</title>
+
+<style>
+:root {
+    --bg: #f5f6f8;
+    --surface: #ffffff;
+    --text: #17191f;
+    --muted: #818794;
+    --border: #e9ebef;
+    --green: #12a86b;
+    --green-light: #e8f8ef;
+    --bar: #dfe3e9;
+    --black: #17191f;
+    --radius: 18px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Inter, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+button, select {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+.dashboard {
+    max-width: 1450px;
+    margin: auto;
+    padding: 30px;
+}
+
+/* HEADER */
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: var(--black);
+    color: white;
+    font-size: 23px;
+}
+
+.brand h1 {
+    margin: 0;
+    font-size: 21px;
+    letter-spacing: -0.6px;
+}
+
+.brand p {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 5px 0 0;
+}
+
+.demo-label {
+    padding: 8px 12px;
+    border-radius: 30px;
+    background: #fff2d9;
+    color: #946300;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* MAIN LAYOUT */
+
+.main-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 290px;
+    gap: 22px;
+    align-items: start;
+}
+
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    min-width: 0;
+}
+
+.chart-card {
+    overflow: hidden;
+}
+
+.card-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+
+.eyebrow {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.card-heading h2 {
+    font-size: 24px;
+    letter-spacing: -0.8px;
+    margin: 8px 0 6px;
+}
+
+.subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 0;
+    line-height: 1.6;
+}
+
+.period-controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+}
+
+.period-btn {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 15px;
+    background: white;
+    color: #666d78;
+    font-size: 13px;
+    font-weight: 600;
+    transition: .2s ease;
+}
+
+.period-btn:hover {
+    border-color: #aeb5bf;
+}
+
+.period-btn.active {
+    background: var(--black);
+    color: white;
+    border-color: var(--black);
+}
+
+.filters {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 20px 0 12px;
+}
+
+.filters label {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.filter-control {
+    background: white;
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    border-radius: 9px;
+    color: var(--text);
+    outline: none;
+    font-size: 13px;
+    max-width: 100%;
+}
+
+.filter-control:focus {
+    border-color: var(--green);
+}
+
+/* CHART */
+
+.chart-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 14px 0;
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+}
+
+.legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: #626976;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.legend-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 3px;
+    background: var(--bar);
+}
+
+.legend-dot.green {
+    background: var(--green);
+}
+
+.chart-summary {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 360px;
+    margin-top: 5px;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: pan-y;
+}
+
+.tooltip {
+    position: absolute;
+    display: none;
+    pointer-events: none;
+    z-index: 5;
+    background: #17191f;
+    color: white;
+    padding: 12px 14px;
+    border-radius: 11px;
+    box-shadow: 0 8px 30px #0002;
+    min-width: 135px;
+    font-size: 12px;
+}
+
+.tooltip strong {
+    display: block;
+    font-size: 16px;
+    margin-top: 6px;
+}
+
+.tooltip span {
+    color: #bdc3cc;
+}
+
+.chart-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--border);
+    padding-top: 18px;
+    margin-top: 5px;
+}
+
+.chart-footer p {
+    color: var(--muted);
+    font-size: 12px;
+    margin: 0;
+    line-height: 1.7;
+}
+
+.export-btn {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: white;
+    padding: 10px 13px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.export-btn:hover {
+    background: #f6f7f9;
+}
+
+/* SUMMARY CARDS */
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 22px;
+}
+
+.summary-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    padding: 19px;
+    min-width: 0;
+}
+
+.summary-label {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.summary-value {
+    margin: 12px 0 8px;
+    font-size: clamp(18px, 2vw, 25px);
+    font-weight: 800;
+    letter-spacing: -0.8px;
+    overflow-wrap: anywhere;
+}
+
+.summary-note {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.green-text {
+    color: var(--green);
+}
+
+/* SIDEBAR */
+
+.sidebar {
+    display: grid;
+    gap: 18px;
+}
+
+.side-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+    min-width: 0;
+}
+
+.side-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+}
+
+.side-description {
+    margin: 7px 0 18px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.winner-icon {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    background: var(--green-light);
+    color: var(--green);
+    border-radius: 15px;
+    font-size: 24px;
+    margin-bottom: 15px;
+}
+
+.winner-period {
+    font-size: 23px;
+    font-weight: 800;
+    letter-spacing: -.7px;
+    margin-bottom: 8px;
+    overflow-wrap: anywhere;
+}
+
+.winner-amount {
+    color: var(--green);
+    font-weight: 800;
+    font-size: 18px;
+}
+
+.winner-description {
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.rank-list {
+    display: grid;
+    gap: 17px;
+    margin-top: 22px;
+}
+
+.rank-row {
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+}
+
+.rank-number {
+    width: 25px;
+    height: 25px;
+    border-radius: 8px;
+    background: #f0f2f5;
+    display: grid;
+    place-items: center;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.rank-row:first-child .rank-number {
+    background: var(--green-light);
+    color: var(--green);
+}
+
+.rank-name {
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 7px;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.rank-amount {
+    white-space: nowrap;
+}
+
+.rank-track {
+    height: 6px;
+    border-radius: 20px;
+    background: #eff1f4;
+    overflow: hidden;
+}
+
+.rank-fill {
+    height: 100%;
+    background: #cbd1d9;
+    border-radius: inherit;
+}
+
+.rank-row:first-child .rank-fill {
+    background: var(--green);
+}
+
+.insight-box {
+    padding: 15px;
+    border-radius: 12px;
+    background: #f7f8fa;
+    color: #555d69;
+    font-size: 12px;
+    line-height: 1.8;
+}
+
+.insight-box strong {
+    color: var(--text);
+}
+
+.side-footnote {
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.8;
+    margin-top: 16px;
+}
+
+/* ANIMATION STATUS */
+
+.live-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: var(--green);
+    font-weight: 700;
+}
+
+.live-dot {
+    width: 7px;
+    height: 7px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: livePulse 1.6s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: .4;
+        transform: scale(.7);
+    }
+}
+
+@keyframes winnerGlow {
+    0%, 100% {
+        filter: drop-shadow(0 0 0 rgba(18,168,107,0));
+    }
+    50% {
+        filter: drop-shadow(0 0 9px rgba(18,168,107,.38));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1050px) {
+    .main-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .sidebar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .sidebar .side-card:last-child {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 650px) {
+    .dashboard {
+        padding: 14px;
+    }
+
+    .topbar {
+        align-items: flex-start;
+    }
+
+    .brand h1 {
+        font-size: 18px;
+    }
+
+    .demo-label {
+        font-size: 10px;
+    }
+
+    .card {
+        padding: 17px;
+    }
+
+    .card-heading h2 {
+        font-size: 21px;
+    }
+
+    .chart-container {
+        height: 290px;
+    }
+
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .summary-value {
+        font-size: 24px;
+    }
+
+    .sidebar {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar .side-card:last-child {
+        grid-column: auto;
+    }
+
+    .filters {
+        align-items: flex-start;
+    }
+
+    .filters label {
+        width: 100%;
+    }
+
+    .filter-control {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .period-btn {
+        padding: 10px 12px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="dashboard">
+
+    <header class="topbar">
+        <div class="brand">
+            <div class="brand-icon">▥</div>
+            <div>
+                <h1>Sales Analytics</h1>
+                <p>Point of Sale · Performance Overview</p>
+            </div>
+        </div>
+
+        <span class="demo-label">DEMO DATA</span>
+    </header>
+
+    <main class="main-grid">
+
+        <section>
+
+            <div class="card chart-card">
+
+                <div class="card-heading">
+                    <div>
+                        <div class="eyebrow">Revenue performance</div>
+                        <h2 id="chartTitle">Daily Sales</h2>
+                        <p class="subtitle" id="chartSubtitle">
+                            Compare the total sales of each day.
+                        </p>
+                    </div>
+
+                    <div class="live-indicator">
+                        <span class="live-dot"></span>
+                        Best performer highlighted
+                    </div>
+                </div>
+
+                <div class="period-controls" role="group"
+                     aria-label="Sales comparison period">
+
+                    <button class="period-btn active"
+                            data-mode="day"
+                            aria-pressed="true">
+                        Daily
+                    </button>
+
+                    <button class="period-btn"
+                            data-mode="week"
+                            aria-pressed="false">
+                        Weekly
+                    </button>
+
+                    <button class="period-btn"
+                            data-mode="month"
+                            aria-pressed="false">
+                        Monthly
+                    </button>
+
+                </div>
+
+                <div class="filters">
+                    <label id="periodLabel" for="periodSelect">
+                        Selected week
+                    </label>
+
+                    <select id="periodSelect"
+                            class="filter-control"></select>
+
+                    <label for="yearSelect">Year</label>
+
+                    <select id="yearSelect"
+                            class="filter-control"></select>
+                </div>
+
+                <div class="chart-meta">
+                    <div class="legend">
+                        <div class="legend-item">
+                            <span class="legend-dot"></span>
+                            Other periods
+                        </div>
+
+                        <div class="legend-item">
+                            <span class="legend-dot green"></span>
+                            Best performer
+                        </div>
+                    </div>
+
+                    <div class="chart-summary" id="chartSummary">
+                        7 days compared
+                    </div>
+                </div>
+
+                <div class="chart-container" id="chartContainer">
+                    <canvas id="salesChart"
+                            aria-label="Sales comparison bar chart"
+                            role="img">
+                        Sales comparison chart.
+                    </canvas>
+
+                    <div class="tooltip" id="chartTooltip">
+                        <span id="tooltipLabel"></span>
+                        <strong id="tooltipValue"></strong>
+                    </div>
+                </div>
+
+                <div class="chart-footer">
+                    <p id="chartFooterText">
+                        Bars are ranked by total sales. The green bar
+                        identifies the highest-selling period.
+                    </p>
+
+                    <button class="export-btn" id="exportBtn">
+                        Export CSV ↗
+                    </button>
+                </div>
+
+            </div>
+
+            <div class="summary-grid">
+
+                <div class="summary-card">
+                    <div class="summary-label" id="totalLabel">
+                        Total sales this week
+                    </div>
+
+                    <div class="summary-value" id="totalSales">
+                        KES 0
+                    </div>
+
+                    <div class="summary-note">
+                        Combined sales for the selected period
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-label">Best performer</div>
+
+                    <div class="summary-value green-text"
+                         id="bestSales">
+                        KES 0
+                    </div>
+
+                    <div class="summary-note" id="bestSalesNote">
+                        Highest sales recorded
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-label">Average per period</div>
+
+                    <div class="summary-value" id="averageSales">
+                        KES 0
+                    </div>
+
+                    <div class="summary-note" id="averageNote">
+                        Average sales for each comparison
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <aside class="sidebar">
+
+            <div class="side-card">
+                <div class="eyebrow">Top performance</div>
+                <h3 class="side-title" style="margin-top:8px">
+                    Period champion
+                </h3>
+
+                <p class="side-description">
+                    The period with the highest total sales.
+                </p>
+
+                <div class="winner-icon">↗</div>
+
+                <div class="winner-period" id="winnerName">
+                    Loading...
+                </div>
+
+                <div class="winner-amount" id="winnerAmount">
+                    KES 0
+                </div>
+
+                <div class="winner-description" id="winnerDescription">
+                    The highest-performing period will appear here.
+                </div>
+            </div>
+
+            <div class="side-card">
+                <h3 class="side-title">Performance ranking</h3>
+
+                <p class="side-description">
+                    Your top three periods by sales revenue.
+                </p>
+
+                <div class="rank-list" id="rankingList"></div>
+            </div>
+
+            <div class="side-card">
+                <h3 class="side-title">Sales insight</h3>
+
+                <p class="side-description">
+                    A quick summary of your selected comparison.
+                </p>
+
+                <div class="insight-box" id="insightBox">
+                    Loading sales insights...
+                </div>
+
+                <p class="side-footnote">
+                    Sales revenue is the sum of recorded sales.
+                    Refunds, voids, taxes and discounts should be handled
+                    according to your POS accounting rules.
+                </p>
+            </div>
+
+        </aside>
+
+    </main>
+
+</div>
+
+<script>
+"use strict";
+
+/* =========================================================
+   POS SALES ANALYTICS
+
+   DEMO MODE:
+   Generates repeatable sample sales for testing.
+
+   PRODUCTION:
+   Replace demo generation with sales totals from PHP/MySQL.
+   See the integration example after this script.
+========================================================= */
+
+const moneyFormatter = new Intl.NumberFormat("en-KE", {
+    maximumFractionDigits: 2
+});
+
+const dateFormatter = new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+});
+
+const monthFormatter = new Intl.DateTimeFormat("en-GB", {
+    month: "long"
+});
+
+const weekdayFormatter = new Intl.DateTimeFormat("en-GB", {
+    weekday: "short"
+});
+
+const fullWeekdayFormatter = new Intl.DateTimeFormat("en-GB", {
+    weekday: "long"
+});
+
+const $ = id => document.getElementById(id);
+
+const canvas = $("salesChart");
+const ctx = canvas.getContext("2d");
+
+const chartContainer = $("chartContainer");
+const tooltip = $("chartTooltip");
+
+const state = {
+    mode: "day",
+    year: new Date().getFullYear(),
+    month: new Date().getMonth(),
+    weekStart: null,
+    records: new Map(),
+    bars: [],
+    animationFrame: null,
+    chartProgress: 1,
+    animationStart: 0,
+    animationDuration: 450
+};
+
+/* =========================================================
+   DATE HELPERS
+========================================================= */
+
+function dateKey(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+
+    return `${y}-${m}-${d}`;
+}
+
+function parseDate(key) {
+    const [y, m, d] = key.split("-").map(Number);
+    return new Date(y, m - 1, d);
+}
+
+function addDays(date, amount) {
+    const result = new Date(date);
+    result.setDate(result.getDate() + amount);
+    return result;
+}
+
+function startOfWeek(date) {
+    const result = new Date(date);
+    result.setHours(0, 0, 0, 0);
+
+    const day = (result.getDay() + 6) % 7;
+
+    result.setDate(result.getDate() - day);
+
+    return result;
+}
+
+function monthStart(year, month) {
+    return new Date(year, month, 1);
+}
+
+function monthEnd(year, month) {
+    return new Date(year, month + 1, 0);
+}
+
+function formatDate(date) {
+    return dateFormatter.format(date);
+}
+
+function formatMoney(amount) {
+    return "KES " + moneyFormatter.format(amount);
+}
+
+function shortMoney(amount) {
+    if (amount >= 1000000) {
+        return "KES " + (amount / 1000000).toFixed(1) + "M";
+    }
+
+    if (amount >= 1000) {
+        return "KES " + (amount / 1000).toFixed(1) + "k";
+    }
+
+    return "KES " + moneyFormatter.format(amount);
+}
+
+function sameMonth(a, b) {
+    return a.getFullYear() === b.getFullYear()
+        && a.getMonth() === b.getMonth();
+}
+
+/* =========================================================
+   DEMO DATA
+
+   Each calendar day receives a repeatable sales total.
+
+   The data is generated for the current year and neighboring
+   years so that the selectors can be tested.
+
+   This is NOT connected to a real database.
+========================================================= */
+
+function seededNumber(seed) {
+    let value = seed >>> 0;
+
+    value = Math.imul(value ^ (value >>> 16), 2246822507);
+    value = Math.imul(value ^ (value >>> 13), 3266489909);
+
+    value ^= value >>> 16;
+
+    return (value >>> 0) / 4294967295;
+}
+
+function demoSalesForDate(date) {
+    const key = dateKey(date);
+
+    const seed = Number(
+        key.replaceAll("-", "")
+    );
+
+    const random = seededNumber(seed);
+
+    const weekday = date.getDay();
+
+    // Bars and restaurants can have stronger weekend sales.
+    const weekendMultiplier =
+        weekday === 5 || weekday === 6 ? 1.55 :
+        weekday === 0 ? 1.25 :
+        weekday === 1 ? 0.72 : 1;
+
+    // Add a repeatable monthly variation.
+    const monthlyMultiplier =
+        0.85 + seededNumber(seed + 173) * 0.35;
+
+    const base = 1800 + random * 6500;
+
+    // Small chance of a particularly strong trading day.
+    const peakMultiplier =
+        random > 0.91 ? 1.65 : 1;
+
+    return Math.round(
+        base
+        * weekendMultiplier
+        * monthlyMultiplier
+        * peakMultiplier
+    );
+}
+
+function initializeDemoData() {
+    const now = new Date();
+
+    const firstDate = new Date(now.getFullYear() - 2, 0, 1);
+    const lastDate = new Date(now.getFullYear() + 2, 11, 31);
+
+    for (
+        let date = new Date(firstDate);
+        date <= lastDate;
+        date = addDays(date, 1)
+    ) {
+        state.records.set(
+            dateKey(date),
+            demoSalesForDate(date)
+        );
+    }
+}
+
+/* =========================================================
+   DATABASE DATA ADAPTER
+
+   The chart reads daily sales from state.records.
+
+   When connected to PHP, load real daily totals and populate
+   the same Map. Missing dates will be treated as zero.
+========================================================= */
+
+function setDailySales(dateString, amount) {
+    const numericAmount = Number(amount);
+
+    if (
+        !Number.isFinite(numericAmount)
+        || numericAmount < 0
+    ) {
+        throw new Error("Sales must be a non-negative number.");
+    }
+
+    state.records.set(dateString, numericAmount);
+}
+
+function getDailySales(date) {
+    return state.records.get(dateKey(date)) || 0;
+}
+
+function sumRange(start, end) {
+    let total = 0;
+
+    for (
+        let date = new Date(start);
+        date <= end;
+        date = addDays(date, 1)
+    ) {
+        total += getDailySales(date);
+    }
+
+    return total;
+}
+
+/* =========================================================
+   SELECTOR INITIALIZATION
+========================================================= */
+
+function initializeYearSelector() {
+    const select = $("yearSelect");
+    const currentYear = new Date().getFullYear();
+
+    select.innerHTML = "";
+
+    for (
+        let year = currentYear - 2;
+        year <= currentYear + 2;
+        year++
+    ) {
+        const option = document.createElement("option");
+
+        option.value = year;
+        option.textContent = year;
+
+        select.appendChild(option);
+    }
+
+    select.value = state.year;
+}
+
+function getWeeksOfMonth(year, month) {
+    const first = monthStart(year, month);
+    const last = monthEnd(year, month);
+
+    let start = startOfWeek(first);
+    const weeks = [];
+
+    while (start <= last) {
+        const end = addDays(start, 6);
+
+        const visibleStart =
+            start < first ? first : start;
+
+        const visibleEnd =
+            end > last ? last : end;
+
+        weeks.push({
+            start: new Date(start),
+            end: new Date(end),
+            visibleStart: new Date(visibleStart),
+            visibleEnd: new Date(visibleEnd)
+        });
+
+        start = addDays(start, 7);
+    }
+
+    return weeks;
+}
+
+function initializePeriodSelector() {
+    const select = $("periodSelect");
+    select.innerHTML = "";
+
+    if (state.mode === "day") {
+        $("periodLabel").textContent = "Selected week";
+
+        const current = new Date();
+        const currentWeek = startOfWeek(current);
+
+        // Offer all weeks that overlap the selected year.
+        for (let i = 0; i < 53; i++) {
+            const start = addDays(currentWeek, (i - 26) * 7);
+
+            if (start.getFullYear() !== state.year
+                && addDays(start, 6).getFullYear() !== state.year) {
+                continue;
+            }
+
+            const end = addDays(start, 6);
+            const option = document.createElement("option");
+
+            option.value = dateKey(start);
+            option.textContent =
+                `${formatDate(start)} – ${formatDate(end)}`;
+
+            select.appendChild(option);
+        }
+
+        const selected = dateKey(state.weekStart || currentWeek);
+
+        if ([...select.options].some(o => o.value === selected)) {
+            select.value = selected;
+        } else if (select.options.length) {
+            // Select a week belonging to the chosen year.
+            const match = [...select.options].find(option =>
+                parseDate(option.value).getFullYear() === state.year
+            );
+
+            select.value = match
+                ? match.value
+                : select.options[0].value;
+        }
+    }
+
+    if (state.mode === "week") {
+        $("periodLabel").textContent = "Selected month";
+
+        for (let month = 0; month < 12; month++) {
+            const option = document.createElement("option");
+
+            option.value = month;
+            option.textContent =
+                monthFormatter.format(new Date(state.year, month, 1));
+
+            select.appendChild(option);
+        }
+
+        select.value = String(state.month);
+    }
+
+    if (state.mode === "month") {
+        $("periodLabel").textContent = "Year comparison";
+
+        const option = document.createElement("option");
+
+        option.value = state.year;
+        option.textContent = `January – December ${state.year}`;
+
+        select.appendChild(option);
+        select.value = String(state.year);
+    }
+}
+
+/* =========================================================
+   BUILD CHART DATA
+
+   DAILY: seven calendar days, Monday to Sunday.
+   WEEKLY: weeks overlapping the selected calendar month.
+           First and last weeks count only days in that month.
+   MONTHLY: twelve calendar months.
+========================================================= */
+
+function getChartData() {
+    const data = [];
+
+    if (state.mode === "day") {
+        const start = parseDate($("periodSelect").value);
+
+        for (let i = 0; i < 7; i++) {
+            const date = addDays(start, i);
+
+            data.push({
+                label: weekdayFormatter.format(date),
+                fullLabel: fullWeekdayFormatter.format(date),
+                detail: formatDate(date),
+                amount: getDailySales(date),
+                start: date,
+                end: date
+            });
+        }
+    }
+
+    if (state.mode === "week") {
+        const month = Number($("periodSelect").value);
+        const weeks = getWeeksOfMonth(state.year, month);
+
+        weeks.forEach((week, index) => {
+            const firstDay = week.visibleStart;
+            const lastDay = week.visibleEnd;
+
+            data.push({
+                label: `Week ${index + 1}`,
+                fullLabel: `Week ${index + 1}`,
+                detail:
+                    `${formatDate(firstDay)} – ${formatDate(lastDay)}`,
+                amount: sumRange(firstDay, lastDay),
+                start: firstDay,
+                end: lastDay
+            });
+        });
+    }
+
+    if (state.mode === "month") {
+        for (let month = 0; month < 12; month++) {
+            const first = monthStart(state.year, month);
+            const last = monthEnd(state.year, month);
+
+            data.push({
+                label: monthFormatter.format(first).slice(0, 3),
+                fullLabel: monthFormatter.format(first),
+                detail: `${monthFormatter.format(first)} ${state.year}`,
+                amount: sumRange(first, last),
+                start: first,
+                end: last
+            });
+        }
+    }
+
+    return data;
+}
+
+/* =========================================================
+   CANVAS SIZING
+========================================================= */
+
+function resizeCanvas() {
+    const rect = chartContainer.getBoundingClientRect();
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.height * dpr);
+
+    canvas.style.width = rect.width + "px";
+    canvas.style.height = rect.height + "px";
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    drawChart();
+}
+
+/* =========================================================
+   CHART RENDERER
+
+   The green bar is the highest-sales bar.
+
+   Its height is determined by its actual amount. A subtle
+   pulsing glow animates around the winning bar without
+   changing the underlying sales data or bar height.
+========================================================= */
+
+function roundedRect(context, x, y, w, h, r) {
+    const radius = Math.max(
+        0,
+        Math.min(r, w / 2, h / 2)
+    );
+
+    context.beginPath();
+
+    context.moveTo(x + radius, y);
+    context.lineTo(x + w - radius, y);
+    context.quadraticCurveTo(x + w, y, x + w, y + radius);
+    context.lineTo(x + w, y + h - radius);
+    context.quadraticCurveTo(
+        x + w, y + h, x + w - radius, y + h
+    );
+    context.lineTo(x + radius, y + h);
+    context.quadraticCurveTo(
+        x, y + h, x, y + h - radius
+    );
+    context.lineTo(x, y + radius);
+    context.quadraticCurveTo(x, y, x + radius, y);
+    context.closePath();
+}
+
+function drawChart() {
+    const width = chartContainer.clientWidth;
+    const height = chartContainer.clientHeight;
+
+    if (!width || !height || !canvas.width) {
+        return;
+    }
+
+    ctx.clearRect(0, 0, width, height);
+
+    const data = getChartData();
+
+    if (!data.length) {
+        state.bars = [];
+        return;
+    }
+
+    const values = data.map(item => item.amount);
+    const maximum = Math.max(...values, 0);
+
+    const winnerIndex = values.indexOf(maximum);
+
+    const left = width < 420 ? 48 : 64;
+    const right = 12;
+    const top = 32;
+    const bottom = 48;
+
+    const chartWidth = width - left - right;
+    const chartHeight = height - top - bottom;
+
+    const maxScale = maximum > 0
+        ? maximum * 1.25
+        : 1;
+
+    // Grid and currency labels.
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    ctx.font = "10px sans-serif";
+    ctx.fillStyle = "#9299a4";
+
+    for (let i = 0; i <= 4; i++) {
+        const ratio = i / 4;
+        const y = top + chartHeight * ratio;
+        const value = maxScale * (1 - ratio);
+
+        ctx.strokeStyle = "#edf0f3";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(left, y);
+        ctx.lineTo(width - right, y);
+        ctx.stroke();
+
+        ctx.fillText(
+            shortMoney(value).replace("KES ", ""),
+            left - 8,
+            y
+        );
+    }
+
+    const slotWidth = chartWidth / data.length;
+    const barWidth = Math.min(
+        46,
+        Math.max(9, slotWidth * 0.57)
+    );
+
+    const now = performance.now();
+    const pulse = (Math.sin(now / 450) + 1) / 2;
+
+    state.bars = [];
+
+    data.forEach((item, index) => {
+        const slotX = left + index * slotWidth;
+        const x = slotX + (slotWidth - barWidth) / 2;
+
+        const barHeight = maximum > 0
+            ? (item.amount / maxScale) * chartHeight
+            : 0;
+
+        const y = top + chartHeight - barHeight;
+
+        const isWinner =
+            index === winnerIndex && maximum > 0;
+
+        const isHovered =
+            state.hoveredIndex === index;
+
+        if (isWinner) {
+            ctx.save();
+
+            ctx.shadowColor =
+                `rgba(18,168,107,${0.10 + pulse * 0.30})`;
+
+            ctx.shadowBlur = 7 + pulse * 12;
+
+            roundedRect(
+                ctx,
+                x,
+                y,
+                barWidth,
+                Math.max(barHeight, 2),
+                Math.min(7, barWidth / 2)
+            );
+
+            ctx.fillStyle = "#12a86b";
+            ctx.fill();
+
+            ctx.restore();
+        } else {
+            roundedRect(
+                ctx,
+                x,
+                y,
+                barWidth,
+                Math.max(barHeight, 2),
+                Math.min(7, barWidth / 2)
+            );
+
+            ctx.fillStyle = isHovered
+                ? "#aeb6c2"
+                : "#dfe3e9";
+
+            ctx.fill();
+        }
+
+        // Winner marker.
+        if (isWinner) {
+            const centerX = x + barWidth / 2;
+
+            ctx.fillStyle = "#12a86b";
+            ctx.beginPath();
+            ctx.arc(centerX, y - 10, 3 + pulse, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Category label.
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        ctx.font = isWinner
+            ? "bold 11px sans-serif"
+            : "11px sans-serif";
+
+        ctx.fillStyle = isWinner ? "#12a86b" : "#858c97";
+
+        ctx.fillText(
+            item.label,
+            slotX + slotWidth / 2,
+            top + chartHeight + 14
+        );
+
+        state.bars.push({
+            x,
+            y,
+            width: barWidth,
+            height: Math.max(barHeight, 2),
+            slotX,
+            slotWidth,
+            amount: item.amount,
+            item,
+            isWinner
+        });
+    });
+}
+
+/* =========================================================
+   HOVER / POINTER TOOLTIP
+========================================================= */
+
+state.hoveredIndex = -1;
+
+function showTooltip(index, pointerX, pointerY) {
+    const bar = state.bars[index];
+
+    if (!bar) {
+        tooltip.style.display = "none";
+        return;
+    }
+
+    $("tooltipLabel").textContent =
+        `${bar.item.fullLabel} · ${bar.item.detail}`;
+
+    $("tooltipValue").textContent =
+        formatMoney(bar.amount);
+
+    tooltip.style.display = "block";
+
+    const containerRect =
+        chartContainer.getBoundingClientRect();
+
+    const tooltipWidth = tooltip.offsetWidth;
+    const tooltipHeight = tooltip.offsetHeight;
+
+    let x = pointerX + 12;
+    let y = pointerY - tooltipHeight - 12;
+
+    if (x + tooltipWidth > containerRect.width) {
+        x = pointerX - tooltipWidth - 12;
+    }
+
+    if (y < 0) {
+        y = pointerY + 14;
+    }
+
+    x = Math.max(
+        0,
+        Math.min(x, containerRect.width - tooltipWidth)
+    );
+
+    y = Math.max(
+        0,
+        Math.min(y, containerRect.height - tooltipHeight)
+    );
+
+    tooltip.style.left = x + "px";
+    tooltip.style.top = y + "px";
+}
+
+function pointerPosition(event) {
+    const rect = canvas.getBoundingClientRect();
+
+    return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+    };
+}
+
+canvas.addEventListener("pointermove", event => {
+    const point = pointerPosition(event);
+
+    const index = state.bars.findIndex(bar =>
+        point.x >= bar.slotX
+        && point.x <= bar.slotX + bar.slotWidth
+        && point.y >= 0
+        && point.y <= chartContainer.clientHeight
+    );
+
+    state.hoveredIndex = index;
+
+    if (index >= 0) {
+        showTooltip(index, point.x, point.y);
+    } else {
+        tooltip.style.display = "none";
+    }
+});
+
+canvas.addEventListener("pointerleave", () => {
+    state.hoveredIndex = -1;
+    tooltip.style.display = "none";
+});
+
+canvas.addEventListener("pointerdown", event => {
+    const point = pointerPosition(event);
+
+    const index = state.bars.findIndex(bar =>
+        point.x >= bar.slotX
+        && point.x <= bar.slotX + bar.slotWidth
+    );
+
+    if (index >= 0) {
+        showTooltip(index, point.x, point.y);
+    }
+});
+
+/* =========================================================
+   ANIMATED REDRAW LOOP
+========================================================= */
+
+function animationLoop(now) {
+    drawChart();
+
+    state.animationFrame =
+        requestAnimationFrame(animationLoop);
+}
+
+function startAnimation() {
+    if (state.animationFrame !== null) {
+        cancelAnimationFrame(state.animationFrame);
+    }
+
+    state.animationFrame =
+        requestAnimationFrame(animationLoop);
+}
+
+/* =========================================================
+   UPDATE SUMMARY AND RANKINGS
+========================================================= */
+
+function updateDashboard() {
+    const data = getChartData();
+
+    const total = data.reduce(
+        (sum, item) => sum + item.amount,
+        0
+    );
+
+    const best = data.reduce(
+        (currentBest, item) =>
+            item.amount > currentBest.amount
+                ? item
+                : currentBest,
+        data[0]
+    );
+
+    const average = data.length
+        ? total / data.length
+        : 0;
+
+    $("totalSales").textContent = formatMoney(total);
+    $("bestSales").textContent = formatMoney(best.amount);
+    $("averageSales").textContent = formatMoney(average);
+
+    $("bestSalesNote").textContent =
+        `${best.label} · ${best.detail}`;
+
+    $("averageNote").textContent =
+        `Across ${data.length} comparison periods`;
+
+    const modeNames = {
+        day: "Daily Sales",
+        week: "Weekly Sales",
+        month: "Monthly Sales"
+    };
+
+    const descriptions = {
+        day: "Compare the total sales of each day.",
+        week: "Compare the total sales of each week in the selected month.",
+        month: "Compare the total sales of each month in the selected year."
+    };
+
+    const periodNames = {
+        day: "this week",
+        week: "this month",
+        month: "this year"
+    };
+
+    $("chartTitle").textContent = modeNames[state.mode];
+    $("chartSubtitle").textContent = descriptions[state.mode];
+
+    $("totalLabel").textContent =
+        `Total sales ${periodNames[state.mode]}`;
+
+    $("chartSummary").textContent =
+        `${data.length} ${state.mode === "day" ? "days" :
+            state.mode === "week" ? "weeks" : "months"} compared`;
+
+    $("winnerName").textContent = best.fullLabel;
+    $("winnerAmount").textContent = formatMoney(best.amount);
+
+    $("winnerDescription").textContent =
+        `${best.detail}. This period has the highest recorded sales ` +
+        `among the ${data.length} periods shown.`;
+
+    const sorted = [...data].sort(
+        (a, b) => b.amount - a.amount
+    );
+
+    const rankingList = $("rankingList");
+    rankingList.innerHTML = "";
+
+    sorted.slice(0, 3).forEach((item, index) => {
+        const row = document.createElement("div");
+        row.className = "rank-row";
+
+        const rankNumber = document.createElement("div");
+        rankNumber.className = "rank-number";
+        rankNumber.textContent = index + 1;
+
+        const content = document.createElement("div");
+
+        const name = document.createElement("div");
+        name.className = "rank-name";
+
+        const nameText = document.createElement("span");
+        nameText.textContent = item.label;
+
+        const amount = document.createElement("span");
+        amount.className = "rank-amount";
+        amount.textContent = shortMoney(item.amount);
+
+        name.append(nameText, amount);
+
+        const track = document.createElement("div");
+        track.className = "rank-track";
+
+        const fill = document.createElement("div");
+        fill.className = "rank-fill";
+
+        fill.style.width = (
+            best.amount > 0
+                ? item.amount / best.amount * 100
+                : 0
+        ) + "%";
+
+        track.appendChild(fill);
+        content.append(name, track);
+        row.append(rankNumber, content);
+        rankingList.appendChild(row);
+    });
+
+    let insight;
+
+    if (total === 0) {
+        insight =
+            "<strong>No sales recorded.</strong> " +
+            "There are no sales in the selected comparison period.";
+    } else {
+        const topShare = total > 0
+            ? (best.amount / total) * 100
+            : 0;
+
+        insight =
+            `<strong>${best.fullLabel}</strong> generated ` +
+            `<strong>${formatMoney(best.amount)}</strong>, ` +
+            `the highest total in this comparison. ` +
+            `It accounts for ${topShare.toFixed(1)}% of the combined ` +
+            `sales displayed. The average per period is ` +
+            `<strong>${formatMoney(average)}</strong>.`;
+    }
+
+    $("insightBox").innerHTML = insight;
+
+    drawChart();
+}
+
+/* =========================================================
+   FILTER EVENTS
+========================================================= */
+
+function setMode(mode) {
+    state.mode = mode;
+
+    document.querySelectorAll(".period-btn").forEach(button => {
+        const active = button.dataset.mode === mode;
+
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
+    });
+
+    initializePeriodSelector();
+    updateDashboard();
+}
+
+document.querySelectorAll(".period-btn").forEach(button => {
+    button.addEventListener("click", () => {
+        setMode(button.dataset.mode);
+    });
+});
+
+$("periodSelect").addEventListener("change", () => {
+    if (state.mode === "day") {
+        state.weekStart = parseDate($("periodSelect").value);
+    }
+
+    if (state.mode === "week") {
+        state.month = Number($("periodSelect").value);
+    }
+
+    if (state.mode === "month") {
+        state.year = Number($("periodSelect").value);
+    }
+
+    updateDashboard();
+});
+
+$("yearSelect").addEventListener("change", () => {
+    state.year = Number($("yearSelect").value);
+
+    initializePeriodSelector();
+    updateDashboard();
+});
+
+/* =========================================================
+   CSV EXPORT
+========================================================= */
+
+function escapeCSV(value) {
+    return '"' + String(value).replaceAll('"', '""') + '"';
+}
+
+$("exportBtn").addEventListener("click", () => {
+    const data = getChartData();
+
+    const rows = [
+        ["Period", "Start date", "End date", "Total sales (KES)"]
+    ];
+
+    data.forEach(item => {
+        rows.push([
+            item.fullLabel,
+            dateKey(item.start),
+            dateKey(item.end),
+            item.amount
+        ]);
+    });
+
+    const csv = rows
+        .map(row => row.map(escapeCSV).join(","))
+        .join("\r\n");
+
+    const blob = new Blob(
+        ["\uFEFF" + csv],
+        { type: "text/csv;charset=utf-8;" }
+    );
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download =
+        `sales-${state.mode}-${state.year}.csv`;
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    URL.revokeObjectURL(url);
+});
+
+/* =========================================================
+   STARTUP
+========================================================= */
+
+function initializeDashboard() {
+    initializeDemoData();
+
+    const now = new Date();
+
+    state.year = now.getFullYear();
+    state.month = now.getMonth();
+    state.weekStart = startOfWeek(now);
+
+    initializeYearSelector();
+    initializePeriodSelector();
+
+    resizeCanvas();
+    updateDashboard();
+    startAnimation();
+}
+
+window.addEventListener("resize", resizeCanvas);
+
+initializeDashboard();
+
+/* =========================================================
+   PHP / MYSQL INTEGRATION
+
+   Replace initializeDemoData() with a JSON response from PHP.
+
+   Example PHP output:
+   {
+       "2026-10-01": 12500,
+       "2026-10-02": 8300,
+       "2026-10-03": 17400
+   }
+
+   Then load the daily totals:
+
+   async function loadRealSales() {
+       const response = await fetch("salesAnalyticsData.php");
+       if (!response.ok) {
+           throw new Error("Could not load sales data");
+       }
+
+       const dailyTotals = await response.json();
+
+       state.records.clear();
+
+       Object.entries(dailyTotals).forEach(([date, amount]) => {
+           setDailySales(date, amount);
+       });
+
+       updateDashboard();
+   }
+
+   Call loadRealSales() instead of initializeDemoData()
+   during initialization. Your PHP endpoint must aggregate
+   sales by the actual sale date and return numeric totals.
+========================================================= */
+</script>
+
+</body>
+</html>

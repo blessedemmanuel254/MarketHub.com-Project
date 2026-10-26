@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Performance | Makethub POS</title>
+<style>
+:root{
+  --ink:#171717;--muted:#777;--line:#e9e9e9;--paper:#fff;--soft:#f7f7f7;
+  --green:#088000;--green-light:#eaf6e8;--red:#ff3b3b;--radius:18px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#f4f5f4;color:var(--ink);font-family:Poppins,Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+button,select{font:inherit}
+button{cursor:pointer}
+.app{max-width:1299px;margin:auto;padding:28px 24px 42px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:26px}
+.brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:20px;letter-spacing:-.5px}
+.logo{width:38px;height:38px;border-radius:12px;background:#111;color:#fff;display:grid;place-items:center;font-weight:900;font-size:21px}
+.brand small{display:block;color:var(--muted);font-size:12px;font-weight:500;letter-spacing:0;margin-top:2px}
+.top-actions{display:flex;align-items:center;gap:10px}
+.pill{border:1px solid var(--line);background:white;border-radius:12px;padding:10px 13px;color:#333}
+.avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#e8e8e8;font-weight:800}
+.heading{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:22px}
+.eyebrow{font-size:12px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:8px}
+h1{font-size:clamp(25px,3vw,34px);letter-spacing:-1.1px;margin:0 0 7px}
+.subtitle{color:var(--muted);font-size:14px;margin:0;line-height:1.6}
+.date-control{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.date-control select{border:1px solid #e2e2e2;background:#fff;border-radius:11px;padding:11px 34px 11px 12px;color:#222;max-width:100%}
+.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;margin-bottom:20px}
+.metric{background:#fff;border:1px solid #ededed;border-radius:var(--radius);padding:20px 21px;min-width:0}
+.metric-head{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#666;font-size:13px}
+.metric-icon{width:33px;height:33px;border-radius:10px;background:#f4f4f4;display:grid;place-items:center;color:#333;font-size:17px}
+.metric-value{font-size:clamp(23px,3vw,31px);font-weight:800;letter-spacing:-1px;margin:14px 0 7px;overflow-wrap:anywhere}
+.metric-foot{font-size:12px;color:#777;display:flex;gap:6px;align-items:center}
+.positive{color:var(--green);font-weight:700}
+.chart-card{background:#fff;border:1px solid #ededed;border-radius:22px;padding:24px 24px 18px;box-shadow:0 8px 30px #00000004}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.chart-head h2{font-size:19px;letter-spacing:-.4px;margin:0 0 7px}
+.chart-head p{font-size:13px;color:var(--muted);margin:0;line-height:1.5}
+.tabs{display:flex;gap:4px;background:#f4f4f4;padding:4px;border-radius:12px}
+.tabs button{border:0;background:transparent;border-radius:9px;padding:9px 13px;color:#777;font-size:13px;font-weight:700}
+.tabs button.active{background:#fff;color:#151515;box-shadow:0 1px 5px #0000000c}
+.chart-tools{display:flex;align-items:center;gap:8px;margin-top:20px;flex-wrap:wrap}
+.chart-tools select{border:1px solid #e8e8e8;background:#fff;border-radius:10px;padding:9px 30px 9px 11px;color:#333;font-size:13px}
+.period-label{font-size:12px;color:#777;margin-left:auto}
+.legend{display:flex;align-items:center;gap:7px;color:#777;font-size:12px;margin:18px 0 4px}
+.legend-dot{height:8px;width:8px;border-radius:3px;background:var(--green)}
+.chart-scroll{width:100%;overflow-x:auto;padding:12px 0 0}
+.chart{height:300px;min-width:600px;display:grid;grid-template-columns:42px 1fr;gap:10px;position:relative}
+.y-axis{display:flex;flex-direction:column;justify-content:space-between;padding:0 0 34px;text-align:right;color:#999;font-size:10px}
+.plot{position:relative;display:grid;grid-template-columns:repeat(7,minmax(42px,1fr));gap:clamp(7px,1.7vw,20px);height:100%;padding:0 8px 0 0}
+.grid-lines{position:absolute;inset:0 0 34px 0;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none}
+.grid-lines span{height:1px;width:100%;background:#f0f0f0}
+.bar-column{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-width:0;z-index:1}
+.bar-area{height:calc(100% - 34px);width:100%;display:flex;align-items:flex-end;justify-content:center;position:relative}
+.bar{position:relative;width:min(48px,78%);min-height:3px;border-radius:9px 9px 3px 3px;background:#dedede;transition:height .65s cubic-bezier(.2,.75,.2,1),background .25s;isolation:isolate}
+.bar::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,#ffffff28,transparent 55%);pointer-events:none}
+.bar-column.best .bar{background:var(--green);box-shadow:0 5px 16px #08800025}
+.bar-column.best .bar::before{content:"";position:absolute;inset:-5px;border:2px solid #08800070;border-radius:12px;animation:standout 2.2s ease-out infinite;pointer-events:none}
+.bar-value{font-size:10px;font-weight:700;color:#555;position:absolute;bottom:calc(var(--bar-height,0%) + 8px);white-space:nowrap;opacity:0;transition:opacity .2s}
+.bar-column.best .bar-value{opacity:1;color:var(--green)}
+.bar-label{height:34px;display:flex;align-items:center;justify-content:center;color:#777;font-size:11px;white-space:nowrap}
+.bar-column.best .bar-label{color:var(--green);font-weight:800}
+.best-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);font-size:9px;line-height:1;background:var(--green);color:white;padding:5px 7px;border-radius:6px;font-weight:800;white-space:nowrap;letter-spacing:.2px}
+@keyframes standout{0%{transform:scale(1);opacity:.75}75%,100%{transform:scale(1.28);opacity:0}}
+.chart-bottom{display:flex;justify-content:space-between;gap:12px;align-items:center;border-top:1px solid #f0f0f0;padding-top:16px;margin-top:10px;flex-wrap:wrap}
+.insight{display:flex;align-items:center;gap:10px;font-size:13px;color:#666;line-height:1.5}
+.insight-icon{width:35px;height:35px;border-radius:11px;background:var(--green-light);color:var(--green);display:grid;place-items:center;font-size:18px;flex-shrink:0}
+.insight strong{color:#222}
+.chart-total{text-align:right}
+.chart-total small{display:block;color:#888;font-size:11px;margin-bottom:4px}
+.chart-total strong{font-size:18px;letter-spacing:-.4px}
+.note{font-size:11px;color:#999;margin:16px 2px 0;line-height:1.5}
+@media(max-width:760px){
+ .app{padding:19px 14px 30px}.topbar{margin-bottom:22px}.heading{align-items:flex-start;flex-direction:column}.date-control{width:100%}.date-control select{flex:1}
+ .metrics{grid-template-columns:1fr 1fr;gap:10px}.metric{padding:15px}.metric:last-child{grid-column:1/-1}
+ .metric-value{margin:12px 0 5px}.chart-card{padding:18px 14px 15px;border-radius:18px}.chart-head{display:block}.tabs{margin-top:15px;width:100%}.tabs button{flex:1;padding:9px 5px}.chart-tools{margin-top:15px}.period-label{width:100%;margin-left:0}.chart{height:270px}.top-actions .pill{display:none}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><div class="logo">M</div><div>Makethub <small>Point of Sale · Sales analytics</small></div></div>
+    <div class="top-actions"><button class="pill" id="refreshBtn" type="button">↻ &nbsp;Refresh data</button><div class="avatar">S</div></div>
+  </header>
+
+  <section class="heading">
+    <div><div class="eyebrow">Performance overview</div><h1>Sales performance</h1><p class="subtitle">See when your business performs best and compare sales across time.</p></div>
+    <div class="date-control"><select id="yearSelect" aria-label="Select year"></select><select id="monthSelect" aria-label="Select month"></select></div>
+  </section>
+
+  <section class="metrics" aria-label="Sales summary">
+    <article class="metric"><div class="metric-head">Total sales <span class="metric-icon">↗</span></div><div class="metric-value" id="totalSales">KES 0</div><div class="metric-foot" id="totalFoot">For selected period</div></article>
+    <article class="metric"><div class="metric-head">Best performer <span class="metric-icon">★</span></div><div class="metric-value" id="bestValue">—</div><div class="metric-foot" id="bestFoot">Highest sales period</div></article>
+    <article class="metric"><div class="metric-head">Daily / period average <span class="metric-icon">◷</span></div><div class="metric-value" id="averageSales">KES 0</div><div class="metric-foot" id="averageFoot">Across displayed periods</div></article>
+  </section>
+
+  <section class="chart-card">
+    <div class="chart-head">
+      <div><h2 id="chartTitle">Daily sales</h2><p id="chartSubtitle">Compare total sales for each day of the selected week.</p></div>
+      <div class="tabs" role="tablist" aria-label="Sales comparison interval">
+        <button type="button" data-mode="day" class="active" role="tab" aria-selected="true">Days</button>
+        <button type="button" data-mode="week" role="tab" aria-selected="false">Weeks</button>
+        <button type="button" data-mode="month" role="tab" aria-selected="false">Months</button>
+      </div>
+    </div>
+    <div class="chart-tools">
+      <select id="weekSelect" aria-label="Select week"></select>
+      <select id="monthForWeeks" aria-label="Month to compare weeks" hidden></select>
+      <select id="yearForMonths" aria-label="Year to compare months" hidden></select>
+      <span class="period-label" id="periodLabel"></span>
+    </div>
+    <div class="legend"><span class="legend-dot"></span> Highest sales period <span style="color:#bbb;margin-left:5px">·</span> Bars show total sales (KES)</div>
+    <div class="chart-scroll">
+      <div class="chart" role="img" aria-label="Bar chart comparing sales across selected periods">
+        <div class="y-axis" id="yAxis"></div>
+        <div class="plot" id="plot"><div class="grid-lines" id="gridLines"><span></span><span></span><span></span><span></span><span></span></div></div>
+      </div>
+    </div>
+    <div class="chart-bottom">
+      <div class="insight"><div class="insight-icon">✦</div><div id="insightText">Your top-performing period will appear here.</div></div>
+      <div class="chart-total"><small id="chartTotalLabel">TOTAL SALES IN VIEW</small><strong id="chartTotal">KES 0</strong></div>
+    </div>
+  </section>
+  <p class="note">Demo data is generated locally so you can preview the interface. Replace <code>getSalesForDate()</code> with your PHP/MySQL sales data when connecting this UI to Makethub POS.</p>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const money = value => 'KES ' + Math.round(value).toLocaleString('en-KE');
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const today = new Date();
+  let mode = 'day';
+  let selectedYear = today.getFullYear();
+  let selectedMonth = today.getMonth();
+  let selectedWeek = 0;
+
+  // DEMO DATA: replace this function with actual daily totals from your database.
+  // Return the total value of completed/paid sales for the supplied local date.
+  function getSalesForDate(date) {
+    const key = date.getFullYear() * 10000 + (date.getMonth()+1) * 100 + date.getDate();
+    let seed = (key * 9301 + 49297) % 233280;
+    seed = (seed * 9301 + 49297) % 233280;
+    let amount = 1800 + (seed / 233280) * 15500;
+    // Add a repeatable weekend boost to make the demo look like a bar POS.
+    if (date.getDay() === 5 || date.getDay() === 6) amount *= 1.22;
+    return Math.round(amount / 50) * 50;
+  }
+
+  function dateOnly(y,m,d){ return new Date(y,m,d,12,0,0,0); }
+  function startOfWeek(date) {
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12);
+    const day = d.getDay();
+    d.setDate(d.getDate() - ((day + 6) % 7)); // Monday start
+    return d;
+  }
+  function addDays(date,n){const d=new Date(date);d.setDate(d.getDate()+n);return d;}
+  function formatShort(date){return date.toLocaleDateString('en-KE',{day:'numeric',month:'short'});}
+  function formatLong(date){return date.toLocaleDateString('en-KE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});}
+  function weekStartsForMonth(y,m){
+    const first=dateOnly(y,m,1), last=dateOnly(y,m+1,0);
+    let cursor=startOfWeek(first), weeks=[];
+    while(cursor<=last){weeks.push(new Date(cursor));cursor=addDays(cursor,7);}
+    return weeks;
+  }
+  function fillSelects(){
+    const yearOptions=[];
+    for(let y=selectedYear-5;y<=selectedYear+1;y++) yearOptions.push(`<option value="${y}" ${y===selectedYear?'selected':''}>${y}</option>`);
+    $('yearSelect').innerHTML=yearOptions.join('');
+    $('yearForMonths').innerHTML=yearOptions.join('');
+    $('monthSelect').innerHTML=monthNames.map((m,i)=>`<option value="${i}" ${i===selectedMonth?'selected':''}>${m}</option>`).join('');
+    $('monthForWeeks').innerHTML=monthNames.map((m,i)=>`<option value="${i}" ${i===selectedMonth?'selected':''}>${m}</option>`).join('');
+    fillWeekSelect();
+  }
+  function fillWeekSelect(){
+    const weeks=weekStartsForMonth(selectedYear,selectedMonth);
+    $('weekSelect').innerHTML=weeks.map((w,i)=>{
+      const end=addDays(w,6);
+      return `<option value="${i}" ${i===selectedWeek?'selected':''}>Week ${i+1} · ${formatShort(w)} – ${formatShort(end)}</option>`;
+    }).join('');
+    if(selectedWeek>=weeks.length) selectedWeek=weeks.length-1;
+    $('weekSelect').value=String(selectedWeek);
+  }
+  function buildData(){
+    if(mode==='day'){
+      const weeks=weekStartsForMonth(selectedYear,selectedMonth);
+      const start=weeks[Math.min(selectedWeek,weeks.length-1)] || startOfWeek(today);
+      const data=[];
+      for(let i=0;i<7;i++){
+        const date=addDays(start,i);
+        data.push({label:date.toLocaleDateString('en-KE',{weekday:'short'}), detail:formatLong(date), value:getSalesForDate(date), date});
+      }
+      $('chartTitle').textContent='Daily sales';
+      $('chartSubtitle').textContent='Compare total sales for each day of the selected week.';
+      $('periodLabel').textContent=`${formatShort(start)} – ${formatShort(addDays(start,6))}, ${selectedYear}`;
+      $('chartTotalLabel').textContent='TOTAL SALES THIS WEEK';
+      return data;
+    }
+    if(mode==='week'){
+      const weeks=weekStartsForMonth(selectedYear,selectedMonth);
+      $('chartTitle').textContent='Weekly sales';
+      $('chartSubtitle').textContent='Compare total sales across the weeks touching the selected month.';
+      $('periodLabel').textContent=`${monthNames[selectedMonth]} ${selectedYear}`;
+      $('chartTotalLabel').textContent='TOTAL SALES IN MONTH VIEW';
+      return weeks.map((start,i)=>{
+        let value=0;
+        for(let d=0;d<7;d++){const date=addDays(start,d);if(date.getMonth()===selectedMonth&&date.getFullYear()===selectedYear)value+=getSalesForDate(date);}
+        return {label:`Week ${i+1}`,detail:`${formatShort(start)} – ${formatShort(addDays(start,6))}`,value};
+      });
+    }
+    $('chartTitle').textContent='Monthly sales';
+    $('chartSubtitle').textContent='Compare total sales for all 12 months of the selected year.';
+    $('periodLabel').textContent=String(selectedYear);
+    $('chartTotalLabel').textContent='TOTAL SALES THIS YEAR';
+    return monthNames.map((name,m)=>{
+      let value=0;const days=new Date(selectedYear,m+1,0).getDate();
+      for(let d=1;d<=days;d++)value+=getSalesForDate(dateOnly(selectedYear,m,d));
+      return {label:name.slice(0,3),detail:name+' '+selectedYear,value};
+    });
+  }
+  function render(){
+    const data=buildData();
+    const plot=$('plot');
+    plot.querySelectorAll('.bar-column').forEach(el=>el.remove());
+    const max=Math.max(...data.map(d=>d.value),1);
+    const total=data.reduce((sum,d)=>sum+d.value,0);
+    const average=total/(data.length||1);
+    const bestIndex=data.findIndex(d=>d.value===max);
+    const axisMax=Math.ceil(max/5000)*5000 || 5000;
+    const ticks=[axisMax,axisMax*.75,axisMax*.5,axisMax*.25,0];
+    $('yAxis').innerHTML=ticks.map(t=>`<span>${t===0?'0':(t>=1000?(t/1000)+'k':Math.round(t))}</span>`).join('');
+    $('gridLines').innerHTML=ticks.map(()=>'<span></span>').join('');
+    // Make columns align to chart grid; all data points use the same scale.
+    data.forEach((item,i)=>{
+      const column=document.createElement('div');
+      column.className='bar-column'+(i===bestIndex?' best':'');
+      const area=document.createElement('div');area.className='bar-area';
+      const bar=document.createElement('div');bar.className='bar';
+      const pct=Math.max(item.value/max*100,1.5);
+      bar.style.height=pct+'%';
+      bar.title=`${item.detail}: ${money(item.value)}`;
+      const value=document.createElement('div');value.className='bar-value';value.textContent=money(item.value);
+      value.style.bottom=`calc(${pct}% + 7px)`;
+      if(i===bestIndex){const badge=document.createElement('div');badge.className='best-badge';badge.textContent='★ TOP';bar.appendChild(badge);}
+      area.appendChild(bar);area.appendChild(value);
+      const label=document.createElement('div');label.className='bar-label';label.textContent=item.label;
+      label.title=item.detail;
+      column.appendChild(area);column.appendChild(label);
+      plot.appendChild(column);
+    });
+    $('totalSales').textContent=money(total);
+    $('bestValue').textContent=data[bestIndex]?.label||'—';
+    $('bestFoot').textContent=data[bestIndex]?`${money(max)} in ${data[bestIndex].detail}`:'No sales data';
+    $('averageSales').textContent=money(average);
+    $('averageFoot').textContent=`Per ${mode==='day'?'day':mode==='week'?'week':'month'} shown`;
+    $('chartTotal').textContent=money(total);
+    $('insightText').innerHTML=data[bestIndex]
+      ?`<strong>${data[bestIndex].detail}</strong> is your standout performer with <strong>${money(max)}</strong> in sales.`
+      :'No sales data is available for this period.';
+    $('weekSelect').hidden=mode!=='day';
+    $('monthForWeeks').hidden=mode!=='week';
+    $('yearForMonths').hidden=mode!=='month';
+    document.querySelectorAll('[data-mode]').forEach(btn=>{
+      const active=btn.dataset.mode===mode;
+      btn.classList.toggle('active',active);
+      btn.setAttribute('aria-selected',String(active));
+    });
+  }
+  document.querySelectorAll('[data-mode]').forEach(btn=>btn.addEventListener('click',()=>{
+    mode=btn.dataset.mode;
+    if(mode==='week') $('monthForWeeks').value=String(selectedMonth);
+    if(mode==='month') $('yearForMonths').value=String(selectedYear);
+    render();
+  }));
+  $('yearSelect').addEventListener('change',e=>{selectedYear=Number(e.target.value);fillSelects();render();});
+  $('monthSelect').addEventListener('change',e=>{selectedMonth=Number(e.target.value);selectedWeek=0;fillWeekSelect();render();});
+  $('weekSelect').addEventListener('change',e=>{selectedWeek=Number(e.target.value);render();});
+  $('monthForWeeks').addEventListener('change',e=>{selectedMonth=Number(e.target.value);$('monthSelect').value=String(selectedMonth);selectedWeek=0;fillWeekSelect();render();});
+  $('yearForMonths').addEventListener('change',e=>{selectedYear=Number(e.target.value);$('yearSelect').value=String(selectedYear);render();});
+  $('refreshBtn').addEventListener('click',()=>{render();const btn=$('refreshBtn');btn.textContent='✓ Refreshed';setTimeout(()=>btn.textContent='↻  Refresh data',1200);});
+  fillSelects();render();
+})();
+</script>
+</body>
+</html>

@@ -24,15 +24,11 @@ $bustype = "";
 $market = "";
 
 function validatePassword($password) {
-  // Check all rules, but return only a simple generic message if any fail
-  if (strlen($password) < 8 || 
-    !preg_match('/[A-Z]/', $password) || 
-    !preg_match('/[a-z]/', $password) || 
-    !preg_match('/\d/', $password) || 
-    !preg_match('/[^A-Za-z0-9]/', $password)) {
-    return "Password does not meet requirements.";
+  if (strlen($password) < 4) {
+      return "Password must be at least 4 characters long.";
   }
-  return ""; // valid
+
+  return "";
 }
 
 function normalizePhoneNumber($rawPhone) {
@@ -157,7 +153,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       if ($password !== $confirm_password) {
         $error = 'Passwords do not match!';
       } else {
-        // Validate password strength
+        // Validate password character requirements
         $passwordError = validatePassword($password);
       if ($passwordError) {
         $error = $passwordError; // simple single-line error
@@ -458,9 +454,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <span>Business Model</span>
                 <select id="busmodel" name="busmodel" required>
                   <option value="">-- Select Business Model --</option>
-                  <option value="products" <?= ($busmodel ?? '') === 'products' ? 'selected' : ''; ?>>Products</option>
+                  <option value="products" <?= ($busmodel ?? '') === 'products' ? 'selected' : ''; ?>>Products</option><!-- 
                   <option value="services" <?= ($busmodel ?? '') === 'services' ? 'selected' : ''; ?>>Services</option>
-                  <option value="rentals" <?= ($busmodel ?? '') === 'rentals' ? 'selected' : ''; ?>>Rentals</option>
+                  <option value="rentals" <?= ($busmodel ?? '') === 'rentals' ? 'selected' : ''; ?>>Rentals</option> -->
                 </select>
               </div>
 
@@ -503,9 +499,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <span>Market Type</span>
                 <select id="market" name="market" required>
                   <option value="">-- Select Market Type --</option>
-                  <option value="Local" <?= ($market ?? '') === 'Local' ? 'selected' : ''; ?>>Local</option>
+                  <option value="Local" <?= ($market ?? '') === 'Local' ? 'selected' : ''; ?>>Local</option><!-- 
                   <option value="National" <?= ($market ?? '') === 'National' ? 'selected' : ''; ?>>National</option>
-                  <option value="Global" <?= ($market ?? '') === 'Global' ? 'selected' : ''; ?>>Global</option>
+                  <option value="Global" <?= ($market ?? '') === 'Global' ? 'selected' : ''; ?>>Global</option> -->
                 </select>
               </div>
 

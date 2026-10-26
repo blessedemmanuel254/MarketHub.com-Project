@@ -1,0 +1,448 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual M-PESA Payment | MAKETHUB TALES</title>
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+        :root {
+            --mpesa-green: #168b45;
+            --mpesa-dark: #08652f;
+            --light-green: #eaf8ef;
+            --text-dark: #202b25;
+            --text-muted: #68756d;
+            --border: #e0e9e3;
+            --white: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f7f5;
+            color: var(--text-dark);
+            padding: 25px 14px;
+            line-height: 1.6;
+        }
+
+        .payment-wrapper {
+            max-width: 620px;
+            margin: 0 auto;
+        }
+
+        .payment-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 35px rgba(20, 70, 40, 0.08);
+        }
+
+        /* Header */
+        .payment-header {
+            background: linear-gradient(
+                135deg,
+                var(--mpesa-dark),
+                var(--mpesa-green)
+            );
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .payment-icon {
+            width: 68px;
+            height: 68px;
+            margin: 0 auto 14px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: rgba(255, 255, 255, 0.14);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+        }
+
+        .payment-header h1 {
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        .payment-header p {
+            font-size: 14px;
+            opacity: 0.92;
+        }
+
+        /* Till number section */
+        .till-section {
+            margin: 22px 20px;
+            padding: 22px 16px;
+            text-align: center;
+            background: var(--light-green);
+            border: 1px dashed #85c99b;
+            border-radius: 15px;
+        }
+
+        .till-label {
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+        }
+
+        .till-number {
+            color: var(--mpesa-dark);
+            font-size: clamp(30px, 8vw, 40px);
+            font-weight: 800;
+            letter-spacing: 2px;
+            line-height: 1.4;
+            margin: 5px 0;
+        }
+
+        .business-name {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .copy-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            padding: 11px 18px;
+            border: none;
+            border-radius: 9px;
+            background: var(--mpesa-green);
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .copy-button:hover {
+            background: var(--mpesa-dark);
+            transform: translateY(-1px);
+        }
+
+        /* Instructions */
+        .instructions {
+            padding: 0 22px 24px;
+        }
+
+        .instructions h2 {
+            font-size: 19px;
+            margin-bottom: 5px;
+        }
+
+        .instructions-subtitle {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 22px;
+        }
+
+        .instruction-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 19px;
+        }
+
+        .instruction-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        .step-number {
+            flex: 0 0 35px;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: var(--light-green);
+            color: var(--mpesa-dark);
+            border: 1px solid #d1ead9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .step-content {
+            flex: 1;
+            padding-top: 3px;
+        }
+
+        .step-content strong {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .step-content p {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /* Important notice */
+        .notice {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            margin: 0 20px 22px;
+            padding: 15px;
+            background: #fff8e7;
+            border: 1px solid #f2dfad;
+            border-radius: 12px;
+        }
+
+        .notice i {
+            color: #a66a00;
+            margin-top: 3px;
+        }
+
+        .notice p {
+            color: #6d531e;
+            font-size: 12px;
+        }
+
+        .notice strong {
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        /* Footer */
+        .payment-footer {
+            border-top: 1px solid var(--border);
+            padding: 17px 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .payment-footer i {
+            color: var(--mpesa-green);
+            margin-right: 5px;
+        }
+
+        /* Small screens */
+        @media (max-width: 420px) {
+            body {
+                padding: 12px 8px;
+            }
+
+            .payment-header {
+                padding: 25px 15px;
+            }
+
+            .payment-header h1 {
+                font-size: 21px;
+            }
+
+            .till-section {
+                margin: 16px 13px;
+            }
+
+            .instructions {
+                padding: 0 16px 22px;
+            }
+
+            .notice {
+                margin: 0 13px 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="payment-wrapper">
+    <main class="payment-card">
+
+        <!-- Payment Header -->
+        <header class="payment-header">
+            <div class="payment-icon">
+                <i class="fa-solid fa-mobile-screen-button"></i>
+            </div>
+
+            <h1>Manual M-PESA Payment</h1>
+            <p>Follow these steps to complete your payment.</p>
+        </header>
+
+        <!-- Till Details -->
+        <section class="till-section">
+            <p class="till-label">M-PESA Buy Goods Till Number</p>
+
+            <div class="till-number" id="tillNumber">1774150</div>
+
+            <p class="business-name">
+                <i class="fa-solid fa-store"></i>
+                MAKETHUB TALES
+            </p>
+
+            <button class="copy-button" id="copyTillButton" type="button">
+                <i class="fa-regular fa-copy"></i>
+                <span>Copy Till Number</span>
+            </button>
+        </section>
+
+        <!-- Payment Instructions -->
+        <section class="instructions">
+            <h2>How to Pay</h2>
+            <p class="instructions-subtitle">
+                Complete the following steps on your phone.
+            </p>
+
+            <ol class="instruction-list">
+
+                <li class="instruction-item">
+                    <span class="step-number">1</span>
+                    <div class="step-content">
+                        <strong>Open M-PESA</strong>
+                        <p>Open the M-PESA menu on your mobile phone.</p>
+                    </div>
+                </li>
+
+                <li class="instruction-item">
+                    <span class="step-number">2</span>
+                    <div class="step-content">
+                        <strong>Select Lipa na M-PESA</strong>
+                        <p>Choose the option for making a business payment.</p>
+                    </div>
+                </li>
+
+                <li class="instruction-item">
+                    <span class="step-number">3</span>
+                    <div class="step-content">
+                        <strong>Select Buy Goods and Services</strong>
+                        <p>Choose Buy Goods and Services from the menu.</p>
+                    </div>
+                </li>
+
+                <li class="instruction-item">
+                    <span class="step-number">4</span>
+                    <div class="step-content">
+                        <strong>Enter the Till Number</strong>
+                        <p>Enter <b>1774150</b> as the Till Number.</p>
+                    </div>
+                </li>
+
+                <li class="instruction-item">
+                    <span class="step-number">5</span>
+                    <div class="step-content">
+                        <strong>Confirm the Business Name</strong>
+                        <p>Check that the displayed business name is
+                            <b>MAKETHUB TALES</b> before proceeding.</p>
+                    </div>
+                </li>
+
+                <li class="instruction-item">
+                    <span class="step-number">6</span>
+                    <div class="step-content">
+                        <strong>Enter the Amount</strong>
+                        <p>Enter the exact amount you intend to pay.</p>
+                    </div>
+                </li>
+
+                <li class="instruction-item">
+                    <span class="step-number">7</span>
+                    <div class="step-content">
+                        <strong>Confirm Your Payment</strong>
+                        <p>Enter your M-PESA PIN and confirm the transaction.</p>
+                    </div>
+                </li>
+
+                <li class="instruction-item">
+                    <span class="step-number">8</span>
+                    <div class="step-content">
+                        <strong>Keep the Confirmation Message</strong>
+                        <p>Save the M-PESA confirmation SMS and transaction
+                            code as proof of payment.</p>
+                    </div>
+                </li>
+
+            </ol>
+        </section>
+
+        <!-- Payment Notice -->
+        <aside class="notice">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <p>
+                <strong>Important Payment Reminder</strong>
+                Always verify the Till Number and business name before
+                confirming. Never share your M-PESA PIN with anyone.
+            </p>
+        </aside>
+
+        <!-- Footer -->
+        <footer class="payment-footer">
+            <i class="fa-solid fa-shield-halved"></i>
+            Please verify all payment details before sending money.
+        </footer>
+
+    </main>
+</div>
+
+<script>
+    const copyButton = document.getElementById("copyTillButton");
+    const tillNumber = document.getElementById("tillNumber");
+
+    copyButton.addEventListener("click", async function () {
+        const number = tillNumber.textContent.trim();
+        const buttonText = copyButton.querySelector("span");
+        const buttonIcon = copyButton.querySelector("i");
+
+        try {
+            await navigator.clipboard.writeText(number);
+
+            buttonText.textContent = "Till Number Copied!";
+            buttonIcon.className = "fa-solid fa-check";
+
+            setTimeout(() => {
+                buttonText.textContent = "Copy Till Number";
+                buttonIcon.className = "fa-regular fa-copy";
+            }, 2000);
+
+        } catch (error) {
+            // Fallback for browsers where Clipboard API is unavailable.
+            const temporaryInput = document.createElement("textarea");
+            temporaryInput.value = number;
+            temporaryInput.style.position = "fixed";
+            temporaryInput.style.opacity = "0";
+
+            document.body.appendChild(temporaryInput);
+            temporaryInput.select();
+
+            const copied = document.execCommand("copy");
+            temporaryInput.remove();
+
+            if (copied) {
+                buttonText.textContent = "Till Number Copied!";
+                buttonIcon.className = "fa-solid fa-check";
+
+                setTimeout(() => {
+                    buttonText.textContent = "Copy Till Number";
+                    buttonIcon.className = "fa-regular fa-copy";
+                }, 2000);
+            } else {
+                alert("Please copy the Till Number manually: " + number);
+            }
+        }
+    });
+</script>
+
+</body>
+</html>

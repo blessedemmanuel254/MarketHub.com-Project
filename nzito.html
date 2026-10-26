@@ -1,0 +1,3424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Makethub | Restock Inventory</title>
+
+<style>
+
+/* =========================================================
+   1. GLOBAL VARIABLES
+========================================================= */
+
+:root {
+    --primary: #111827;
+    --primary-light: #1f2937;
+
+    --green: #07833f;
+    --green-light: #e9f8ef;
+
+    --red: #dc3545;
+    --red-light: #fff0f0;
+
+    --amber: #d97706;
+    --amber-light: #fff7e8;
+
+    --blue: #2563eb;
+    --blue-light: #eff6ff;
+
+    --text: #172033;
+    --muted: #737d8d;
+
+    --border: #e7eaf0;
+    --background: #f5f7fa;
+    --white: #ffffff;
+
+    --radius: 14px;
+    --shadow: 0 4px 20px rgba(20, 35, 60, 0.045);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--background);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+button:disabled {
+    cursor: not-allowed !important;
+    opacity: 0.4;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, 0.2);
+    outline-offset: 2px;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+
+/* =========================================================
+   2. MAIN PAGE
+========================================================= */
+
+.restock-page {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 28px;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 26px;
+}
+
+.page-title h1 {
+    font-size: 27px;
+    font-weight: 800;
+    letter-spacing: -0.7px;
+    color: var(--primary);
+}
+
+.page-title p {
+    color: var(--muted);
+    margin-top: 5px;
+    font-size: 13px;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.last-updated {
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 10px 15px;
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    background: white;
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 700;
+    transition: 0.2s ease;
+}
+
+.btn:hover:not(:disabled) {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.btn-dark {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.btn-dark:hover:not(:disabled) {
+    background: #263449;
+    color: white;
+}
+
+
+/* =========================================================
+   3. SUMMARY CARDS
+========================================================= */
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 26px;
+}
+
+.summary-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 19px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    min-width: 0;
+    box-shadow: var(--shadow);
+}
+
+.summary-icon {
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 21px;
+    font-weight: 800;
+}
+
+.summary-icon.red {
+    background: var(--red-light);
+    color: var(--red);
+}
+
+.summary-icon.amber {
+    background: var(--amber-light);
+    color: var(--amber);
+}
+
+.summary-icon.blue {
+    background: var(--blue-light);
+    color: var(--blue);
+}
+
+.summary-info {
+    min-width: 0;
+}
+
+.summary-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 3px;
+}
+
+.summary-value {
+    font-size: 25px;
+    line-height: 1.2;
+    font-weight: 800;
+    color: var(--primary);
+}
+
+.summary-description {
+    margin-top: 4px;
+    font-size: 10px;
+    color: var(--muted);
+}
+
+
+/* =========================================================
+   4. TOOLBAR
+========================================================= */
+
+.restock-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.search-box {
+    position: relative;
+    width: 100%;
+    max-width: 390px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #8b95a5;
+    font-size: 17px;
+    pointer-events: none;
+}
+
+.search-box input {
+    width: 100%;
+    height: 43px;
+    padding: 0 14px 0 39px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: white;
+    color: var(--text);
+    font-size: 12px;
+}
+
+.search-box input::placeholder {
+    color: #a1a8b4;
+}
+
+.toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.toolbar-label {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.page-size-select {
+    height: 38px;
+    min-width: 85px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: white;
+    color: var(--text);
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   5. CATEGORY PANELS
+   One panel per category, not one card per product.
+========================================================= */
+
+.category-panel {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    overflow: hidden;
+    margin-bottom: 22px;
+    box-shadow: var(--shadow);
+}
+
+.category-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    padding: 19px 22px;
+    border-bottom: 1px solid var(--border);
+}
+
+.category-heading-left {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    min-width: 0;
+}
+
+.category-indicator {
+    width: 4px;
+    align-self: stretch;
+    min-height: 43px;
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+.category-panel.out-of-stock .category-indicator {
+    background: var(--red);
+}
+
+.category-panel.running-low .category-indicator {
+    background: #f59e0b;
+}
+
+.category-panel.recommended .category-indicator {
+    background: var(--blue);
+}
+
+.category-icon {
+    width: 39px;
+    height: 39px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+    flex-shrink: 0;
+}
+
+.out-of-stock .category-icon {
+    color: var(--red);
+    background: var(--red-light);
+}
+
+.running-low .category-icon {
+    color: var(--amber);
+    background: var(--amber-light);
+}
+
+.recommended .category-icon {
+    color: var(--blue);
+    background: var(--blue-light);
+}
+
+.category-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1.4;
+}
+
+.category-description {
+    margin-top: 3px;
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.category-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 25px;
+    padding: 0 8px;
+    border-radius: 7px;
+    margin-left: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    vertical-align: middle;
+}
+
+.out-of-stock .category-count {
+    background: var(--red-light);
+    color: var(--red);
+}
+
+.running-low .category-count {
+    background: var(--amber-light);
+    color: var(--amber);
+}
+
+.recommended .category-count {
+    background: var(--blue-light);
+    color: var(--blue);
+}
+
+.category-priority {
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 6px 9px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+.out-of-stock .category-priority {
+    background: var(--red-light);
+    color: var(--red);
+}
+
+.running-low .category-priority {
+    background: var(--amber-light);
+    color: var(--amber);
+}
+
+.recommended .category-priority {
+    background: var(--blue-light);
+    color: var(--blue);
+}
+
+
+/* =========================================================
+   6. PRODUCT GRID
+========================================================= */
+
+.product-grid {
+    display: grid;
+
+    /* Two responsive columns when space allows */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    padding: 0 22px;
+    column-gap: 24px;
+}
+
+.product-row {
+    min-width: 0;
+    display: grid;
+
+    /* Image | Product details | Quantity | Action */
+    grid-template-columns: 56px minmax(0, 1fr) auto auto;
+
+    align-items: center;
+    gap: 12px;
+
+    padding: 15px 0;
+    border-bottom: 1px solid #edf0f4;
+
+    transition: background 0.2s ease;
+}
+
+.product-row:hover {
+    background: #fafbfc;
+}
+
+.product-image {
+    width: 56px;
+    height: 56px;
+    border-radius: 9px;
+    border: 1px solid #edf0f4;
+    object-fit: cover;
+    background: #f8fafc;
+    flex-shrink: 0;
+}
+
+.product-details {
+    min-width: 0;
+}
+
+.product-name {
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.45;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+
+    overflow-wrap: anywhere;
+}
+
+.product-group {
+    color: var(--muted);
+    font-size: 10px;
+    margin-top: 4px;
+    line-height: 1.4;
+}
+
+.product-sku {
+    font-size: 9px;
+    color: #a0a7b3;
+    margin-top: 3px;
+}
+
+.product-quantity {
+    min-width: 64px;
+    text-align: center;
+}
+
+.quantity-label {
+    color: var(--muted);
+    font-size: 9px;
+    margin-bottom: 3px;
+    white-space: nowrap;
+}
+
+.quantity-value {
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.quantity-value.danger {
+    color: var(--red);
+}
+
+.quantity-value.warning {
+    color: var(--amber);
+}
+
+.quantity-value.recommended-value {
+    color: var(--blue);
+}
+
+.suggested-quantity {
+    margin-top: 5px;
+    color: var(--amber);
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.restock-button {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+
+    padding: 8px 11px;
+    min-height: 34px;
+
+    border-radius: 7px;
+    border: 1px solid transparent;
+
+    font-size: 10px;
+    font-weight: 800;
+    white-space: nowrap;
+
+    transition: 0.2s ease;
+}
+
+.out-of-stock .restock-button {
+    background: var(--red-light);
+    color: var(--red);
+    border-color: #ffd9dd;
+}
+
+.out-of-stock .restock-button:hover {
+    background: var(--red);
+    color: white;
+}
+
+.running-low .restock-button {
+    background: var(--amber-light);
+    color: #b96a00;
+    border-color: #f8dfb5;
+}
+
+.running-low .restock-button:hover {
+    background: #e69518;
+    color: white;
+}
+
+.recommended .restock-button {
+    background: var(--blue-light);
+    color: var(--blue);
+    border-color: #d9e7ff;
+}
+
+.recommended .restock-button:hover {
+    background: var(--blue);
+    color: white;
+}
+
+
+/* =========================================================
+   7. EMPTY STATES
+========================================================= */
+
+.empty-state {
+    padding: 32px 20px;
+    text-align: center;
+    color: var(--muted);
+    grid-column: 1 / -1;
+}
+
+.empty-state-icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+.empty-state strong {
+    display: block;
+    color: var(--primary);
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.empty-state p {
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   8. CATEGORY FOOTER / PAGINATION
+========================================================= */
+
+.category-footer {
+    border-top: 1px solid var(--border);
+    background: #fcfcfd;
+    padding: 13px 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.pagination-info {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.page-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 32px;
+    height: 31px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: white;
+    color: var(--text);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.page-btn:hover:not(:disabled) {
+    border-color: #9ca3af;
+    background: #f8fafc;
+}
+
+.page-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.page-number-buttons {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.page-ellipsis {
+    color: var(--muted);
+    font-size: 12px;
+    padding: 0 2px;
+}
+
+
+/* =========================================================
+   9. RESTOCK MODAL
+========================================================= */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 20px;
+
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(4px);
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.restock-modal {
+    width: 100%;
+    max-width: 440px;
+    background: white;
+    border-radius: 17px;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+
+    transform: translateY(12px);
+    transition: transform 0.2s ease;
+}
+
+.modal-overlay.show .restock-modal {
+    transform: translateY(0);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 22px;
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-header h2 {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--primary);
+}
+
+.modal-header p {
+    margin-top: 3px;
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.modal-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 8px;
+    background: #f3f5f8;
+    color: #647084;
+    font-size: 20px;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    background: #e9edf3;
+}
+
+.modal-body {
+    padding: 22px;
+}
+
+.modal-product {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    margin-bottom: 21px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-product img {
+    width: 66px;
+    height: 66px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    object-fit: cover;
+}
+
+.modal-product-name {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--primary);
+    overflow-wrap: anywhere;
+}
+
+.modal-product-group {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+}
+
+.modal-product-sku {
+    font-size: 10px;
+    color: #a0a7b3;
+    margin-top: 3px;
+}
+
+.current-stock-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+
+    padding: 15px;
+    border-radius: 10px;
+    background: #f6f8fb;
+    border: 1px solid #edf0f4;
+
+    margin-bottom: 19px;
+}
+
+.current-stock-label {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.current-stock-value {
+    font-size: 21px;
+    font-weight: 800;
+    color: var(--primary);
+    text-align: right;
+}
+
+.current-stock-unit {
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 400;
+}
+
+.form-group {
+    margin-bottom: 17px;
+}
+
+.form-group label {
+    display: block;
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 7px;
+}
+
+.stock-input-wrapper {
+    display: flex;
+    align-items: center;
+    border: 1px solid #dce2ea;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s ease;
+}
+
+.stock-input-wrapper:focus-within {
+    border-color: var(--blue);
+}
+
+.stock-input-wrapper input {
+    width: 100%;
+    min-width: 0;
+    height: 47px;
+    border: none;
+    outline: none;
+    padding: 0 13px;
+    color: var(--primary);
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.stock-input-wrapper input:focus-visible {
+    outline: none;
+}
+
+.stock-unit {
+    padding: 0 13px;
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+    border-left: 1px solid var(--border);
+    background: #fafbfc;
+    height: 47px;
+    display: flex;
+    align-items: center;
+}
+
+.input-help {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 7px;
+}
+
+.stock-preview {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 14px;
+    border-radius: 9px;
+    background: #effaf3;
+    border: 1px solid #d5f0df;
+    margin-bottom: 18px;
+}
+
+.stock-preview span {
+    font-size: 11px;
+    color: #34734b;
+}
+
+.stock-preview strong {
+    color: #07833f;
+    font-size: 15px;
+}
+
+.modal-error {
+    color: var(--red);
+    font-size: 11px;
+    margin-bottom: 12px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 9px;
+    padding: 16px 22px;
+    background: #fcfcfd;
+    border-top: 1px solid var(--border);
+}
+
+.modal-footer .btn {
+    min-height: 39px;
+}
+
+.confirm-restock {
+    background: var(--green);
+    color: white;
+    border-color: var(--green);
+}
+
+.confirm-restock:hover:not(:disabled) {
+    background: #056b34;
+    color: white;
+}
+
+
+/* =========================================================
+   10. TOAST NOTIFICATIONS
+========================================================= */
+
+.toast-container {
+    position: fixed;
+    bottom: 22px;
+    right: 22px;
+    z-index: 10001;
+
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+
+    width: min(360px, calc(100vw - 32px));
+    pointer-events: none;
+}
+
+.toast {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    padding: 14px 16px;
+    border-radius: 11px;
+    background: #142033;
+    color: white;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.17);
+    font-size: 12px;
+
+    animation: toastIn 0.25s ease;
+}
+
+.toast.success {
+    background: #08783d;
+}
+
+.toast.error {
+    background: #b42332;
+}
+
+.toast-icon {
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.toast strong {
+    display: block;
+    margin-bottom: 2px;
+    font-size: 12px;
+}
+
+.toast p {
+    font-size: 11px;
+    opacity: 0.9;
+    line-height: 1.5;
+}
+
+@keyframes toastIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* =========================================================
+   11. RESPONSIVE DESIGN
+========================================================= */
+
+@media (min-width: 1450px) {
+    .product-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        column-gap: 28px;
+    }
+}
+
+@media (max-width: 1100px) {
+
+    .restock-page {
+        padding: 22px;
+    }
+
+    .product-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 20px;
+    }
+
+    .product-row {
+        grid-template-columns: 48px minmax(0, 1fr) auto;
+        gap: 10px;
+    }
+
+    .product-image {
+        width: 48px;
+        height: 48px;
+    }
+
+    .product-quantity {
+        grid-column: 2;
+        text-align: left;
+        min-width: 0;
+        margin-top: -5px;
+    }
+
+    .product-quantity .quantity-label {
+        display: inline;
+        margin-right: 5px;
+    }
+
+    .product-quantity .quantity-value {
+        display: inline;
+    }
+
+    .product-quantity .suggested-quantity {
+        display: block;
+    }
+
+    .product-row .restock-button {
+        grid-column: 3;
+        grid-row: 1 / span 2;
+        align-self: center;
+    }
+}
+
+@media (max-width: 760px) {
+
+    .restock-page {
+        padding: 16px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .page-title h1 {
+        font-size: 23px;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .summary-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .summary-card {
+        padding: 14px;
+    }
+
+    .summary-icon {
+        width: 41px;
+        height: 41px;
+    }
+
+    .summary-value {
+        font-size: 22px;
+    }
+
+    .restock-toolbar {
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .search-box {
+        max-width: none;
+    }
+
+    .toolbar-right {
+        justify-content: space-between;
+    }
+
+    .category-heading {
+        padding: 15px;
+    }
+
+    .category-description {
+        max-width: 250px;
+    }
+
+    .category-footer {
+        padding: 13px 15px;
+    }
+
+    .product-grid {
+        grid-template-columns: 1fr;
+        padding: 0 15px;
+    }
+
+    .product-row {
+        grid-template-columns: 52px minmax(0, 1fr) auto;
+        gap: 10px;
+    }
+
+    .product-image {
+        width: 52px;
+        height: 52px;
+    }
+
+    .product-details {
+        align-self: center;
+    }
+
+    .product-quantity {
+        grid-column: 2;
+        margin-top: -4px;
+    }
+
+    .product-row .restock-button {
+        grid-column: 3;
+        grid-row: 1 / span 2;
+    }
+}
+
+@media (max-width: 400px) {
+
+    .restock-page {
+        padding: 11px;
+    }
+
+    .category-heading {
+        padding: 13px 11px;
+        gap: 7px;
+    }
+
+    .category-heading-left {
+        gap: 8px;
+    }
+
+    .category-icon {
+        width: 33px;
+        height: 33px;
+        font-size: 16px;
+    }
+
+    .category-title {
+        font-size: 13px;
+    }
+
+    .category-description {
+        font-size: 10px;
+    }
+
+    .category-priority {
+        font-size: 9px;
+        padding: 5px 6px;
+    }
+
+    .product-grid {
+        padding: 0 11px;
+    }
+
+    .product-row {
+        grid-template-columns: 43px minmax(0, 1fr) auto;
+        gap: 8px;
+    }
+
+    .product-image {
+        width: 43px;
+        height: 43px;
+    }
+
+    .product-name {
+        font-size: 11px;
+    }
+
+    .restock-button {
+        padding: 7px 8px;
+        font-size: 9px;
+    }
+
+    .category-footer {
+        padding: 11px;
+    }
+
+    .pagination {
+        gap: 4px;
+    }
+
+    .page-btn {
+        min-width: 29px;
+        height: 29px;
+        padding: 0 7px;
+    }
+
+    .modal-overlay {
+        padding: 12px;
+    }
+
+    .modal-header,
+    .modal-body {
+        padding: 17px;
+    }
+
+    .modal-footer {
+        padding: 13px 17px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<main class="restock-page">
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
+
+    <header class="page-header">
+
+        <div class="page-title">
+
+            <h1>Restock Inventory</h1>
+
+            <p>
+                Monitor your stock levels and replenish products
+                before you run out.
+            </p>
+
+        </div>
+
+        <div class="header-actions">
+
+            <span class="last-updated" id="lastUpdated">
+                Inventory overview
+            </span>
+
+            <button
+                type="button"
+                class="btn"
+                id="refreshButton"
+            >
+                ↻ Refresh
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- =====================================================
+         SUMMARY
+    ====================================================== -->
+
+    <section class="summary-grid" aria-label="Inventory summary">
+
+        <article class="summary-card">
+
+            <div class="summary-icon red">!</div>
+
+            <div class="summary-info">
+
+                <div class="summary-label">
+                    Out of Stock
+                </div>
+
+                <div class="summary-value" id="summaryOutOfStock">
+                    0
+                </div>
+
+                <div class="summary-description">
+                    Products unavailable for sale
+                </div>
+
+            </div>
+
+        </article>
+
+
+        <article class="summary-card">
+
+            <div class="summary-icon amber">↓</div>
+
+            <div class="summary-info">
+
+                <div class="summary-label">
+                    Running Low
+                </div>
+
+                <div class="summary-value" id="summaryRunningLow">
+                    0
+                </div>
+
+                <div class="summary-description">
+                    Products approaching their alert level
+                </div>
+
+            </div>
+
+        </article>
+
+
+        <article class="summary-card">
+
+            <div class="summary-icon blue">↗</div>
+
+            <div class="summary-info">
+
+                <div class="summary-label">
+                    Recommended Restock
+                </div>
+
+                <div class="summary-value" id="summaryRecommended">
+                    0
+                </div>
+
+                <div class="summary-description">
+                    Products with potential demand
+                </div>
+
+            </div>
+
+        </article>
+
+    </section>
+
+
+    <!-- =====================================================
+         TOOLBAR
+    ====================================================== -->
+
+    <section class="restock-toolbar">
+
+        <div class="search-box">
+
+            <span class="search-icon" aria-hidden="true">⌕</span>
+
+            <input
+                type="search"
+                id="searchInput"
+                placeholder="Search product name, group or SKU..."
+                autocomplete="off"
+                aria-label="Search restock products"
+            >
+
+        </div>
+
+
+        <div class="toolbar-right">
+
+            <label for="pageSize" class="toolbar-label">
+                Products per category
+            </label>
+
+            <select
+                id="pageSize"
+                class="page-size-select"
+                aria-label="Products per category"
+            >
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="15" selected>15</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+            </select>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         CATEGORY 1: OUT OF STOCK
+    ====================================================== -->
+
+    <section
+        class="category-panel out-of-stock"
+        id="outOfStockPanel"
+        aria-labelledby="outOfStockTitle"
+    >
+
+        <div class="category-heading">
+
+            <div class="category-heading-left">
+
+                <div class="category-indicator"></div>
+
+                <div class="category-icon" aria-hidden="true">
+                    !
+                </div>
+
+                <div>
+
+                    <h2 class="category-title" id="outOfStockTitle">
+
+                        Out of Stock
+
+                        <span
+                            class="category-count"
+                            id="outOfStockCount"
+                        >0</span>
+
+                    </h2>
+
+                    <p class="category-description">
+                        Urgent attention required. These products have no stock remaining.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <span class="category-priority">
+                HIGH PRIORITY
+            </span>
+
+        </div>
+
+
+        <div
+            class="product-grid"
+            id="outOfStockList"
+        ></div>
+
+
+        <footer class="category-footer">
+
+            <div
+                class="pagination-info"
+                id="outOfStockPaginationInfo"
+            >
+                Showing 0 products
+            </div>
+
+            <nav
+                class="pagination"
+                id="outOfStockPagination"
+                aria-label="Out of stock pagination"
+            ></nav>
+
+        </footer>
+
+    </section>
+
+
+    <!-- =====================================================
+         CATEGORY 2: RUNNING LOW
+    ====================================================== -->
+
+    <section
+        class="category-panel running-low"
+        id="runningLowPanel"
+        aria-labelledby="runningLowTitle"
+    >
+
+        <div class="category-heading">
+
+            <div class="category-heading-left">
+
+                <div class="category-indicator"></div>
+
+                <div class="category-icon" aria-hidden="true">
+                    ↓
+                </div>
+
+                <div>
+
+                    <h2 class="category-title" id="runningLowTitle">
+
+                        Running Low
+
+                        <span
+                            class="category-count"
+                            id="runningLowCount"
+                        >0</span>
+
+                    </h2>
+
+                    <p class="category-description">
+                        Stock is at or below the product's alert quantity.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <span class="category-priority">
+                RESTOCK SOON
+            </span>
+
+        </div>
+
+
+        <div
+            class="product-grid"
+            id="runningLowList"
+        ></div>
+
+
+        <footer class="category-footer">
+
+            <div
+                class="pagination-info"
+                id="runningLowPaginationInfo"
+            >
+                Showing 0 products
+            </div>
+
+            <nav
+                class="pagination"
+                id="runningLowPagination"
+                aria-label="Running low pagination"
+            ></nav>
+
+        </footer>
+
+    </section>
+
+
+    <!-- =====================================================
+         CATEGORY 3: RECOMMENDED RESTOCK
+    ====================================================== -->
+
+    <section
+        class="category-panel recommended"
+        id="recommendedPanel"
+        aria-labelledby="recommendedTitle"
+    >
+
+        <div class="category-heading">
+
+            <div class="category-heading-left">
+
+                <div class="category-indicator"></div>
+
+                <div class="category-icon" aria-hidden="true">
+                    ↗
+                </div>
+
+                <div>
+
+                    <h2 class="category-title" id="recommendedTitle">
+
+                        Recommended Restock
+
+                        <span
+                            class="category-count"
+                            id="recommendedCount"
+                        >0</span>
+
+                    </h2>
+
+                    <p class="category-description">
+                        Consider replenishing these products based on demand.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <span class="category-priority">
+                DEMAND BASED
+            </span>
+
+        </div>
+
+
+        <div
+            class="product-grid"
+            id="recommendedList"
+        ></div>
+
+
+        <footer class="category-footer">
+
+            <div
+                class="pagination-info"
+                id="recommendedPaginationInfo"
+            >
+                Showing 0 products
+            </div>
+
+            <nav
+                class="pagination"
+                id="recommendedPagination"
+                aria-label="Recommended restock pagination"
+            ></nav>
+
+        </footer>
+
+    </section>
+
+
+</main>
+
+
+<!-- =========================================================
+     RESTOCK MODAL
+========================================================== -->
+
+<div
+    class="modal-overlay"
+    id="restockModal"
+    aria-hidden="true"
+>
+
+    <section
+        class="restock-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modalTitle"
+        aria-describedby="modalDescription"
+    >
+
+        <header class="modal-header">
+
+            <div>
+
+                <h2 id="modalTitle">
+                    Restock Product
+                </h2>
+
+                <p id="modalDescription">
+                    Update the product's available stock.
+                </p>
+
+            </div>
+
+            <button
+                type="button"
+                class="modal-close"
+                id="closeModalButton"
+                aria-label="Close restock popup"
+            >
+                ×
+            </button>
+
+        </header>
+
+
+        <form id="restockForm" novalidate>
+
+            <div class="modal-body">
+
+                <!-- Selected product -->
+
+                <div class="modal-product">
+
+                    <img
+                        src=""
+                        id="modalProductImage"
+                        alt=""
+                    >
+
+                    <div>
+
+                        <div
+                            class="modal-product-name"
+                            id="modalProductName"
+                        ></div>
+
+                        <div
+                            class="modal-product-group"
+                            id="modalProductGroup"
+                        ></div>
+
+                        <div
+                            class="modal-product-sku"
+                            id="modalProductSku"
+                        ></div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Current quantity -->
+
+                <div class="current-stock-box">
+
+                    <div>
+
+                        <div class="current-stock-label">
+                            Current available quantity
+                        </div>
+
+                        <div class="current-stock-label">
+                            Before restocking
+                        </div>
+
+                    </div>
+
+                    <div>
+
+                        <div
+                            class="current-stock-value"
+                            id="modalCurrentStock"
+                        >
+                            0
+                        </div>
+
+                        <span
+                            class="current-stock-unit"
+                            id="modalCurrentStockUnit"
+                        ></span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- New quantity input -->
+
+                <div class="form-group">
+
+                    <label for="newStockQuantity">
+                        New total stock quantity
+                    </label>
+
+                    <div class="stock-input-wrapper">
+
+                        <input
+                            type="number"
+                            id="newStockQuantity"
+                            min="0"
+                            step="any"
+                            inputmode="decimal"
+                            required
+                            aria-describedby="stockInputHelp"
+                        >
+
+                        <span
+                            class="stock-unit"
+                            id="modalInputUnit"
+                        >Units</span>
+
+                    </div>
+
+                    <p class="input-help" id="stockInputHelp">
+                        Enter the total quantity that should be available after restocking.
+                    </p>
+
+                </div>
+
+
+                <!-- Preview -->
+
+                <div class="stock-preview">
+
+                    <span>
+                        New available quantity
+                    </span>
+
+                    <strong id="stockPreviewValue">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div
+                    class="modal-error"
+                    id="modalError"
+                    role="alert"
+                    hidden
+                ></div>
+
+            </div>
+
+
+            <footer class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn"
+                    id="cancelRestockButton"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn confirm-restock"
+                    id="confirmRestockButton"
+                >
+                    ✓ Confirm Restock
+                </button>
+
+            </footer>
+
+        </form>
+
+    </section>
+
+</div>
+
+
+<!-- =========================================================
+     TOAST NOTIFICATIONS
+========================================================== -->
+
+<div
+    class="toast-container"
+    id="toastContainer"
+    aria-live="polite"
+></div>
+
+
+<script>
+
+/* ============================================================
+   1. DEMO INVENTORY DATA
+
+   This array simulates data that will eventually come from PHP.
+
+   In your real Makethub implementation, replace this demo data
+   with inventory records fetched from your database.
+
+   category values:
+       out       = Out of Stock
+       low       = Running Low
+       demand    = Recommended Restock
+============================================================ */
+
+const inventoryProducts = [
+
+    // --------------------------------------------------------
+    // OUT OF STOCK
+    // --------------------------------------------------------
+
+    {
+        id: 101,
+        name: "Premium Maize Flour",
+        group: "Food & Groceries",
+        sku: "MH-1001",
+        image: "https://placehold.co/100x100/f4eee2/806342?text=Flour",
+        quantity: 0,
+        unit: "Kg",
+        alertQuantity: 10,
+        suggestedQuantity: 30,
+        category: "out"
+    },
+
+    {
+        id: 102,
+        name: "Cooking Oil",
+        group: "Food & Groceries",
+        sku: "MH-1002",
+        image: "https://placehold.co/100x100/fff2d5/9b6c13?text=Oil",
+        quantity: 0,
+        unit: "Liters",
+        alertQuantity: 8,
+        suggestedQuantity: 24,
+        category: "out"
+    },
+
+    {
+        id: 103,
+        name: "Blue Ballpoint Pens",
+        group: "Stationery",
+        sku: "MH-1003",
+        image: "https://placehold.co/100x100/e6efff/3458a4?text=Pens",
+        quantity: 0,
+        unit: "Each",
+        alertQuantity: 15,
+        suggestedQuantity: 50,
+        category: "out"
+    },
+
+    {
+        id: 104,
+        name: "A4 Printing Paper",
+        group: "Stationery",
+        sku: "MH-1004",
+        image: "https://placehold.co/100x100/f1f1f1/454545?text=Paper",
+        quantity: 0,
+        unit: "Packets",
+        alertQuantity: 5,
+        suggestedQuantity: 20,
+        category: "out"
+    },
+
+    {
+        id: 105,
+        name: "USB Charging Cable",
+        group: "Electronics",
+        sku: "MH-1005",
+        image: "https://placehold.co/100x100/e8e8e8/454545?text=USB",
+        quantity: 0,
+        unit: "Each",
+        alertQuantity: 5,
+        suggestedQuantity: 15,
+        category: "out"
+    },
+
+
+    // --------------------------------------------------------
+    // RUNNING LOW
+    // --------------------------------------------------------
+
+    {
+        id: 201,
+        name: "Sugar",
+        group: "Food & Groceries",
+        sku: "MH-2001",
+        image: "https://placehold.co/100x100/f5f0e7/7e6946?text=Sugar",
+        quantity: 3,
+        unit: "Kg",
+        alertQuantity: 10,
+        suggestedQuantity: 25,
+        category: "low"
+    },
+
+    {
+        id: 202,
+        name: "Long Grain Rice",
+        group: "Food & Groceries",
+        sku: "MH-2002",
+        image: "https://placehold.co/100x100/f5eee0/967b4c?text=Rice",
+        quantity: 4,
+        unit: "Kg",
+        alertQuantity: 12,
+        suggestedQuantity: 30,
+        category: "low"
+    },
+
+    {
+        id: 203,
+        name: "Bathing Soap",
+        group: "Personal Care",
+        sku: "MH-2003",
+        image: "https://placehold.co/100x100/e6f3fb/477d9a?text=Soap",
+        quantity: 2,
+        unit: "Each",
+        alertQuantity: 8,
+        suggestedQuantity: 20,
+        category: "low"
+    },
+
+    {
+        id: 204,
+        name: "Exercise Books",
+        group: "Stationery",
+        sku: "MH-2004",
+        image: "https://placehold.co/100x100/ece8ff/6553a5?text=Books",
+        quantity: 6,
+        unit: "Each",
+        alertQuantity: 15,
+        suggestedQuantity: 40,
+        category: "low"
+    },
+
+    {
+        id: 205,
+        name: "LED Bulbs",
+        group: "Electronics",
+        sku: "MH-2005",
+        image: "https://placehold.co/100x100/fef4c8/92700e?text=Bulbs",
+        quantity: 3,
+        unit: "Each",
+        alertQuantity: 10,
+        suggestedQuantity: 25,
+        category: "low"
+    },
+
+
+    // --------------------------------------------------------
+    // RECOMMENDED RESTOCK
+    // --------------------------------------------------------
+
+    {
+        id: 301,
+        name: "Bottled Drinking Water",
+        group: "Beverages",
+        sku: "MH-3001",
+        image: "https://placehold.co/100x100/e2f3ff/3674a5?text=Water",
+        quantity: 18,
+        unit: "Each",
+        alertQuantity: 8,
+        suggestedQuantity: 50,
+        category: "demand"
+    },
+
+    {
+        id: 302,
+        name: "Fresh Cooking Tomatoes",
+        group: "Fresh Produce",
+        sku: "MH-3002",
+        image: "https://placehold.co/100x100/ffe9e7/bb443b?text=Tomato",
+        quantity: 12,
+        unit: "Kg",
+        alertQuantity: 5,
+        suggestedQuantity: 25,
+        category: "demand"
+    },
+
+    {
+        id: 303,
+        name: "Phone Screen Protectors",
+        group: "Electronics",
+        sku: "MH-3003",
+        image: "https://placehold.co/100x100/e8e9ff/5559a8?text=Screen",
+        quantity: 9,
+        unit: "Each",
+        alertQuantity: 3,
+        suggestedQuantity: 20,
+        category: "demand"
+    },
+
+    {
+        id: 304,
+        name: "Laundry Detergent",
+        group: "Household",
+        sku: "MH-3004",
+        image: "https://placehold.co/100x100/e4f7eb/36744a?text=Wash",
+        quantity: 16,
+        unit: "Packets",
+        alertQuantity: 5,
+        suggestedQuantity: 30,
+        category: "demand"
+    },
+
+    {
+        id: 305,
+        name: "Extension Cables",
+        group: "Electronics",
+        sku: "MH-3005",
+        image: "https://placehold.co/100x100/f2eaff/7950a5?text=Cable",
+        quantity: 7,
+        unit: "Each",
+        alertQuantity: 3,
+        suggestedQuantity: 18,
+        category: "demand"
+    }
+
+];
+
+
+/* ============================================================
+   2. CONFIGURATION
+============================================================ */
+
+const categoryConfiguration = {
+
+    out: {
+        listId: "outOfStockList",
+        countId: "outOfStockCount",
+        paginationId: "outOfStockPagination",
+        infoId: "outOfStockPaginationInfo",
+        summaryId: "summaryOutOfStock",
+        name: "Out of Stock",
+        emptyTitle: "No out-of-stock products",
+        emptyDescription: "All your listed products have available stock."
+    },
+
+    low: {
+        listId: "runningLowList",
+        countId: "runningLowCount",
+        paginationId: "runningLowPagination",
+        infoId: "runningLowPaginationInfo",
+        summaryId: "summaryRunningLow",
+        name: "Running Low",
+        emptyTitle: "No low-stock products",
+        emptyDescription: "Your products are above their alert quantities."
+    },
+
+    demand: {
+        listId: "recommendedList",
+        countId: "recommendedCount",
+        paginationId: "recommendedPagination",
+        infoId: "recommendedPaginationInfo",
+        summaryId: "summaryRecommended",
+        name: "Recommended Restock",
+        emptyTitle: "No recommended restocks",
+        emptyDescription: "No products currently need a demand-based restock."
+    }
+
+};
+
+
+/* ============================================================
+   3. APPLICATION STATE
+============================================================ */
+
+let currentPage = {
+    out: 1,
+    low: 1,
+    demand: 1
+};
+
+let productsPerPage = 15;
+
+let searchQuery = "";
+
+let selectedProductId = null;
+
+let lastFocusedElement = null;
+
+
+/* ============================================================
+   4. DOM HELPERS
+============================================================ */
+
+function getElement(id) {
+    return document.getElementById(id);
+}
+
+
+function escapeHTML(value) {
+
+    return String(value ?? "").replace(/[&<>"']/g, function(character) {
+
+        const entities = {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#039;"
+        };
+
+        return entities[character];
+
+    });
+
+}
+
+
+function formatQuantity(value) {
+
+    const number = Number(value);
+
+    if (!Number.isFinite(number)) {
+        return "0";
+    }
+
+    return new Intl.NumberFormat("en-KE", {
+        maximumFractionDigits: 3
+    }).format(number);
+
+}
+
+
+function getProductById(id) {
+
+    return inventoryProducts.find(function(product) {
+        return product.id === Number(id);
+    });
+
+}
+
+
+/* ============================================================
+   5. CATEGORY ASSIGNMENT
+
+   Priority:
+       1. Zero quantity -> out of stock
+       2. At/below alert quantity -> running low
+       3. Demand recommendation -> recommended restock
+
+   When the seller restocks a product above its alert quantity,
+   it will leave the urgent category.
+
+   If a product is marked as demand-driven, it remains in that
+   category while its stock is above the alert quantity.
+============================================================ */
+
+function determineCategory(product) {
+
+    if (Number(product.quantity) <= 0) {
+        return "out";
+    }
+
+    if (
+        Number(product.quantity) <=
+        Number(product.alertQuantity)
+    ) {
+        return "low";
+    }
+
+    if (product.category === "demand") {
+        return "demand";
+    }
+
+    return null;
+
+}
+
+
+/* ============================================================
+   6. SEARCH FILTERING
+============================================================ */
+
+function getProductsForCategory(category) {
+
+    return inventoryProducts.filter(function(product) {
+
+        const actualCategory = determineCategory(product);
+
+        if (actualCategory !== category) {
+            return false;
+        }
+
+        if (!searchQuery) {
+            return true;
+        }
+
+        const searchableText = [
+
+            product.name,
+            product.group,
+            product.sku,
+            product.unit
+
+        ].join(" ").toLowerCase();
+
+        return searchableText.includes(searchQuery);
+
+    }).sort(function(a, b) {
+
+        // Urgent products appear first when relevant.
+        if (category === "low") {
+
+            return Number(a.quantity) - Number(b.quantity);
+
+        }
+
+        return a.name.localeCompare(b.name);
+
+    });
+
+}
+
+
+/* ============================================================
+   7. PRODUCT ROW TEMPLATE
+
+   Running-low rows additionally display the alert quantity.
+
+   All products share the same compact row layout.
+============================================================ */
+
+function createProductRow(product, category) {
+
+    let quantityClass = "";
+    let quantityLabel = "Current stock";
+
+    if (category === "out") {
+
+        quantityClass = "danger";
+
+    } else if (category === "low") {
+
+        quantityClass = "warning";
+
+    } else {
+
+        quantityClass = "recommended-value";
+
+    }
+
+
+    let suggestedQuantityHTML = "";
+
+    if (category === "low") {
+
+        suggestedQuantityHTML = `
+
+            <div class="suggested-quantity">
+
+                Alert: ${formatQuantity(product.alertQuantity)}
+                ${escapeHTML(product.unit)}
+
+            </div>
+
+        `;
+
+    }
+
+
+    return `
+
+        <article
+            class="product-row"
+            data-product-id="${product.id}"
+        >
+
+            <img
+                class="product-image"
+                src="${escapeHTML(product.image)}"
+                alt="${escapeHTML(product.name)}"
+                loading="lazy"
+                onerror="
+                    this.onerror=null;
+                    this.src='https://placehold.co/100x100/f1f3f5/737d8d?text=Product';
+                "
+            >
+
+
+            <div class="product-details">
+
+                <div class="product-name">
+
+                    ${escapeHTML(product.name)}
+
+                </div>
+
+                <div class="product-group">
+
+                    ${escapeHTML(product.group)}
+
+                </div>
+
+                <div class="product-sku">
+
+                    SKU: ${escapeHTML(product.sku)}
+
+                </div>
+
+            </div>
+
+
+            <div class="product-quantity">
+
+                <div class="quantity-label">
+
+                    ${quantityLabel}
+
+                </div>
+
+                <div class="quantity-value ${quantityClass}">
+
+                    ${formatQuantity(product.quantity)}
+                    ${escapeHTML(product.unit)}
+
+                </div>
+
+                ${suggestedQuantityHTML}
+
+            </div>
+
+
+            <button
+                type="button"
+                class="restock-button"
+                data-restock-id="${product.id}"
+                aria-label="Restock ${escapeHTML(product.name)}"
+            >
+
+                <span aria-hidden="true">+</span>
+
+                Restock
+
+            </button>
+
+        </article>
+
+    `;
+
+}
+
+
+/* ============================================================
+   8. PAGINATION BUTTON GENERATOR
+============================================================ */
+
+function createPagination(category, totalPages) {
+
+    const config = categoryConfiguration[category];
+
+    const paginationElement = getElement(config.paginationId);
+
+    const page = currentPage[category];
+
+    if (totalPages <= 1) {
+
+        paginationElement.innerHTML = `
+
+            <button
+                type="button"
+                class="page-btn"
+                disabled
+                aria-label="Previous page"
+            >
+                ‹
+            </button>
+
+            <button
+                type="button"
+                class="page-btn active"
+                aria-current="page"
+            >
+                1
+            </button>
+
+            <button
+                type="button"
+                class="page-btn"
+                disabled
+                aria-label="Next page"
+            >
+                ›
+            </button>
+
+        `;
+
+        return;
+
+    }
+
+
+    let numberButtons = "";
+
+    let pages = [];
+
+
+    // Always show first page.
+    pages.push(1);
+
+
+    // Show a compact range around the current page.
+    for (
+        let p = Math.max(2, page - 1);
+        p <= Math.min(totalPages - 1, page + 1);
+        p++
+    ) {
+
+        pages.push(p);
+
+    }
+
+
+    // Always show last page.
+    if (totalPages > 1) {
+        pages.push(totalPages);
+    }
+
+
+    // Remove duplicate page numbers.
+    pages = [...new Set(pages)].sort(function(a, b) {
+        return a - b;
+    });
+
+
+    let previousPage = 0;
+
+
+    pages.forEach(function(p) {
+
+        if (previousPage && p - previousPage > 1) {
+
+            numberButtons += `
+
+                <span class="page-ellipsis">
+                    …
+                </span>
+
+            `;
+
+        }
+
+
+        numberButtons += `
+
+            <button
+                type="button"
+                class="page-btn ${p === page ? "active" : ""}"
+                data-page-category="${category}"
+                data-page-number="${p}"
+                ${p === page ? 'aria-current="page"' : ""}
+                aria-label="Go to page ${p}"
+            >
+                ${p}
+            </button>
+
+        `;
+
+
+        previousPage = p;
+
+    });
+
+
+    paginationElement.innerHTML = `
+
+        <button
+            type="button"
+            class="page-btn"
+            data-page-category="${category}"
+            data-page-number="${page - 1}"
+            ${page === 1 ? "disabled" : ""}
+            aria-label="Previous page"
+        >
+            ‹
+        </button>
+
+        <div class="page-number-buttons">
+
+            ${numberButtons}
+
+        </div>
+
+        <button
+            type="button"
+            class="page-btn"
+            data-page-category="${category}"
+            data-page-number="${page + 1}"
+            ${page === totalPages ? "disabled" : ""}
+            aria-label="Next page"
+        >
+            ›
+
+        </button>
+
+    `;
+
+}
+
+
+/* ============================================================
+   9. RENDER CATEGORY
+============================================================ */
+
+function renderCategory(category) {
+
+    const config = categoryConfiguration[category];
+
+    const listElement = getElement(config.listId);
+
+    const allProducts = getProductsForCategory(category);
+
+    const totalProducts = allProducts.length;
+
+
+    // Keep the page number valid after a search or restock.
+    const totalPages = Math.max(
+        1,
+        Math.ceil(totalProducts / productsPerPage)
+    );
+
+
+    if (currentPage[category] > totalPages) {
+
+        currentPage[category] = totalPages;
+
+    }
+
+
+    const currentPageNumber = currentPage[category];
+
+
+    const startIndex =
+        (currentPageNumber - 1) * productsPerPage;
+
+
+    const endIndex = Math.min(
+        startIndex + productsPerPage,
+        totalProducts
+    );
+
+
+    const pageProducts = allProducts.slice(
+        startIndex,
+        endIndex
+    );
+
+
+    // Update category badge.
+    getElement(config.countId).textContent = totalProducts;
+
+
+    // Update footer information.
+    if (totalProducts === 0) {
+
+        getElement(config.infoId).textContent =
+            "Showing 0 products";
+
+        listElement.innerHTML = `
+
+            <div class="empty-state">
+
+                <div class="empty-state-icon">✓</div>
+
+                <strong>
+                    ${escapeHTML(config.emptyTitle)}
+                </strong>
+
+                <p>
+                    ${searchQuery
+                        ? "Try changing your search term."
+                        : escapeHTML(config.emptyDescription)
+                    }
+                </p>
+
+            </div>
+
+        `;
+
+    } else {
+
+        getElement(config.infoId).textContent =
+
+            `Showing ${startIndex + 1}–${endIndex} of ${totalProducts} products`;
+
+
+        listElement.innerHTML = pageProducts.map(function(product) {
+
+            return createProductRow(product, category);
+
+        }).join("");
+
+    }
+
+
+    createPagination(category, totalPages);
+
+}
+
+
+/* ============================================================
+   10. RENDER SUMMARY
+============================================================ */
+
+function renderSummary() {
+
+    const counts = {
+        out: 0,
+        low: 0,
+        demand: 0
+    };
+
+
+    inventoryProducts.forEach(function(product) {
+
+        const category = determineCategory(product);
+
+        if (category) {
+            counts[category]++;
+        }
+
+    });
+
+
+    getElement("summaryOutOfStock").textContent = counts.out;
+
+    getElement("summaryRunningLow").textContent = counts.low;
+
+    getElement("summaryRecommended").textContent = counts.demand;
+
+}
+
+
+/* ============================================================
+   11. RENDER ENTIRE PAGE
+============================================================ */
+
+function renderInventory() {
+
+    renderSummary();
+
+    renderCategory("out");
+
+    renderCategory("low");
+
+    renderCategory("demand");
+
+
+    getElement("lastUpdated").textContent =
+
+        "Updated " + new Date().toLocaleTimeString("en-KE", {
+            hour: "numeric",
+            minute: "2-digit"
+        });
+
+}
+
+
+/* ============================================================
+   12. SEARCH EVENT
+============================================================ */
+
+getElement("searchInput").addEventListener("input", function(event) {
+
+    searchQuery = event.target.value.trim().toLowerCase();
+
+
+    // Start each category at page one after searching.
+    currentPage.out = 1;
+    currentPage.low = 1;
+    currentPage.demand = 1;
+
+
+    renderInventory();
+
+});
+
+
+/* ============================================================
+   13. PAGE SIZE EVENT
+============================================================ */
+
+getElement("pageSize").addEventListener("change", function(event) {
+
+    const selectedSize = Number(event.target.value);
+
+
+    if (
+        !Number.isInteger(selectedSize) ||
+        selectedSize < 1
+    ) {
+        return;
+    }
+
+
+    productsPerPage = selectedSize;
+
+
+    currentPage.out = 1;
+    currentPage.low = 1;
+    currentPage.demand = 1;
+
+
+    renderInventory();
+
+});
+
+
+/* ============================================================
+   14. PAGINATION EVENTS
+
+   Event delegation means the buttons continue to work after
+   the category lists have been re-rendered.
+============================================================ */
+
+document.addEventListener("click", function(event) {
+
+    const button = event.target.closest("[data-page-category]");
+
+    if (!button) {
+        return;
+    }
+
+
+    if (button.disabled) {
+        return;
+    }
+
+
+    const category = button.dataset.pageCategory;
+
+    const requestedPage = Number(button.dataset.pageNumber);
+
+
+    if (!categoryConfiguration[category]) {
+        return;
+    }
+
+
+    if (!Number.isInteger(requestedPage)) {
+        return;
+    }
+
+
+    const totalProducts = getProductsForCategory(category).length;
+
+    const totalPages = Math.max(
+        1,
+        Math.ceil(totalProducts / productsPerPage)
+    );
+
+
+    if (
+        requestedPage < 1 ||
+        requestedPage > totalPages
+    ) {
+        return;
+    }
+
+
+    currentPage[category] = requestedPage;
+
+
+    renderCategory(category);
+
+
+    // Bring the selected category into view when navigating.
+    const panelIds = {
+        out: "outOfStockPanel",
+        low: "runningLowPanel",
+        demand: "recommendedPanel"
+    };
+
+
+    const panel = getElement(panelIds[category]);
+
+
+    if (panel) {
+
+        panel.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest"
+        });
+
+    }
+
+});
+
+
+/* ============================================================
+   15. MODAL HELPERS
+============================================================ */
+
+function openRestockModal(productId, triggerElement) {
+
+    const product = getProductById(productId);
+
+    if (!product) {
+        return;
+    }
+
+
+    selectedProductId = product.id;
+
+    lastFocusedElement = triggerElement || document.activeElement;
+
+
+    // Product information.
+    getElement("modalProductImage").src = product.image;
+
+    getElement("modalProductImage").alt = product.name;
+
+    getElement("modalProductName").textContent = product.name;
+
+    getElement("modalProductGroup").textContent = product.group;
+
+    getElement("modalProductSku").textContent =
+        "SKU: " + product.sku;
+
+
+    // Current stock.
+    getElement("modalCurrentStock").textContent =
+        formatQuantity(product.quantity);
+
+    getElement("modalCurrentStockUnit").textContent =
+        product.unit;
+
+
+    getElement("modalInputUnit").textContent =
+        product.unit;
+
+
+    // Default target quantity.
+    //
+    // For out-of-stock products, use the suggested quantity.
+    // For low-stock products, suggest the greater of:
+    //   - current stock + suggested replenishment
+    //   - alert quantity + suggested replenishment
+    //
+    // For demand-driven products, use current stock +
+    // suggested replenishment.
+    //
+    // The seller can edit this value before confirming.
+
+    let proposedQuantity = Number(product.quantity);
+
+    const suggestedQuantity = Number(product.suggestedQuantity);
+
+    const alertQuantity = Number(product.alertQuantity);
+
+
+    if (product.category === "out") {
+
+        proposedQuantity = suggestedQuantity;
+
+    } else if (product.category === "low") {
+
+        proposedQuantity = Math.max(
+            Number(product.quantity) + suggestedQuantity,
+            alertQuantity + suggestedQuantity
+        );
+
+    } else {
+
+        proposedQuantity =
+            Number(product.quantity) + suggestedQuantity;
+
+    }
+
+
+    getElement("newStockQuantity").value =
+        proposedQuantity;
+
+
+    getElement("stockPreviewValue").textContent =
+        formatQuantity(proposedQuantity) + " " + product.unit;
+
+
+    getElement("modalError").hidden = true;
+
+    getElement("modalError").textContent = "";
+
+
+    const modal = getElement("restockModal");
+
+    modal.classList.add("show");
+
+    modal.setAttribute("aria-hidden", "false");
+
+
+    document.body.style.overflow = "hidden";
+
+
+    // Focus the quantity input after the modal opens.
+    setTimeout(function() {
+
+        getElement("newStockQuantity").focus();
+
+        getElement("newStockQuantity").select();
+
+    }, 100);
+
+}
+
+
+function closeRestockModal() {
+
+    const modal = getElement("restockModal");
+
+    modal.classList.remove("show");
+
+    modal.setAttribute("aria-hidden", "true");
+
+
+    document.body.style.overflow = "";
+
+
+    selectedProductId = null;
+
+
+    if (
+        lastFocusedElement &&
+        document.contains(lastFocusedElement)
+    ) {
+
+        lastFocusedElement.focus();
+
+    }
+
+}
+
+
+/* ============================================================
+   16. OPEN MODAL FROM RESTOCK BUTTONS
+============================================================ */
+
+document.addEventListener("click", function(event) {
+
+    const button = event.target.closest("[data-restock-id]");
+
+    if (!button) {
+        return;
+    }
+
+
+    openRestockModal(
+        Number(button.dataset.restockId),
+        button
+    );
+
+});
+
+
+/* ============================================================
+   17. LIVE STOCK PREVIEW
+============================================================ */
+
+getElement("newStockQuantity").addEventListener("input", function() {
+
+    const inputValue = this.value;
+
+    const product = getProductById(selectedProductId);
+
+
+    if (!product) {
+        return;
+    }
+
+
+    if (
+        inputValue.trim() === "" ||
+        !Number.isFinite(Number(inputValue)) ||
+        Number(inputValue) < 0
+    ) {
+
+        getElement("stockPreviewValue").textContent = "—";
+
+        return;
+
+    }
+
+
+    getElement("stockPreviewValue").textContent =
+
+        formatQuantity(Number(inputValue)) +
+        " " +
+        product.unit;
+
+});
+
+
+/* ============================================================
+   18. TOAST NOTIFICATIONS
+============================================================ */
+
+function showToast(title, message, type = "success") {
+
+    const container = getElement("toastContainer");
+
+    const toast = document.createElement("div");
+
+    toast.className = "toast " + type;
+
+
+    const icon = type === "error" ? "!" : "✓";
+
+
+    toast.innerHTML = `
+
+        <div class="toast-icon">
+            ${icon}
+        </div>
+
+        <div>
+
+            <strong>
+                ${escapeHTML(title)}
+            </strong>
+
+            <p>
+                ${escapeHTML(message)}
+            </p>
+
+        </div>
+
+    `;
+
+
+    container.appendChild(toast);
+
+
+    setTimeout(function() {
+
+        toast.style.opacity = "0";
+
+        toast.style.transform = "translateY(8px)";
+
+        toast.style.transition = "0.2s ease";
+
+
+        setTimeout(function() {
+
+            toast.remove();
+
+        }, 250);
+
+    }, 3500);
+
+}
+
+
+/* ============================================================
+   19. CONFIRM RESTOCK
+============================================================ */
+
+getElement("restockForm").addEventListener("submit", function(event) {
+
+    event.preventDefault();
+
+
+    const product = getProductById(selectedProductId);
+
+
+    if (!product) {
+
+        showToast(
+            "Product not found",
+            "Please close the popup and try again.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    const input = getElement("newStockQuantity");
+
+    const errorElement = getElement("modalError");
+
+    const rawValue = input.value.trim();
+
+
+    // Validate input.
+    if (rawValue === "") {
+
+        errorElement.textContent =
+            "Please enter the new stock quantity.";
+
+        errorElement.hidden = false;
+
+        input.focus();
+
+        return;
+
+    }
+
+
+    const newQuantity = Number(rawValue);
+
+
+    if (
+        !Number.isFinite(newQuantity) ||
+        newQuantity < 0
+    ) {
+
+        errorElement.textContent =
+            "Enter a valid stock quantity of zero or greater.";
+
+        errorElement.hidden = false;
+
+        input.focus();
+
+        return;
+
+    }
+
+
+    if (
+        input.validity.stepMismatch ||
+        input.validity.badInput
+    ) {
+
+        errorElement.textContent =
+            "Enter a quantity supported by this product.";
+
+        errorElement.hidden = false;
+
+        input.focus();
+
+        return;
+
+    }
+
+
+    if (newQuantity <= Number(product.quantity)) {
+
+        errorElement.textContent =
+            "The new quantity must be greater than the current stock quantity.";
+
+        errorElement.hidden = false;
+
+        input.focus();
+
+        return;
+
+    }
+
+
+    /*
+       IMPORTANT:
+
+       This is a front-end demonstration.
+
+       In a real application, the server must validate and save
+       the restock operation in the database.
+
+       Never treat this client-side update as a confirmed
+       database transaction.
+    */
+
+
+    const oldQuantity = Number(product.quantity);
+
+
+    // Update the in-memory demonstration inventory.
+    product.quantity = newQuantity;
+
+
+    // Reclassify according to the new stock quantity.
+    if (product.quantity <= 0) {
+
+        product.category = "out";
+
+    } else if (
+        product.quantity <= Number(product.alertQuantity)
+    ) {
+
+        product.category = "low";
+
+    } else if (product.category === "out" || product.category === "low") {
+
+        /*
+           A product replenished above its alert level no longer
+           belongs in the urgent categories.
+
+           The demo sends it to the demand category so that the
+           seller can still see it in this prototype.
+
+           In production, the recommendation category should be
+           calculated from your actual demand/sales logic.
+        */
+
+        product.category = "demand";
+
+    }
+
+
+    // Close the popup.
+    closeRestockModal();
+
+
+    // Reset category pages to avoid confusing pagination after
+    // the product moves from one category to another.
+    currentPage.out = 1;
+    currentPage.low = 1;
+    currentPage.demand = 1;
+
+
+    // Refresh all counts, rows and pagination.
+    renderInventory();
+
+
+    showToast(
+        "Restock updated",
+        product.name +
+        ": " +
+        formatQuantity(oldQuantity) +
+        " → " +
+        formatQuantity(newQuantity) +
+        " " +
+        product.unit +
+        "."
+    );
+
+});
+
+
+/* ============================================================
+   20. MODAL CLOSE EVENTS
+============================================================ */
+
+getElement("closeModalButton").addEventListener("click", function() {
+
+    closeRestockModal();
+
+});
+
+
+getElement("cancelRestockButton").addEventListener("click", function() {
+
+    closeRestockModal();
+
+});
+
+
+getElement("restockModal").addEventListener("click", function(event) {
+
+    // Close only when the backdrop itself is clicked.
+    if (event.target === this) {
+
+        closeRestockModal();
+
+    }
+
+});
+
+
+document.addEventListener("keydown", function(event) {
+
+    const modal = getElement("restockModal");
+
+    const isOpen = modal.classList.contains("show");
+
+
+    if (!isOpen) {
+        return;
+    }
+
+
+    if (event.key === "Escape") {
+
+        closeRestockModal();
+
+    }
+
+});
+
+
+/* ============================================================
+   21. REFRESH BUTTON
+============================================================ */
+
+getElement("refreshButton").addEventListener("click", function() {
+
+    /*
+       Demo:
+       Re-render the current in-memory inventory.
+
+       Production:
+       Fetch the latest inventory from your PHP endpoint,
+       then update inventoryProducts with the response.
+    */
+
+    renderInventory();
+
+
+    showToast(
+        "Inventory refreshed",
+        "The displayed stock levels have been updated."
+    );
+
+});
+
+
+/* ============================================================
+   22. INITIALIZE PAGE
+============================================================ */
+
+document.addEventListener("DOMContentLoaded", function() {
+
+    renderInventory();
+
+});
+
+
+// Render immediately because this script is placed at the end
+// of the document, after all the HTML elements.
+renderInventory();
+
+</script>
+
+</body>
+</html>

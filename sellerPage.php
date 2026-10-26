@@ -1519,8 +1519,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_product_id']))
     $stmt->close();
 }
 
-
-
 /* =========================================================
    FETCH SELLER PRODUCTS + CUSTOM CATEGORY INFORMATION
    ========================================================= */
@@ -1637,6 +1635,155 @@ $productJson = json_encode(
   JSON_HEX_AMP |
   JSON_HEX_QUOT
 );
+
+
+/* =========================================================
+   HANDLE DELETE SUBGROUP
+   - Verify subgroup belongs to the logged-in seller
+   - Reset products assigned to the subgroup
+   - Delete the subgroup
+========================================================= */
+
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST' &&
+    isset($_POST['delete_sub_group'])
+) {
+    header('Content-Type: application/json; charset=utf-8');
+
+    $subGroupId = isset($_POST['subgroup_id'])
+        ? (int) $_POST['subgroup_id']
+        : 0;
+
+    if ($subGroupId <= 0) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Invalid subgroup selected.'
+        ]);
+        exit;
+    }
+
+    try {
+        $conn->begin_transaction();
+
+        /* =============================================
+           VERIFY SUBGROUP OWNERSHIP
+        ============================================= */
+
+        $check = $conn->prepare("
+            SELECT custom_category_id
+            FROM custom_categories
+            WHERE custom_category_id = ?
+              AND user_id = ?
+              AND parent_id IS NOT NULL
+              AND parent_id > 0
+            LIMIT 1
+        ");
+
+        if (!$check) {
+            throw new Exception($conn->error);
+        }
+
+        $check->bind_param("ii", $subGroupId, $user_id);
+        $check->execute();
+
+        $result = $check->get_result();
+        $subGroupExists = $result->num_rows > 0;
+
+        $check->close();
+
+        if (!$subGroupExists) {
+            throw new Exception(
+                'Subgroup not found or you do not have permission to delete it.'
+            );
+        }
+
+        /* =============================================
+           RESET PRODUCTS ASSIGNED TO THIS SUBGROUP
+
+           Keep custom_category_id unchanged.
+           Only clear custom_subcategory_id.
+        ============================================= */
+
+        $update = $conn->prepare("
+            UPDATE productservicesrentals
+            SET custom_subcategory_id = NULL
+            WHERE custom_subcategory_id = ?
+              AND user_id = ?
+        ");
+
+        if (!$update) {
+            throw new Exception($conn->error);
+        }
+
+        $update->bind_param("ii", $subGroupId, $user_id);
+
+        if (!$update->execute()) {
+            throw new Exception($update->error);
+        }
+
+        $affectedProducts = $update->affected_rows;
+        $update->close();
+
+        /* =============================================
+           DELETE THE SUBGROUP
+        ============================================= */
+
+        $delete = $conn->prepare("
+            DELETE FROM custom_categories
+            WHERE custom_category_id = ?
+              AND user_id = ?
+              AND parent_id IS NOT NULL
+              AND parent_id > 0
+            LIMIT 1
+        ");
+
+        if (!$delete) {
+            throw new Exception($conn->error);
+        }
+
+        $delete->bind_param("ii", $subGroupId, $user_id);
+
+        if (!$delete->execute()) {
+            throw new Exception($delete->error);
+        }
+
+        if ($delete->affected_rows !== 1) {
+            $delete->close();
+            throw new Exception('Failed to delete the subgroup.');
+        }
+
+        $delete->close();
+
+        /* =============================================
+           COMMIT BOTH CHANGES
+        ============================================= */
+
+        $conn->commit();
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Subgroup deleted successfully.',
+            'subgroup_id' => $subGroupId,
+            'products_reset' => $affectedProducts
+        ]);
+
+        exit;
+
+    } catch (Throwable $e) {
+
+        $conn->rollback();
+
+        error_log('Subgroup deletion error: ' . $e->getMessage());
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Unable to delete the subgroup. Please try again.'
+        ]);
+
+        exit;
+    }
+}
+
 
 /* =========================================================
   HANDLE MOVE PRODUCT TO SUB GROUP
@@ -2449,7 +2596,7 @@ $saleType = $_POST['sale_type'] ?? 'Each';
 $unit      = $_POST['unit'] ?? 'Each';
 $buyingPrice       = floatval($_POST['bPrice'] ?? 0);
 $sellingPrice       = floatval($_POST['sPrice'] ?? 0);
-$stock       = intval($_POST['stock'] ?? 0);
+$stock = (float) ($_POST['stock'] ?? 0);
 if ($saleType === 'Each') {
   $unit = 'Each';
 }
@@ -2979,7 +3126,7 @@ if (empty($error)) {
     }
 
     $stmt->bind_param(
-        "ississddisiiiss",
+        "ississdddsiiiss",
         $user_id,
         $productName,
         $category,
@@ -3035,11 +3182,7 @@ $saleType = $_POST['sale_type'] ?? 'Each';
 $unit      = $_POST['unit'] ?? 'Each';
 $buyingPrice  = isset($_POST['bPrice']) ? (float)$_POST['bPrice'] : 0;
 $sellingPrice = isset($_POST['sPrice']) ? (float)$_POST['sPrice'] : 0;
-if ($unit === 'Each') {
-    $stock = (int)($_POST['stock'] ?? 0);
-} else {
-    $stock = (float)($_POST['stock'] ?? 0);
-}
+$stock = (float) ($_POST['stock'] ?? 0);
 
 /* ---------- BASIC VALIDATION ---------- */
 
@@ -3086,13 +3229,20 @@ $stmt->close();
 }
 
 
-/* ---------- FETCH CURRENT IMAGE ---------- */
+/* ---------- FETCH CURRENT IMAGE AND CATEGORY ASSIGNMENTS ---------- */
 
-$stmt=$conn->prepare("
-SELECT image_path,image_hash,image_phash
-FROM productservicesrentals
-WHERE product_id=? AND user_id=?
-LIMIT 1
+$stmt = $conn->prepare("
+    SELECT
+        image_path,
+        image_hash,
+        image_phash,
+        category,
+        custom_category_id,
+        custom_subcategory_id
+    FROM productservicesrentals
+    WHERE product_id = ?
+      AND user_id = ?
+    LIMIT 1
 ");
 
 $stmt->bind_param("ii",$editProductId,$user_id);
@@ -3104,6 +3254,18 @@ $stmt->close();
 $currentImage=$row['image_path'];
 $currentHash =$row['image_hash'];
 $currentPhash=$row['image_phash'];
+
+/* ---------- PRESERVE ORIGINAL CATEGORY ASSIGNMENTS ---------- */
+
+$originalCategory = $row['category'];
+
+$originalCustomCategoryId =
+    (int) ($row['custom_category_id'] ?? 0);
+
+$originalCustomSubcategoryId =
+    $row['custom_subcategory_id'] !== null
+        ? (int) $row['custom_subcategory_id']
+        : null;
 
 $imageToSave=$currentImage;
 $imgHash=$currentHash;
@@ -3560,6 +3722,24 @@ else {
     $customCategoryId = 0;
 }
 
+/* =========================================================
+   PRESERVE OR RESET SUBGROUP ASSIGNMENT
+========================================================= */
+
+/*
+ * Reset the subgroup only when the company category
+ * or root custom group has changed.
+ */
+
+if (
+    $category !== $originalCategory ||
+    (int) $customCategoryId !== $originalCustomCategoryId
+) {
+    $customSubcategoryId = null;
+} else {
+    $customSubcategoryId = $originalCustomSubcategoryId;
+}
+
 /* ---------- UPDATE PRODUCT ---------- */
 
 if (empty($error)) {
@@ -3570,6 +3750,7 @@ if (empty($error)) {
             product_name = ?,
             category = ?,
             custom_category_id = ?,
+            custom_subcategory_id = ?,
             sale_type = ?,
             unit = ?,
             buying_price = ?,
@@ -3581,12 +3762,12 @@ if (empty($error)) {
         WHERE product_id = ?
         AND user_id = ?
     ");
-
     $stmt->bind_param(
-        "ssissddisssii",
+        "ssiissddisssii",
         $productName,
         $category,
         $customCategoryId,
+        $customSubcategoryId,
         $saleType,
         $unit,
         $buyingPrice,
@@ -3606,6 +3787,7 @@ if (empty($error)) {
       $productName = '';
       $category = '';
       $customCategoryId = null;
+      $customSubcategoryId = null;
       $saleType = 'Each';
       $unit = 'Each';
       $buyingPrice = '';
@@ -3620,6 +3802,312 @@ if (empty($error)) {
 
   $stmt->close();
 }
+}
+
+/*
+|--------------------------------------------------------------------------
+| MAKETHUB SELLER SALES ANALYTICS HANDLER
+|--------------------------------------------------------------------------
+| INSERT THIS BLOCK INTO sellerPage.php AFTER:
+|   1. session_start() / authentication
+|   2. database connection ($conn)
+|   3. $user_id has been set for the logged-in seller
+|
+| Place it BEFORE ANY HTML OUTPUT.
+|
+| It uses your existing orders and order_items tables.
+| Sales amount = COALESCE(oi.subtotal, oi.quantity * oi.price).
+|--------------------------------------------------------------------------
+*/
+
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST'
+    && isset($_POST['action'])
+    && $_POST['action'] === 'get_sales_analytics'
+) {
+    header('Content-Type: application/json; charset=utf-8');
+
+    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+    date_default_timezone_set('Africa/Nairobi');
+
+    try {
+        if (empty($user_id) || (int)$user_id <= 0) {
+            http_response_code(401);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Your seller session has expired. Please sign in again.'
+            ]);
+            exit;
+        }
+
+        $mode = isset($_POST['mode']) ? (string)$_POST['mode'] : 'day';
+        if (!in_array($mode, ['day', 'week', 'month'], true)) {
+            throw new InvalidArgumentException('Invalid comparison mode.');
+        }
+
+        $currentYear = (int)date('Y');
+        $year = filter_var($_POST['year'] ?? $currentYear, FILTER_VALIDATE_INT);
+
+        if ($year === false || $year < 2000 || $year > 2100) {
+            throw new InvalidArgumentException('Invalid year selected.');
+        }
+
+        $month = filter_var($_POST['month'] ?? (int)date('n'), FILTER_VALIDATE_INT);
+        if ($month === false || $month < 1 || $month > 12) {
+            throw new InvalidArgumentException('Invalid month selected.');
+        }
+
+        $tz = new DateTimeZone('Africa/Nairobi');
+
+        /*
+         * Determine the exact date range to query.
+         * All ranges are start-inclusive and end-exclusive.
+         */
+        if ($mode === 'day') {
+            $weekInput = trim((string)($_POST['week_start'] ?? ''));
+
+            if ($weekInput !== '') {
+                $parsed = DateTimeImmutable::createFromFormat('!Y-m-d', $weekInput, $tz);
+                $dateErrors = DateTimeImmutable::getLastErrors();
+
+                if (
+                    !$parsed
+                    || ($dateErrors !== false &&
+                        ($dateErrors['warning_count'] > 0 || $dateErrors['error_count'] > 0))
+                    || $parsed->format('Y-m-d') !== $weekInput
+                ) {
+                    throw new InvalidArgumentException('Invalid selected week.');
+                }
+            } else {
+                $parsed = new DateTimeImmutable('today', $tz);
+            }
+
+            // Monday is the first day of the comparison week.
+            $start = $parsed->modify('monday this week')->setTime(0, 0, 0);
+            $end = $start->modify('+7 days');
+        } elseif ($mode === 'week') {
+            $start = (new DateTimeImmutable(
+                sprintf('%04d-%02d-01', $year, $month),
+                $tz
+            ))->setTime(0, 0, 0);
+
+            $end = $start->modify('first day of next month');
+        } else {
+            $start = (new DateTimeImmutable(
+                sprintf('%04d-01-01', $year),
+                $tz
+            ))->setTime(0, 0, 0);
+
+            $end = $start->modify('+1 year');
+        }
+
+        /*
+         * Fetch DAILY seller totals from MySQL.
+         *
+         * Do not join the products table here: a missing/deleted product
+         * record should not cause a valid order item to disappear.
+         *
+         * This includes all seller order items currently stored. If your
+         * POS must count only paid/completed orders, add your exact
+         * payment/order-status rule to this WHERE clause.
+         */
+        $dailyTotals = [];
+
+        $sql = "
+            SELECT
+                DATE(o.created_at) AS sale_date,
+                SUM(
+                    COALESCE(
+                        oi.subtotal,
+                        oi.quantity * oi.price
+                    )
+                ) AS daily_total
+            FROM orders o
+            INNER JOIN order_items oi
+                ON oi.order_id = o.order_id
+            WHERE
+                oi.seller_id = ?
+                AND o.created_at >= ?
+                AND o.created_at < ?
+            GROUP BY DATE(o.created_at)
+            ORDER BY DATE(o.created_at) ASC
+        ";
+
+        $stmt = $conn->prepare($sql);
+
+        $sellerId = (int)$user_id;
+        $startSql = $start->format('Y-m-d H:i:s');
+        $endSql = $end->format('Y-m-d H:i:s');
+
+        $stmt->bind_param('iss', $sellerId, $startSql, $endSql);
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        while ($row = $result->fetch_assoc()) {
+            $dailyTotals[$row['sale_date']] = (float)$row['daily_total'];
+        }
+
+        $stmt->close();
+
+        /*
+         * Build chart points from the database totals.
+         * Missing dates are deliberately represented as zero sales.
+         */
+        $chartData = [];
+
+        if ($mode === 'day') {
+            for ($i = 0; $i < 7; $i++) {
+                $date = $start->modify("+{$i} days");
+                $key = $date->format('Y-m-d');
+
+                $chartData[] = [
+                    'label' => $date->format('D'),
+                    'fullLabel' => $date->format('l'),
+                    'detail' => $date->format('j M Y'),
+                    'amount' => round($dailyTotals[$key] ?? 0, 2),
+                    'start' => $key,
+                    'end' => $key
+                ];
+            }
+        } elseif ($mode === 'week') {
+            $monthStart = $start;
+            $monthEnd = $end->modify('-1 day');
+
+            // Start at the Monday on or before the first of the month.
+            $weekStart = $monthStart->modify('monday this week');
+            $weekNumber = 1;
+
+            while ($weekStart <= $monthEnd) {
+                $weekEndExclusive = $weekStart->modify('+7 days');
+
+                // Count only dates that belong to the selected month.
+                $visibleStart = $weekStart < $monthStart
+                    ? $monthStart
+                    : $weekStart;
+
+                $visibleEndExclusive = $weekEndExclusive > $end
+                    ? $end
+                    : $weekEndExclusive;
+
+                $amount = 0.0;
+
+                for (
+                    $date = $visibleStart;
+                    $date < $visibleEndExclusive;
+                    $date = $date->modify('+1 day')
+                ) {
+                    $key = $date->format('Y-m-d');
+                    $amount += $dailyTotals[$key] ?? 0;
+                }
+
+                $lastVisibleDay = $visibleEndExclusive->modify('-1 day');
+
+                $chartData[] = [
+                    'label' => 'Week ' . $weekNumber,
+                    'fullLabel' => 'Week ' . $weekNumber,
+                    'detail' => $visibleStart->format('j M')
+                        . ' – '
+                        . $lastVisibleDay->format('j M Y'),
+                    'amount' => round($amount, 2),
+                    'start' => $visibleStart->format('Y-m-d'),
+                    'end' => $lastVisibleDay->format('Y-m-d')
+                ];
+
+                $weekStart = $weekEndExclusive;
+                $weekNumber++;
+            }
+        } else {
+            for ($monthIndex = 1; $monthIndex <= 12; $monthIndex++) {
+                $monthStart = new DateTimeImmutable(
+                    sprintf('%04d-%02d-01', $year, $monthIndex),
+                    $tz
+                );
+
+                $monthEndExclusive = $monthStart->modify('first day of next month');
+                $amount = 0.0;
+
+                for (
+                    $date = $monthStart;
+                    $date < $monthEndExclusive;
+                    $date = $date->modify('+1 day')
+                ) {
+                    $key = $date->format('Y-m-d');
+                    $amount += $dailyTotals[$key] ?? 0;
+                }
+
+                $lastDay = $monthEndExclusive->modify('-1 day');
+
+                $chartData[] = [
+                    'label' => $monthStart->format('M'),
+                    'fullLabel' => $monthStart->format('F'),
+                    'detail' => $monthStart->format('F Y'),
+                    'amount' => round($amount, 2),
+                    'start' => $monthStart->format('Y-m-d'),
+                    'end' => $lastDay->format('Y-m-d')
+                ];
+            }
+        }
+
+        $total = 0.0;
+        foreach ($chartData as $point) {
+            $total += (float)$point['amount'];
+        }
+
+        $best = null;
+        foreach ($chartData as $point) {
+            if ($best === null || $point['amount'] > $best['amount']) {
+                $best = $point;
+            }
+        }
+
+        $ranking = $chartData;
+        usort($ranking, static function ($a, $b) {
+            return $b['amount'] <=> $a['amount'];
+        });
+
+        $periodWord = $mode === 'day'
+            ? 'days'
+            : ($mode === 'week' ? 'weeks' : 'months');
+
+        echo json_encode([
+            'success' => true,
+            'mode' => $mode,
+            'year' => (int)$year,
+            'month' => (int)$month,
+            'range' => [
+                'start' => $start->format('Y-m-d'),
+                'end_exclusive' => $end->format('Y-m-d')
+            ],
+            'data' => $chartData,
+            'summary' => [
+                'total' => round($total, 2),
+                'average' => count($chartData)
+                    ? round($total / count($chartData), 2)
+                    : 0,
+                'best' => $best,
+                'ranking' => array_slice($ranking, 0, 3),
+                'count' => count($chartData),
+                'period_word' => $periodWord
+            ]
+        ], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+
+    } catch (InvalidArgumentException $e) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    } catch (Throwable $e) {
+        error_log('Sales analytics error: ' . $e->getMessage());
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Unable to load sales analytics right now.'
+        ]);
+    }
+
+    exit;
 }
 
 // Fetch seller orders
@@ -4065,6 +4553,74 @@ if (
     ]);
 
     exit;
+}
+
+/* =========================================================
+   FETCH SELLER SALES LEDGER ITEMS
+   One row per item; JavaScript groups items by order.
+========================================================= */
+
+$ledgerRows = [];
+
+$stmt = $conn->prepare("
+    SELECT
+        o.order_id,
+        o.order_code,
+        o.created_at,
+        o.payment_method,
+
+        oi.item_id,
+        oi.quantity,
+        oi.price,
+        p.sale_type,
+        p.unit,
+
+        COALESCE(
+            oi.subtotal,
+            oi.quantity * oi.price
+        ) AS line_total,
+
+        p.product_name
+
+    FROM orders o
+
+    INNER JOIN order_items oi
+        ON oi.order_id = o.order_id
+
+    INNER JOIN productservicesrentals p
+        ON p.product_id = oi.product_id
+
+    WHERE oi.seller_id = ?
+
+    ORDER BY
+        o.created_at ASC,
+        o.order_id ASC,
+        oi.item_id ASC
+");
+
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+
+$result = $stmt->get_result();
+
+while ($row = $result->fetch_assoc()) {
+    $ledgerRows[] = $row;
+}
+
+$stmt->close();
+
+$ledgerRowsJson = json_encode(
+    $ledgerRows,
+    JSON_HEX_TAG
+    | JSON_HEX_APOS
+    | JSON_HEX_QUOT
+    | JSON_HEX_AMP
+    | JSON_UNESCAPED_UNICODE
+    | JSON_INVALID_UTF8_SUBSTITUTE
+);
+
+if ($ledgerRowsJson === false) {
+    $ledgerRowsJson = '[]';
 }
 
 /* =========================================================
@@ -5579,7 +6135,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
           <div id="products" class="tab-panel">
             <div class="tab-top">
-              <p>Your Products Shelf</p>
+              <button id="restockBtn">
+                <span>Restock</span>&nbsp;<i class="fa-solid fa-warehouse"></i>
+              </button>
               <button onclick="toggleProductsAdd(true)">
                 <i class="fa fa-plus"></i>&nbsp;<span>Add&nbsp;Product</span>
               </button>
@@ -5916,236 +6474,985 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
           <div id="my-sales" class="tab-panel">
             <div class="tab-top sales">
-              <p>Today Sales</p>
-              <button onclick="toggleSalesDash()">
-                Select&nbsp;Date&nbsp;<span><i class="fa-solid fa-calendar"></i></span>
+
+                
+              <p>Restock products</p>
+
+
+              <button>
+                <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
               </button>
 
             </div>
-            <div class="containerInner">
 
-              <div class="grid">
-                <!-- DAILY STATS -->
-                <div class="card">
+            <div class="app">
+            <section class="summary" aria-label="Restock summary">
+                <div class="summary-item urgent"><div class="summary-icon">!</div><div><strong id="outSummary">0</strong><span>Out of stock</span></div></div>
+                <div class="summary-item low"><div class="summary-icon">↘</div><div><strong id="lowSummary">0</strong><span>Running low</span></div></div>
+                <div class="summary-item demand"><div class="summary-icon">↗</div><div><strong id="demandSummary">0</strong><span>Demand recommendations</span></div></div>
+            </section>
 
-                    <i class="fa-solid fa-receipt icon"></i>
-
-                    <h3>Daily Sales</h3>
-
-                    <!-- Total sales -->
-                    <div class="stat">
-                        KES <?= number_format($dailySales, 2) ?>
-                    </div>
-
-                    <p class="meta">
-                        Total daily stats
-                    </p>
-
-                    <div class="progress">
-                        <span style="width:<?= min(($dailySales / 20000) * 100, 100) ?>%"></span>
-                    </div>
-
-                    <div class="daily-stats-slider">
-
-                      <p class="small daily-stat-item green">
-                          <?= $dailyOrders ?>
-                          <?= $dailyOrders == 1 ? 'sale' : 'sales' ?>
-                          made today 🎉
-                      </p>
-
-                      <p class="small daily-stat-item green">
-                          KES <?= number_format($dailyCash, 2) ?>
-                          collected by cash today 💸
-                      </p>
-
-                      <p class="small daily-stat-item green">
-                          KES <?= number_format($dailyBank, 2) ?>
-                          collected by bank today 🏦
-                      </p>
-
-                      <?php if ($dailyOutOfStock > 0): ?>
-
-                          <p class="small daily-stat-item red">
-                              <?= $dailyOutOfStock ?>
-                              <?= $dailyOutOfStock == 1 ? 'product is' : 'products are' ?>
-                              out of stock ❗
-                          </p>
-
-                      <?php endif; ?>
-
-                      <?php if ($dailyLowStock > 0): ?>
-
-                          <p class="small daily-stat-item yellow">
-                              <?= $dailyLowStock ?>
-                              <?= $dailyLowStock == 1 ? 'product is' : 'products are' ?>
-                              running low ⚠️
-                          </p>
-
-                      <?php endif; ?>
-
-                    </div>
-
-                </div>
-                <!-- PROFIT STATS --><!-- 
-                <div class="card">
-
-                    <i class="fa-solid fa-receipt icon"></i>
-
-                    <h3>Net Earnings</h3> -->
-
-                    <!-- Total sales --><!-- 
-                    <div class="stat">
-                        KES <?= number_format($dailySales, 2) ?>
-                    </div>
-
-                    <p class="meta">
-                        Total daily profits
-                    </p>
-
-                    <div class="progress">
-                        <span style="width:<?= min(($dailySales / 20000) * 100, 100) ?>%"></span>
-                    </div>
-
-                    <div class="daily-stats-slider">
-
-                      <p class="small daily-stat-item green">
-                          <?= $dailyOrders ?>
-                          <?= $dailyOrders == 1 ? 'sale' : 'sales' ?>
-                          made today 🎉
-                      </p>
-
-                      <p class="small daily-stat-item green">
-                          KES <?= number_format($dailyCash, 2) ?>
-                          collected by cash today 💸
-                      </p>
-
-                      <p class="small daily-stat-item green">
-                          KES <?= number_format($dailyBank, 2) ?>
-                          collected by bank today 🏦
-                      </p>
-
-                      <?php if ($dailyOutOfStock > 0): ?>
-
-                          <p class="small daily-stat-item red">
-                              <?= $dailyOutOfStock ?>
-                              <?= $dailyOutOfStock == 1 ? 'product is' : 'products are' ?>
-                              out of stock ❗
-                          </p>
-
-                      <?php endif; ?>
-
-                      <?php if ($dailyLowStock > 0): ?>
-
-                          <p class="small daily-stat-item yellow">
-                              <?= $dailyLowStock ?>
-                              <?= $dailyLowStock == 1 ? 'product is' : 'products are' ?>
-                              running low ⚠️
-                          </p>
-
-                      <?php endif; ?>
-
-                    </div>
-
-                </div> -->
-
-                <!-- WALLET HEALTH --><!-- 
-                <div class="card">
-                  <i class="fa fa-wallet icon"></i>
-                  <h3>Wallet Health</h3>
-
-                  <div class="stat">KES <?= number_format($walletBalance, 2) ?></div>
-
-                  <p class="meta">Available for withdrawal</p>
-
-                  <div class="progress">
-                    <span style="width:<?= min(($walletBalance/20000)*100,100) ?>%"></span>
-                  </div>
-
-                  <p class="small">KES 0 pending clearance</p>
-                </div> -->
-                <!-- ORDERS SUMMARY --><!-- 
-                <div class="card">
-                  <i class="fa fa-box icon"></i>
-                  <h3>Products Summary</h3>
-
-                  <div class="stat">
-                      <?= formatToK($totalOrders) ?> <?= $totalOrders == 1 ? 'Order' : 'Orders' ?>
-                  </div>
-
-                  <p class="meta">
-                      <span class="badge yellow"><?= $processingOrders ?> <?= $processingOrders == 1 ? 'Processing' : 'Processing' ?></span>
-                      <span class="badge blue"><?= $shippedOrders ?> <?= $shippedOrders == 1 ? 'Shipped' : 'Shipped' ?></span>
-                      <span class="badge green"><?= $deliveredOrders ?> <?= $deliveredOrders == 1 ? 'Delivered' : 'Delivered' ?></span>
-                  </p>
-                  <p class="small">In the last 28 days</p>
-                </div> -->
-                <div class="card">
-                  <i class="fa fa-box icon"></i>
-                  <h3>Orders Summary</h3>
-
-                  <div class="stat">
-                      <?= formatToK($totalOrders) ?> <?= $totalOrders == 1 ? 'Order' : 'Orders' ?>
-                  </div>
-
-                  <p class="meta">
-                      <span class="badge yellow"><?= $processingOrders ?> <?= $processingOrders == 1 ? 'Processing' : 'Processing' ?></span>
-                      <span class="badge blue"><?= $shippedOrders ?> <?= $shippedOrders == 1 ? 'Shipped' : 'Shipped' ?></span>
-                      <span class="badge green"><?= $deliveredOrders ?> <?= $deliveredOrders == 1 ? 'Delivered' : 'Delivered' ?></span>
-                  </p>
-                  <p class="small">In the last 28 days</p>
-                </div>
-
-                <!-- WITHDRAWAL STATUS --><!-- 
-                <div class="card">
-                  <i class="fa fa-money-bill-wave icon"></i>
-                  <h3>Withdrawal Status</h3>
-
-                  <span class="badge <?= $withdrawClass ?>">
-                    <?= $withdrawStatus ?>
-                  </span>
-
-                  <p class="meta">
-                    Minimum withdrawal KES 500
-                  </p>
-
-                  <div class="actions">
-                    <button 
-                      onclick="togglePaymentOption()"
-                      <?= !$isEligible ? 'disabled' : '' ?>
-                    >
-                      Withdraw
-                    </button>
-                  </div>
-
-                  <p class="small">
-                    Available: KES <?= number_format($walletBalance) ?>
-                  </p>
-                </div> -->
-
-                <!-- CUSTOMER TRUST -->
-                <div class="card">
-                  <i class="fa fa-star icon"></i>
-                  <h3>Customer Trust</h3>
-                  <div class="stat">4.7 ★</div>
-                  <p class="meta">Business reviews<!-- From 1 review --></p>
-                  <span class="badge green">Excellent</span>
-                </div>
-
-                <!-- GROWTH INSIGHTS -->
-                <div class="card">
-                  <i class="fa fa-seedling icon"></i>
-                  <h3>Growth Tips</h3>
-                  <p class="meta">Improve visibility</p>
-                  <p class="small">
-                    ✔ Encourage ratings<br>
-                    ✔ Enable fast delivery<br>
-                    ✔ Respond to reviews
-                  </p>
-                </div>
-
-              </div>
+            <div class="toolbar">
+                <div class="search-wrap"><span>⌕</span><input id="searchInput" type="search" placeholder="Search product or product group…" aria-label="Search products"></div>
+                <div class="toolbar-right"><label for="pageSize">Products per category</label><select class="control" id="pageSize"><option value="5">5</option><option value="10">10</option><option value="15" selected>15</option><option value="20">20</option><option value="30">30</option></select></div>
             </div>
+
+            <main id="categories">
+                <section class="category urgent" id="outSection">
+                <div class="category-head"><div class="category-title"><div class="category-symbol">!</div><div><h2>Out of stock</h2><p>Unavailable products that need immediate attention.</p></div></div><span class="count-pill" id="outCount">0 products</span></div>
+                <div class="product-grid" id="outGrid"></div>
+                <div class="category-foot"><span class="page-note" id="outPageNote"></span><div class="pagination" id="outPagination"></div></div>
+                </section>
+
+                <section class="category low" id="lowSection">
+                <div class="category-head"><div class="category-title"><div class="category-symbol">↘</div><div><h2>Running low</h2><p>Stock is below the preferred level. Suggested quantity included.</p></div></div><span class="count-pill" id="lowCount">0 products</span></div>
+                <div class="product-grid" id="lowGrid"></div>
+                <div class="category-foot"><span class="page-note" id="lowPageNote"></span><div class="pagination" id="lowPagination"></div></div>
+                </section>
+
+                <section class="category demand" id="demandSection">
+                <div class="category-head"><div class="category-title"><div class="category-symbol">↗</div><div><h2>Recommended by demand</h2><p>Popular products that may need extra stock to meet demand.</p></div></div><span class="count-pill" id="demandCount">0 products</span></div>
+                <div class="product-grid" id="demandGrid"></div>
+                <div class="category-foot"><span class="page-note" id="demandPageNote"></span><div class="pagination" id="demandPagination"></div></div>
+                </section>
+            </main>
+            </div>
+
+            <div class="modal-backdrop" id="restockModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <div class="modal">
+                <div class="modal-head"><div><h2 id="modalTitle">Restock product</h2><p>Review current stock and enter the new total quantity.</p></div><button class="close-btn" id="closeModal" aria-label="Close dialog">×</button></div>
+                <form id="restockForm">
+                <div class="modal-body">
+                    <div class="modal-product"><img id="modalImage" src="" alt=""><div><strong id="modalProductName"></strong><span id="modalProductGroup"></span></div></div>
+                    <div class="stock-facts"><div class="fact"><span>Current quantity</span><strong id="modalCurrent">0</strong></div><div class="fact"><span>Suggested addition</span><strong id="modalSuggested">—</strong></div></div>
+                    <label class="field-label" for="newQuantity">New total stock quantity</label>
+                    <input class="quantity-input" type="number" id="newQuantity" min="0" step="any" required placeholder="Enter new total quantity">
+                    <p class="help-text">Enter the total quantity you expect to have after restocking, not just the number of units being added.</p>
+                    <div class="modal-actions"><button type="button" class="cancel-btn" id="cancelModal">Cancel</button><button type="submit" class="save-btn">Update stock</button></div>
+                </div>
+                </form>
+            </div>
+            </div>
+            <div class="toast" id="toast" role="status"></div>
           </div>
+
+          <div id="my-sales" class="tab-panel">
+            <div class="tab-top sales">
+
+                <input
+
+                    class="search-control"
+
+                    type="search"
+
+                    id="searchInput"
+
+                    placeholder="Search order or item..."
+
+                    aria-label="Search sales records"
+
+                >
+
+                <button class="printRcdS"><i class="fa-solid fa-print"></i>Print&nbsp;Records</button>
+
+            </div>
+
+            <!-- NOTEBOOK -->
+
+            <section class="ledger-shell">
+
+                <div class="ledger-top">
+
+                    <div class="ledger-top-title">
+
+                        Sales record book
+
+                    </div>
+
+                    <input
+
+                        class="date-control"
+
+                        type="date"
+
+                        id="ledgerDate"
+
+                        aria-label="Select sales date"
+
+                    >
+
+                </div>
+
+                <div class="ledger-paper" id="ledgerPaper">
+
+                    <!-- DAY HEADING -->
+
+                    <div class="day-heading">
+
+                        <div>
+
+                            <div class="day-name" id="dayName">Today</div>
+
+                            <div class="day-date" id="dayDate">
+
+                                12 October 2026
+
+                            </div>
+
+                        </div>
+
+                        <div class="day-total">
+
+                            <span>Day's total</span>
+
+                            <strong id="dayTotal">KES 0.00</strong>
+
+                        </div>
+
+                    </div>
+
+                    <!-- COLUMN LABELS -->
+
+                    <div class="column-heading">
+
+                        <span>Qty</span>
+
+                        <span>Item / Particulars</span>
+
+                        <span>Item total</span>
+
+                        <span aria-hidden="true"></span>
+
+                        <span>Order total</span>
+
+                    </div>
+
+                    <!-- ORDERS ARE INSERTED HERE -->
+
+                    <div class="orders-list" id="ordersList"></div>
+
+                    <div class="pagination no-print" id="pagination" aria-label="Order pages">
+
+                        <button class="btn" id="prevPage" type="button" disabled>← Previous</button>
+
+                        <span id="pageInfo" aria-live="polite">Page 1 of 1</span>
+
+                        <button class="btn" id="nextPage" type="button" disabled>Next →</button>
+
+                    </div>
+
+                    <!-- EMPTY STATE -->
+
+                    <div class="empty-state" id="emptyState" hidden>
+
+                        <div class="empty-icon">&#9998;</div>
+
+                        <h3>No sales written on this page yet</h3>
+
+                        <p>
+
+                            The first entry of the day is waiting.<br>
+
+                            Start your records just like a fresh notebook.
+
+                        </p>
+
+                        <!-- <button class="btn btn-primary" id="emptyAddButton" type="button">
+
+                            + Write first sale
+
+                        </button> -->
+
+                    </div>
+
+                </div>
+
+                <div class="ledger-footer">
+
+                    <span>Recorded with <strong>Makethub</strong></span>
+
+                    <span class="handwritten-note">Every shilling counts.</span>
+
+                    <span id="footerCount">0 orders</span>
+
+                </div>
+
+            </section>
+          </div>
+
+
+<script>
+
+/* =========================================================
+   1. DATABASE DATA AND HELPERS
+========================================================= */
+
+// Loaded from the PHP query above.
+const ledgerRows = <?= $ledgerRowsJson ?>;
+
+const $ = id => document.getElementById(id);
+
+const money = amount =>
+    Number(amount || 0).toLocaleString("en-KE", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+
+const currency = amount => `KES ${money(amount)}`;
+
+
+/* =========================================================
+   LEDGER QUANTITY FORMATTER
+========================================================= */
+
+function formatQuantityNumber(value) {
+    const quantity = Number(value);
+
+    if (!Number.isFinite(quantity)) return "0";
+
+    const whole = Math.floor(quantity);
+    const decimal = quantity - whole;
+
+    if (decimal < 0.0000001) {
+        return String(whole);
+    }
+
+    // Common fractions and their display symbols.
+    const fractions = [
+        [2, 1, "½"],
+        [3, 1, "⅓"], [3, 2, "⅔"],
+        [4, 1, "¼"], [4, 2, "½"], [4, 3, "¾"],
+        [5, 1, "⅕"], [5, 2, "⅖"], [5, 3, "⅗"], [5, 4, "⅘"],
+        [6, 1, "⅙"], [6, 2, "⅓"], [6, 3, "½"],
+        [6, 4, "⅔"], [6, 5, "⅚"],
+        [8, 1, "⅛"], [8, 2, "¼"], [8, 3, "⅜"],
+        [8, 4, "½"], [8, 5, "⅝"], [8, 6, "¾"], [8, 7, "⅞"],
+        [10, 1, "⅒"], [10, 5, "½"],
+        [16, 1, "¹⁄₁₆"], [16, 2, "⅛"],
+        [16, 3, "³⁄₁₆"], [16, 4, "¼"],
+        [16, 5, "⁵⁄₁₆"], [16, 6, "⅜"],
+        [16, 7, "⁷⁄₁₆"], [16, 8, "½"],
+        [16, 9, "⁹⁄₁₆"], [16, 10, "⅝"],
+        [16, 11, "¹¹⁄₁₆"], [16, 12, "¾"],
+        [16, 13, "¹³⁄₁₆"], [16, 14, "⅞"],
+        [16, 15, "¹⁵⁄₁₆"]
+    ];
+
+    let best = null;
+
+    for (const [denominator, numerator, symbol] of fractions) {
+        const difference = Math.abs(
+            decimal - numerator / denominator
+        );
+
+        if (
+            difference < 0.003 &&
+            (!best || difference < best.difference)
+        ) {
+            best = { difference, symbol };
+        }
+    }
+
+    if (best) {
+        return `${whole > 0 ? whole : ""}${best.symbol}`;
+    }
+
+    // Preserve quantities that aren't common fractions.
+    return quantity.toLocaleString("en-KE", {
+        maximumFractionDigits: 2,
+        useGrouping: false
+    });
+}
+
+
+function formatLedgerQuantity(quantity, saleType, unit) {
+    const value = Number(quantity || 0);
+    const type = String(saleType || "Each").trim().toLowerCase();
+    const originalUnit = String(unit || "").trim();
+    const normalizedUnit = originalUnit.toLowerCase();
+
+    // Individually sold products: whole number only, no unit.
+    if (type === "each") {
+        return String(Math.round(value));
+    }
+
+    const number = formatQuantityNumber(value);
+
+    if (!originalUnit || normalizedUnit === "each") {
+        return number;
+    }
+
+    // Convert full unit names and variations into abbreviations.
+    const unitAbbreviations = {
+        // Weight
+        kg: "kg",
+        kgs: "kg",
+        kilogram: "kg",
+        kilograms: "kg",
+        gram: "g",
+        grams: "g",
+        g: "g",
+        tonne: "t",
+        tonnes: "t",
+        ton: "t",
+        tons: "t",
+        tone: "t",
+        tones: "t",
+
+        // Length
+        meter: "m",
+        meters: "m",
+        metre: "m",
+        metres: "m",
+        m: "m",
+        centimeter: "cm",
+        centimeters: "cm",
+        centimetre: "cm",
+        centimetres: "cm",
+        cm: "cm",
+        kilometer: "km",
+        kilometers: "km",
+        kilometre: "km",
+        kilometres: "km",
+        km: "km",
+        inch: "in",
+        inches: "in",
+        in: "in",
+        foot: "ft",
+        feet: "ft",
+        ft: "ft",
+
+        // Area
+        "m²": "m²",
+        "square meter": "m²",
+        "square meters": "m²",
+        "square metre": "m²",
+        "square metres": "m²",
+        "cm²": "cm²",
+        "square centimeter": "cm²",
+        "square centimeters": "cm²",
+
+        // Volume
+        liter: "L",
+        liters: "L",
+        litre: "L",
+        litres: "L",
+        l: "L",
+        ml: "mL",
+        milliliter: "mL",
+        milliliters: "mL",
+        millilitre: "mL",
+        millilitres: "mL",
+        gallon: "gal",
+        gallons: "gal",
+
+        // Other units
+        dozen: "doz",
+        dozens: "doz",
+        set: "set",
+        sets: "set",
+        plate: "plate",
+        plates: "plate",
+        cup: "cup",
+        cups: "cup",
+        roll: "roll",
+        rolls: "roll"
+    };
+
+    const displayUnit =
+        unitAbbreviations[normalizedUnit] || originalUnit;
+
+    return `${number} ${displayUnit}`;
+}
+
+
+
+function localDateString(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+}
+
+function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+    })[char]);
+}
+
+function formatDate(dateString, options = {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+}) {
+    if (!dateString) return "";
+
+    const [year, month, day] = dateString.split("-").map(Number);
+
+    return new Date(year, month - 1, day).toLocaleDateString(
+        "en-KE",
+        options
+    );
+}
+
+function dayName(dateString) {
+    if (!dateString) return "";
+
+    const [year, month, day] = dateString.split("-").map(Number);
+
+    return new Date(year, month - 1, day).toLocaleDateString(
+        "en-KE",
+        { weekday: "long" }
+    );
+}
+
+function timeLabel(time) {
+    const [hour, minute] = String(time || "00:00")
+        .split(":")
+        .map(Number);
+
+    const suffix = hour >= 12 ? "pm" : "am";
+    const hour12 = hour % 12 || 12;
+
+    return `${hour12}:${String(minute).padStart(2, "0")}${suffix}`;
+}
+
+function paymentLabel(method) {
+    const value = String(method || "Unknown").trim().toLowerCase();
+
+    if (
+        value === "mpesa" ||
+        value === "m-pesa" ||
+        value === "m pesa"
+    ) {
+        return "M-Pesa";
+    }
+
+    if (value === "cash") return "Cash";
+    if (value === "bank") return "Bank";
+
+    return value.replace(/\b\w/g, char => char.toUpperCase());
+}
+
+function setText(id, value) {
+    const element = $(id);
+    if (element) element.textContent = value;
+}
+
+/* =========================================================
+   2. GROUP DATABASE ITEMS INTO ORDERS
+========================================================= */
+
+function groupLedgerRows(rows) {
+    const grouped = new Map();
+
+    rows.forEach(row => {
+        const id = String(row.order_id);
+        const createdAt = String(row.created_at || "");
+
+        if (!grouped.has(id)) {
+            grouped.set(id, {
+                id: row.order_id,
+                orderCode: row.order_code || "",
+                date: createdAt.slice(0, 10),
+                time: createdAt.slice(11, 16),
+                paymentMethod: paymentLabel(row.payment_method),
+                items: []
+            });
+        }
+
+        const order = grouped.get(id);
+
+        const quantity = Number(row.quantity || 0);
+        const unitPrice = Number(row.price || 0);
+
+        order.items.push({
+            name: row.product_name || "Unnamed item",
+            qty: quantity,
+
+            saleType: row.sale_type || "Each",
+            unit: row.unit || "",
+
+            displayQty: formatLedgerQuantity(
+                quantity,
+                row.sale_type || "Each",
+                row.unit || ""
+            ),
+
+            price: Number(
+                row.line_total ?? quantity * unitPrice
+            )
+        });
+
+    });
+
+    return Array.from(grouped.values());
+}
+
+const sales = groupLedgerRows(ledgerRows);
+
+const orderTotal = order =>
+    order.items.reduce((sum, item) => sum + item.price, 0);
+
+const totalQuantity = order =>
+    order.items.reduce((sum, item) => sum + item.qty, 0);
+
+/* =========================================================
+   3. PAGINATION AND TIME-OF-DAY STYLING
+========================================================= */
+
+let currentPage = 1;
+const ORDERS_PER_PAGE = 25;
+let touchStartX = null;
+let isPrintingLedger = false;
+
+function periodClass(time) {
+    const hour = Number(String(time || "00:00").split(":")[0]);
+
+    if (hour >= 5 && hour < 12) {
+        return "morning-sale";
+    }
+
+    if (hour >= 12 && hour < 17) {
+        return "afternoon-sale";
+    }
+
+    return "evening-sale";
+}
+
+function orderMatchesSearch(order, search) {
+    if (!search) return true;
+
+    const searchableText = [
+        order.orderCode,
+        order.paymentMethod,
+        ...order.items.map(item => item.name)
+    ].join(" ").toLowerCase();
+
+    return searchableText.includes(search);
+}
+
+/* =========================================================
+   4. RENDER THE LEDGER
+========================================================= */
+
+function renderLedger(direction = 0) {
+    const selectedDate = $("ledgerDate").value;
+    const search = $("searchInput").value.trim().toLowerCase();
+
+    const dailySales = sales
+        .filter(order => order.date === selectedDate)
+        .sort((a, b) =>
+            a.time.localeCompare(b.time) ||
+            Number(a.id) - Number(b.id)
+        );
+
+    const visibleSales = dailySales.filter(order =>
+        orderMatchesSearch(order, search)
+    );
+
+    const totalPages = Math.max(
+        1,
+        Math.ceil(visibleSales.length / ORDERS_PER_PAGE)
+    );
+
+    currentPage = Math.min(
+        Math.max(1, currentPage),
+        totalPages
+    );
+
+    // During printing, include all matching orders for the selected date,
+    // not only the 25 orders on the current screen page.
+    const pageSales = isPrintingLedger
+        ? visibleSales
+        : visibleSales.slice(
+            (currentPage - 1) * ORDERS_PER_PAGE,
+            currentPage * ORDERS_PER_PAGE
+        );
+
+    // The day's total includes all orders for the selected date.
+    // Searching does not reduce the day's total.
+    const dailyTotal = dailySales.reduce(
+        (sum, order) => sum + orderTotal(order),
+        0
+    );
+
+    setText("dayName", dayName(selectedDate));
+    setText("dayDate", formatDate(selectedDate));
+    setText("dayTotal", currency(dailyTotal));
+
+    // Update these only if the surrounding page contains these elements.
+    setText("pageDate", formatDate(selectedDate, {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+    }));
+
+    setText("todaySales", currency(dailyTotal));
+    setText("todayOrders", dailySales.length);
+
+    setText(
+        "todayItems",
+        dailySales.reduce(
+            (sum, order) => sum + totalQuantity(order),
+            0
+        )
+    );
+
+    setText(
+        "recordStatus",
+        `${dailySales.length} ${
+            dailySales.length === 1 ? "order" : "orders"
+        } on this date`
+    );
+
+    setText(
+        "footerCount",
+        `${visibleSales.length} ${
+            visibleSales.length === 1 ? "order" : "orders"
+        }`
+    );
+
+    // Each article represents one complete order.
+    // No displayed order numbering and no customer name.
+    $("ordersList").innerHTML = pageSales.map(order => `
+        <article
+            class="order-block ${periodClass(order.time)}"
+            data-order-id="${escapeHTML(order.id)}"
+        >
+            <div class="order-content">
+
+                <div class="order-lines">
+                    ${order.items.map(item => `
+                        <div class="item-row">
+                            <span class="item-qty">
+                                ${escapeHTML(item.displayQty)}
+                            </span>
+
+                            <span class="item-name">
+                                ${escapeHTML(item.name)}
+                            </span>
+
+                            <span class="item-price">
+                                ${money(item.price)}
+                            </span>
+                        </div>
+                    `).join("")}
+                </div>
+
+                <div class="order-brace" aria-hidden="true">
+                    <span class="curly-brace"></span>
+                </div>
+
+                <div class="order-total-cell">
+                    <span class="order-payment-time">${escapeHTML(order.paymentMethod || "M-Pesa")} · ${escapeHTML(timeLabel(order.time))}</span>
+
+                    <strong class="order-total">
+                        ${money(orderTotal(order))}
+                    </strong>
+                </div>
+
+            </div>
+        </article>
+    `).join("");
+
+    const noRecords = visibleSales.length === 0;
+
+    $("emptyState").hidden = !noRecords;
+
+    if (noRecords) {
+        $("emptyState").querySelector("h3").textContent =
+            search
+                ? "No matching entries found"
+                : "No sales recorded for this date";
+
+        $("emptyState").querySelector("p").textContent =
+            search
+                ? "Try another item name or change the selected date."
+                : "Sales recorded through Makethub will appear here.";
+    }
+
+    // Keep the empty state informational: sales are loaded from the database.
+    const emptyAddButton = $("emptyAddButton");
+
+    if (emptyAddButton) {
+        emptyAddButton.hidden = true;
+    }
+
+    $("pagination").hidden = noRecords || isPrintingLedger;
+
+    setText(
+        "pageInfo",
+        `Page ${currentPage} of ${totalPages} · ${visibleSales.length} orders`
+    );
+
+    // Native disabled buttons cannot be clicked.
+    // Your existing CSS controls their muted appearance and cursor.
+    $("prevPage").disabled = currentPage <= 1;
+    $("nextPage").disabled = currentPage >= totalPages;
+
+    // Preserve the existing front/back page-slide animation.
+    const list = $("ordersList");
+
+    list.classList.remove("page-forward", "page-backward");
+
+    if (direction && !isPrintingLedger) {
+        void list.offsetWidth;
+
+        list.classList.add(
+            direction > 0 ? "page-forward" : "page-backward"
+        );
+    }
+}
+
+/* =========================================================
+   5. PREVIOUS / NEXT PAGE
+========================================================= */
+
+function changePage(direction) {
+    if (isPrintingLedger) return;
+
+    const search = $("searchInput").value.trim().toLowerCase();
+    const selectedDate = $("ledgerDate").value;
+
+    const count = sales.filter(order =>
+        order.date === selectedDate &&
+        orderMatchesSearch(order, search)
+    ).length;
+
+    const pages = Math.max(
+        1,
+        Math.ceil(count / ORDERS_PER_PAGE)
+    );
+
+    const nextPage = currentPage + direction;
+
+    if (nextPage < 1 || nextPage > pages) {
+        return;
+    }
+
+    currentPage = nextPage;
+    renderLedger(direction);
+}
+
+/* =========================================================
+   6. EVENT LISTENERS
+========================================================= */
+
+$("prevPage").addEventListener("click", () => changePage(-1));
+$("nextPage").addEventListener("click", () => changePage(1));
+
+$("ledgerDate").addEventListener("change", () => {
+    currentPage = 1;
+    renderLedger();
+});
+
+$("searchInput").addEventListener("input", () => {
+    currentPage = 1;
+    renderLedger();
+});
+
+// Swipe left for the next page; swipe right for the previous page.
+$("ledgerPaper").addEventListener("touchstart", event => {
+    if (event.touches.length === 1) {
+        touchStartX = event.touches[0].clientX;
+    }
+}, { passive: true });
+
+$("ledgerPaper").addEventListener("touchend", event => {
+    if (touchStartX === null || !event.changedTouches.length) {
+        return;
+    }
+
+    const deltaX = event.changedTouches[0].clientX - touchStartX;
+    touchStartX = null;
+
+    if (Math.abs(deltaX) < 55) return;
+
+    changePage(deltaX < 0 ? 1 : -1);
+}, { passive: true });
+
+
+/* =========================================================
+   6. PRINT ONLY THE SALES RECORD BOOK
+========================================================= */
+
+const printButton = document.querySelector(".printRcdS");
+
+if (printButton) {
+    printButton.addEventListener("click", function () {
+        const ledger = document.querySelector("#my-sales .ledger-shell");
+
+        if (!ledger) {
+            alert("Sales record book could not be found.");
+            return;
+        }
+
+        // Render every matching order for the selected date.
+        isPrintingLedger = true;
+        renderLedger();
+
+        // Copy only the ledger, not the rest of sellerPage.php.
+        const ledgerCopy = ledger.cloneNode(true);
+
+        // Remove screen-only controls from the printed copy.
+        ledgerCopy.querySelector("#pagination")?.remove();
+        ledgerCopy.querySelector("#emptyState")?.remove();
+
+        // Preserve the existing styles, using absolute stylesheet URLs.
+        const styles = Array.from(
+            document.querySelectorAll('link[rel="stylesheet"], style')
+        ).map(element => {
+            if (element.tagName.toLowerCase() === "link") {
+                return `<link rel="stylesheet" href="${element.href}">`;
+            }
+
+            return element.outerHTML;
+        }).join("\n");
+
+        const printWindow = window.open(
+            "",
+            "_blank",
+            "width=1000,height=750"
+        );
+
+        if (!printWindow) {
+            isPrintingLedger = false;
+            renderLedger();
+
+            alert("Please allow pop-ups for Makethub to print the ledger.");
+            return;
+        }
+
+        printWindow.document.open();
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Makethub Sales Record Book</title>
+
+                ${styles}
+
+                <style>
+                    @page {
+                        size: A4 portrait;
+                        margin: 12mm;
+                    }
+
+                    html,
+                    body {
+                        display: block !important;
+                        width: 100% !important;
+                        height: auto !important;
+                        min-height: 0 !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        overflow: visible !important;
+                        background: white !important;
+                    }
+
+                    body > .ledger-shell {
+                        display: block !important;
+                        width: 100% !important;
+                        height: auto !important;
+                        max-height: none !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        overflow: visible !important;
+                        border: none !important;
+                        border-radius: 0 !important;
+                        box-shadow: none !important;
+                    }
+
+                    .ledger-paper,
+                    .orders-list {
+                        display: block !important;
+                        width: 100% !important;
+                        height: auto !important;
+                        max-height: none !important;
+                        overflow: visible !important;
+                        opacity: 1 !important;
+                    }
+
+                    .pagination,
+                    .no-print,
+                    .empty-state,
+                    .ledger-toolbar {
+                        display: none !important;
+                    }
+
+                    .order-block {
+                        break-inside: avoid;
+                        page-break-inside: avoid;
+                    }
+
+                    .ledger-footer {
+                        break-inside: avoid;
+                        page-break-inside: avoid;
+                    }
+                </style>
+            </head>
+            <body>
+                ${ledgerCopy.outerHTML}
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+
+        // Wait for stylesheets and the ledger to finish rendering.
+        const waitForStyles = Array.from(
+            printWindow.document.styleSheets
+        ).map(sheet => {
+            try {
+                // Accessing cssRules confirms whether the sheet is available.
+                void sheet.cssRules;
+                return Promise.resolve();
+            } catch {
+                return new Promise(resolve => {
+                    sheet.ownerNode?.addEventListener("load", resolve, {
+                        once: true
+                    });
+                    sheet.ownerNode?.addEventListener("error", resolve, {
+                        once: true
+                    });
+                });
+            }
+        });
+
+        Promise.all(waitForStyles).then(() => {
+            printWindow.focus();
+
+            // Allow layout and fonts to settle before opening print preview.
+            setTimeout(() => {
+                printWindow.print();
+            }, 300);
+        });
+
+        // Restore normal pagination after printing or cancelling.
+        printWindow.addEventListener("afterprint", function () {
+            isPrintingLedger = false;
+            renderLedger();
+            printWindow.close();
+        });
+    });
+}
+
+/* =========================================================
+   7. INITIALISE
+========================================================= */
+
+$("ledgerDate").value = localDateString(new Date());
+
+renderLedger();
+
+</script>
           
           <div id="add-products" class="tab-panel">
             <div class="tab-top">
@@ -6184,10 +7491,16 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
                   <div class="inp-box">
                       <label>Stock Quantity</label>
-                      <input type="number" name="stock" placeholder="e.g 24" 
-                          value="<?= htmlspecialchars($stock, ENT_QUOTES) ?>" 
-                          oninput="this.value = this.value.replace(/[^0-9]/g, '')" min="0" step="1" required>
+                      <input
+                        type="number"
+                        name="stock"
+                        value="<?= htmlspecialchars($stock, ENT_QUOTES) ?>"
+                        min="0"
+                        step="any"
+                        required
+                       >
                   </div>
+                  
                   <div class="inp-box">
 
                     <label>Category</label>
@@ -7371,7 +8684,1222 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
       
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleSellerOrdersTrack()">View&nbsp;All&nbsp;Orders</button> to access all your orders.</p>
 
+
+
+        <div class="main-grid">
+
+            <section>
+
+                <div class="card chart-card">
+
+                    <div class="card-heading">
+                        <div>
+                            <h2 id="chartTitle">Compare daily sales</h2>
+                            <p class="subtitle" id="chartSubtitle">
+                                Compare the total sales of each day.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="period-controls" role="group"
+                        aria-label="Sales comparison period">
+
+                        <button class="period-btn active"
+                                data-mode="day"
+                                aria-pressed="true">
+                            Daily
+                        </button>
+
+                        <button class="period-btn"
+                                data-mode="week"
+                                aria-pressed="false">
+                            Weekly
+                        </button>
+
+                        <button class="period-btn"
+                                data-mode="month"
+                                aria-pressed="false">
+                            Monthly
+                        </button>
+
+                    </div>
+
+                    <div class="filters">
+                        <label id="periodLabel" for="periodSelect">
+                            Selected week
+                        </label>
+
+                        <select id="periodSelect"
+                                class="filter-control"></select>
+
+                        <label for="yearSelect">Year</label>
+
+                        <select id="yearSelect"
+                                class="filter-control"></select>
+                    </div>
+
+                    <div class="chart-meta">
+                        <div class="legend">
+                            <div class="legend-item">
+                                <span class="legend-dot"></span>
+                                Other periods
+                            </div>
+
+                            <div class="legend-item">
+                                <span class="legend-dot green"></span>
+                                Best performer 
+                            </div>
+                        </div>
+
+                        <div class="chart-summary" id="chartSummary">
+                            7 days compared
+                        </div>
+                    </div>
+
+                    <div class="chart-container" id="chartContainer">
+                        <canvas id="salesChart"
+                                aria-label="Sales comparison bar chart"
+                                role="img">
+                            Sales comparison chart.
+                        </canvas>
+
+                        <div class="tooltip" id="chartTooltip">
+                            <span id="tooltipLabel"></span>
+                            <strong id="tooltipValue"></strong>
+                        </div>
+                    </div>
+
+                    <div class="chart-footer">
+                        <p id="chartFooterText">
+                            Bars are ranked by total sales. The green bar
+                            identifies the highest-selling period.
+                        </p>
+
+                        <button class="export-btn" id="exportBtn">
+                            Export CSV ↗
+                        </button>
+                    </div>
+
+                </div>
+
+                <div class="summary-grid">
+
+                    <div class="summary-card">
+                        <div class="summary-label" id="totalLabel">
+                            Total sales this week
+                        
+                        </div>
+
+                        <div class="summary-value" id="totalSales">
+                            KES 0
+                        </div>
+
+                        <div class="summary-note">
+                            Combined sales for the selected period
+                        </div>
+                    </div>
+
+                    <div class="summary-card">
+                        <div class="summary-label">Best performer 🎉<i class="fa-solid fa-ranking-star"></i></div>
+
+                        <div class="summary-value green-text"
+                            id="bestSales">
+                            KES 0
+                        </div>
+
+                        <div class="summary-note" id="bestSalesNote">
+                            Highest sales recorded
+                        </div>
+                    </div>
+
+                    <div class="summary-card">
+                        <div class="summary-label">Average per period<i class="fa-solid fa-gauge"></i></div>
+
+                        <div class="summary-value" id="averageSales">
+                            KES 0
+                        </div>
+
+                        <div class="summary-note" id="averageNote">
+                            Average sales for each comparison
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+            <aside class="sidebar">
+
+                <div class="side-card">
+                    <h3 class="side-title" style="margin-top:8px">
+                        Period champion
+                    </h3>
+
+                    <div class="winner-icon"><i class="fa-solid fa-ranking-star"></i></div>
+
+                    <div class="winner-period" id="winnerName">
+                        Loading...
+                    </div>
+
+                    <div class="winner-amount" id="winnerAmount">
+                        KES 0
+                    </div>
+
+                    <div class="winner-description" id="winnerDescription">
+                        The highest-performing period will appear here.
+                    </div>
+                </div>
+
+                <div class="side-card">
+                    <h3 class="side-title">Top 3 performance ranking</h3>
+
+                    <div class="rank-list" id="rankingList"></div>
+                </div>
+
+                <div class="side-card">
+                    <h3 class="side-title">Quick Summary</h3>
+
+                    <div class="insight-box" id="insightBox">
+                        Loading sales insights...
+                    </div>
+
+                    <p class="side-footnote">
+                        Sales revenue is the sum of recorded sales.
+                        Refunds, voids, taxes and discounts should be handled
+                        according to your POS accounting rules.
+                    </p>
+                </div>
+
+            </aside>
+
+        </div>
+
+<script>
+
+/* =========================================================
+   MAKETHUB SALES ANALYTICS — BACKEND-DRIVEN JAVASCRIPT
+
+   Uses your existing HTML IDs and CSS classes.
+   No demo data and no JavaScript sales aggregation.
+   PHP/MySQL returns chart points, totals, averages and ranking.
+========================================================= */
+
+"use strict";
+
+const analytics$ = id => document.getElementById(id);
+
+const moneyFormatter = new Intl.NumberFormat("en-KE", {
+    maximumFractionDigits: 2
+});
+
+const dateFormatter = new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+});
+
+const monthFormatter = new Intl.DateTimeFormat("en-GB", {
+    month: "long"
+});
+
+const canvas = analytics$("salesChart");
+const ctx = canvas.getContext("2d");
+const chartContainer = analytics$("chartContainer");
+const tooltip = analytics$("chartTooltip");
+
+const state = {
+    mode: "day",
+    year: new Date().getFullYear(),
+    month: new Date().getMonth() + 1,
+    weekStart: null,
+    data: [],
+    summary: null,
+    bars: [],
+    hoveredIndex: -1,
+    animationFrame: null,
+    requestNumber: 0,
+    loading: false
+};
+
+/* =========================================================
+   FORMATTERS AND DATE HELPERS
+========================================================= */
+
+function formatMoney(amount) {
+    return "KES " + moneyFormatter.format(Number(amount) || 0);
+}
+
+function shortMoney(amount) {
+    amount = Number(amount) || 0;
+
+    if (amount >= 1000000) {
+        return "KES " + (amount / 1000000).toFixed(1) + "M";
+    }
+
+    if (amount >= 1000) {
+        return "KES " + (amount / 1000).toFixed(1) + "k";
+    }
+
+    return "KES " + moneyFormatter.format(amount);
+}
+
+function dateKey(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+
+    return `${y}-${m}-${d}`;
+}
+
+function parseDate(value) {
+    const [year, month, day] = value.split("-").map(Number);
+    return new Date(year, month - 1, day);
+}
+
+function addDays(date, amount) {
+    const result = new Date(date);
+    result.setDate(result.getDate() + amount);
+    return result;
+}
+
+function startOfWeek(date) {
+    const result = new Date(date);
+
+    result.setHours(0, 0, 0, 0);
+
+    result.setDate(
+        result.getDate() - ((result.getDay() + 6) % 7)
+    );
+
+    return result;
+}
+
+function formatAnalyticsDate(date) {
+    return dateFormatter.format(date);
+}
+
+/* =========================================================
+   SELECTORS
+========================================================= */
+
+function initializeYearSelector() {
+    const select = analytics$("yearSelect");
+    const currentYear = new Date().getFullYear();
+
+    select.innerHTML = "";
+
+    for (
+        let year = currentYear - 5;
+        year <= currentYear + 1;
+        year++
+    ) {
+        const option = document.createElement("option");
+
+        option.value = String(year);
+        option.textContent = String(year);
+
+        select.appendChild(option);
+    }
+
+    select.value = String(state.year);
+}
+
+function getWeeksForYear(year) {
+    const firstDay = new Date(year, 0, 1);
+    const lastDay = new Date(year, 11, 31);
+
+    let monday = startOfWeek(firstDay);
+    const weeks = [];
+
+    while (monday <= lastDay) {
+        const sunday = addDays(monday, 6);
+
+        if (
+            monday.getFullYear() === year ||
+            sunday.getFullYear() === year
+        ) {
+            weeks.push({
+                start: new Date(monday),
+                end: new Date(sunday)
+            });
+        }
+
+        monday = addDays(monday, 7);
+    }
+
+    return weeks;
+}
+
+function initializePeriodSelector() {
+    const select = analytics$("periodSelect");
+
+    select.innerHTML = "";
+
+    if (state.mode === "day") {
+        analytics$("periodLabel").textContent = "Selected week";
+
+        const weeks = getWeeksForYear(state.year);
+
+        weeks.forEach(week => {
+            const option = document.createElement("option");
+
+            option.value = dateKey(week.start);
+
+            option.textContent =
+                `${formatAnalyticsDate(week.start)} – ${formatAnalyticsDate(week.end)}`;
+
+            select.appendChild(option);
+        });
+
+        const desired = state.weekStart
+            ? dateKey(state.weekStart)
+            : dateKey(startOfWeek(new Date()));
+
+        if (
+            [...select.options].some(
+                option => option.value === desired
+            )
+        ) {
+            select.value = desired;
+        } else if (select.options.length) {
+            const thisYearWeek = weeks.find(week =>
+                week.start.getFullYear() === state.year ||
+                week.end.getFullYear() === state.year
+            );
+
+            select.value = thisYearWeek
+                ? dateKey(thisYearWeek.start)
+                : select.options[0].value;
+        }
+
+        state.weekStart = parseDate(select.value);
+    }
+
+    if (state.mode === "week") {
+        analytics$("periodLabel").textContent = "Selected month";
+
+        for (let month = 1; month <= 12; month++) {
+            const option = document.createElement("option");
+
+            option.value = String(month);
+
+            option.textContent = monthFormatter.format(
+                new Date(state.year, month - 1, 1)
+            );
+
+            select.appendChild(option);
+        }
+
+        select.value = String(state.month);
+    }
+
+    if (state.mode === "month") {
+        analytics$("periodLabel").textContent = "Year comparison";
+
+        const option = document.createElement("option");
+
+        option.value = String(state.year);
+        option.textContent = `January – December ${state.year}`;
+
+        select.appendChild(option);
+    }
+}
+
+/* =========================================================
+   REQUEST BACKEND DATA
+========================================================= */
+
+async function loadSalesAnalytics() {
+    const thisRequest = ++state.requestNumber;
+
+    state.loading = true;
+
+    analytics$("chartSummary").textContent = "Loading sales…";
+
+    analytics$("chartFooterText").textContent =
+        "Fetching sales totals from the database…";
+
+    const params = new URLSearchParams();
+
+    params.set("action", "get_sales_analytics");
+    params.set("mode", state.mode);
+    params.set("year", String(state.year));
+
+    if (state.mode === "day") {
+        params.set(
+            "week_start",
+            dateKey(parseDate(analytics$("periodSelect").value))
+        );
+    } else if (state.mode === "week") {
+        params.set("month", analytics$("periodSelect").value);
+    }
+
+    try {
+        const response = await fetch(window.location.href, {
+            method: "POST",
+            credentials: "same-origin",
+
+            headers: {
+                "Content-Type":
+                    "application/x-www-form-urlencoded; charset=UTF-8",
+
+                "X-Requested-With": "XMLHttpRequest"
+            },
+
+            body: params.toString()
+        });
+
+        const raw = await response.text();
+
+        let result;
+
+        try {
+            result = JSON.parse(raw);
+        } catch (error) {
+            console.error(
+                "Sales analytics response was not JSON:",
+                raw
+            );
+
+            throw new Error(
+                "The server returned an unexpected response. " +
+                "Check PHP errors and place the analytics handler " +
+                "before HTML output."
+            );
+        }
+
+        if (!response.ok || !result.success) {
+            throw new Error(
+                result.message || "Could not load sales analytics."
+            );
+        }
+
+        if (thisRequest !== state.requestNumber) {
+            return;
+        }
+
+        state.data = Array.isArray(result.data)
+            ? result.data
+            : [];
+
+        state.summary = result.summary || null;
+        state.loading = false;
+
+        updateDashboard();
+
+    } catch (error) {
+        if (thisRequest !== state.requestNumber) {
+            return;
+        }
+
+        state.loading = false;
+
+        console.error("Sales analytics:", error);
+
+        analytics$("chartSummary").textContent = "Unable to load";
+        analytics$("chartFooterText").textContent = error.message;
+
+        state.data = [];
+        state.summary = null;
+
+        updateDashboard();
+    }
+}
+
+/* =========================================================
+   CHART CANVAS
+========================================================= */
+
+function resizeCanvas() {
+    const rect = chartContainer.getBoundingClientRect();
+
+    if (!rect.width || !rect.height) {
+        return;
+    }
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.height * dpr);
+
+    canvas.style.width = rect.width + "px";
+    canvas.style.height = rect.height + "px";
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    drawChart();
+}
+
+function roundedRect(context, x, y, width, height, radius) {
+    const r = Math.max(
+        0,
+        Math.min(radius, width / 2, height / 2)
+    );
+
+    context.beginPath();
+
+    context.moveTo(x + r, y);
+    context.lineTo(x + width - r, y);
+
+    context.quadraticCurveTo(
+        x + width,
+        y,
+        x + width,
+        y + r
+    );
+
+    context.lineTo(x + width, y + height - r);
+
+    context.quadraticCurveTo(
+        x + width,
+        y + height,
+        x + width - r,
+        y + height
+    );
+
+    context.lineTo(x + r, y + height);
+
+    context.quadraticCurveTo(
+        x,
+        y + height,
+        x,
+        y + height - r
+    );
+
+    context.lineTo(x, y + r);
+
+    context.quadraticCurveTo(
+        x,
+        y,
+        x + r,
+        y
+    );
+
+    context.closePath();
+}
+
+function drawChart() {
+    const width = chartContainer.clientWidth;
+    const height = chartContainer.clientHeight;
+
+    if (!width || !height || !canvas.width) {
+        return;
+    }
+
+    ctx.clearRect(0, 0, width, height);
+
+    state.bars = [];
+
+    const data = state.data;
+
+    if (!data.length) {
+        ctx.fillStyle = "#898888";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "13px sans-serif";
+
+        ctx.fillText(
+            state.loading
+                ? "Loading sales data…"
+                : "No sales data for this period",
+            width / 2,
+            height / 2
+        );
+
+        return;
+    }
+
+    const values = data.map(
+        item => Number(item.amount) || 0
+    );
+
+    const maximum = Math.max(...values, 0);
+    const winnerIndex = values.indexOf(maximum);
+
+    const left = width < 420 ? 48 : 64;
+    const right = 12;
+    const top = 32;
+    const bottom = 48;
+
+    const chartWidth = Math.max(
+        1,
+        width - left - right
+    );
+
+    const chartHeight = Math.max(
+        1,
+        height - top - bottom
+    );
+
+    const maxScale = maximum > 0
+        ? maximum * 1.25
+        : 1;
+
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    ctx.font = "10px sans-serif";
+    ctx.fillStyle = "#898888";
+
+    for (let i = 0; i <= 4; i++) {
+        const ratio = i / 4;
+        const y = top + chartHeight * ratio;
+        const value = maxScale * (1 - ratio);
+
+        ctx.strokeStyle = "#edf0f3";
+        ctx.lineWidth = 1;
+
+        ctx.beginPath();
+        ctx.moveTo(left, y);
+        ctx.lineTo(width - right, y);
+        ctx.stroke();
+
+        ctx.fillText(
+            shortMoney(value).replace("KES ", ""),
+            left - 8,
+            y
+        );
+    }
+
+    const slotWidth = chartWidth / data.length;
+
+    const barWidth = Math.min(
+        46,
+        Math.max(9, slotWidth * 0.57)
+    );
+
+    const pulse = (
+        Math.sin(performance.now() / 450) + 1
+    ) / 2;
+
+    data.forEach((item, index) => {
+        const amount = Number(item.amount) || 0;
+
+        const slotX = left + index * slotWidth;
+
+        const x = slotX + (slotWidth - barWidth) / 2;
+
+        const barHeight = maximum > 0
+            ? (amount / maxScale) * chartHeight
+            : 0;
+
+        const y = top + chartHeight - barHeight;
+
+        const isWinner =
+            index === winnerIndex && maximum > 0;
+
+        const isHovered =
+            state.hoveredIndex === index;
+
+        if (isWinner) {
+            ctx.save();
+
+            ctx.shadowColor =
+                `rgba(8,128,0,${0.10 + pulse * 0.30})`;
+
+            ctx.shadowBlur = 7 + pulse * 12;
+
+            roundedRect(
+                ctx,
+                x,
+                y,
+                barWidth,
+                Math.max(barHeight, 2),
+                Math.min(7, barWidth / 2)
+            );
+
+            ctx.fillStyle = "#088000";
+            ctx.fill();
+
+            ctx.restore();
+
+            ctx.fillStyle = "#088000";
+
+            ctx.beginPath();
+
+            ctx.arc(
+                x + barWidth / 2,
+                y - 10,
+                3 + pulse,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+
+        } else {
+            roundedRect(
+                ctx,
+                x,
+                y,
+                barWidth,
+                Math.max(barHeight, 2),
+                Math.min(7, barWidth / 2)
+            );
+
+            ctx.fillStyle = isHovered
+                ? "#898888ab"
+                : "#898888";
+
+            ctx.fill();
+        }
+
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+
+        ctx.font = isWinner
+            ? "bold 11px sans-serif"
+            : "11px sans-serif";
+
+        ctx.fillStyle = isWinner
+            ? "#088000"
+            : "#858c97";
+
+        ctx.fillText(
+            String(item.label || ""),
+            slotX + slotWidth / 2,
+            top + chartHeight + 14
+        );
+
+        state.bars.push({
+            x,
+            y,
+            width: barWidth,
+            height: Math.max(barHeight, 2),
+            slotX,
+            slotWidth,
+            amount,
+            item,
+            isWinner
+        });
+    });
+}
+
+/* =========================================================
+   TOOLTIP
+========================================================= */
+
+function showTooltip(index, pointerX, pointerY) {
+    const bar = state.bars[index];
+
+    if (!bar) {
+        tooltip.style.display = "none";
+        return;
+    }
+
+    analytics$("tooltipLabel").textContent =
+        `${bar.item.fullLabel || bar.item.label} · ` +
+        `${bar.item.detail || ""}`;
+
+    analytics$("tooltipValue").textContent =
+        formatMoney(bar.amount);
+
+    tooltip.style.display = "block";
+
+    const rect = chartContainer.getBoundingClientRect();
+
+    const tooltipWidth = tooltip.offsetWidth;
+    const tooltipHeight = tooltip.offsetHeight;
+
+    let x = pointerX + 12;
+    let y = pointerY - tooltipHeight - 12;
+
+    if (x + tooltipWidth > rect.width) {
+        x = pointerX - tooltipWidth - 12;
+    }
+
+    if (y < 0) {
+        y = pointerY + 14;
+    }
+
+    x = Math.max(
+        0,
+        Math.min(x, rect.width - tooltipWidth)
+    );
+
+    y = Math.max(
+        0,
+        Math.min(y, rect.height - tooltipHeight)
+    );
+
+    tooltip.style.left = x + "px";
+    tooltip.style.top = y + "px";
+}
+
+function pointerPosition(event) {
+    const rect = canvas.getBoundingClientRect();
+
+    return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+    };
+}
+
+canvas.addEventListener("pointermove", event => {
+    const point = pointerPosition(event);
+
+    const index = state.bars.findIndex(bar =>
+        point.x >= bar.slotX &&
+        point.x <= bar.slotX + bar.slotWidth &&
+        point.y >= 0 &&
+        point.y <= chartContainer.clientHeight
+    );
+
+    state.hoveredIndex = index;
+
+    if (index >= 0) {
+        showTooltip(index, point.x, point.y);
+    } else {
+        tooltip.style.display = "none";
+    }
+
+    drawChart();
+});
+
+canvas.addEventListener("pointerleave", () => {
+    state.hoveredIndex = -1;
+    tooltip.style.display = "none";
+
+    drawChart();
+});
+
+canvas.addEventListener("pointerdown", event => {
+    const point = pointerPosition(event);
+
+    const index = state.bars.findIndex(bar =>
+        point.x >= bar.slotX &&
+        point.x <= bar.slotX + bar.slotWidth
+    );
+
+    if (index >= 0) {
+        showTooltip(index, point.x, point.y);
+    }
+});
+
+/* =========================================================
+   DASHBOARD SUMMARY
+   Monetary totals and rankings come from the PHP response.
+========================================================= */
+
+function updateDashboard() {
+    const data = state.data;
+    const summary = state.summary;
+
+    const modeNames = {
+        day: "Compare daily sales",
+        week: "Compare weekly sales",
+        month: "Compare monthly sales"
+    };
+
+    const descriptions = {
+        day: "Take note of the total sales of each day.",
+        week: "Take note of the total sales of each week in the selected month.",
+        month: "Take note of the total sales of each month in the selected year."
+    };
+
+    const periodNames = {
+        day: "this week",
+        week: "this month",
+        month: "this year"
+    };
+
+    analytics$("chartTitle").textContent = modeNames[state.mode];
+
+    analytics$("chartSubtitle").textContent =
+        descriptions[state.mode];
+
+    analytics$("totalLabel").innerHTML =
+    `Total sales ${periodNames[state.mode]} <i class="fa-solid fa-desktop"></i>`;
+
+    if (!summary || !data.length) {
+        analytics$("chartSummary").textContent = state.loading
+            ? "Loading sales…"
+            : "No data available";
+
+        analytics$("totalSales").textContent = formatMoney(0);
+        analytics$("bestSales").textContent = formatMoney(0);
+        analytics$("averageSales").textContent = formatMoney(0);
+
+        analytics$("bestSalesNote").textContent =
+            "No sales recorded";
+
+        analytics$("averageNote").textContent =
+            "No comparison data available";
+
+        analytics$("winnerName").textContent = "No sales yet";
+        analytics$("winnerAmount").textContent = formatMoney(0);
+
+        analytics$("winnerDescription").textContent =
+            "No sales were found for the selected period.";
+
+        analytics$("rankingList").innerHTML = "";
+
+        analytics$("insightBox").textContent =
+            "No sales data is available for this selection.";
+
+        drawChart();
+
+        return;
+    }
+
+    const best = summary.best;
+
+    analytics$("chartSummary").textContent =
+        `${summary.count} ${summary.period_word} compared`;
+
+    analytics$("totalSales").textContent =
+        formatMoney(summary.total);
+
+    analytics$("bestSales").textContent =
+        formatMoney(best.amount);
+
+    analytics$("averageSales").textContent =
+        formatMoney(summary.average);
+
+    analytics$("bestSalesNote").textContent =
+        `${best.fullLabel} · ${best.detail}`;
+
+    analytics$("averageNote").textContent =
+        `Across ${summary.count} comparison periods`;
+
+    analytics$("winnerName").textContent = best.fullLabel;
+
+    analytics$("winnerAmount").textContent =
+        formatMoney(best.amount);
+
+    analytics$("winnerDescription").textContent =
+        `${best.detail}. This period has the highest recorded sales ` +
+        `among the ${summary.count} periods shown.`;
+
+    const rankingList = analytics$("rankingList");
+
+    rankingList.innerHTML = "";
+
+    (summary.ranking || []).forEach((item, index) => {
+        const row = document.createElement("div");
+
+        row.className = "rank-row";
+
+        const number = document.createElement("div");
+
+        number.className = "rank-number";
+        number.textContent = String(index + 1);
+
+        const content = document.createElement("div");
+
+        const name = document.createElement("div");
+
+        name.className = "rank-name";
+
+        const nameText = document.createElement("span");
+
+        nameText.textContent = item.label;
+
+        const amount = document.createElement("span");
+
+        amount.className = "rank-amount";
+        amount.textContent = shortMoney(item.amount);
+
+        name.append(nameText, amount);
+
+        const track = document.createElement("div");
+
+        track.className = "rank-track";
+
+        const fill = document.createElement("div");
+
+        fill.className = "rank-fill";
+
+        const maximum = Number(best.amount) || 0;
+
+        fill.style.width = maximum > 0
+            ? Math.min(
+                100,
+                (Number(item.amount) / maximum) * 100
+            ) + "%"
+            : "0%";
+
+        track.appendChild(fill);
+
+        content.append(name, track);
+
+        row.append(number, content);
+
+        rankingList.appendChild(row);
+    });
+
+    const share = Number(summary.total) > 0
+        ? (Number(best.amount) / Number(summary.total)) * 100
+        : 0;
+
+    analytics$("insightBox").textContent =
+        `${best.fullLabel} generated ${formatMoney(best.amount)}, ` +
+        `the highest total in this comparison 🎉. It represents ` +
+        `${share.toFixed(1)}% of the combined sales displayed. ` +
+        `Average sales per period are ${formatMoney(summary.average)}.`;
+
+    analytics$("chartFooterText").textContent =
+        "The green bar " +
+        "identifies the highest-selling period.";
+
+    drawChart();
+}
+
+/* =========================================================
+   CSV EXPORT — USES THE BACKEND-RETURNED CHART DATA
+========================================================= */
+
+function escapeCSV(value) {
+    return '"' +
+        String(value ?? "").replaceAll('"', '""') +
+        '"';
+}
+
+analytics$("exportBtn").addEventListener("click", () => {
+    if (!state.data.length) {
+        return;
+    }
+
+    const rows = [
+        [
+            "Period",
+            "Start date",
+            "End date",
+            "Total sales (KES)"
+        ]
+    ];
+
+    state.data.forEach(item => {
+        rows.push([
+            item.fullLabel || item.label,
+            item.start,
+            item.end,
+            item.amount
+        ]);
+    });
+
+    const csv = rows
+        .map(row => row.map(escapeCSV).join(","))
+        .join("\r\n");
+
+    const blob = new Blob(["\uFEFF" + csv], {
+        type: "text/csv;charset=utf-8;"
+    });
+
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = `sales-${state.mode}-${state.year}.csv`;
+
+    document.body.appendChild(link);
+
+    link.click();
+    link.remove();
+
+    URL.revokeObjectURL(url);
+});
+
+/* =========================================================
+   FILTER EVENTS
+========================================================= */
+
+function setMode(mode) {
+    state.mode = mode;
+
+    document.querySelectorAll(".period-btn").forEach(button => {
+        const active = button.dataset.mode === mode;
+
+        button.classList.toggle("active", active);
+
+        button.setAttribute(
+            "aria-pressed",
+            String(active)
+        );
+    });
+
+    initializePeriodSelector();
+
+    loadSalesAnalytics();
+}
+
+document.querySelectorAll(".period-btn").forEach(button => {
+    button.addEventListener("click", () => {
+        setMode(button.dataset.mode);
+    });
+});
+
+analytics$("periodSelect").addEventListener("change", () => {
+    if (state.mode === "day") {
+        state.weekStart = parseDate(
+            analytics$("periodSelect").value
+        );
+    }
+
+    if (state.mode === "week") {
+        state.month = Number(
+            analytics$("periodSelect").value
+        );
+    }
+
+    loadSalesAnalytics();
+});
+
+analytics$("yearSelect").addEventListener("change", () => {
+    state.year = Number(analytics$("yearSelect").value);
+
+    initializePeriodSelector();
+
+    loadSalesAnalytics();
+});
+
+/* =========================================================
+   CONTINUOUS GREEN WINNER GLOW
+========================================================= */
+
+function animationLoop() {
+    drawChart();
+
+    state.animationFrame =
+        requestAnimationFrame(animationLoop);
+}
+
+function startAnimation() {
+    if (state.animationFrame !== null) {
+        cancelAnimationFrame(state.animationFrame);
+    }
+
+    state.animationFrame =
+        requestAnimationFrame(animationLoop);
+}
+
+/* =========================================================
+   INITIALIZE
+========================================================= */
+
+function initializeDashboard() {
+    const now = new Date();
+
+    state.year = now.getFullYear();
+    state.month = now.getMonth() + 1;
+    state.weekStart = startOfWeek(now);
+
+    initializeYearSelector();
+    initializePeriodSelector();
+
+    resizeCanvas();
+    loadSalesAnalytics();
+    startAnimation();
+}
+
+window.addEventListener("resize", resizeCanvas);
+
+initializeDashboard();
+
+</script>
+
     </main>
+    
     
 <main class="buyerMain" id="salesDashMain">
 
@@ -11569,7 +14097,6 @@ function flyProductToSubGroup(
 
     }
 
-
     /* =====================================================
        BUILD SELLER CUSTOM GROUP POPUP
        
@@ -12841,7 +15368,6 @@ function flyProductToSubGroup(
             outer.appendChild(commBtn);
         }
 
-
         /* =================================================
         MOVE TO SECTION
         ================================================= */
@@ -12923,11 +15449,117 @@ function flyProductToSubGroup(
 
                 categoryButton.dataset.categoryId =
                     subGroup.custom_category_id;
+                /* =========================================
+                SUBGROUP NAME + DELETE ICON
+                ========================================= */
 
-                categoryButton.textContent =
-                    formatNormalName(
+                const subGroupName = document.createElement("span");
+
+                subGroupName.className = "subGroupName";
+
+                subGroupName.textContent =
+                    formatNormalName(subGroup.name);
+
+
+                const deleteIcon = document.createElement("i");
+
+                deleteIcon.className =
+                    "fas fa-trash subGroupDeleteIcon";
+
+                deleteIcon.title = "Delete subgroup";
+
+                deleteIcon.setAttribute(
+                    "aria-label",
+                    "Delete subgroup"
+                );
+
+                deleteIcon.addEventListener("click", async function (event) {
+
+                    /* Prevent the parent subgroup button from moving a product */
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    const subgroupId = Number(
+                        subGroup.custom_category_id
+                    );
+
+                    const subgroupName = formatNormalName(
                         subGroup.name
                     );
+
+                    /* =============================================
+                    CONFIRM DELETION
+                    ============================================= */
+
+                    const confirmed = confirm(
+                        `Are you sure you want to delete "${subgroupName}"?\n\n`
+                    );
+
+                    if (!confirmed) {
+                        return;
+                    }
+
+                    /* Prevent repeated clicks while processing */
+                    deleteIcon.style.pointerEvents = "none";
+                    deleteIcon.style.opacity = "0.5";
+
+                    try {
+
+                        /* =============================================
+                        SEND REQUEST TO PHP
+                        ============================================= */
+
+                        const formData = new FormData();
+
+                        formData.append("delete_sub_group", "1");
+                        formData.append("subgroup_id", subgroupId);
+
+                        const response = await fetch(window.location.href, {
+                            method: "POST",
+                            body: formData,
+                            credentials: "same-origin"
+                        });
+
+                        const result = await response.json();
+
+                        if (!response.ok || !result.success) {
+                            throw new Error(
+                                result.message || "Failed to delete subgroup."
+                            );
+                        }
+
+                        /* =============================================
+                        SUCCESS
+                        ============================================= */
+
+                        /*
+                        * Reload to refresh:
+                        * - customCategories
+                        * - product data
+                        * - subgroup lists
+                        * - product subgroup assignments
+                        */
+                        window.location.reload();
+
+                    } catch (error) {
+
+                        console.error("Subgroup deletion error:", error);
+
+                        alert(
+                            error.message ||
+                            "An error occurred while deleting the subgroup. Please try again."
+                        );
+
+                        deleteIcon.style.pointerEvents = "";
+                        deleteIcon.style.opacity = "";
+
+                    }
+
+                });
+
+
+                categoryButton.appendChild(subGroupName);
+                categoryButton.appendChild(deleteIcon);
 
                 /* =========================================
                 CURRENT SUBGROUP
