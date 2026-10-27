@@ -324,3 +324,65 @@ renderAll();
 </script>
 </body>
 </html>
+
+            <div class="app">
+            <section class="summary" aria-label="Restock summary">
+                <div class="summary-item urgent">
+                    <div class="summary-icon"><i class="fa-solid fa-exclamation"></i></div>
+                    <div><strong id="outSummary">0</strong>
+                    <span>Out of stock</span></div>
+                </div>
+                <div class="summary-item low">
+                    <div class="summary-icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
+                    <div><strong id="lowSummary">0</strong><span>Running low</span></div>
+                </div>
+                <div class="summary-item demand">
+                    <div class="summary-icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                    <div><strong id="demandSummary">0</strong>
+                    <span>Demand recommendations</span>
+                    </div>
+                </div>
+            </section>
+
+            <div class="toolbar">
+                <div class="search-wrap"><span>⌕</span><input id="searchInput" type="search" placeholder="Search product or product group…" aria-label="Search products"></div>
+                <div class="toolbar-right"><label for="pageSize">Products per category</label><select class="control" id="pageSize"><option value="5">5</option><option value="10">10</option><option value="15" selected>15</option><option value="20">20</option><option value="30">30</option></select></div>
+            </div>
+
+            <main id="categories">
+                <section class="category urgent" id="outSection">
+                <div class="category-head"><div class="category-title"><div class="category-symbol"><i class="fa-solid fa-exclamation"></i></div><div><h2>Out of stock</h2><p>Unavailable products that need immediate attention.</p></div></div><span class="count-pill" id="outCount">0 products</span></div>
+                <div class="product-grid" id="outGrid"></div>
+                <div class="category-foot"><span class="page-note" id="outPageNote"></span><div class="pagination" id="outPagination"></div></div>
+                </section>
+
+                <section class="category low" id="lowSection">
+                <div class="category-head"><div class="category-title"><div class="category-symbol"><i class="fa-solid fa-arrow-trend-down"></i></div><div><h2>Running low</h2><p>Stock is below the preferred level. Suggested quantity included.</p></div></div><span class="count-pill" id="lowCount">0 products</span></div>
+                <div class="product-grid" id="lowGrid"></div>
+                <div class="category-foot"><span class="page-note" id="lowPageNote"></span><div class="pagination" id="lowPagination"></div></div>
+                </section>
+
+                <section class="category demand" id="demandSection">
+                <div class="category-head"><div class="category-title"><div class="category-symbol"><i class="fa-solid fa-arrow-trend-up"></i></div><div><h2>Recommended by demand</h2><p>Popular products that may need extra stock to meet demand.</p></div></div><span class="count-pill" id="demandCount">0 products</span></div>
+                <div class="product-grid" id="demandGrid"></div>
+                <div class="category-foot"><span class="page-note" id="demandPageNote"></span><div class="pagination" id="demandPagination"></div></div>
+                </section>
+            </main>
+            </div>
+
+            <div class="modal-backdrop" id="restockModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <div class="modal">
+                <div class="modal-head"><div><h2 id="modalTitle">Restock product</h2><p>Review current stock and enter the new total quantity.</p></div><button class="close-btn" id="closeModal" aria-label="Close dialog">×</button></div>
+                <form id="restockForm">
+                <div class="modal-body">
+                    <div class="modal-product"><img id="modalImage" src="" alt=""><div><strong id="modalProductName"></strong><span id="modalProductGroup"></span></div></div>
+                    <div class="stock-facts"><div class="fact"><span>Current quantity</span><strong id="modalCurrent">0</strong></div><div class="fact"><span>Suggested addition</span><strong id="modalSuggested">—</strong></div></div>
+                    <label class="field-label" for="newQuantity">New total stock quantity</label>
+                    <input class="quantity-input" type="number" id="newQuantity" min="0" step="any" required placeholder="Enter new total quantity">
+                    <p class="help-text">Enter the total quantity you expect to have after restocking, not just the number of units being added.</p>
+                    <div class="modal-actions"><button type="button" class="cancel-btn" id="cancelModal">Cancel</button><button type="submit" class="save-btn">Update stock</button></div>
+                </div>
+                </form>
+            </div>
+            </div>
+            <div class="toast" id="toast" role="status"></div>

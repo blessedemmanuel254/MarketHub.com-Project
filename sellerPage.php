@@ -4555,6 +4555,599 @@ if (
     exit;
 }
 
+/* ============================================================
+   MAKETHUB RESTOCK BACKEND
+   File: sellerPage.php
+
+   Actions:
+   1. get_restock_data
+   2. update_restock_stock
+
+   IMPORTANT:
+   $conn   = existing MySQLi database connection
+   $user_id = ID of the currently logged-in seller
+============================================================ */
+
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST'
+    && isset($_POST['restock_action'])
+    && in_array(
+        $_POST['restock_action'],
+        ['get_restock_data', 'update_restock_stock'],
+        true
+    )
+) {
+    /*
+     * This handler must run before HTML is printed.
+     */
+    header('Content-Type: application/json; charset=utf-8');
+
+    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+    try {
+
+        if (
+            !isset($conn)
+            || !($conn instanceof mysqli)
+            || empty($user_id)
+        ) {
+            http_response_code(401);
+
+            echo json_encode([
+                'success' => false,
+                'message' => 'Your seller session has expired. Please log in again.'
+            ]);
+
+            exit;
+        }
+
+        $sellerId = (int) $user_id;
+
+        /* =====================================================
+           ACTION 1: LOAD REAL DATABASE RESTOCK DATA
+        ===================================================== */
+
+        if ($_POST['restock_action'] === 'get_restock_data') {
+
+            /*
+             * Retrieve only products owned by this seller.
+             *
+             * Sales information is aggregated by product.
+             * The 30-day and 90-day windows help distinguish
+             * recent demand from longer-term demand.
+             *
+             * Cancelled/refunded items are excluded where their
+             * stored status uses those values.
+             */
+
+            $sql = "
+                SELECT
+                    p.product_id,
+                    p.product_name,
+                    p.category,
+                    p.custom_category_id,
+                    p.custom_subcategory_id,
+                    p.unit,
+                    p.sale_type,
+                    p.stock_quantity,
+                    p.buying_price,
+                    p.selling_price,
+                    p.image_path,
+
+                    COALESCE(cg.name, p.category, 'Uncategorised')
+                        AS product_group,
+
+                    COALESCE(sales.sold_30_days, 0)
+                        AS sold_30_days,
+
+                    COALESCE(sales.sold_90_days, 0)
+                        AS sold_90_days,
+
+                    COALESCE(sales.orders_30_days, 0)
+                        AS orders_30_days
+
+                FROM productservicesrentals p
+
+                LEFT JOIN custom_categories cg
+                    ON cg.custom_category_id = p.custom_category_id
+                    AND cg.user_id = p.user_id
+
+                LEFT JOIN (
+                    SELECT
+                        oi.product_id,
+
+                        SUM(
+                            CASE
+                                WHEN o.created_at >=
+                                     DATE_SUB(NOW(), INTERVAL 30 DAY)
+                                THEN oi.quantity
+                                ELSE 0
+                            END
+                        ) AS sold_30_days,
+
+                        SUM(
+                            CASE
+                                WHEN o.created_at >=
+                                     DATE_SUB(NOW(), INTERVAL 90 DAY)
+                                THEN oi.quantity
+                                ELSE 0
+                            END
+                        ) AS sold_90_days,
+
+                        COUNT(
+                            DISTINCT CASE
+                                WHEN o.created_at >=
+                                     DATE_SUB(NOW(), INTERVAL 30 DAY)
+                                THEN o.order_id
+                                ELSE NULL
+                            END
+                        ) AS orders_30_days
+
+                    FROM order_items oi
+
+                    INNER JOIN orders o
+                        ON o.order_id = oi.order_id
+
+                    WHERE
+                        oi.seller_id = ?
+
+                        AND LOWER(
+                            COALESCE(oi.order_status, '')
+                        ) NOT IN (
+                            'cancelled',
+                            'canceled',
+                            'refunded'
+                        )
+
+                        AND LOWER(
+                            COALESCE(oi.payment_status, '')
+                        ) NOT IN (
+                            'cancelled',
+                            'canceled',
+                            'refunded'
+                        )
+
+                        AND o.created_at >=
+                            DATE_SUB(NOW(), INTERVAL 90 DAY)
+
+                    GROUP BY oi.product_id
+
+                ) sales
+                    ON sales.product_id = p.product_id
+
+                WHERE p.user_id = ?
+
+                ORDER BY p.product_name ASC
+            ";
+
+            $stmt = $conn->prepare($sql);
+
+            $stmt->bind_param(
+                "ii",
+                $sellerId,
+                $sellerId
+            );
+
+            $stmt->execute();
+
+            $result = $stmt->get_result();
+
+            $outOfStock = [];
+            $runningLow = [];
+            $demandRecommendations = [];
+
+            $allProducts = [];
+
+            while ($row = $result->fetch_assoc()) {
+
+                $productId = (int) $row['product_id'];
+
+                $stock = max(
+                    0,
+                    (float) $row['stock_quantity']
+                );
+
+                $sold30 = max(
+                    0,
+                    (float) $row['sold_30_days']
+                );
+
+                $sold90 = max(
+                    0,
+                    (float) $row['sold_90_days']
+                );
+
+                $orders30 = (int) $row['orders_30_days'];
+
+                /*
+                 * Daily demand estimate.
+                 *
+                 * Use recent sales when available.
+                 * If recent sales are zero but older sales exist,
+                 * use the longer 90-day average.
+                 */
+
+                if ($sold30 > 0) {
+
+                    $dailyDemand = $sold30 / 30;
+
+                } elseif ($sold90 > 0) {
+
+                    $dailyDemand = $sold90 / 90;
+
+                } else {
+
+                    $dailyDemand = 0;
+                }
+
+                /*
+                 * Stock planning assumptions:
+                 *
+                 * 7 days for replenishment lead time.
+                 * 7 additional days as a safety buffer.
+                 *
+                 * These are initial planning defaults, not
+                 * measured supplier delivery times.
+                 */
+
+                $planningDays = 14;
+
+                $targetStock = (int) ceil(
+                    $dailyDemand * $planningDays
+                );
+
+                /*
+                 * Minimum threshold for identifying low stock.
+                 *
+                 * Fast-selling products receive a higher threshold
+                 * based on their estimated demand.
+                 */
+
+                $lowThreshold = max(
+                    5,
+                    (int) ceil($dailyDemand * 7)
+                );
+
+                /*
+                 * Suggested additional quantity.
+                 *
+                 * Restock toward the 14-day target, with at least
+                 * a 7-day demand quantity when demand is positive.
+                 */
+
+                $suggestedAddition = 0;
+
+                if ($dailyDemand > 0) {
+
+                    $suggestedAddition = max(
+                        1,
+                        $targetStock - $stock,
+                        (int) ceil($dailyDemand * 7)
+                    );
+
+                } else {
+
+                    /*
+                     * Products without recorded sales receive
+                     * a modest fallback suggestion.
+                     *
+                     * This is a planning default, not a demand
+                     * prediction.
+                     */
+
+                    $suggestedAddition = 5;
+                }
+
+                /*
+                 * Product image.
+                 */
+
+                $imagePath = trim(
+                    (string) ($row['image_path'] ?? '')
+                );
+
+                /*
+                 * Keep the stored image path if available.
+                 * The frontend will handle missing images.
+                 */
+
+                $product = [
+                    'id' => $productId,
+
+                    'name' => (string) $row['product_name'],
+
+                    'group' => (string) $row['product_group'],
+
+                    'qty' => $stock,
+
+                    'unit' => (string) (
+                        $row['unit'] ?: 'units'
+                    ),
+
+                    'image' => $imagePath,
+
+                    'sold30' => $sold30,
+
+                    'sold90' => $sold90,
+
+                    'orders30' => $orders30,
+
+                    'dailyDemand' => round(
+                        $dailyDemand,
+                        2
+                    ),
+
+                    'targetStock' => $targetStock,
+
+                    'suggested' => $suggestedAddition,
+
+                    'buyingPrice' => (float) $row['buying_price'],
+
+                    'sellingPrice' => (float) $row['selling_price']
+                ];
+
+                $allProducts[] = $product;
+
+                /*
+                 * CATEGORY 1: OUT OF STOCK
+                 */
+
+                if ($stock <= 0) {
+
+                    $outOfStock[] = $product;
+                }
+
+                /*
+                 * CATEGORY 2: RUNNING LOW
+                 *
+                 * Exclude out-of-stock products here so the
+                 * same product does not appear twice in these
+                 * two stock-alert categories.
+                 */
+
+                elseif ($stock <= $lowThreshold) {
+
+                    $runningLow[] = $product;
+                }
+
+                /*
+                 * CATEGORY 3: DEMAND-BASED RECOMMENDATIONS
+                 *
+                 * Recommend products with recorded sales and
+                 * stock below their calculated target.
+                 *
+                 * These products can also appear in the low-stock
+                 * category because the two alerts answer different
+                 * questions: stock level and demand.
+                 */
+
+                if (
+                    $dailyDemand > 0
+                    && $stock < $targetStock
+                ) {
+
+                    $demandRecommendations[] = $product;
+                }
+            }
+
+            $stmt->close();
+
+            /*
+             * Prioritise the demand list by estimated daily sales.
+             */
+
+            usort(
+                $demandRecommendations,
+                function ($a, $b) {
+
+                    return $b['dailyDemand']
+                        <=> $a['dailyDemand'];
+                }
+            );
+
+            /*
+             * Return database-backed data to JavaScript.
+             */
+
+            echo json_encode([
+                'success' => true,
+
+                'summary' => [
+                    'out' => count($outOfStock),
+
+                    'low' => count($runningLow),
+
+                    'demand' => count($demandRecommendations)
+                ],
+
+                'inventory' => [
+                    'out' => $outOfStock,
+
+                    'low' => $runningLow,
+
+                    'demand' => $demandRecommendations
+                ],
+
+                'planning' => [
+                    'historyDays' => 90,
+
+                    'recentDays' => 30,
+
+                    'leadTimeDays' => 7,
+
+                    'safetyDays' => 7
+                ]
+
+            ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+
+            exit;
+        }
+
+
+        /* =====================================================
+           ACTION 2: SAVE THE SELLER'S NEW STOCK QUANTITY
+        ===================================================== */
+
+        if ($_POST['restock_action'] === 'update_restock_stock') {
+
+            $productId = filter_input(
+                INPUT_POST,
+                'product_id',
+                FILTER_VALIDATE_INT
+            );
+
+            $newQuantityRaw = trim(
+                (string) ($_POST['new_quantity'] ?? '')
+            );
+
+            /*
+             * Validate the product ID.
+             */
+
+            if (!$productId || $productId <= 0) {
+
+                throw new InvalidArgumentException(
+                    'Invalid product selected.'
+                );
+            }
+
+            /*
+             * Validate the quantity without silently converting
+             * an invalid string into zero.
+             */
+
+            if (
+                $newQuantityRaw === ''
+                || !is_numeric($newQuantityRaw)
+            ) {
+
+                throw new InvalidArgumentException(
+                    'Enter a valid stock quantity.'
+                );
+            }
+
+            $newQuantity = (float) $newQuantityRaw;
+
+            if (
+                !is_finite($newQuantity)
+                || $newQuantity < 0
+                || $newQuantity > 999999999
+            ) {
+
+                throw new InvalidArgumentException(
+                    'Stock quantity must be between 0 and 999999999.'
+                );
+            }
+
+            /*
+             * Check product ownership and read its current stock.
+             */
+
+            $stmt = $conn->prepare("
+                SELECT product_id, stock_quantity
+                FROM productservicesrentals
+                WHERE product_id = ?
+                  AND user_id = ?
+                LIMIT 1
+            ");
+
+            $stmt->bind_param(
+                "ii",
+                $productId,
+                $sellerId
+            );
+
+            $stmt->execute();
+
+            $productResult = $stmt->get_result();
+
+            $existingProduct = $productResult->fetch_assoc();
+
+            $stmt->close();
+
+            if (!$existingProduct) {
+
+                http_response_code(404);
+
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Product not found in your inventory.'
+                ]);
+
+                exit;
+            }
+
+            $oldQuantity = (float) $existingProduct['stock_quantity'];
+
+            /*
+             * Update only a product belonging to this seller.
+             */
+
+            $stmt = $conn->prepare("
+                UPDATE productservicesrentals
+                SET
+                    stock_quantity = ?,
+                    updated_at = NOW()
+                WHERE
+                    product_id = ?
+                    AND user_id = ?
+            ");
+
+            $stmt->bind_param(
+                "dii",
+                $newQuantity,
+                $productId,
+                $sellerId
+            );
+
+            $stmt->execute();
+
+            $stmt->close();
+
+            echo json_encode([
+                'success' => true,
+
+                'message' => 'Stock quantity updated successfully.',
+
+                'product_id' => $productId,
+
+                'old_quantity' => $oldQuantity,
+
+                'new_quantity' => $newQuantity
+
+            ]);
+
+            exit;
+        }
+
+    } catch (InvalidArgumentException $e) {
+
+        http_response_code(422);
+
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+
+        exit;
+
+    } catch (Throwable $e) {
+
+        error_log(
+            'Makethub restock error: ' . $e->getMessage()
+        );
+
+        http_response_code(500);
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Unable to process the restock request. Please try again.'
+        ]);
+
+        exit;
+    }
+}
+
 /* =========================================================
    FETCH SELLER SALES LEDGER ITEMS
    One row per item; JavaScript groups items by order.
@@ -6472,25 +7065,45 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
             </div>
 
 
-          <div id="my-sales" class="tab-panel">
+          <div id="rstckMain" class="tab-panel">
             <div class="tab-top sales">
 
                 
               <p>Restock products</p>
 
 
-              <button>
+              <button onclick="goBackToSellerPage()">
                 <i class="fa-solid fa-circle-arrow-left"></i>&nbsp;<span>Go&nbsp;Back</span>
               </button>
 
             </div>
 
-            <div class="app">
+
+            <div class="app"><!-- 
+            <header class="topbar">
+                <div class="brand"><div class="brand-mark">mh</div><div>MAKETHUB<small>Seller dashboard / Inventory</small></div></div>
+                <div class="top-actions"><button class="ghost-btn" id="refreshBtn">↻ Refresh list</button><button class="primary-btn" id="exportBtn">Export list ↓</button></div>
+            </header> -->
+
             <section class="summary" aria-label="Restock summary">
-                <div class="summary-item urgent"><div class="summary-icon">!</div><div><strong id="outSummary">0</strong><span>Out of stock</span></div></div>
-                <div class="summary-item low"><div class="summary-icon">↘</div><div><strong id="lowSummary">0</strong><span>Running low</span></div></div>
-                <div class="summary-item demand"><div class="summary-icon">↗</div><div><strong id="demandSummary">0</strong><span>Demand recommendations</span></div></div>
+                <div class="summary-item urgent">
+                    <div class="summary-icon"><i class="fa-solid fa-exclamation"></i></div>
+                    <div><strong id="outSummary">0</strong>
+                    <span>Out of stock</span></div>
+                </div>
+                <div class="summary-item low">
+                    <div class="summary-icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
+                    <div><strong id="lowSummary">0</strong><span>Running low</span></div>
+                </div>
+                <div class="summary-item demand">
+                    <div class="summary-icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                    <div><strong id="demandSummary">0</strong>
+                    <span>Demand recommendations</span>
+                    </div>
+                </div>
             </section>
+
+
 
             <div class="toolbar">
                 <div class="search-wrap"><span>⌕</span><input id="searchInput" type="search" placeholder="Search product or product group…" aria-label="Search products"></div>
@@ -6499,19 +7112,19 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
             <main id="categories">
                 <section class="category urgent" id="outSection">
-                <div class="category-head"><div class="category-title"><div class="category-symbol">!</div><div><h2>Out of stock</h2><p>Unavailable products that need immediate attention.</p></div></div><span class="count-pill" id="outCount">0 products</span></div>
+                <div class="category-head"><div class="category-title"><div class="category-symbol"><i class="fa-solid fa-exclamation"></i></div><div><h2>Out of stock</h2><p>Unavailable products.</p></div></div></div>
                 <div class="product-grid" id="outGrid"></div>
                 <div class="category-foot"><span class="page-note" id="outPageNote"></span><div class="pagination" id="outPagination"></div></div>
                 </section>
 
                 <section class="category low" id="lowSection">
-                <div class="category-head"><div class="category-title"><div class="category-symbol">↘</div><div><h2>Running low</h2><p>Stock is below the preferred level. Suggested quantity included.</p></div></div><span class="count-pill" id="lowCount">0 products</span></div>
+                <div class="category-head"><div class="category-title"><div class="category-symbol"><i class="fa-solid fa-arrow-trend-down"></i></div><div><h2>Running low</h2><p>Stock is below the preferred level. Suggested quantity included.</p></div></div></div>
                 <div class="product-grid" id="lowGrid"></div>
                 <div class="category-foot"><span class="page-note" id="lowPageNote"></span><div class="pagination" id="lowPagination"></div></div>
                 </section>
 
                 <section class="category demand" id="demandSection">
-                <div class="category-head"><div class="category-title"><div class="category-symbol">↗</div><div><h2>Recommended by demand</h2><p>Popular products that may need extra stock to meet demand.</p></div></div><span class="count-pill" id="demandCount">0 products</span></div>
+                <div class="category-head"><div class="category-title"><div class="category-symbol"><i class="fa-solid fa-arrow-trend-up"></i></div><div><h2>Recommended by demand</h2><p>Popular products that may need extra stock to meet demand.</p></div></div></div>
                 <div class="product-grid" id="demandGrid"></div>
                 <div class="category-foot"><span class="page-note" id="demandPageNote"></span><div class="pagination" id="demandPagination"></div></div>
                 </section>
@@ -6536,6 +7149,1005 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
             <div class="toast" id="toast" role="status"></div>
           </div>
 
+<script>
+/* ============================================================
+   MAKETHUB RESTOCK MANAGEMENT
+   Database-backed version for sellerPage.php
+
+   Features:
+   - Real products from the PHP backend
+   - Out-of-stock alerts
+   - Low-stock alerts
+   - Sales-demand recommendations
+   - Product search
+   - Pagination
+   - Database stock updates
+   - Existing modal and CSS preserved
+============================================================ */
+
+(function () {
+
+    "use strict";
+
+    /* ========================================================
+       CONFIGURATION
+    ======================================================== */
+
+    const RESTOCK_ENDPOINT =
+        window.location.pathname + window.location.search;
+
+    const categoryConfig = {
+        out: {
+            grid: "outGrid",
+            pagination: "outPagination",
+            note: "outPageNote",
+            summary: "outSummary"
+        },
+
+        low: {
+            grid: "lowGrid",
+            pagination: "lowPagination",
+            note: "lowPageNote",
+            summary: "lowSummary"
+        },
+
+        demand: {
+            grid: "demandGrid",
+            pagination: "demandPagination",
+            note: "demandPageNote",
+            summary: "demandSummary"
+        }
+    };
+
+    let inventory = {
+        out: [],
+        low: [],
+        demand: []
+    };
+
+    const pageState = {
+        out: 1,
+        low: 1,
+        demand: 1
+    };
+
+    let pageSize = 15;
+    let selectedProduct = null;
+    let toastTimer = null;
+    let loading = false;
+    let saving = false;
+
+    const elements = {
+        categories: document.getElementById("categories"),
+        search: document.getElementById("searchInput"),
+        pageSize: document.getElementById("pageSize"),
+
+        modal: document.getElementById("restockModal"),
+        form: document.getElementById("restockForm"),
+        closeModal: document.getElementById("closeModal"),
+        cancelModal: document.getElementById("cancelModal"),
+
+        modalImage: document.getElementById("modalImage"),
+        modalProductName: document.getElementById("modalProductName"),
+        modalProductGroup: document.getElementById("modalProductGroup"),
+        modalCurrent: document.getElementById("modalCurrent"),
+        modalSuggested: document.getElementById("modalSuggested"),
+        newQuantity: document.getElementById("newQuantity"),
+
+        toast: document.getElementById("toast")
+    };
+
+
+    /* ========================================================
+       VALIDATE REQUIRED HTML ELEMENTS
+    ======================================================== */
+
+    const requiredElements = [
+        "categories",
+        "search",
+        "pageSize",
+        "modal",
+        "form",
+        "closeModal",
+        "cancelModal",
+        "modalImage",
+        "modalProductName",
+        "modalProductGroup",
+        "modalCurrent",
+        "modalSuggested",
+        "newQuantity",
+        "toast"
+    ];
+
+    for (const key of requiredElements) {
+
+        if (!elements[key]) {
+
+            console.error(
+                "Makethub restock: Missing HTML element:",
+                key
+            );
+
+            return;
+        }
+    }
+
+
+    /* ========================================================
+       HTML ESCAPING
+    ======================================================== */
+
+    function escapeHtml(value) {
+
+        return String(value ?? "").replace(
+            /[&<>"']/g,
+
+            character => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            })[character]
+        );
+    }
+
+
+    /* ========================================================
+       NUMBER FORMATTING
+    ======================================================== */
+
+    function formatNumber(value) {
+
+        const number = Number(value);
+
+        if (!Number.isFinite(number)) {
+            return "0";
+        }
+
+        return new Intl.NumberFormat("en-KE", {
+            maximumFractionDigits: 2
+        }).format(number);
+    }
+
+
+    /* ========================================================
+       IMAGE FALLBACK
+    ======================================================== */
+
+    const fallbackImage =
+        "data:image/svg+xml," +
+        encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" ' +
+            'width="80" height="80" viewBox="0 0 80 80">' +
+            '<rect width="80" height="80" rx="12" fill="#eef2ef"/>' +
+            '<rect x="21" y="19" width="38" height="42" rx="5" ' +
+            'fill="#d1dbd3"/>' +
+            '<path d="M29 31h22M29 39h22M29 47h14" ' +
+            'stroke="#7b9280" stroke-width="3" stroke-linecap="round"/>' +
+            '</svg>'
+        );
+
+
+    /* ========================================================
+       API REQUEST
+       All requests are sent to sellerPage.php itself.
+    ======================================================== */
+
+    async function apiRequest(action, extraData = {}) {
+
+        const formData = new FormData();
+
+        formData.append("restock_action", action);
+
+        Object.entries(extraData).forEach(([key, value]) => {
+            formData.append(key, String(value));
+        });
+
+        const response = await fetch(RESTOCK_ENDPOINT, {
+            method: "POST",
+            body: formData,
+            credentials: "same-origin",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                "Accept": "application/json"
+            }
+        });
+
+        const rawResponse = await response.text();
+
+        let data;
+
+        try {
+
+            data = JSON.parse(rawResponse);
+
+        } catch (error) {
+
+            console.error(
+                "Restock backend returned a non-JSON response:",
+                rawResponse.substring(0, 1000)
+            );
+
+            throw new Error(
+                "The server returned an invalid response. " +
+                "Check sellerPage.php for PHP errors."
+            );
+        }
+
+        if (!response.ok || !data.success) {
+
+            throw new Error(
+                data.message || "The request could not be completed."
+            );
+        }
+
+        return data;
+    }
+
+
+    /* ========================================================
+       SEARCH FILTER
+    ======================================================== */
+
+    function productList(category) {
+
+        const query = elements.search.value
+            .trim()
+            .toLowerCase();
+
+        return inventory[category].filter(product => {
+
+            const name = String(product.name || "")
+                .toLowerCase();
+
+            const group = String(product.group || "")
+                .toLowerCase();
+
+            return (
+                !query ||
+                name.includes(query) ||
+                group.includes(query)
+            );
+        });
+    }
+
+
+    /* ========================================================
+       PRODUCT ROW
+
+       Uses the existing .product-row and .restock-btn classes.
+    ======================================================== */
+
+    function productRow(product, category) {
+
+        const isOut = category === "out";
+        const isLow = category === "low";
+        const isDemand = category === "demand";
+
+        const quantityClass = isOut
+            ? "qty critical"
+            : "qty";
+
+        const suggestedLabel = isLow
+            ? `
+                <span class="qty suggested">
+                    Suggested: +${escapeHtml(
+                        formatNumber(product.suggested)
+                    )}
+                    ${escapeHtml(product.unit)}
+                </span>
+            `
+            : "";
+
+        const demandLabel = isDemand
+            ? `
+                <span class="qty demand-tag">
+                    High demand
+                </span>
+            `
+            : "";
+
+        const salesInformation = `
+            <div class="product-sales-info"
+                 style="font-size:11px;color:#64748b;line-height:1.6;">
+
+                <span>
+                    Sold in 30 days:
+                    <strong>${escapeHtml(
+                        formatNumber(product.sold30)
+                    )}</strong>
+                </span>
+
+                &nbsp;·&nbsp;
+
+                <span>
+                    Orders:
+                    <strong>${escapeHtml(
+                        formatNumber(product.orders30)
+                    )}</strong>
+                </span>
+
+                ${
+                    Number(product.dailyDemand) > 0
+                    ? `
+                        <br>
+                        <span>
+                            Estimated daily demand:
+                            <strong>${escapeHtml(
+                                formatNumber(product.dailyDemand)
+                            )} ${escapeHtml(product.unit)}</strong>
+                        </span>
+                    `
+                    : `
+                        <br>
+                        <span>
+                            No recorded sales in the analysis period
+                        </span>
+                    `
+                }
+
+            </div>
+        `;
+
+        return `
+            <article class="product-row">
+
+                <img
+                    class="product-image"
+                    src="${escapeHtml(
+                        product.image || fallbackImage
+                    )}"
+                    alt="${escapeHtml(product.name)}"
+                    loading="lazy"
+                    onerror="this.onerror=null;this.src='${fallbackImage}'"
+                >
+
+                <div class="product-info">
+
+                    <div
+                        class="product-name"
+                        title="${escapeHtml(product.name)}"
+                    >
+                        ${escapeHtml(product.name)}
+                    </div>
+
+                    <div class="product-group">
+                        ${escapeHtml(product.group)}
+                    </div>
+
+                    <div class="product-meta">
+
+                        <span class="${quantityClass}">
+                            Stock:
+                            ${escapeHtml(formatNumber(product.qty))}
+                            ${escapeHtml(product.unit)}
+                        </span>
+
+                        ${suggestedLabel}
+
+                        ${demandLabel}
+
+                    </div>
+
+                    ${salesInformation}
+
+                </div>
+
+                <button
+                    type="button"
+                    class="restock-btn"
+                    data-restock="${escapeHtml(product.id)}"
+                    data-category="${escapeHtml(category)}"
+                >
+                    ＋ Restock
+                </button>
+
+            </article>
+        `;
+    }
+
+
+    /* ========================================================
+       UPDATE SUMMARY CARDS
+    ======================================================== */
+
+    function renderSummary() {
+
+        document.getElementById("outSummary").textContent =
+            inventory.out.length;
+
+        document.getElementById("lowSummary").textContent =
+            inventory.low.length;
+
+        document.getElementById("demandSummary").textContent =
+            inventory.demand.length;
+    }
+
+
+    /* ========================================================
+       CATEGORY RENDERING
+    ======================================================== */
+
+    function renderCategory(category) {
+
+        const config = categoryConfig[category];
+
+        if (!config) {
+            return;
+        }
+
+        const grid = document.getElementById(config.grid);
+        const pagination = document.getElementById(
+            config.pagination
+        );
+
+        const note = document.getElementById(config.note);
+
+        const list = productList(category);
+
+        const totalPages = Math.max(
+            1,
+            Math.ceil(list.length / pageSize)
+        );
+
+        pageState[category] = Math.min(
+            Math.max(1, pageState[category]),
+            totalPages
+        );
+
+        const start = (pageState[category] - 1) * pageSize;
+
+        const pageItems = list.slice(
+            start,
+            start + pageSize
+        );
+
+        /* Product rows */
+
+        grid.innerHTML = pageItems.length
+
+            ? pageItems.map(product =>
+                productRow(product, category)
+            ).join("")
+
+            : `
+                <div class="empty-state">
+                    ${
+                        elements.search.value.trim()
+                        ? "No matching products found."
+                        : "No products currently require attention."
+                    }
+                </div>
+            `;
+
+
+        /* Pagination note */
+
+        note.textContent = list.length
+
+            ? `Showing ${start + 1}–${Math.min(
+                start + pageSize,
+                list.length
+            )} of ${list.length}`
+
+            : "0 products";
+
+
+        /* Pagination controls */
+
+        if (totalPages <= 1) {
+
+            pagination.innerHTML = "";
+
+            return;
+        }
+
+        let buttons = `
+            <button
+                type="button"
+                class="page-btn"
+                data-page="${category}:${pageState[category] - 1}"
+                ${pageState[category] === 1 ? "disabled" : ""}
+                aria-label="Previous page"
+            >
+                ‹
+            </button>
+        `;
+
+        for (let page = 1; page <= totalPages; page++) {
+
+            if (
+                totalPages > 7 &&
+                page > 2 &&
+                page < totalPages - 1 &&
+                Math.abs(page - pageState[category]) > 1
+            ) {
+
+                if (
+                    page === 3 ||
+                    page === totalPages - 2
+                ) {
+
+                    buttons += `
+                        <span class="page-note">…</span>
+                    `;
+                }
+
+                continue;
+            }
+
+            buttons += `
+                <button
+                    type="button"
+                    class="page-btn ${
+                        page === pageState[category]
+                        ? "current"
+                        : ""
+                    }"
+                    data-page="${category}:${page}"
+                    aria-label="Page ${page}"
+                    ${
+                        page === pageState[category]
+                        ? 'aria-current="page"'
+                        : ""
+                    }
+                >
+                    ${page}
+                </button>
+            `;
+        }
+
+        buttons += `
+            <button
+                type="button"
+                class="page-btn"
+                data-page="${category}:${pageState[category] + 1}"
+                ${
+                    pageState[category] === totalPages
+                    ? "disabled"
+                    : ""
+                }
+                aria-label="Next page"
+            >
+                ›
+            </button>
+        `;
+
+        pagination.innerHTML = buttons;
+    }
+
+
+    /* ========================================================
+       RENDER ALL CATEGORIES
+    ======================================================== */
+
+    function renderAll() {
+
+        renderSummary();
+
+        Object.keys(categoryConfig).forEach(
+            renderCategory
+        );
+    }
+
+
+    /* ========================================================
+       LOAD DATABASE DATA
+    ======================================================== */
+
+    async function loadRestockData() {
+
+        if (loading) {
+            return;
+        }
+
+        loading = true;
+
+        try {
+
+            const data = await apiRequest(
+                "get_restock_data"
+            );
+
+            inventory = {
+                out: Array.isArray(data.inventory.out)
+                    ? data.inventory.out
+                    : [],
+
+                low: Array.isArray(data.inventory.low)
+                    ? data.inventory.low
+                    : [],
+
+                demand: Array.isArray(data.inventory.demand)
+                    ? data.inventory.demand
+                    : []
+            };
+
+            /*
+             * Reset pagination after refreshing database data.
+             */
+
+            Object.keys(pageState).forEach(category => {
+                pageState[category] = 1;
+            });
+
+            renderAll();
+
+        } catch (error) {
+
+            console.error(
+                "Unable to load restock information:",
+                error
+            );
+
+            showToast(error.message);
+
+        } finally {
+
+            loading = false;
+        }
+    }
+
+
+    /* ========================================================
+       OPEN RESTOCK MODAL
+    ======================================================== */
+
+    function openRestock(product, category) {
+
+        selectedProduct = {
+            product,
+            category
+        };
+
+        elements.modalProductName.textContent =
+            product.name;
+
+        elements.modalProductGroup.textContent =
+            product.group;
+
+        elements.modalImage.style.visibility = "visible";
+
+        elements.modalImage.src =
+            product.image || fallbackImage;
+
+        elements.modalImage.onerror = function () {
+
+            this.onerror = null;
+            this.src = fallbackImage;
+        };
+
+        elements.modalCurrent.textContent =
+            `${formatNumber(product.qty)} ${product.unit}`;
+
+        elements.modalSuggested.textContent =
+            `+${formatNumber(product.suggested)} ${product.unit}`;
+
+        /*
+         * The input is for the NEW TOTAL quantity,
+         * not merely the quantity being added.
+         */
+
+        elements.newQuantity.value =
+            Number(product.qty) + Number(product.suggested);
+
+        elements.newQuantity.min = "0";
+        elements.newQuantity.step = "any";
+
+        elements.modal.classList.add("open");
+
+        setTimeout(() => {
+            elements.newQuantity.focus();
+            elements.newQuantity.select();
+        }, 50);
+    }
+
+
+    /* ========================================================
+       CLOSE RESTOCK MODAL
+    ======================================================== */
+
+    function closeRestock() {
+
+        if (saving) {
+            return;
+        }
+
+        elements.modal.classList.remove("open");
+
+        selectedProduct = null;
+
+        elements.form.reset();
+    }
+
+
+    /* ========================================================
+       TOAST NOTIFICATIONS
+    ======================================================== */
+
+    function showToast(message) {
+
+        elements.toast.textContent = message;
+
+        elements.toast.classList.add("show");
+
+        clearTimeout(toastTimer);
+
+        toastTimer = setTimeout(() => {
+
+            elements.toast.classList.remove("show");
+
+        }, 3500);
+    }
+
+
+    /* ========================================================
+       CATEGORY CLICK HANDLER
+
+       Event delegation allows pagination and restock buttons
+       to continue working after the lists are re-rendered.
+    ======================================================== */
+
+    elements.categories.addEventListener("click", event => {
+
+        const restockButton = event.target.closest(
+            "[data-restock]"
+        );
+
+        if (restockButton) {
+
+            const category = restockButton.dataset.category;
+
+            const productId = Number(
+                restockButton.dataset.restock
+            );
+
+            const product = inventory[category]?.find(
+                item => Number(item.id) === productId
+            );
+
+            if (product) {
+
+                openRestock(product, category);
+            }
+
+            return;
+        }
+
+
+        const pageButton = event.target.closest(
+            "[data-page]"
+        );
+
+        if (pageButton && !pageButton.disabled) {
+
+            const [category, page] =
+                pageButton.dataset.page.split(":");
+
+            if (
+                categoryConfig[category] &&
+                Number.isInteger(Number(page))
+            ) {
+
+                pageState[category] = Number(page);
+
+                renderCategory(category);
+            }
+        }
+    });
+
+
+    /* ========================================================
+       SEARCH
+    ======================================================== */
+
+    elements.search.addEventListener("input", () => {
+
+        Object.keys(pageState).forEach(category => {
+            pageState[category] = 1;
+        });
+
+        renderAll();
+    });
+
+
+    /* ========================================================
+       PRODUCTS PER PAGE
+    ======================================================== */
+
+    elements.pageSize.addEventListener("change", event => {
+
+        const requestedSize = Number(event.target.value);
+
+        if (
+            Number.isInteger(requestedSize) &&
+            requestedSize > 0
+        ) {
+
+            pageSize = requestedSize;
+        }
+
+        Object.keys(pageState).forEach(category => {
+            pageState[category] = 1;
+        });
+
+        renderAll();
+    });
+
+
+    /* ========================================================
+       CLOSE MODAL BUTTONS
+    ======================================================== */
+
+    elements.closeModal.addEventListener(
+        "click",
+        closeRestock
+    );
+
+    elements.cancelModal.addEventListener(
+        "click",
+        closeRestock
+    );
+
+
+    /* ========================================================
+       CLICK OUTSIDE MODAL TO CLOSE
+    ======================================================== */
+
+    elements.modal.addEventListener("click", event => {
+
+        if (event.target === elements.modal) {
+
+            closeRestock();
+        }
+    });
+
+
+    /* ========================================================
+       ESCAPE KEY
+    ======================================================== */
+
+    document.addEventListener("keydown", event => {
+
+        if (event.key === "Escape") {
+
+            closeRestock();
+        }
+    });
+
+
+    /* ========================================================
+       SAVE STOCK UPDATE TO DATABASE
+    ======================================================== */
+
+    elements.form.addEventListener("submit", async event => {
+
+        event.preventDefault();
+
+        if (!selectedProduct || saving) {
+            return;
+        }
+
+        const { product } = selectedProduct;
+
+        const quantityText =
+            elements.newQuantity.value.trim();
+
+        if (
+            quantityText === "" ||
+            !Number.isFinite(Number(quantityText))
+        ) {
+
+            showToast("Please enter a valid stock quantity.");
+
+            return;
+        }
+
+        const newQuantity = Number(quantityText);
+
+        if (
+            newQuantity < 0 ||
+            newQuantity > 999999999
+        ) {
+
+            showToast("Enter a valid stock quantity.");
+
+            return;
+        }
+
+        /*
+         * Disable repeated submissions while saving.
+         */
+
+        saving = true;
+
+        const submitButton =
+            elements.form.querySelector(
+                'button[type="submit"]'
+            );
+
+        const originalButtonText =
+            submitButton ? submitButton.textContent : "";
+
+        if (submitButton) {
+
+            submitButton.disabled = true;
+            submitButton.textContent = "Saving...";
+        }
+
+        elements.newQuantity.disabled = true;
+
+        try {
+
+            const response = await apiRequest(
+                "update_restock_stock",
+                {
+                    product_id: product.id,
+                    new_quantity: newQuantity
+                }
+            );
+
+            /*
+             * Close modal only after the database confirms success.
+             */
+
+            elements.modal.classList.remove("open");
+
+            selectedProduct = null;
+
+            elements.form.reset();
+
+            /*
+             * Reload all categories from the database.
+             *
+             * A product can automatically move from out of stock
+             * to low stock, or disappear from an alert category,
+             * according to its newly saved quantity.
+             */
+
+            await loadRestockData();
+
+            showToast(
+                `${product.name}: stock updated successfully. ` +
+                `${formatNumber(response.old_quantity)} → ` +
+                `${formatNumber(response.new_quantity)} ${product.unit}.`
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Unable to update stock:",
+                error
+            );
+
+            showToast(error.message);
+
+        } finally {
+
+            saving = false;
+
+            elements.newQuantity.disabled = false;
+
+            if (submitButton) {
+
+                submitButton.disabled = false;
+
+                submitButton.textContent =
+                    originalButtonText;
+            }
+        }
+    });
+
+
+    /* ========================================================
+       INITIALISE RESTOCK PAGE
+    ======================================================== */
+
+    loadRestockData();
+
+})();
+</script>
           <div id="my-sales" class="tab-panel">
             <div class="tab-top sales">
 
@@ -9404,7 +11016,7 @@ function drawChart() {
                 y,
                 barWidth,
                 Math.max(barHeight, 2),
-                Math.min(7, barWidth / 2)
+                0
             );
 
             ctx.fillStyle = "#088000";
@@ -9433,7 +11045,7 @@ function drawChart() {
                 y,
                 barWidth,
                 Math.max(barHeight, 2),
-                Math.min(7, barWidth / 2)
+                0
             );
 
             ctx.fillStyle = isHovered

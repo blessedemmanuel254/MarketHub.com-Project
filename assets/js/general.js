@@ -779,41 +779,113 @@ function goBackToAgentMarketTypes() {
 
 }
 
-// ADD PRODUCT TOGGLE
-function toggleProductsAdd(showAdd) {
+// =====================================================
+// SELLER PRODUCTS NAVIGATION
+// Panels:
+// 1. products     - Products destination
+// 2. add-products - Add product form
+// 3. rstckMain    - Restock page
+// =====================================================
+
+function showSellerProductsView(view) {
   const productsPanel = document.getElementById("products");
   const addPanel = document.getElementById("add-products");
+  const restockPanel = document.getElementById("rstckMain");
 
-  if (!productsPanel || !addPanel) return;
+  // Hide only these three related panels.
+  // Do not activate or modify any other tab panel.
+  if (productsPanel) productsPanel.classList.remove("active");
+  if (addPanel) addPanel.classList.remove("active");
+  if (restockPanel) restockPanel.classList.remove("active");
 
-  if (showAdd) {
-    productsPanel.classList.remove("active");
-    addPanel.classList.add("active");
-    localStorage.setItem("seller:productsView", "add");
-  } else {
-    addPanel.classList.remove("active");
-    productsPanel.classList.add("active");
-    localStorage.setItem("seller:productsView", "list");
+  // Activate only the requested panel.
+  switch (view) {
+      case "add":
+          if (!addPanel) {
+              console.error('Panel #add-products was not found.');
+              return;
+          }
+
+          addPanel.classList.add("active");
+          localStorage.setItem("seller:productsView", "add");
+          break;
+
+      case "restock":
+          if (!restockPanel) {
+              console.error('Panel #rstckMain was not found.');
+              return;
+          }
+
+          restockPanel.classList.add("active");
+          localStorage.setItem("seller:productsView", "restock");
+          break;
+
+      case "list":
+          if (!productsPanel) {
+              console.error('Panel #products was not found.');
+              return;
+          }
+
+          productsPanel.classList.add("active");
+          localStorage.setItem("seller:productsView", "list");
+          break;
+
+      default:
+          console.error("Unknown seller products view:", view);
   }
 }
 
+
+// =====================================================
+// ADD PRODUCT BUTTON
+// Compatible with onclick="toggleProductsAdd(true)"
+// =====================================================
+
+function toggleProductsAdd(showAdd) {
+  showSellerProductsView(showAdd ? "add" : "list");
+}
+
+
+// =====================================================
+// RESTOCK BUTTON
+// =====================================================
+
+function toggleRestock(showRestock) {
+  showSellerProductsView(showRestock ? "restock" : "list");
+}
+
+
+// =====================================================
+// GO BACK
+// Reload sellerPage.php and restore the products destination
+// =====================================================
+
 function goBackToSellerPage() {
-  toggleProductsAdd(false);
+  // Set the destination to restore after reloading.
+  localStorage.setItem("seller:productsView", "list");
+
+  // Reload the page so updated information is fetched.
   setTimeout(() => {
-      window.location.href = 'sellerPage.php';
+    window.location.href = 'sellerPage.php';
   }, 50);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  setTimeout(() => {
-    const productsPanel = document.getElementById("products");
+// =====================================================
+// INITIALIZE NAVIGATION
+// Do not activate any panel automatically on page load.
+// =====================================================
 
-    if (productsPanel?.classList.contains("active")) {
-      const savedView = localStorage.getItem("seller:productsView");
+document.addEventListener("DOMContentLoaded", function () {
 
-      toggleProductsAdd(savedView === "add");
-    }
-  }, 50);
+  const restockBtn = document.getElementById("restockBtn");
+
+  // Connect the Restock button.
+  if (restockBtn) {
+      restockBtn.addEventListener("click", function () {
+          toggleRestock(true);
+      });
+  }
+
 });
 
 function toggleAgentAdd(showAdd) {
