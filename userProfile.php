@@ -4,7 +4,7 @@ require_once 'connection.php';
 
 /* ---------- AUTH ---------- */
 if (!isset($_SESSION['user_id'])) {
-    header("Location: index.php");
+    header("Location: /index");
     exit();
 }
 
@@ -56,7 +56,7 @@ $user = $stmt->get_result()->fetch_assoc();
 
 if (!$user) {
     session_destroy();
-    header("Location: index.php");
+    header("Location: /index");
     exit();
 }
 
@@ -770,11 +770,11 @@ if (!empty($user['profile_image'])) {
       <?php endif; ?>
     </main>
         <footer>
-      <p>&copy; 2025/2026, Makethub.shop, All Rights Reserved.</p><br>
+      <p>&copy; 2025/2026, makethub.com, All Rights Reserved.</p><br>
       <p>
         <a href="privacy.php">Privacy Policy</a> |
         <a href="terms.php">Terms & Conditions</a> |
-        <a href="contact.php">Contact Us</a>
+        <a href="/contact">Contact Us</a>
       </p>
     </footer>
   </div>

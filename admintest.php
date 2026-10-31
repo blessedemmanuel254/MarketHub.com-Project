@@ -4,7 +4,7 @@ require_once 'connection.php';
 
 /* ---------- SESSION SECURITY ---------- */
 if (!isset($_SESSION['user_id'])) {
-    header("Location: index.php");
+    header("Location: /index");
     exit();
 }
 
@@ -187,7 +187,7 @@ if ($accountType !== $allowedRole) { */
     // Optional: destroy session for safety
     // session_destroy();/* 
 
-    /* header("Location: index.php");
+    /* header("Location: /index");
     exit();
 } */
 ?>
@@ -268,8 +268,8 @@ if ($accountType !== $allowedRole) { */
           <i class="fa-solid fa-gauge"></i>Dashboard
         </a>
         <a href="agentPage.php" class="nav-link"><i class="fa-solid fa-users"></i>Sales Agents</a>
-        <a href="sellerPage.php" class="nav-link"><i class="fa-solid fa-store"></i>Sellers</a>
-        <a href="buyerPage.php" class="nav-link"><i class="fa-solid fa-cart-shopping"></i>Buyers</a>
+        <a href="/sellerPage" class="nav-link"><i class="fa-solid fa-store"></i>Sellers</a>
+        <a href="/buyerPage" class="nav-link"><i class="fa-solid fa-cart-shopping"></i>Buyers</a>
         <a href="propertyOwnerPage.php" class="nav-link"><i class="fa-solid fa-building"></i>Property Owners</a>
         <a href="#" class="nav-link">
           <i class="fa-solid fa-money-bill-transfer"></i>Withdrawals
@@ -790,11 +790,11 @@ if ($accountType !== $allowedRole) { */
 
     </main>
         <footer>
-      <p>&copy; 2025/2026, Makethub.shop, All Rights Reserved.</p><br>
+      <p>&copy; 2025/2026, makethub.com, All Rights Reserved.</p><br>
       <p>
         <a href="privacy.php">Privacy Policy</a> |
         <a href="terms.php">Terms & Conditions</a> |
-        <a href="contact.php">Contact Us</a>
+        <a href="/contact">Contact Us</a>
       </p>
     </footer>
   </div>

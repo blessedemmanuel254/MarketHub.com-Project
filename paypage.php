@@ -137,11 +137,11 @@
       <div class="warning">After payment, click the button above and send your screenshot.</div>
     </div>
         <footer>
-      <p>&copy; 2025/2026, Makethub.shop, All Rights Reserved.</p><br>
+      <p>&copy; 2025/2026, makethub.com, All Rights Reserved.</p><br>
       <p>
         <a href="privacy.php">Privacy Policy</a> |
         <a href="terms.php">Terms & Conditions</a> |
-        <a href="contact.php">Contact Us</a>
+        <a href="/contact">Contact Us</a>
       </p>
     </footer>
   </div>

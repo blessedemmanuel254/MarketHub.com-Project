@@ -25,7 +25,7 @@
 <body>
   <div class="container">
     <h1>Contact Us</h1>
-    <p>Email: info@makethub.shop</p>
+    <p>Email: info@makethub.com</p>
     <p>Phone: +254 759578630</p>
     <p>Location: Kilifi, Kenya</p>
   </div>

@@ -39,7 +39,7 @@ class Daraja {
           "PartyA" => $phone,
           "PartyB" => $this->shortcode,
           "PhoneNumber" => $phone,
-          "CallBackURL" => "https://makethub.shop/mpesa.php?action=callback",
+          "CallBackURL" => "https://makethub.com/mpesa.php?action=callback",
           "AccountReference" => $reference,
           "TransactionDesc" => "Payment"
       ];
@@ -60,8 +60,8 @@ class Daraja {
           "PartyA" => $this->shortcode,
           "PartyB" => $phone,
           "Remarks" => "Withdrawal",
-          "QueueTimeOutURL" => "https://makethub.shop/mpesa.php?action=timeout",
-          "ResultURL" => "https://makethub.shop/mpesa.php?action=b2c_callback",
+          "QueueTimeOutURL" => "https://makethub.com/mpesa.php?action=timeout",
+          "ResultURL" => "https://makethub.com/mpesa.php?action=b2c_callback",
           "Occasion" => "Withdrawal"
       ];
 

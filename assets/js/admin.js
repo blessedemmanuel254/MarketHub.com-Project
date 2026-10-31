@@ -283,7 +283,7 @@ if(!btn) return;
 
 const ref = btn.dataset.ref;
 
-const link = `https://makethub.shop/agentregister.php?ref=${ref}`;
+const link = `https://makethub.com/agent/register?ref=${ref}`;
 
 navigator.clipboard.writeText(link)
 .then(()=>{
@@ -320,7 +320,7 @@ function editRecord(type, id) {
   localStorage.setItem("activeForm", type);
   localStorage.setItem("editId", id);
 
-  window.location.href = "adminPage.php?type=" + type + "&id=" + id;
+  window.location.href = "/adminPage?type=" + type + "&id=" + id;
 }
 
 function openAddProductForm(type) {
@@ -334,7 +334,7 @@ function openAddProductForm(type) {
   localStorage.setItem("activeForm", type);
   localStorage.removeItem("editId");
 
-  window.location.href = "adminPage.php?type=product";
+  window.location.href = "/adminPage?type=product";
 }
 
 // Delete Makethub Products JS
@@ -348,7 +348,7 @@ document.addEventListener("click", function(e){
 
   showPopup("Delete Product", "Delete this product permanently?", () => {
 
-    fetch("adminPage.php", {
+    fetch("/adminPage", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -415,7 +415,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Restore URL if missing
     const params = new URLSearchParams(window.location.search);
     if (!params.get("id") && editId) {
-      window.history.replaceState(null, "", "adminPage.php?type=" + activeForm + "&id=" + editId);
+      window.history.replaceState(null, "", "/adminPage?type=" + activeForm + "&id=" + editId);
     }
   }
 });

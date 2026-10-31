@@ -3,13 +3,13 @@ session_start();
 // Dynamic OG data based on page content
 $pageTitle = "Agent Page | Makethub";
 $pageDescription = "Verify your Makethub agent account to unlock full agent privileges; receiving commissions, Making withdrawal requests and manage your agency efficiently.";
-$pageUrl = "agentregister.php";
+$pageUrl = "agent/register";
 $pageImage = "Images/Makethub Logo.png"; // Use a clear visual for verification
 require_once 'connection.php';
 
 /* ---------- SESSION SECURITY ---------- */
 if (!isset($_SESSION['user_id'])) {
-  header("Location: index.php");
+  header("Location: /index");
   exit();
 }
 
@@ -46,7 +46,7 @@ if (!empty($expiresAt)) {
 /* ---------- VALIDATION ---------- */
 
 if ($accountType !== $allowedRole) {
-    header("Location: index.php");
+    header("Location: /index");
     exit();
 }
 
@@ -623,7 +623,7 @@ if (!empty($profileImage) && file_exists($profileImage)) {
 
 /* ---------- GENERATE AGENCY LINK ---------- */
 
-$baseAgencyLink = "https://makethub.shop/agentregister.php";
+$baseAgencyLink = "https://makethub.com/agent/register";
 
 $agencyLink = $baseAgencyLink . "?ref=" . urlencode($agencyCode);
 
@@ -1551,7 +1551,7 @@ function getStatusIcon($status) {
 
           <div class="buttons">
 
-            <a href="index.php" class="cancel">
+            <a href="index" class="cancel">
             Cancel
             </a>
 
@@ -3273,11 +3273,11 @@ function getStatusIcon($status) {
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleAgentOrdersTrack()">Go&nbsp;back</button> to continue shopping.</p>
     </main>
         <footer>
-      <p>&copy; 2025/2026, Makethub.shop, All Rights Reserved.</p><br>
+      <p>&copy; 2025/2026, makethub.com, All Rights Reserved.</p><br>
       <p>
         <a href="privacy.php">Privacy Policy</a> |
         <a href="terms.php">Terms & Conditions</a> |
-        <a href="contact.php">Contact Us</a>
+        <a href="/contact">Contact Us</a>
       </p>
     </footer>
   </div>

@@ -25,15 +25,15 @@ while ($row = $result->fetch_assoc()) {
 
     try {
         $mail->isSMTP();
-        $mail->Host = 'mail.makethub.shop';
+        $mail->Host = 'mail.makethub.com';
         $mail->SMTPAuth = true;
-        $mail->Username = 'no-reply@makethub.shop';
+        $mail->Username = 'no-reply@makethub.com';
         $mail->Password = '1745Sjm*1745';
 
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = 587;
 
-        $mail->setFrom('no-reply@makethub.shop', 'Makethub');
+        $mail->setFrom('no-reply@makethub.com', 'Makethub');
         $mail->addAddress($row['email'], $row['full_name']);
 
         $mail->Subject = "Level {$row['level']} Earnings";

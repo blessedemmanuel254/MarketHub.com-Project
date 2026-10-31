@@ -41,7 +41,7 @@ require_once 'connection.php';
 | GET LOGGED-IN USER
 |--------------------------------------------------------------------------
 |
-| sellerPage.php already creates the session.
+| /sellerPage already creates the session.
 | This request uses the same PHP session cookie.
 |
 */
@@ -65,7 +65,7 @@ $user_id = (int) $_SESSION['user_id'];
 | GET SELLER INFORMATION
 |--------------------------------------------------------------------------
 |
-| We do not need to repeat the entire sellerPage.php
+| We do not need to repeat the entire /sellerPage
 | authentication system here.
 |
 | We only retrieve the information required for
@@ -541,7 +541,7 @@ $passkey =
 */
 
 $callbackUrl =
-    'https://makethub.shop/mpesa/rechargeCallback.php';
+    'https://makethub.com/mpesa/rechargeCallback.php';
 
 
 /*

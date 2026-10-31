@@ -11,6 +11,12 @@ WHERE account_type='seller'
 AND subscription_expires_at IS NULL;
 
 
+UPDATE users
+SET
+    subscription_expires_at = DATE_SUB(NOW(), INTERVAL 1 DAY),
+    subscription_status = 'expired'
+WHERE account_type = 'seller';
+
 ALTER TABLE users
 ADD COLUMN timezone VARCHAR(64)
 NOT NULL DEFAULT 'Africa/Nairobi';
@@ -113,18 +119,18 @@ if ($conn->connect_error) {
 
 1. Customers can buy products and services from their local markets.
   LANDING PAGE
-  ~ index.php
+  ~ /index
   ~ MARKET/SHOPS
   BUYER'S PANNEL
-  ~ buyerpage.php
+  ~ /buyerPage
 2. Sellers can add their products on the website.
   SELLER'S PANNEL
-  ~ sellerpage.php
+  ~ /sellerPage
 3. I can be able to monitor orders.
   ADMIN PANNEL
-  ~ adminpage.php
+  ~ /adminPage
 4. I can be able to take traders photos and add list on the them on the website as happy users.
-  ~ intergrate this in the Landing page (index.php)
+  ~ intergrate this in the Landing page (/index)
 5. Is the coming of many in the upcoming in the saying of the people we must come to an agree that is coming in the local company of the entire region in the upcoimng.
 
 6. In the coming in the coming who is coming of the coming in the youtube in the service of the Lord in the name of the upcoming in the service of the member of the main service is the coming of the same problem in the service of the coming of the service in the same ways of the main.
@@ -166,7 +172,7 @@ This website is being used for educational purpose and for practical, and we don
 IF YOU UNDERSTAND RESPOND YES;
 
 This is the idea;
-I want local shops in my area to gain online visibility (and the local shops allover the nation as well as we advance). That is why I came up with my ecommerce website under the company name; Makethub (website is makethub.shop).
+I want local shops in my area to gain online visibility (and the local shops allover the nation as well as we advance). That is why I came up with my ecommerce website under the company name; Makethub (website is makethub.com).
 
 The real concept is; the seller gets a sticker with qr code that redirects the buyer to their shop. This sticker can be downloaded to the seller's device then printed and put as display just at the entrance of the shop. Buyers can be able to access and view the online seller's shelf of products just by scanning the qr code even without having to login. But for them to place order, they must login first. They can add products to cart even without login and the products are saved in local storage so that once they login the products in the cart are immediately transfered into cart database for syncing accross devices.
 

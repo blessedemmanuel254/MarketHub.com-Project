@@ -4,7 +4,7 @@ require_once 'connection.php';
 
 /* ---------- SESSION SECURITY ---------- */ 
 if (!isset($_SESSION['user_id'])) {
-  header("Location: index.php");
+  header("Location: /index");
   exit();
 }  
 
@@ -30,7 +30,7 @@ if ($accountType !== $allowedRole) {
     // Optional: destroy session for safety
     // session_destroy();/* 
 
-    header("Location: index.php");
+    header("Location: /index");
     exit();
 }
 

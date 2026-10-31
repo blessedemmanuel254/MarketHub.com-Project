@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 
 /* ---------- SESSION SECURITY ---------- */
 if (!isset($_SESSION['user_id'])) {
-  header("Location: index.php");
+  header("Location: /index");
   exit();
 }
 
@@ -32,7 +32,7 @@ if ($accountType !== $allowedRole) {
     // Optional: destroy session for safety
     // session_destroy();
 
-    header("Location: index.php");
+    header("Location: /index");
     exit();
 }
 
@@ -1533,7 +1533,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                     <?= htmlspecialchars($error); ?>
                   </p>
                 <?php elseif ($success): ?>
-                  <p class="successMessage" data-redirect="sellerPage.php">
+                  <p class="successMessage" data-redirect="/sellerPage">
                     <i class="fa-solid fa-check-circle"></i> <?= $success ?>
                   </p>
                 <?php endif; ?>
@@ -1628,7 +1628,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                   </p>
                 <?php endif; ?>
                 <?php if (!empty($success)): ?>
-                  <p class="successMessage usrWlt" data-redirect="sellerPage.php">
+                  <p class="successMessage usrWlt" data-redirect="/sellerPage">
                     <i class="fa-solid fa-check-circle"></i> <?= $success ?>
                   </p>
 
@@ -1863,11 +1863,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
       <p class="toggleOrdersOrMarket">Click <button href="" onclick="toggleSellerOrdersTrack()">Go&nbsp;back</button> to continue delivering.</p>
     </main>
         <footer>
-      <p>&copy; 2025/2026, Makethub.shop, All Rights Reserved.</p><br>
+      <p>&copy; 2025/2026, makethub.com, All Rights Reserved.</p><br>
       <p>
         <a href="privacy.php">Privacy Policy</a> |
         <a href="terms.php">Terms & Conditions</a> |
-        <a href="contact.php">Contact Us</a>
+        <a href="/contact">Contact Us</a>
       </p>
     </footer>
   </div>

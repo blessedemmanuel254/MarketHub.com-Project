@@ -1282,7 +1282,7 @@ if (isset($_GET['seller'])) {
             <div class="address-text" style="padding: 12px 0;">
               <i class="fa-solid fa-triangle-exclamation"></i>
               You are not logged in. Please
-              <a href="index.php" style="color:#0f0f0f; font-weight:600;">
+              <a href="/index" style="color:#0f0f0f; font-weight:600;">
                 log in
               </a>
               to view or set delivery details!
@@ -1341,11 +1341,11 @@ if (isset($_GET['seller'])) {
     </main>
   
         <footer>
-      <p>&copy; 2025/2026, Makethub.shop, All Rights Reserved.</p><br>
+      <p>&copy; 2025/2026, makethub.com, All Rights Reserved.</p><br>
       <p>
         <a href="privacy.php">Privacy Policy</a> |
         <a href="terms.php">Terms & Conditions</a> |
-        <a href="contact.php">Contact Us</a>
+        <a href="/contact">Contact Us</a>
       </p>
     </footer>
   </div>

@@ -857,7 +857,7 @@ function toggleRestock(showRestock) {
 
 // =====================================================
 // GO BACK
-// Reload sellerPage.php and restore the products destination
+// Reload /sellerPage and restore the products destination
 // =====================================================
 
 function goBackToSellerPage() {
@@ -866,7 +866,7 @@ function goBackToSellerPage() {
 
   // Reload the page so updated information is fetched.
   setTimeout(() => {
-    window.location.href = 'sellerPage.php';
+    window.location.href = '/sellerPage';
   }, 50);
 }
 
@@ -1333,7 +1333,7 @@ document.addEventListener("click", function (e) {
 
     if (!confirmAction) return; // ❌ Stop if user cancels
 
-    fetch("sellerPage.php", {
+    fetch("/sellerPage", {
         method: "POST",
         headers: {
             "Content-Type": "application/x-www-form-urlencoded"
@@ -2601,7 +2601,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
           /* =============================================
-              SEND TO sellerPage.php
+              SEND TO /sellerPage
               ============================================= */
 
           const formData =
@@ -2624,7 +2624,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
           fetch(
-              "sellerPage.php",
+              "/sellerPage",
               {
                   method: "POST",
                   body: formData
@@ -2876,12 +2876,7 @@ document.addEventListener(
 
         const confirmed =
             window.confirm(
-                'Are you sure you want to delete this order?\n\n' +
-
-                'Deleting this order will affect your future ' +
-                'sales statistics and reports.\n\n' +
-
-                'This action cannot be undone.'
+                'Are you sure you want to delete this order?'
             );
 
 
@@ -2938,7 +2933,7 @@ document.addEventListener(
 
             const response =
                 await fetch(
-                    'sellerPage.php',
+                    '/sellerPage',
                     {
                         method: 'POST',
                         body: formData,

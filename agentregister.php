@@ -356,15 +356,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <!-- SEO / LINK PREVIEW (OPEN GRAPH) -->
   <meta property="og:title" content="Join Makethub as a Sales Agent!" />
   <meta property="og:description" content="Start earning by joining Makethub. Grow your network and income today." />
-  <meta property="og:image" content="https://makethub.shop/Images/Makethub%20Logo.png" />
-  <meta property="og:url" content="https://makethub.shop/agentregister.php?ref=<?= htmlspecialchars($_GET['ref'] ?? '') ?>" />
+  <meta property="og:image" content="https://makethub.com/Images/Makethub%20Logo.png" />
+  <meta property="og:url" content="https://makethub.com/agent/register?ref=<?= htmlspecialchars($_GET['ref'] ?? '') ?>" />
   <meta property="og:type" content="website" />
 
   <!-- Twitter (also used by WhatsApp/Telegram sometimes) -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Join Makethub as a Sales Agent!">
   <meta name="twitter:description" content="Become a Makethub agent and start earning today.">
-  <meta name="twitter:image" content="https://makethub.shop/Images/Makethub%20Logo.png">
+  <meta name="twitter:image" content="https://makethub.com/Images/Makethub%20Logo.png">
 
   <link rel="apple-touch-icon" sizes="180x180" href="Images/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="Images/favicon-32x32.png">
@@ -515,7 +515,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
               <button type="submit">Register</button>
             </div>
           </div>
-          <p class="reDctor">Already have an account? <a href="index.php">Login</a></p>
+          <p class="reDctor">Already have an account? <a href="/index">Login</a></p>
           <input type="hidden" id="old_country" value="<?= htmlspecialchars($_POST['country'] ?? '') ?>">
           <input type="hidden" id="old_county" value="<?= htmlspecialchars($_POST['county'] ?? '') ?>">
         </form>
@@ -523,11 +523,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     </main>
     <?php endif; ?>
         <footer>
-      <p>&copy; 2025/2026, Makethub.shop, All Rights Reserved.</p><br>
+      <p>&copy; 2025/2026, makethub.com, All Rights Reserved.</p><br>
       <p>
         <a href="privacy.php">Privacy Policy</a> |
         <a href="terms.php">Terms & Conditions</a> |
-        <a href="contact.php">Contact Us</a>
+        <a href="/contact">Contact Us</a>
       </p>
     </footer>
   </div>

@@ -5,7 +5,7 @@ if ($sellerId <= 0) {
     die("Invalid seller");
 }
 
-$url = "https://makethub.shop/marketdisplay.php?seller=" . $sellerId;
+$url = "https://makethub.com/marketdisplay.php?seller=" . $sellerId;
 
 $qr = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" . urlencode($url);
 ?>

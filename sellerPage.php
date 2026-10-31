@@ -5824,56 +5824,123 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
     <div class="payOverlay" onclick="togglePaymentOption()" id="payOverlay"></div>
 
     <form class="paymentContainer" action="" id="paymentContainer">
+        <div class="autoPyDiv">
+            
 
-        <h1>
-            Choose&nbsp;Account
-            <br>
-            <span>You can set your default account in settings</span>
-        </h1>
+            <div class="hetch1">
+                <h1>Choose&nbsp;Account</h1>
+                <span>You can set your default account in settings</span>
+              </div>
 
-        <p class="successPrompt">Prompt sent for amount : KES 495. Please check your phone for STK Menu...</p>
-        <label class="radio-container">
+            <p class="successPrompt">Prompt sent for amount : KES 495. Please check your phone for STK Menu...</p>
+            <label class="radio-container">
 
-            <div class="rightDiv">
-                <img
-                    src="Images/M-PESA_LOGO-01.svg.png"
-                    alt="Mpesa Logo"
-                    width="60"
+                <div class="rightDiv">
+                    <img
+                        src="Images/M-PESA_LOGO-01.svg.png"
+                        alt="Mpesa Logo"
+                        width="60"
+                    >
+
+                    <p>
+                        MPESA
+                        <br>
+                        <span>Use your registered M-Pesa number</span>
+                    </p>
+                </div>
+
+                <input
+                    type="radio"
+                    name="payment"
+                    value="mpesa"
                 >
 
-                <p>
-                    MPESA
-                    <br>
-                    <span>Use your registered M-Pesa number</span>
-                </p>
-            </div>
+                <span class="checkmark"></span>
 
-            <input
-                type="radio"
-                name="payment"
-                value="mpesa"
+            </label>
+
+            <button id="btrPayBtn" type="submit">
+                Continue
+            </button>
+            
+
+            <div class="or-divider">or</div>
+            <button id="antrNoTxt"><i class="fa-regular fa-pen-to-square"></i>Pay with another number</button>
+            <button class="mnulPay-btn">Manual Payment</button>
+
+            <a
+                href="#"
+                onclick="togglePaymentOption(); return false;"
+                data-tab="dashboard"
             >
+                Cancel&nbsp;payment
+            </a>
+        </div>
+        <div class="mnulPyDiv">
 
-            <span class="checkmark"></span>
+            <!-- Till Details -->
+            <section class="till-section">
+                <p class="till-label">M-PESA Buy Goods Till Number</p>
 
-        </label>
+                <div class="till-number" id="tillNumber">1774150</div>
 
-        <button id="btrPayBtn" type="submit">
-            Continue
-        </button>
-        
+                <p class="business-name">
+                    <i class="fa-solid fa-store"></i>
+                    MAKETHUB TALES
+                </p>
 
-        <div class="or-divider">or</div>
-        <button id="antrNoTxt"><i class="fa-regular fa-pen-to-square"></i>Pay with another number</button>
-        <button class="mnulPay-btn">Manual Payment</button>
+                <button class="copy-button" id="copyTillButton" type="button">
+                    <i class="fa-regular fa-copy"></i>
+                    <span>Copy Till Number</span>
+                </button>
+            </section>
 
-        <a
-            href="#"
-            onclick="togglePaymentOption(); return false;"
-            data-tab="dashboard"
-        >
-            Cancel&nbsp;payment
-        </a>
+            <!-- Payment Instructions -->
+            <section class="instructions">
+                <h2>Manual Payment</h2>
+                <p class="instructions-subtitle">
+                    Follow the steps on your phone.
+                </p>
+
+                <ol class="instruction-list">
+
+                    <li class="instruction-item">
+                        <span class="step-number">1</span>
+                        <div class="step-content">
+                            <strong>Open M-PESA</strong>
+                        </div>
+                    </li>
+
+                    <li class="instruction-item">
+                        <span class="step-number">2</span>
+                        <div class="step-content">
+                            <strong>Select Lipa na M-PESA</strong>
+                        </div>
+                    </li>
+
+                    <li class="instruction-item">
+                        <span class="step-number">3</span>
+                        <div class="step-content">
+                            <strong>Select Buy Goods and Services</strong>
+                        </div>
+                    </li>
+
+                    <li class="instruction-item">
+                        <span class="step-number">4</span>
+                        <div class="step-content">
+                            <strong>Enter the Till Number</strong>
+                        </div>
+                    </li>
+
+                </ol>
+            </section>
+
+            <!-- Footer -->
+            <div class="payment-footer">
+                <i class="fa-solid fa-shield-halved"></i>
+                Please verify all payment details before sending money.
+            </div>
+        </div>
 
     </form>
     <div class="overlay" onclick="toggleWhatsAppChat()" id="overlay"></div>
@@ -6974,7 +7041,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                         </div>
                       </div>
                       <div class="card-actions">
-                        <a href="?edit_product_id=<?= $product['product_id'] ?>" class="edit" >
+                        <a href="?edit_product_id=<?= $product['product_id'] ?>" class="edit">
                           <i class="fa fa-pen"></i>
                         </a>
                         <form method="POST" onsubmit="return confirm('Are you sure you want to delete this product?')">
@@ -7107,7 +7174,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
             <div class="toolbar">
                 <div class="search-wrap"><span>⌕</span><input id="searchInput" type="search" placeholder="Search product or product group…" aria-label="Search products"></div>
-                <div class="toolbar-right"><label for="pageSize">Products per category</label><select class="control" id="pageSize"><option value="5">5</option><option value="10">10</option><option value="15" selected>15</option><option value="20">20</option><option value="30">30</option></select></div>
+                <div class="toolbar-right"><label for="pageSize">Quantity display</label><select class="control" id="pageSize"><option value="5">5</option><option value="10">10</option><option value="15" selected>15</option><option value="20">20</option><option value="30">30</option></select></div>
             </div>
 
             <main id="categories">
@@ -7118,13 +7185,13 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                 </section>
 
                 <section class="category low" id="lowSection">
-                <div class="category-head"><div class="category-title"><div class="category-symbol"><i class="fa-solid fa-arrow-trend-down"></i></div><div><h2>Running low</h2><p>Stock is below the preferred level. Suggested quantity included.</p></div></div></div>
+                <div class="category-head"><div class="category-title"><div class="category-symbol"><i class="fa-solid fa-arrow-trend-down"></i></div><div><h2>Running low</h2><p>Stock is below the preferred level.</p></div></div></div>
                 <div class="product-grid" id="lowGrid"></div>
                 <div class="category-foot"><span class="page-note" id="lowPageNote"></span><div class="pagination" id="lowPagination"></div></div>
                 </section>
 
                 <section class="category demand" id="demandSection">
-                <div class="category-head"><div class="category-title"><div class="category-symbol"><i class="fa-solid fa-arrow-trend-up"></i></div><div><h2>Recommended by demand</h2><p>Popular products that may need extra stock to meet demand.</p></div></div></div>
+                <div class="category-head"><div class="category-title"><div class="category-symbol"><i class="fa-solid fa-arrow-trend-up"></i></div><div><h2>Recommended by demand</h2><p>Restock to meet demand.</p></div></div></div>
                 <div class="product-grid" id="demandGrid"></div>
                 <div class="category-foot"><span class="page-note" id="demandPageNote"></span><div class="pagination" id="demandPagination"></div></div>
                 </section>
@@ -7310,6 +7377,82 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
         }).format(number);
     }
 
+    /* ============================================================
+    MAKETHUB STOCK QUANTITY + UNIT FORMATTING
+
+    Supports ONLY the units defined in:
+    productservicesrentals.unit
+
+    - Each: Display quantity without a unit.
+    - Measurement units: Display singular/plural correctly.
+    - m²: Keep the symbol unchanged.
+    ============================================================ */
+
+    function formatStockQuantity(quantity, unit) {
+
+        const number = Number(quantity);
+
+        if (!Number.isFinite(number)) {
+            return "0";
+        }
+
+        const normalizedUnit = String(unit || "").trim();
+
+        // EACH: Display quantity only, without the unit.
+        if (normalizedUnit.toLowerCase() === "each") {
+            return formatNumber(number);
+        }
+
+        // Exact units supported by Makethub database.
+        const unitMap = {
+
+            "Kg": ["Kg", "Kgs"],
+
+            "Liter": ["Liter", "Liters"],
+
+            "Meter": ["Meter", "Meters"],
+
+            "Inch": ["Inch", "Inches"],
+
+            "Gram": ["Gram", "Grams"],
+
+            "Dozen": ["Dozen", "Dozen"],
+
+            "Set": ["Set", "Sets"],
+
+            "Plate": ["Plate", "Plates"],
+
+            "Cup": ["Cup", "Cups"],
+
+            "Gallon": ["Gallon", "Gallons"],
+
+            "Roll": ["Roll", "Rolls"],
+
+            "m²": ["m²", "m²"],
+
+            // Database stores "Tone".
+            // Display as the grammatically correct "Tonne".
+            "Tone": ["Tonne", "Tonnes"]
+
+        };
+
+        // Match database unit (case-insensitive).
+        const matchedKey = Object.keys(unitMap).find(
+            key => key.toLowerCase() === normalizedUnit.toLowerCase()
+        );
+
+        // Singular only when quantity is exactly 1.
+        const isSingular = Math.abs(number) === 1;
+
+        // Preserve an unrecognized database value rather than
+        // inventing a different unit.
+        const displayUnit = matchedKey
+            ? unitMap[matchedKey][isSingular ? 0 : 1]
+            : normalizedUnit;
+
+        return `${formatNumber(number)} ${displayUnit}`;
+    }
+
 
     /* ========================================================
        IMAGE FALLBACK
@@ -7433,13 +7576,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
             ? `
                 <span class="qty suggested">
                     Suggested: +${escapeHtml(
-                        formatNumber(product.suggested)
+                        formatStockQuantity(product.suggested, product.unit)
                     )}
-                    ${escapeHtml(product.unit)}
                 </span>
             `
             : "";
-
         const demandLabel = isDemand
             ? `
                 <span class="qty demand-tag">
@@ -7468,25 +7609,6 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                     )}</strong>
                 </span>
 
-                ${
-                    Number(product.dailyDemand) > 0
-                    ? `
-                        <br>
-                        <span>
-                            Estimated daily demand:
-                            <strong>${escapeHtml(
-                                formatNumber(product.dailyDemand)
-                            )} ${escapeHtml(product.unit)}</strong>
-                        </span>
-                    `
-                    : `
-                        <br>
-                        <span>
-                            No recorded sales in the analysis period
-                        </span>
-                    `
-                }
-
             </div>
         `;
 
@@ -7512,16 +7634,13 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                         ${escapeHtml(product.name)}
                     </div>
 
-                    <div class="product-group">
-                        ${escapeHtml(product.group)}
-                    </div>
-
                     <div class="product-meta">
 
                         <span class="${quantityClass}">
                             Stock:
-                            ${escapeHtml(formatNumber(product.qty))}
-                            ${escapeHtml(product.unit)}
+                            ${escapeHtml(
+                                formatStockQuantity(product.qty, product.unit)
+                            )}
                         </span>
 
                         ${suggestedLabel}
@@ -7540,7 +7659,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                     data-restock="${escapeHtml(product.id)}"
                     data-category="${escapeHtml(category)}"
                 >
-                    ＋ Restock
+                    <i class="fa-solid fa-plus"></i> Restock
                 </button>
 
             </article>
@@ -7819,10 +7938,10 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
         };
 
         elements.modalCurrent.textContent =
-            `${formatNumber(product.qty)} ${product.unit}`;
+            formatStockQuantity(product.qty, product.unit);
 
         elements.modalSuggested.textContent =
-            `+${formatNumber(product.suggested)} ${product.unit}`;
+            `+${formatStockQuantity(product.suggested, product.unit)}`;
 
         /*
          * The input is for the NEW TOTAL quantity,
@@ -8108,11 +8227,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
             await loadRestockData();
 
-            showToast(
-                `${product.name}: stock updated successfully. ` +
-                `${formatNumber(response.old_quantity)} → ` +
-                `${formatNumber(response.new_quantity)} ${product.unit}.`
-            );
+        showToast(
+            `${product.name}: stock updated successfully. ` +
+            `${formatStockQuantity(response.old_quantity, product.unit)} → ` +
+            `${formatStockQuantity(response.new_quantity, product.unit)}.`
+        );
 
         } catch (error) {
 
@@ -8523,6 +8642,44 @@ function dayName(dateString) {
     );
 }
 
+
+function relativeDayName(dateString) {
+    if (!dateString) return "";
+
+    // Parse the selected date without timezone issues.
+    const [year, month, day] = dateString.split("-").map(Number);
+
+    const selectedDate = new Date(year, month - 1, day);
+    const today = new Date();
+
+    // Remove the time portion so we compare calendar dates only.
+    selectedDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+
+    const differenceInDays = Math.round(
+        (selectedDate.getTime() - today.getTime()) /
+        (1000 * 60 * 60 * 24)
+    );
+
+    if (differenceInDays === 0) {
+        return "Today";
+    }
+
+    if (differenceInDays === -1) {
+        return "Yesterday";
+    }
+
+    if (differenceInDays === 1) {
+        return "Tomorrow";
+    }
+
+    // For all other dates, display the actual weekday name.
+    return selectedDate.toLocaleDateString("en-KE", {
+        weekday: "long"
+    });
+}
+
+
 function timeLabel(time) {
     const [hour, minute] = String(time || "00:00")
         .split(":")
@@ -8694,9 +8851,10 @@ function renderLedger(direction = 0) {
         0
     );
 
-    setText("dayName", dayName(selectedDate));
+    setText("dayName", relativeDayName(selectedDate));
     setText("dayDate", formatDate(selectedDate));
     setText("dayTotal", currency(dailyTotal));
+
 
     // Update these only if the surrounding page contains these elements.
     setText("pageDate", formatDate(selectedDate, {
