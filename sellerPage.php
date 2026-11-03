@@ -7,7 +7,7 @@ error_reporting(E_ALL);
 ob_start();
 /* ---------- SESSION SECURITY ---------- */
 if (!isset($_SESSION['user_id'])) {
-  header("Location: index.php");
+  header("Location: /index");
   exit();
 }
 
@@ -33,7 +33,7 @@ if ($accountType !== $allowedRole) {
     // Optional: destroy session for safety
     // session_destroy();
 
-    header("Location: index.php");
+    header("Location: /index");
     exit();
 }
 
@@ -606,7 +606,7 @@ if (
 
     $allowedPaymentMethods = [
         'cash',
-        'bank'
+        'mpesa'
     ];
 
     if (!in_array($paymentMethod, $allowedPaymentMethods, true)) {
@@ -932,11 +932,11 @@ if (
          * CREATE ORDER
          * =================================================
          *
-         * buyer_id = NULL
-         * customer_name = Customer
-         *
-         * payment_method = cash/bank
-         */
+        * buyer_id = NULL
+        * customer_name = Customer
+        *
+        * payment_method = cash/mpesa
+        */
 
         $orderStmt = $conn->prepare("
             INSERT INTO orders
@@ -2475,6 +2475,7 @@ if ($editMode) {
             $buyingPrice          = $product['buying_price'];
             $sellingPrice         = $product['selling_price'];
             $stock                = $product['stock_quantity'];
+            
             $unit                 = $product['unit'];
             $currentImagePath     = $product['image_path'];
 
@@ -2596,9 +2597,14 @@ $saleType = $_POST['sale_type'] ?? 'Each';
 $unit      = $_POST['unit'] ?? 'Each';
 $buyingPrice       = floatval($_POST['bPrice'] ?? 0);
 $sellingPrice       = floatval($_POST['sPrice'] ?? 0);
-$stock = (float) ($_POST['stock'] ?? 0);
+
 if ($saleType === 'Each') {
-  $unit = 'Each';
+    $unit = 'Each';
+}
+// Stock depends on the final selected unit
+$stock = (float) ($_POST['stock'] ?? 0);
+if ($unit === 'Each') {
+    $stock = (int) $stock;
 }
 
 /* ---------- BASIC VALIDATION ---------- */
@@ -3184,6 +3190,11 @@ $buyingPrice  = isset($_POST['bPrice']) ? (float)$_POST['bPrice'] : 0;
 $sellingPrice = isset($_POST['sPrice']) ? (float)$_POST['sPrice'] : 0;
 $stock = (float) ($_POST['stock'] ?? 0);
 
+// Whole-number stock for products sold as individual pieces
+if ($unit === 'Each') {
+    $stock = (int) $stock;
+}
+
 /* ---------- BASIC VALIDATION ---------- */
 
 if ($productName === '') {
@@ -3763,7 +3774,7 @@ if (empty($error)) {
         AND user_id = ?
     ");
     $stmt->bind_param(
-        "ssiissddisssii",
+        "ssiissdddsssii",
         $productName,
         $category,
         $customCategoryId,
@@ -3808,7 +3819,7 @@ if (empty($error)) {
 |--------------------------------------------------------------------------
 | MAKETHUB SELLER SALES ANALYTICS HANDLER
 |--------------------------------------------------------------------------
-| INSERT THIS BLOCK INTO sellerPage.php AFTER:
+| INSERT THIS BLOCK INTO /sellerPage AFTER:
 |   1. session_start() / authentication
 |   2. database connection ($conn)
 |   3. $user_id has been set for the logged-in seller
@@ -4557,7 +4568,7 @@ if (
 
 /* ============================================================
    MAKETHUB RESTOCK BACKEND
-   File: sellerPage.php
+   File: /sellerPage
 
    Actions:
    1. get_restock_data
@@ -5754,7 +5765,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
         <div class="buttons">
 
-            <a href="sellerPage.php" class="cancel">
+            <a href="/sellerPage" class="cancel">
             Later
             </a>
 
@@ -5882,17 +5893,17 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
             <section class="till-section">
                 <p class="till-label">M-PESA Buy Goods Till Number</p>
 
-                <div class="till-number" id="tillNumber">1774150</div>
+                <div class="till-number" id="tillNumber">1774156</div>
 
                 <p class="business-name">
                     <i class="fa-solid fa-store"></i>
                     MAKETHUB TALES
                 </p>
 
-                <button class="copy-button" id="copyTillButton" type="button">
+                <div class="copy-button" id="copyTillButton" type="button">
                     <i class="fa-regular fa-copy"></i>
                     <span>Copy Till Number</span>
-                </button>
+                </div>
             </section>
 
             <!-- Payment Instructions -->
@@ -5903,37 +5914,28 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                 </p>
 
                 <ol class="instruction-list">
+                    <p>1. Go to the <strong>M-PESA</strong> menu on your phone.</p>
+                    <p>2. Select <strong>Lipa na M-PESA</strong>.</p>
+                    <p>3. Choose <strong>Buy Goods and Services</strong>.</p>
+                    <p>4. Enter the Till Number <strong>1774156</strong>.</p>
+                    <p>5. Enter the amount to pay <strong>KSh 1,000.00</strong>.</p>
+                    <p>6. Enter your M-PESA PIN and confirm payment to <strong>MAKETHUB TALES</strong>.</p>
 
-                    <li class="instruction-item">
-                        <span class="step-number">1</span>
-                        <div class="step-content">
-                            <strong>Open M-PESA</strong>
-                        </div>
-                    </li>
-
-                    <li class="instruction-item">
-                        <span class="step-number">2</span>
-                        <div class="step-content">
-                            <strong>Select Lipa na M-PESA</strong>
-                        </div>
-                    </li>
-
-                    <li class="instruction-item">
-                        <span class="step-number">3</span>
-                        <div class="step-content">
-                            <strong>Select Buy Goods and Services</strong>
-                        </div>
-                    </li>
-
-                    <li class="instruction-item">
-                        <span class="step-number">4</span>
-                        <div class="step-content">
-                            <strong>Enter the Till Number</strong>
-                        </div>
-                    </li>
 
                 </ol>
             </section>
+            
+            <div class="inp-box">
+                <label>Transaction code</label>
+                <input type="text" name="name" placeholder="Enter code here" required>
+            </div>
+            <div class="respnZ">
+                <span class="respnZ-span">I have paid 🎉</span>
+
+                <div onclick="toggleOrderMarket()">
+                    <i class="fa-solid fa-circle-arrow-left" data-tab="products"></i> <span>Go&nbsp;Back</span>
+                </div>
+            </div>
 
             <!-- Footer -->
             <div class="payment-footer">
@@ -5979,294 +5981,223 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
     <div id="slsDetlsOverlay" class="slsDetlsOverlay"></div>
 
+    <!-- =========================================================
+        ORDER DETAILS OVERLAY
+        Keep this only once in your page.
+    ========================================================= -->
+
+    <div
+        id="slsDetlsOverlay"
+        class="sls-detls-overlay"
+    ></div>
+
 
     <!-- =========================================================
         ORDER BOTTOM SHEET
-        ========================================================= -->
+    ========================================================= -->
 
     <div
-    id="orderSheet"
-    class="order-sheet"
+        id="orderSheet"
+        class="order-sheet"
     >
 
+        <!-- SHEET HANDLE -->
 
-    <div class="sheet-handle"></div>
+        <div class="sheet-handle"></div>
 
 
-    <!-- =====================================================
+        <!-- =====================================================
             HEADER
-            ===================================================== -->
+        ===================================================== -->
 
-    <div class="sheet-header">
+        <div class="sheet-header">
 
-        <div class="sheet-title">
+            <div class="sheet-title">
 
-            <strong id="sheetOrderNumber">
-                Order #MH-1048
-            </strong>
+                <strong id="sheetOrderNumber">
+                    Order #MH-1048
+                </strong>
 
-            <span id="sheetOrderDate">
-                30 Aug, 14:32
-            </span>
+                <span id="sheetOrderDate"></span>
 
-        </div>
-
-
-        <button
-            type="button"
-            id="closeOrderSheet"
-            class="sheet-close"
-            aria-label="Close"
-        >
-
-            <i class="fa-solid fa-xmark"></i>
-
-        </button>
-
-    </div>
-
-
-    <!-- =====================================================
-            CONTENT
-            ===================================================== -->
-
-    <div class="sheet-content">
-
-
-        <!-- CUSTOMER -->
-
-        <div class="customer-card">
-
-            <div class="customer-card-title">
             </div>
 
-            <div
-                class="customer-card-name"
-                id="sheetCustomerName"
+
+            <button
+                type="button"
+                id="closeOrderSheet"
+                class="sheet-close"
+                aria-label="Close order details"
             >
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+
+        <!-- =====================================================
+            SHEET CONTENT
+        ===================================================== -->
+
+        <div class="sheet-content">
+
+
+            <!-- =================================================
+                CUSTOMER INFORMATION
+            ================================================= -->
+
+            <div class="customer-card">
+
+                <div
+                    class="customer-card-name"
+                    id="sheetCustomerName"
+                ></div>
+
+
+                <div
+                    class="customer-card-phone"
+                    id="sheetCustomerPhone"
+                ></div>
+
             </div>
 
-            <div
-                class="customer-card-phone"
-                id="sheetCustomerPhone"
+
+            <!-- =================================================
+                ORDER PRODUCTS
+            ================================================= -->
+
+            <div class="items-title">
+                Products
+            </div>
+
+
+            <!--
+                JavaScript dynamically generates
+                all product rows inside this container.
+            -->
+
+            <div id="sheetItems"></div>
+
+
+            <!-- =================================================
+                ORDER TOTALS
+            ================================================= -->
+
+            <div class="order-totals">
+
+
+                <!-- SUBTOTAL -->
+
+                <div class="total-row">
+
+                    <span>
+                        Subtotal
+                    </span>
+
+                    <span id="sheetSubtotal">
+                        KES 0.00
+                    </span>
+
+                </div>
+
+
+                <!-- DELIVERY -->
+
+                <div class="total-row">
+
+                    <span>
+                        Delivery
+                    </span>
+
+                    <span>
+                        KES 0.00
+                    </span>
+
+                </div>
+
+
+                <!-- GRAND TOTAL -->
+
+                <div class="total-row grand-total">
+
+                    <span>
+                        Total
+                    </span>
+
+                    <span id="sheetTotal">
+                        KES 0.00
+                    </span>
+
+                </div>
+
+
+            </div>
+
+
+            <!-- =================================================
+                PAYMENT INFORMATION
+            ================================================= -->
+
+            <div class="payment-information">
+
+
+                <!-- PAYMENT METHOD -->
+
+                <div class="payment-information-row">
+
+                    <span>
+                        Paid by
+                    </span>
+
+                    <span id="sheetPaymentMethod"></span>
+
+                </div>
+
+
+                <!-- PAYMENT STATUS -->
+
+                <div class="payment-information-row">
+
+                    <span>
+                        Payment status
+                    </span>
+
+                    <span id="sheetPaymentStatus"></span>
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+
+        <!-- =====================================================
+            SHEET FOOTER
+        ===================================================== -->
+
+        <div class="sheet-footer">
+
+            <button
+                type="button"
+                id="printReceiptButton"
+                class="print-receipt-button"
             >
-            </div>
+
+                <i class="fa-solid fa-print"></i>
+
+                Print Receipt
+
+            </button>
 
         </div>
 
-
-        <!-- =================================================
-                ORDER STATUS
-                ================================================= --><!-- 
-
-        <div class="order-timeline">
-
-            <div class="timeline-line"></div>
-
-
-            <div class="timeline-item active">
-
-                <div class="timeline-dot">
-
-                    <i class="fa-solid fa-cart-shopping"></i>
-
-                </div>
-
-                <div class="timeline-label">
-                    Ordered
-                </div>
-
-            </div>
-
-
-            <div class="timeline-item active">
-
-                <div class="timeline-dot">
-
-                    <i class="fa-solid fa-box"></i>
-
-                </div>
-
-                <div class="timeline-label">
-                    Shipped
-                </div>
-
-            </div>
-
-
-            <div class="timeline-item active">
-
-                <div class="timeline-dot">
-
-                    <i class="fa-solid fa-truck"></i>
-
-                </div>
-
-                <div class="timeline-label">
-                    Delivered
-                </div>
-
-            </div>
-
-
-            <div class="timeline-item active">
-
-                <div class="timeline-dot">
-
-                    <i class="fa-solid fa-check"></i>
-
-                </div>
-
-                <div class="timeline-label">
-                    Complete
-                </div>
-
-            </div>
-
-        </div> -->
-
-
-        <!-- =================================================
-                ITEMS
-                ================================================= -->
-
-        <div class="items-title">
-            Products
-        </div>
-
-
-        <div id="sheetItems">
-
-
-            <!-- ITEM 1 -->
-
-            <div class="sheet-item">
-
-                <div class="sheet-item-image">
-
-                    <img
-                        src="https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=200&q=80"
-                        alt=""
-                    >
-
-                </div>
-
-
-                <div class="sheet-item-info">
-
-                    <div class="sheet-item-name">
-                    </div>
-
-                    <div class="sheet-item-meta">
-                    </div>
-
-                </div>
-
-
-                <div class="sheet-item-price">
-                </div>
-
-            </div>
-
-
-        </div>
-
-
-        <!-- =================================================
-                TOTALS
-                ================================================= -->
-
-        <div class="order-totals">
-
-            <div class="total-row">
-
-                <span>
-                    Subtotal
-                </span>
-
-                <span id="sheetSubtotal">
-                </span>
-
-            </div>
-
-
-            <div class="total-row">
-
-                <span>
-                    Delivery
-                </span>
-
-                <span>
-                    KES 0
-                </span>
-
-            </div>
-
-
-            <div class="total-row grand-total">
-
-                <span>
-                    Total
-                </span>
-
-                <span id="sheetTotal">
-                </span>
-
-            </div>
-
-        </div>
-
-
-        <!-- =================================================
-                PAYMENT
-                ================================================= -->
-
-        <div class="payment-information">
-
-            <div class="payment-information-row">
-
-                <span>Paid by</span>
-
-                <span id="sheetPaymentMethod">
-                </span>
-
-            </div>
-
-            <div class="payment-information-row">
-
-                <span>Payment status</span>
-
-                <span id="sheetPaymentStatus">
-                </span>
-
-            </div>
-
-        </div>
 
     </div>
 
-
-    <!-- =====================================================
-            FOOTER
-            ===================================================== -->
-
-    <div class="sheet-footer">
-
-        <button
-            type="button"
-            id="printReceiptButton"
-            class="print-receipt-button"
-        >
-
-            <i class="fa-solid fa-print"></i>
-
-            Print Receipt
-
-        </button>
-
-    </div>
-
-    </div>
     <!-- =========================================================
         PRINT RECEIPT
         ========================================================= -->
@@ -6492,7 +6423,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
         <p
             class="successMessage"
             id="subGroupSuccessMessage"
-            data-redirect="sellerPage.php"
+            data-redirect="/sellerPage"
             style="display:none;"
         ></p>
 
@@ -7041,7 +6972,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                         </div>
                       </div>
                       <div class="card-actions">
-                        <a href="?edit_product_id=<?= $product['product_id'] ?>" class="edit">
+                        <a href="/sellerPage?edit_product_id=<?= $product['product_id'] ?>" class="edit">
                           <i class="fa fa-pen"></i>
                         </a>
                         <form method="POST" onsubmit="return confirm('Are you sure you want to delete this product?')">
@@ -7219,7 +7150,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 <script>
 /* ============================================================
    MAKETHUB RESTOCK MANAGEMENT
-   Database-backed version for sellerPage.php
+   Database-backed version for /sellerPage
 
    Features:
    - Real products from the PHP backend
@@ -7474,7 +7405,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
     /* ========================================================
        API REQUEST
-       All requests are sent to sellerPage.php itself.
+       All requests are sent to /sellerPage itself.
     ======================================================== */
 
     async function apiRequest(action, extraData = {}) {
@@ -7514,7 +7445,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
 
             throw new Error(
                 "The server returned an invalid response. " +
-                "Check sellerPage.php for PHP errors."
+                "Check /sellerPage for PHP errors."
             );
         }
 
@@ -9067,7 +8998,7 @@ if (printButton) {
         isPrintingLedger = true;
         renderLedger();
 
-        // Copy only the ledger, not the rest of sellerPage.php.
+        // Copy only the ledger, not the rest of /sellerPage.
         const ledgerCopy = ledger.cloneNode(true);
 
         // Remove screen-only controls from the printed copy.
@@ -9247,7 +9178,7 @@ renderLedger();
                     <?= htmlspecialchars($error); ?>
                   </p>
                 <?php elseif ($success): ?>
-                  <p class="successMessage" data-redirect="sellerPage.php">
+                  <p class="successMessage" data-redirect="/sellerPage">
                     <i class="fa-solid fa-check-circle"></i> <?= $success ?>
                   </p>
                 <?php endif; ?>
@@ -9260,15 +9191,15 @@ renderLedger();
                   </div>
 
                   <div class="inp-box">
-                      <label>Stock Quantity</label>
-                      <input
-                        type="number"
-                        name="stock"
-                        value="<?= htmlspecialchars($stock, ENT_QUOTES) ?>"
-                        min="0"
-                        step="any"
-                        required
-                       >
+                    <label>Stock Quantity</label>
+                    <input
+                    type="number"
+                    placeholder="eg. 24 or 40.75" name="stock"
+                    value="<?= htmlspecialchars($stock, ENT_QUOTES) ?>"
+                    min="0"
+                    step="any"
+                    required
+                    >
                   </div>
                   
                   <div class="inp-box">
@@ -9653,9 +9584,11 @@ renderLedger();
                   <?php endif; ?>
                   <div></div>
 
-                  <button type="submit" onclick="<?= $hasActiveBattery ? 'toggleProductsAdd(true)' : 'showSellerBatteryPopup()' ?>">
+                <button type="submit"
+                        id="productSubmitBtn"
+                        onclick="<?= !$hasActiveBattery ? 'showSellerBatteryPopup(); return false;' : '' ?>">
                     <?= $editMode ? 'Update Product' : 'Add Product' ?>
-                  </button>
+                </button>
                 </div>
 
 
@@ -10207,7 +10140,7 @@ renderLedger();
                   </p>
                 <?php endif; ?>
                 <?php if (!empty($success)): ?>
-                  <p class="successMessage usrWlt" data-redirect="sellerPage.php">
+                  <p class="successMessage usrWlt" data-redirect="/sellerPage">
                     <i class="fa-solid fa-check-circle"></i> <?= $success ?>
                   </p>
 
@@ -12371,20 +12304,18 @@ initializeDashboard();
 
                             </label>
 
-
-
                             <label class="money-method">
 
                                 <input
                                     type="radio"
                                     name="pmethod"
-                                    value="bank"
-                                    <?= ($saleType === 'bank') ? 'checked' : '' ?>
+                                    value="mpesa"
+                                    <?= ($saleType === 'mpesa') ? 'checked' : '' ?>
                                 >
 
                                 <div class="radio-dot"></div>
 
-                                Bank
+                                M-Pesa
 
                             </label>
 
@@ -12402,7 +12333,7 @@ initializeDashboard();
                         onclick="checkOutOrder()"
                     >
 
-                        Checkout
+                        Record
 
                         <span id="checkoutTotal">
                             KES 0.00
@@ -12417,8 +12348,6 @@ initializeDashboard();
 
 
         </div>
-
-
 
         <!-- =====================================================
              BACK TO DASHBOARD
@@ -14770,7 +14699,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const redirectUrl =
         subGroupSuccessMessage.dataset.redirect ||
-        "sellerPage.php";
+        "/sellerPage";
 
     const baseText = "Redirecting";
 
@@ -18301,13 +18230,16 @@ document.addEventListener(
 
   });
   </script>
-  <?php if ($editMode): ?>
-  <script>
-  document.addEventListener("DOMContentLoaded", function() {
-    toggleProductsAdd(true);
-  });
-  </script>
-  <?php endif; ?>
+<?php if ($editMode): ?>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+    // Open the edit form without modifying the URL.
+    showSellerProductsView("add");
+
+});
+</script>
+<?php endif; ?>
 
   <script>
     const CURRENT_USER_ID = <?php echo $_SESSION['user_id']; ?>;

@@ -841,23 +841,41 @@ if(isset($source)) imagedestroy($source);
 
 if(empty($error)){
 
-$stmt=$conn->prepare("
-UPDATE productservicesrentals
-SET product_name=?,category=?,price=?,stock_quantity=?,image_path=?,image_hash=?,image_phash=?
-WHERE product_id=? AND user_id=?
+$stmt = $conn->prepare("
+  UPDATE productservicesrentals
+  SET
+      product_name = ?,
+      category = ?,
+      custom_category_id = ?,
+      custom_subcategory_id = ?,
+      sale_type = ?,
+      unit = ?,
+      buying_price = ?,
+      price = ?,
+      stock_quantity = ?,
+      image_path = ?,
+      image_hash = ?,
+      image_phash = ?
+  WHERE product_id = ?
+  AND user_id = ?
 ");
 
 $stmt->bind_param(
-"ssdsssiii",
-$productName,
-$category,
-$price,
-$stock,
-$imageToSave,
-$imgHash,
-$imgPhash,
-$editProductId,
-$user_id
+  "ssiissdddsssii",
+  $productName,
+  $category,
+  $customCategoryId,
+  $customSubcategoryId,
+  $saleType,
+  $unit,
+  $buyingPrice,
+  $sellingPrice,
+  $stock,
+  $imageToSave,
+  $imgHash,
+  $imgPhash,
+  $editProductId,
+  $user_id
 );
 
 if($stmt->execute()){

@@ -28,7 +28,7 @@ echo <<<HTML
         // Clear all local storage
         localStorage.clear();
         // Redirect to homepage after clearing
-        window.location.href = "index.php";
+        window.location.href = "/index";
     </script>
 </head>
 <body>

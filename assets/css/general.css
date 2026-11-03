@@ -3922,7 +3922,7 @@ a.seller-right {
             border-radius: 9px;
             background: #0f0f0f;
             color: #ffffff;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 700;
             cursor: pointer;
             transition: background 0.2s, transform 0.2s;
@@ -3989,31 +3989,40 @@ a.seller-right {
             font-size: 13px;
         }
 
-        /* Important notice */
-        .notice {
-            display: flex;
-            gap: 12px;
-            align-items: flex-start;
-            margin: 0 20px 22px;
-            padding: 15px;
-            background: #fff8e7;
-            border: 1px solid #f2dfad;
-            border-radius: 12px;
+        .respnZ {
+          display: flex;
+          gap: 10px;
+          align-items: center;
+          justify-content: space-between;
         }
 
-        .notice i {
-            color: #a66a00;
-            margin-top: 3px;
+        .respnZ span.respnZ-span {
+          font-size: 13px;
+          color: #ffffff;
+          padding: 8px 12px;
+          background-color: #088000;
+          border-radius: 4px;
+          flex: 1;
+          text-align: center;
+          cursor: pointer;
         }
 
-        .notice p {
-            color: #6d531e;
-            font-size: 12px;
+        .respnZ div {
+          background-color: #0f0f0f;
+          border: none;
+          color: #ffffff;
+          font-size: 13px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 8px 16px;
+          border-radius: 4px;
+          gap: 5px;
+          cursor: pointer;
         }
 
-        .notice strong {
-            display: block;
-            margin-bottom: 3px;
+        .respnZ span.respnZ-span:hover, .respnZ div:hover {
+          opacity: .875;
         }
 
         /* Footer */
@@ -5503,7 +5512,7 @@ a.seller-right {
   display: grid;
 }
 
-.tab-content .tab-panel .form-wrapper form .inp-box, .tab-panel-admin .form-wrapper form .inp-box, .tab-panel.agency .dashboard .grid .card.agency-lincods .lincod-box {
+.tab-content .tab-panel .form-wrapper form .inp-box, .tab-panel-admin .form-wrapper form .inp-box, .tab-panel.agency .dashboard .grid .card.agency-lincods .lincod-box, .paymentContainer .inp-box {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -5522,7 +5531,7 @@ a.seller-right {
   border-radius: 4px;
   flex-direction: row;
 }
-.tab-content .tab-panel .form-wrapper form .inp-box label, .tab-panel-admin .form-wrapper form .inp-box label, .tab-panel.agency .dashboard .grid .card.agency-lincods .lincod-box span, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .payMethodDiv label, body form.subG-form label {
+.tab-content .tab-panel .form-wrapper form .inp-box label, .tab-panel-admin .form-wrapper form .inp-box label, .tab-panel.agency .dashboard .grid .card.agency-lincods .lincod-box span, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .payMethodDiv label, body form.subG-form label, .paymentContainer .inp-box {
   font-size: 13px;
   color: #0f0f0f;
   width: 100%;
@@ -5564,7 +5573,7 @@ a.seller-right {
   opacity: .875;
 }
 
-.tab-content .tab-panel .form-wrapper form .inp-box input, .tab-panel-admin .form-wrapper input, .tab-content .tab-panel .form-wrapper form .inp-box select, .tab-panel-admin .form-wrapper form .inp-box select, .tab-panel.agency .dashboard .grid .card.agency-lincods input, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .payMethodDiv input, body form.subG-form input {
+.tab-content .tab-panel .form-wrapper form .inp-box input, .tab-panel-admin .form-wrapper input, .tab-content .tab-panel .form-wrapper form .inp-box select, .tab-panel-admin .form-wrapper form .inp-box select, .tab-panel.agency .dashboard .grid .card.agency-lincods input, .container main#salesDashMain .sales-wrapper .offer-container form.cardFSales .payMethodDiv input, body form.subG-form input, .paymentContainer .inp-box input {
   padding: 8px 16px;
   border-radius: 4px;
   width: 100%;
@@ -10729,8 +10738,6 @@ canvas {
 
 .side-card {
   min-width: 0;
-
-  
   background: #ffffff;
   border: 1px solid #8988886b;
   border-radius: 4px;
@@ -10751,8 +10758,8 @@ canvas {
   place-items: center;
   width: 48px;
   height: 48px;
-  background: var(--green-light);
-  color: var(--green);
+  background: #dedede9d;
+  color: #898888;
   border-radius: 15px;
   font-size: 20px;
   margin-bottom: 15px;

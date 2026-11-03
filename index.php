@@ -22,7 +22,7 @@ if (isset($_SESSION['user_id'], $_SESSION['account_type'])) {
   }
 
   switch (strtolower($_SESSION['account_type'])) {
-    case 'seller': header("Location: sellerPage.php"); exit;
+    case 'seller': header("Location: /sellerPage"); exit;
     case 'buyer':  header("Location: buyerPage.php");  exit;
     case 'sales_agent':  header("Location: agentPage.php");  exit;
     case 'property_owner':  header("Location: propertyOwnerPage.php");  exit;
@@ -36,7 +36,7 @@ if (isset($_SESSION['user_id'], $_SESSION['account_type'])) {
   $accountType = strtolower($_SESSION['account_type']);
 
   if ($accountType === 'seller') {
-    header("Location: sellerPage.php");
+    header("Location: /sellerPage");
   } elseif ($accountType === 'buyer') {
     header("Location: buyerPage.php");
   } elseif ($accountType === 'admin') {
@@ -166,7 +166,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <meta property="og:title" content="Makethub - Buy Local. Order Global!" />
   <meta property="og:description" content="Makethub connects buyers, sellers, agents, and property owners in one powerful global marketplace." />
   <meta property="og:image" content="https://makethub.shop/Images/Makethub%20Logo.png" />
-  <meta property="og:url" content="https://makethub.shop/index.php" />
+  <meta property="og:url" content="https://makethub.shop//index" />
   <meta property="og:type" content="website" />
 
   <!-- ✅ TWITTER (OPTIONAL BUT GOOD) -->

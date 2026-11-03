@@ -229,7 +229,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!redirectSpan) return;
 
-  const redirectUrl = successMessage.dataset.redirect || "index.php";
+  const redirectUrl = successMessage.dataset.redirect || "/index";
 
   const baseText = "Redirecting";
   let dotCount = 0;
@@ -783,26 +783,27 @@ function goBackToAgentMarketTypes() {
 // SELLER PRODUCTS NAVIGATION
 // Panels:
 // 1. products     - Products destination
-// 2. add-products - Add product form
+// 2. add-products - Add/Edit product form
 // 3. rstckMain    - Restock page
 // =====================================================
 
 function showSellerProductsView(view) {
+
   const productsPanel = document.getElementById("products");
   const addPanel = document.getElementById("add-products");
   const restockPanel = document.getElementById("rstckMain");
 
-  // Hide only these three related panels.
-  // Do not activate or modify any other tab panel.
+  // Hide only the three related panels.
   if (productsPanel) productsPanel.classList.remove("active");
   if (addPanel) addPanel.classList.remove("active");
   if (restockPanel) restockPanel.classList.remove("active");
 
-  // Activate only the requested panel.
   switch (view) {
+
       case "add":
+
           if (!addPanel) {
-              console.error('Panel #add-products was not found.');
+              console.error("Panel #add-products was not found.");
               return;
           }
 
@@ -811,8 +812,9 @@ function showSellerProductsView(view) {
           break;
 
       case "restock":
+
           if (!restockPanel) {
-              console.error('Panel #rstckMain was not found.');
+              console.error("Panel #rstckMain was not found.");
               return;
           }
 
@@ -821,8 +823,9 @@ function showSellerProductsView(view) {
           break;
 
       case "list":
+
           if (!productsPanel) {
-              console.error('Panel #products was not found.');
+              console.error("Panel #products was not found.");
               return;
           }
 
@@ -835,16 +838,160 @@ function showSellerProductsView(view) {
   }
 }
 
-
 // =====================================================
-// ADD PRODUCT BUTTON
-// Compatible with onclick="toggleProductsAdd(true)"
+// ADD PRODUCT - RESET EDIT MODE WITHOUT RELOADING
 // =====================================================
 
 function toggleProductsAdd(showAdd) {
-  showSellerProductsView(showAdd ? "add" : "list");
-}
 
+  if (!showAdd) {
+      showSellerProductsView("list");
+      return;
+  }
+
+  const form = document.querySelector("#add-products form");
+
+  if (!form) {
+      console.error("Product form not found.");
+      return;
+  }
+
+  // =====================================================
+  // 1. REMOVE EDIT ID FROM BROWSER URL
+  // =====================================================
+
+  const currentUrl = new URL(window.location.href);
+
+  currentUrl.searchParams.delete("edit_product_id");
+
+  window.history.replaceState(
+      {},
+      "",
+      currentUrl.pathname + currentUrl.search + currentUrl.hash
+  );
+
+  // =====================================================
+  // 2. REMOVE EDIT ID FROM FORM
+  // =====================================================
+
+  const editIdInput = form.querySelector(
+      'input[name="edit_product_id"]'
+  );
+
+  if (editIdInput) {
+      editIdInput.remove();
+  }
+
+  // =====================================================
+  // 3. CLEAR ALL PRODUCT VALUES
+  // =====================================================
+
+  [
+      'input[name="name"]',
+      'input[name="stock"]',
+      'input[name="bPrice"]',
+      'input[name="sPrice"]',
+      'input[name="new_custom_category"]'
+  ].forEach(selector => {
+
+      const field = form.querySelector(selector);
+
+      if (field) field.value = "";
+
+  });
+
+  // Clear category.
+  const category = form.querySelector('select[name="category"]');
+
+  if (category) category.selectedIndex = 0;
+
+  // Clear custom category.
+  const customCategory = document.getElementById(
+      "customCategorySelect"
+  );
+
+  if (customCategory) {
+
+      customCategory.selectedIndex = 0;
+
+      customCategory.removeAttribute(
+          "data-selected-category-id"
+      );
+  }
+
+  // Clear sale type and units.
+  form.querySelectorAll(
+      'input[name="sale_type"], input[name="unit"]'
+  ).forEach(input => input.checked = false);
+
+  // =====================================================
+  // 4. CLEAR IMAGE PREVIEWS
+  // =====================================================
+
+  const gallery = document.getElementById("galleryPhoto");
+
+  if (gallery) gallery.value = "";
+
+  const preview = document.getElementById("photoPreview");
+
+  const previewImage = document.getElementById(
+      "photoPreviewImage"
+  );
+
+  if (preview) preview.style.display = "none";
+
+  if (previewImage) previewImage.src = "";
+
+  const editPreview = document.querySelector(
+      "#add-products .edit-preview"
+  );
+
+  if (editPreview) editPreview.style.display = "none";
+
+  // =====================================================
+  // 5. RESET CUSTOM CATEGORY INTERFACE
+  // =====================================================
+
+  const selectRow = document.getElementById(
+      "customCategorySelectRow"
+  );
+
+  const newCategoryRow = document.getElementById(
+      "newCustomCategoryRow"
+  );
+
+  if (selectRow) selectRow.style.display = "";
+
+  if (newCategoryRow) newCategoryRow.style.display = "none";
+
+  // =====================================================
+  // 6. REMOVE OLD MESSAGES
+  // =====================================================
+
+  form.querySelectorAll(
+      ".errorMessage, .successMessage"
+  ).forEach(message => message.remove());
+
+  // =====================================================
+  // 7. SWITCH FORM TO ADD MODE
+  // =====================================================
+
+  const heading = form.querySelector("h1");
+
+  if (heading) heading.textContent = "Add Product";
+
+  const submitButton = form.querySelector(
+      'button[type="submit"]'
+  );
+
+  if (submitButton) submitButton.textContent = "Add Product";
+
+  // =====================================================
+  // 8. OPEN FORM WITHOUT RELOADING
+  // =====================================================
+
+  showSellerProductsView("add");
+}
 
 // =====================================================
 // RESTOCK BUTTON
@@ -857,33 +1004,85 @@ function toggleRestock(showRestock) {
 
 // =====================================================
 // GO BACK
-// Reload /sellerPage and restore the products destination
 // =====================================================
 
 function goBackToSellerPage() {
-  // Set the destination to restore after reloading.
+
   localStorage.setItem("seller:productsView", "list");
 
-  // Reload the page so updated information is fetched.
-  setTimeout(() => {
-    window.location.href = '/sellerPage';
-  }, 50);
+  window.location.href = "/sellerPage";
 }
 
 // =====================================================
-// INITIALIZE NAVIGATION
-// Do not activate any panel automatically on page load.
+// INITIALIZE SELLER PRODUCTS NAVIGATION
 // =====================================================
 
 document.addEventListener("DOMContentLoaded", function () {
 
   const restockBtn = document.getElementById("restockBtn");
 
-  // Connect the Restock button.
   if (restockBtn) {
       restockBtn.addEventListener("click", function () {
           toggleRestock(true);
       });
+  }
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const editProductId = urlParams.get("edit_product_id");
+
+  const addPanel = document.getElementById("add-products");
+
+  const hasFormFeedback = addPanel?.querySelector(
+      ".successMessage, .errorMessage"
+  );
+
+  // Find the universal tab container controlling seller products.
+  const productsPanel = document.getElementById("products");
+
+  const tabContainer = productsPanel?.closest(".tabs-container");
+
+  let savedUniversalTab = null;
+
+  if (tabContainer) {
+
+      // Use EXACTLY the same storage-key calculation
+      // as your Universal Tab System.
+      const allContainers = [
+          ...document.querySelectorAll(".tabs-container")
+      ];
+
+      const containerIndex = allContainers.indexOf(tabContainer);
+
+      const storageKey =
+          tabContainer.dataset.tabStorage || "tabs-" + containerIndex;
+
+      savedUniversalTab = localStorage.getItem(storageKey);
+  }
+
+  // A successful or failed form submission should keep
+  // the product form visible.
+  if (hasFormFeedback) {
+
+      showSellerProductsView("add");
+
+  }
+
+  // Edit mode should only force the form open when:
+  // 1. There is a valid edit ID.
+  // 2. There is no previously saved universal tab,
+  //    OR the previously saved tab is the edit form.
+  else if (
+      editProductId &&
+      /^\d+$/.test(editProductId) &&
+      (
+          !savedUniversalTab ||
+          savedUniversalTab === "products" ||
+          savedUniversalTab === "add-products"
+      )
+  ) {
+
+      showSellerProductsView("add");
+
   }
 
 });
@@ -5792,11 +5991,11 @@ function capitalizePaymentMethod(method) {
   }
 
   if (
-      value === 'bank' ||
-      value === 'bank transfer' ||
-      value === 'bank_transfer'
+      value === 'mpesa' ||
+      value === 'mpesa transfer' ||
+      value === 'mpesa_transfer'
   ) {
-      return 'Bank';
+      return 'M-Pesa';
   }
 
   return value

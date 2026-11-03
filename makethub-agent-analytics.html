@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Analytics | Makethub</title>
+<style>
+:root{
+  --bg:#f5f6f8;--surface:#fff;--ink:#17191f;--muted:#818794;--border:#e9ebef;
+  --green:#12a86b;--green-light:#e8f8ef;--red:#e34b4b;--amber:#b7791f;
+  --bar:#dfe3e9;--radius:18px;--shadow:0 8px 28px rgba(20,25,35,.045)
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+button,select,input{font:inherit}button{cursor:pointer}
+.dashboard{max-width:1450px;margin:auto;padding:30px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:26px}
+.brand{display:flex;align-items:center;gap:12px}.brand-icon{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:var(--ink);color:#fff;font-size:23px}
+.brand h1{font-size:21px;letter-spacing:-.6px;margin:0}.brand p{color:var(--muted);font-size:13px;margin:5px 0 0}
+.header-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.demo-label,.status-pill{padding:8px 12px;border-radius:30px;background:#fff2d9;color:#946300;font-size:11px;font-weight:800;letter-spacing:.3px}
+.status-pill.active{background:var(--green-light);color:var(--green)}.status-pill.locked{background:#fff0ef;color:#c43f3f}
+.main-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:22px;align-items:start}
+.card,.side-card,.summary-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);min-width:0}
+.card{padding:24px}.side-card{padding:22px}.section{margin-top:22px}
+.card-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap}
+.eyebrow{color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px}
+h2{font-size:24px;letter-spacing:-.8px;margin:8px 0 6px}.subtitle{color:var(--muted);font-size:13px;line-height:1.6;margin:0}
+.live{display:inline-flex;align-items:center;gap:7px;color:var(--green);font-size:11px;font-weight:800}.live-dot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.35;transform:scale(.7)}}
+.period-controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:23px}
+.period-btn,.filter-control,.secondary-btn,.export-btn{border:1px solid var(--border);border-radius:10px;background:#fff;color:#626976;padding:10px 14px;font-size:12px;font-weight:700}
+.period-btn.active{background:var(--ink);border-color:var(--ink);color:#fff}
+.filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:19px 0 12px}.filters label{font-size:11px;color:var(--muted);font-weight:700}.filter-control{color:var(--ink);outline:none}
+.chart-meta,.chart-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:14px;margin-top:18px}
+.legend{display:flex;gap:15px;flex-wrap:wrap;font-size:11px;color:#626976}.legend-item{display:flex;align-items:center;gap:7px}.legend-dot{width:9px;height:9px;border-radius:3px;background:var(--bar)}.legend-dot.green{background:var(--green)}
+.chart-summary,.chart-footer p{color:var(--muted);font-size:11px}.chart-container{height:330px;position:relative;margin-top:8px}canvas{width:100%;height:100%;display:block;touch-action:pan-y}
+.tooltip{position:absolute;display:none;pointer-events:none;z-index:5;background:var(--ink);color:white;padding:11px 13px;border-radius:10px;box-shadow:0 8px 25px #0002;min-width:130px;font-size:11px}.tooltip strong{display:block;font-size:15px;margin-top:5px}.tooltip span{color:#bdc3cc}
+.chart-footer{margin-top:4px}.chart-footer p{margin:0;line-height:1.7;max-width:650px}
+.export-btn{color:var(--ink);padding:9px 12px}.export-btn:hover,.secondary-btn:hover{background:#f6f7f9}
+.summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-top:18px}
+.summary-card{padding:18px;border-radius:15px}.summary-label{font-size:11px;color:var(--muted);line-height:1.5}.summary-value{font-size:clamp(19px,2vw,25px);font-weight:850;letter-spacing:-.8px;margin:11px 0 7px;overflow-wrap:anywhere}.summary-note{font-size:10px;color:var(--muted);line-height:1.6}.green-text{color:var(--green)}
+.sidebar{display:grid;gap:17px}.side-title{font-size:15px;font-weight:850;letter-spacing:-.3px;margin:0}.side-description{font-size:11px;color:var(--muted);line-height:1.65;margin:7px 0 17px}
+.winner-icon{width:46px;height:46px;border-radius:14px;background:var(--green-light);color:var(--green);display:grid;place-items:center;font-size:23px;margin:15px 0}
+.winner-period{font-size:22px;font-weight:850;letter-spacing:-.7px;overflow-wrap:anywhere}.winner-amount{color:var(--green);font-size:17px;font-weight:850;margin-top:6px}.winner-description{font-size:11px;color:var(--muted);line-height:1.7;margin-top:9px}
+.rank-list{display:grid;gap:15px;margin-top:19px}.rank-row{display:grid;grid-template-columns:25px minmax(0,1fr);gap:9px;align-items:start}.rank-number{width:24px;height:24px;border-radius:8px;background:#f0f2f5;display:grid;place-items:center;font-size:10px;font-weight:850}.rank-row:first-child .rank-number{background:var(--green-light);color:var(--green)}
+.rank-name{display:flex;justify-content:space-between;gap:7px;font-size:11px;font-weight:750;margin-bottom:6px}.rank-amount{white-space:nowrap}.rank-track{height:6px;border-radius:20px;background:#eff1f4;overflow:hidden}.rank-fill{height:100%;background:#cbd1d9;border-radius:inherit}.rank-row:first-child .rank-fill{background:var(--green)}
+.insight-box{padding:14px;border-radius:12px;background:#f7f8fa;color:#555d69;font-size:11px;line-height:1.8}.insight-box strong{color:var(--ink)}
+/* agent-specific sections */
+.badge-panel{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;padding:19px 21px;border-radius:15px;background:#17191f;color:#fff;margin-top:20px}
+.badge-panel h3{font-size:15px;margin:0 0 6px}.badge-panel p{font-size:11px;color:#c2c6ce;margin:0;line-height:1.6;max-width:590px}.badge-price{font-size:21px;font-weight:850;white-space:nowrap}.badge-price small{display:block;color:#b8bec8;font-size:10px;font-weight:600;text-align:right;margin-top:3px}
+.primary-btn{border:0;background:var(--green);color:#fff;border-radius:10px;padding:11px 15px;font-size:11px;font-weight:800}.primary-btn:hover{filter:brightness(.95)}.primary-btn:disabled{opacity:.55;cursor:not-allowed}
+.level-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}
+.level-card{padding:17px;border:1px solid var(--border);border-radius:14px;background:#fff}.level-top{display:flex;justify-content:space-between;align-items:center;gap:8px}.level-tag{font-size:10px;font-weight:850;color:#6e7480;background:#f1f3f6;border-radius:7px;padding:6px 8px}.level-amount{font-size:20px;font-weight:850;margin:14px 0 5px}.level-card p{font-size:10px;line-height:1.6;color:var(--muted);margin:0}.level-count{font-size:11px;font-weight:750;margin-top:13px}
+.content-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:15px}.content-heading h3{font-size:16px;margin:0}.content-heading p{font-size:11px;color:var(--muted);margin:5px 0 0}
+.metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.metric{border:1px solid var(--border);border-radius:13px;padding:15px}.metric .label{font-size:10px;color:var(--muted)}.metric .value{font-size:20px;font-weight:850;margin:8px 0 4px}.metric .note{font-size:10px;color:var(--muted)}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px}table{width:100%;border-collapse:collapse;min-width:650px}th,td{text-align:left;padding:13px 14px;border-bottom:1px solid var(--border);font-size:11px;white-space:nowrap}th{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;background:#fafbfc}tr:last-child td{border-bottom:0}.positive{color:var(--green);font-weight:800}.muted{color:var(--muted)}
+.referral-box{display:flex;gap:9px;align-items:center;flex-wrap:wrap;background:#f7f8fa;border:1px dashed #d9dee6;padding:12px;border-radius:12px}.referral-link{font-size:11px;overflow-wrap:anywhere;flex:1;color:#4d5561}.copy-btn{border:1px solid var(--border);background:#fff;border-radius:8px;padding:8px 11px;font-size:10px;font-weight:800}
+.progress-track{height:8px;background:#eff1f4;border-radius:20px;overflow:hidden;margin-top:10px}.progress-fill{height:100%;background:var(--green);border-radius:20px}
+.note{font-size:10px;color:var(--muted);line-height:1.7;margin-top:12px}
+.empty{padding:22px;text-align:center;color:var(--muted);font-size:11px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:#17191f;color:#fff;padding:11px 16px;border-radius:10px;font-size:12px;opacity:0;pointer-events:none;transition:.25s;z-index:20;box-shadow:0 8px 25px #0003}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:1100px){.main-grid{grid-template-columns:1fr}.sidebar{grid-template-columns:repeat(2,minmax(0,1fr))}.sidebar .side-card:last-child{grid-column:1/-1}}
+@media(max-width:700px){.dashboard{padding:14px}.topbar{align-items:flex-start}.brand h1{font-size:18px}.card{padding:17px}.side-card{padding:18px}h2{font-size:21px}.chart-container{height:275px}.summary-grid{grid-template-columns:1fr}.sidebar{grid-template-columns:1fr}.sidebar .side-card:last-child{grid-column:auto}.level-grid{grid-template-columns:1fr}.metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.filters label{width:100%}.filter-control{flex:1;min-width:0}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important}}
+</style>
+</head>
+<body>
+<div class="dashboard">
+<header class="topbar">
+  <div class="brand"><div class="brand-icon">↗</div><div><h1>Agent Analytics</h1><p>Affiliate earnings · Referral performance · Account overview</p></div></div>
+  <div class="header-actions"><span class="demo-label">DEMO DATA</span><span class="status-pill active" id="badgeHeaderStatus">Badge active</span></div>
+</header>
+
+<div class="main-grid">
+<main>
+  <section class="card">
+    <div class="card-heading"><div><div class="eyebrow">Affiliate earnings</div><h2 id="chartTitle">Daily Earnings</h2><p class="subtitle" id="chartSubtitle">Compare your referral and product commission earnings over time.</p></div><div class="live"><span class="live-dot"></span>Best period highlighted</div></div>
+    <div class="period-controls" role="group" aria-label="Earnings comparison period">
+      <button class="period-btn active" data-mode="day" aria-pressed="true">Daily</button>
+      <button class="period-btn" data-mode="week" aria-pressed="false">Weekly</button>
+      <button class="period-btn" data-mode="month" aria-pressed="false">Monthly</button>
+    </div>
+    <div class="filters"><label id="periodLabel" for="periodSelect">Selected week</label><select class="filter-control" id="periodSelect"></select><label for="yearSelect">Year</label><select class="filter-control" id="yearSelect"></select></div>
+    <div class="chart-meta"><div class="legend"><span class="legend-item"><i class="legend-dot"></i>Other periods</span><span class="legend-item"><i class="legend-dot green"></i>Best earning period</span></div><span class="chart-summary" id="chartSummary">7 days compared</span></div>
+    <div class="chart-container" id="chartContainer"><canvas id="earningsChart" role="img" aria-label="Affiliate earnings comparison chart"></canvas><div class="tooltip" id="chartTooltip"><span id="tooltipLabel"></span><strong id="tooltipValue"></strong></div></div>
+    <div class="chart-footer"><p id="chartFooter">The green bar marks the period with the highest combined affiliate earnings.</p><button class="export-btn" id="exportBtn">Export CSV ↗</button></div>
+  </section>
+
+  <section class="summary-grid">
+    <div class="summary-card"><div class="summary-label" id="totalLabel">Total earnings this week</div><div class="summary-value" id="totalEarnings">KES 0</div><div class="summary-note">Referral + product commissions in the selected comparison</div></div>
+    <div class="summary-card"><div class="summary-label">Best earning period</div><div class="summary-value green-text" id="bestEarnings">KES 0</div><div class="summary-note" id="bestNote">Highest earning period</div></div>
+    <div class="summary-card"><div class="summary-label">Average per period</div><div class="summary-value" id="averageEarnings">KES 0</div><div class="summary-note" id="averageNote">Average combined earnings</div></div>
+  </section>
+
+  <section class="badge-panel">
+    <div><h3 id="badgeTitle">Affiliate badge · Active</h3><p id="badgeDescription">Your KES 200 badge unlocks referral access. You can refer people and earn from eligible badge purchases through up to three commission levels.</p></div>
+    <div class="badge-price">KES 200<small>One-time badge price</small></div>
+    <button class="primary-btn" id="badgeAction" disabled>Badge activated</button>
+  </section>
+
+  <section class="section card">
+    <div class="content-heading"><div><h3>Referral commission structure</h3><p>How the KES 200 badge payment is shared when eligible referrals purchase a badge.</p></div><span class="status-pill active">3 levels</span></div>
+    <div class="level-grid">
+      <div class="level-card"><div class="level-top"><span class="level-tag">LEVEL 1 · DIRECT</span><span class="positive">KES 100</span></div><div class="level-amount">KES 100</div><p>You directly refer someone and they purchase their KES 200 badge. You receive KES 100; the company receives KES 100.</p><div class="level-count" id="level1Count">0 direct referrals</div></div>
+      <div class="level-card"><div class="level-top"><span class="level-tag">LEVEL 2</span><span class="positive">KES 40</span></div><div class="level-amount">KES 40</div><p>Your Level 1 referral invites someone who buys a badge. You receive KES 40; the direct referrer receives KES 100 and the company receives KES 60.</p><div class="level-count" id="level2Count">0 second-level referrals</div></div>
+      <div class="level-card"><div class="level-top"><span class="level-tag">LEVEL 3</span><span class="positive">KES 20</span></div><div class="level-amount">KES 20</div><p>A Level 2 referral invites someone who buys a badge. You receive KES 20, Level 1 receives KES 40, Level 2 receives KES 100, and the company receives KES 40.</p><div class="level-count" id="level3Count">0 third-level referrals</div></div>
+    </div>
+    <p class="note">The commission breakdown above follows the referral examples provided: Level 1 KES 100, Level 2 KES 40, Level 3 KES 20. The company share is the balance of the KES 200 badge price.</p>
+  </section>
+
+  <section class="section card">
+    <div class="content-heading"><div><h3>Referral network overview</h3><p>People referred directly by you and referrals made by your network.</p></div><button class="secondary-btn" id="copyLinkBtn">Copy referral link</button></div>
+    <div class="referral-box"><span class="referral-link" id="referralLink">https://makethub.com/register?ref=AGENT-DEMO</span><button class="copy-btn" id="copyLinkSmall">Copy link</button></div>
+    <div class="metric-grid" style="margin-top:14px">
+      <div class="metric"><div class="label">Direct referrals</div><div class="value" id="directCount">0</div><div class="note">Level 1 members</div></div>
+      <div class="metric"><div class="label">Level 2 referrals</div><div class="value" id="secondCount">0</div><div class="note">Your referrals' invites</div></div>
+      <div class="metric"><div class="label">Level 3 referrals</div><div class="value" id="thirdCount">0</div><div class="note">Third-level network</div></div>
+      <div class="metric"><div class="label">Total network</div><div class="value" id="networkCount">0</div><div class="note">Across all 3 levels</div></div>
+    </div>
+    <div style="margin-top:18px"><div style="display:flex;justify-content:space-between;gap:10px;font-size:11px"><strong>Badge activation progress</strong><span class="muted" id="activationText">Active</span></div><div class="progress-track"><div class="progress-fill" id="activationProgress" style="width:100%"></div></div></div>
+  </section>
+
+  <section class="section card">
+    <div class="content-heading"><div><h3>Product commission performance</h3><p>Track commissions earned when you sell or refer customers to products.</p></div><span class="status-pill active">Sales activity</span></div>
+    <div class="metric-grid">
+      <div class="metric"><div class="label">Product sales attributed</div><div class="value" id="productSalesCount">0</div><div class="note">Tracked sales</div></div>
+      <div class="metric"><div class="label">Product commissions</div><div class="value green-text" id="productCommission">KES 0</div><div class="note">Earned from product sales</div></div>
+      <div class="metric"><div class="label">Referral commissions</div><div class="value" id="referralCommission">KES 0</div><div class="note">Badge referral earnings</div></div>
+      <div class="metric"><div class="label">Total lifetime earned</div><div class="value" id="lifetimeEarned">KES 0</div><div class="note">All commission sources</div></div>
+    </div>
+    <p class="note">Product commission rates are not specified in the supplied rules. This demo displays example totals only; connect your actual product commission records and configured rates in production.</p>
+  </section>
+
+  <section class="section card">
+    <div class="content-heading"><div><h3>Recent commission activity</h3><p>Illustrative transaction history showing the commission source and referral level.</p></div><select class="filter-control" id="activityFilter"><option value="all">All activity</option><option value="referral">Badge referrals</option><option value="product">Product sales</option></select></div>
+    <div class="table-wrap"><table><thead><tr><th>Date</th><th>Activity</th><th>Level / source</th><th>Reference</th><th>Commission</th><th>Status</th></tr></thead><tbody id="activityBody"></tbody></table></div>
+    <p class="note">Pending, approved and paid statuses should be supplied by your commission/payment records. Demo rows are not real transactions.</p>
+  </section>
+</main>
+
+<aside class="sidebar">
+  <section class="side-card"><div class="eyebrow">Top performance</div><h3 class="side-title" style="margin-top:8px">Earning champion</h3><p class="side-description">Your highest earning day, week or month in the selected chart.</p><div class="winner-icon">↗</div><div class="winner-period" id="winnerName">Loading...</div><div class="winner-amount" id="winnerAmount">KES 0</div><div class="winner-description" id="winnerDescription">Your best earning period will appear here.</div></section>
+  <section class="side-card"><h3 class="side-title">Performance ranking</h3><p class="side-description">Your top three earning periods in the selected comparison.</p><div class="rank-list" id="rankingList"></div></section>
+  <section class="side-card"><h3 class="side-title">Agent insight</h3><p class="side-description">A quick interpretation of your referral and sales activity.</p><div class="insight-box" id="insightBox">Loading agent insights...</div><p class="note">Referral commissions are calculated only when an eligible referred account completes badge purchase, subject to your platform's validation and payment rules.</p></section>
+  <section class="side-card"><h3 class="side-title">Earning breakdown</h3><p class="side-description">Lifetime commission sources.</p><div style="display:flex;justify-content:space-between;font-size:11px;margin:14px 0 7px"><span>Badge referrals</span><strong id="breakReferral">KES 0</strong></div><div class="progress-track"><div class="progress-fill" id="referralBar" style="width:0"></div></div><div style="display:flex;justify-content:space-between;font-size:11px;margin:16px 0 7px"><span>Product commissions</span><strong id="breakProduct">KES 0</strong></div><div class="progress-track"><div class="progress-fill" id="productBar" style="width:0;background:#aeb6c2"></div></div></section>
+</aside>
+</div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   AGENT ANALYTICS — FRONT-END DEMO
+   Replace DEMO_AGENT_DATA with authenticated PHP/MySQL data.
+   All amounts below are illustrative, not live account figures.
+============================================================ */
+const DEMO_AGENT_DATA = {
+  badgeActive:true, badgePrice:200, agentCode:"AGENT-DEMO",
+  referralCounts:{level1:18,level2:11,level3:6},
+  lifetime:{referral:2460,product:3180},
+  productSalesCount:42,
+  daily:{},
+  activities:[
+    {date:"2026-11-01",type:"referral",activity:"Badge purchase commission",level:"Level 1 · Direct",reference:"REF-1048",amount:100,status:"Paid"},
+    {date:"2026-10-31",type:"product",activity:"Product sale commission",level:"Product sale",reference:"SALE-8821",amount:180,status:"Approved"},
+    {date:"2026-10-30",type:"referral",activity:"Badge purchase commission",level:"Level 2",reference:"REF-1041",amount:40,status:"Paid"},
+    {date:"2026-10-28",type:"product",activity:"Product sale commission",level:"Product sale",reference:"SALE-8794",amount:95,status:"Pending"},
+    {date:"2026-10-26",type:"referral",activity:"Badge purchase commission",level:"Level 3",reference:"REF-1022",amount:20,status:"Paid"},
+    {date:"2026-10-24",type:"referral",activity:"Badge purchase commission",level:"Level 1 · Direct",reference:"REF-1016",amount:100,status:"Paid"},
+    {date:"2026-10-21",type:"product",activity:"Product sale commission",level:"Product sale",reference:"SALE-8711",amount:240,status:"Approved"},
+    {date:"2026-10-19",type:"referral",activity:"Badge purchase commission",level:"Level 2",reference:"REF-1008",amount:40,status:"Paid"}
+  ]
+};
+const $=id=>document.getElementById(id);
+const money=n=>"KES "+new Intl.NumberFormat("en-KE",{maximumFractionDigits:2}).format(n);
+const shortMoney=n=>n>=1000000?(n/1e6).toFixed(1)+"M":n>=1000?(n/1000).toFixed(1)+"k":Math.round(n).toString();
+const dateKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const parseDate=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const startWeek=d=>{const x=new Date(d);x.setHours(0,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return x};
+const fmtDate=d=>new Intl.DateTimeFormat("en-GB",{day:"numeric",month:"short",year:"numeric"}).format(d);
+const monthName=(y,m)=>new Intl.DateTimeFormat("en-GB",{month:"long"}).format(new Date(y,m,1));
+const state={mode:"day",year:new Date().getFullYear(),month:new Date().getMonth(),weekStart:startWeek(new Date()),daily:new Map(),bars:[],hover:-1,raf:null};
+const canvas=$("earningsChart"),ctx=canvas.getContext("2d"),container=$("chartContainer"),tooltip=$("chartTooltip");
+function seeded(seed){let x=seed>>>0;x=Math.imul(x^(x>>>16),2246822507);x=Math.imul(x^(x>>>13),3266489909);x^=x>>>16;return(x>>>0)/4294967295}
+function initDemoDaily(){
+  const now=new Date(),start=new Date(now.getFullYear()-2,0,1),end=new Date(now.getFullYear()+1,11,31);
+  for(let d=new Date(start);d<=end;d=addDays(d,1)){
+    const seed=Number(dateKey(d).replaceAll("-","")),r=seeded(seed);
+    const referral=Math.round((r*210+25)*(d.getDay()===5||d.getDay()===6?1.35:1));
+    const product=Math.round(seeded(seed+91)*380);
+    state.daily.set(dateKey(d),referral+product);
+  }
+  // Ensure the current date's demo value is deterministic and non-zero.
+}
+function getAmount(d){return state.daily.get(dateKey(d))||0}
+function sumRange(a,b){let t=0;for(let d=new Date(a);d<=b;d=addDays(d,1))t+=getAmount(d);return t}
+function weeksInMonth(y,m){const first=new Date(y,m,1),last=new Date(y,m+1,0);let s=startWeek(first),out=[];while(s<=last){const e=addDays(s,6);out.push({start:new Date(s),end:new Date(e),a:s<first?first:s,b:e>last?last:e});s=addDays(s,7)}return out}
+function initYears(){const s=$("yearSelect"),now=new Date().getFullYear();s.innerHTML="";for(let y=now-2;y<=now+1;y++){const o=document.createElement("option");o.value=y;o.textContent=y;s.append(o)}s.value=state.year}
+function initPeriod(){
+ const s=$("periodSelect");s.innerHTML="";
+ if(state.mode==="day"){
+  $("periodLabel").textContent="Selected week";
+  const current=startWeek(new Date());
+  for(let i=-26;i<=26;i++){const a=addDays(current,i*7),b=addDays(a,6);if(a.getFullYear()!==state.year&&b.getFullYear()!==state.year)continue;const o=document.createElement("option");o.value=dateKey(a);o.textContent=fmtDate(a)+" – "+fmtDate(b);s.append(o)}
+  const wanted=dateKey(state.weekStart);s.value=[...s.options].some(o=>o.value===wanted)?wanted:(s.options[0]?.value||"");
+ }else if(state.mode==="week"){
+  $("periodLabel").textContent="Selected month";
+  for(let m=0;m<12;m++){const o=document.createElement("option");o.value=m;o.textContent=monthName(state.year,m);s.append(o)}s.value=state.month;
+ }else{$("periodLabel").textContent="Year comparison";const o=document.createElement("option");o.value=state.year;o.textContent="January – December "+state.year;s.append(o)}
+}
+function chartData(){
+ const a=[];
+ if(state.mode==="day"){const start=parseDate($("periodSelect").value);for(let i=0;i<7;i++){const d=addDays(start,i);a.push({label:new Intl.DateTimeFormat("en-GB",{weekday:"short"}).format(d),full:new Intl.DateTimeFormat("en-GB",{weekday:"long"}).format(d),detail:fmtDate(d),amount:getAmount(d),start:d,end:d})}}
+ if(state.mode==="week"){const m=Number($("periodSelect").value);weeksInMonth(state.year,m).forEach((w,i)=>a.push({label:"Week "+(i+1),full:"Week "+(i+1),detail:fmtDate(w.a)+" – "+fmtDate(w.b),amount:sumRange(w.a,w.b),start:w.a,end:w.b}))}
+ if(state.mode==="month"){for(let m=0;m<12;m++){const x=new Date(state.year,m,1),y=new Date(state.year,m+1,0);a.push({label:monthName(state.year,m).slice(0,3),full:monthName(state.year,m),detail:monthName(state.year,m)+" "+state.year,amount:sumRange(x,y),start:x,end:y})}}
+ return a;
+}
+function rounded(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,Math.min(r,w/2,h/2));ctx.fill()}
+function resize(){const r=container.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(r.width*dpr);canvas.height=Math.round(r.height*dpr);canvas.style.width=r.width+"px";canvas.style.height=r.height+"px";ctx.setTransform(dpr,0,0,dpr,0,0);draw()}
+function draw(){
+ const w=container.clientWidth,h=container.clientHeight;if(!w||!h||!canvas.width)return;
+ ctx.clearRect(0,0,w,h);const data=chartData();if(!data.length)return;
+ const max=Math.max(...data.map(x=>x.amount),1),win=data.findIndex(x=>x.amount===max);
+ const left=w<420?47:65,right=10,top=28,bottom=43,cw=w-left-right,ch=h-top-bottom,scale=max*1.23;
+ ctx.font="10px sans-serif";ctx.textAlign="right";ctx.textBaseline="middle";ctx.fillStyle="#9299a4";
+ for(let i=0;i<=4;i++){const y=top+ch*i/4;ctx.strokeStyle="#edf0f3";ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(w-right,y);ctx.stroke();ctx.fillText(shortMoney(scale*(1-i/4)),left-8,y)}
+ const slot=cw/data.length,bw=Math.min(45,Math.max(9,slot*.58)),pulse=(Math.sin(performance.now()/450)+1)/2;state.bars=[];
+ data.forEach((item,i)=>{const x=left+i*slot+(slot-bw)/2,bh=item.amount/scale*ch,y=top+ch-bh,isWin=i===win;
+  if(isWin){ctx.save();ctx.shadowColor=`rgba(18,168,107,${.1+pulse*.3})`;ctx.shadowBlur=7+pulse*12;ctx.fillStyle="#12a86b";rounded(x,y,bw,Math.max(2,bh),6);ctx.restore();ctx.fillStyle="#12a86b";ctx.beginPath();ctx.arc(x+bw/2,y-9,3+pulse,0,Math.PI*2);ctx.fill()}
+  else{ctx.fillStyle=state.hover===i?"#aeb6c2":"#dfe3e9";rounded(x,y,bw,Math.max(2,bh),6)}
+  ctx.textAlign="center";ctx.textBaseline="top";ctx.font=isWin?"bold 11px sans-serif":"11px sans-serif";ctx.fillStyle=isWin?"#12a86b":"#858c97";ctx.fillText(item.label,left+i*slot+slot/2,top+ch+13);
+  state.bars.push({x: i*slot+left,slot,amount:item.amount,item});
+ });
+}
+function showTooltip(i,x,y){const b=state.bars[i];if(!b){tooltip.style.display="none";return}const item=b.item;$("tooltipLabel").textContent=item.full+" · "+item.detail;$("tooltipValue").textContent=money(item.amount);tooltip.style.display="block";const cr=container.getBoundingClientRect();let tx=x+12,ty=y-tooltip.offsetHeight-12;if(tx+tooltip.offsetWidth>cr.width)tx=x-tooltip.offsetWidth-12;if(ty<0)ty=y+14;tooltip.style.left=Math.max(0,Math.min(tx,cr.width-tooltip.offsetWidth))+"px";tooltip.style.top=Math.max(0,Math.min(ty,cr.height-tooltip.offsetHeight))+"px"}
+canvas.addEventListener("pointermove",e=>{const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,i=state.bars.findIndex(b=>x>=b.x&&x<=b.x+b.slot);state.hover=i;if(i>=0)showTooltip(i,x,y);else tooltip.style.display="none"});
+canvas.addEventListener("pointerleave",()=>{state.hover=-1;tooltip.style.display="none"});
+function update(){
+ const data=chartData(),total=data.reduce((s,x)=>s+x.amount,0),best=data.reduce((a,b)=>b.amount>a.amount?b:a,data[0]),avg=data.length?total/data.length:0;
+ $("totalEarnings").textContent=money(total);$("bestEarnings").textContent=money(best.amount);$("averageEarnings").textContent=money(avg);
+ $("bestNote").textContent=best.label+" · "+best.detail;$("averageNote").textContent="Across "+data.length+" comparison periods";
+ const names={day:"Daily Earnings",week:"Weekly Earnings",month:"Monthly Earnings"},subs={day:"Compare total affiliate earnings for each day.",week:"Compare total affiliate earnings for each week in the selected month.",month:"Compare total affiliate earnings for each month in the selected year."},period={day:"this week",week:"this month",month:"this year"};
+ $("chartTitle").textContent=names[state.mode];$("chartSubtitle").textContent=subs[state.mode];$("totalLabel").textContent="Total earnings "+period[state.mode];$("chartSummary").textContent=data.length+" "+(state.mode==="day"?"days":state.mode==="week"?"weeks":"months")+" compared";
+ $("winnerName").textContent=best.full;$("winnerAmount").textContent=money(best.amount);$("winnerDescription").textContent=best.detail+". This is your highest earning period among the "+data.length+" periods shown.";
+ const sorted=[...data].sort((a,b)=>b.amount-a.amount),list=$("rankingList");list.innerHTML="";
+ sorted.slice(0,3).forEach((x,i)=>{const row=document.createElement("div");row.className="rank-row";row.innerHTML=`<div class="rank-number">${i+1}</div><div><div class="rank-name"><span>${x.label}</span><span class="rank-amount">${money(x.amount)}</span></div><div class="rank-track"><div class="rank-fill" style="width:${best.amount?x.amount/best.amount*100:0}%"></div></div></div>`;list.append(row)});
+ const topShare=total?best.amount/total*100:0;$("insightBox").innerHTML=total?`<strong>${best.full}</strong> is your strongest period with <strong>${money(best.amount)}</strong>. It contributes ${topShare.toFixed(1)}% of the earnings shown. Your average per period is <strong>${money(avg)}</strong>.`:"<strong>No earnings recorded.</strong> There are no earnings in the selected comparison.";
+ draw();
+}
+function setMode(mode){state.mode=mode;document.querySelectorAll(".period-btn").forEach(b=>{const active=b.dataset.mode===mode;b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active))});initPeriod();update()}
+document.querySelectorAll(".period-btn").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));
+$("periodSelect").addEventListener("change",()=>{if(state.mode==="day")state.weekStart=parseDate($("periodSelect").value);if(state.mode==="week")state.month=Number($("periodSelect").value);update()});
+$("yearSelect").addEventListener("change",()=>{state.year=Number($("yearSelect").value);initPeriod();update()});
+function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2300)}
+function copyReferral(){const link=$("referralLink").textContent;if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(link).then(()=>toast("Referral link copied")).catch(()=>toast("Copy is unavailable in this browser"));else toast("Select and copy your referral link")}
+$("copyLinkBtn").addEventListener("click",copyReferral);$("copyLinkSmall").addEventListener("click",copyReferral);
+function renderAgentData(){
+ const d=DEMO_AGENT_DATA,c=d.referralCounts,ref=d.lifetime.referral,prod=d.lifetime.product,total=ref+prod;
+ $("badgeHeaderStatus").textContent=d.badgeActive?"Badge active":"Badge not active";$("badgeHeaderStatus").className="status-pill "+(d.badgeActive?"active":"locked");
+ $("badgeTitle").textContent="Affiliate badge · "+(d.badgeActive?"Active":"Not active");
+ $("badgeDescription").textContent=d.badgeActive?"Your KES 200 badge unlocks referral access. You can refer people and earn from eligible badge purchases through up to three commission levels.":"Purchase the KES 200 badge to unlock referral access and become eligible for referral commissions.";
+ $("badgeAction").textContent=d.badgeActive?"Badge activated":"Activate badge · KES 200";$("badgeAction").disabled=d.badgeActive;
+ $("level1Count").textContent=c.level1+" direct referrals";$("level2Count").textContent=c.level2+" second-level referrals";$("level3Count").textContent=c.level3+" third-level referrals";
+ $("directCount").textContent=c.level1;$("secondCount").textContent=c.level2;$("thirdCount").textContent=c.level3;$("networkCount").textContent=c.level1+c.level2+c.level3;
+ $("activationText").textContent=d.badgeActive?"Active · referral access unlocked":"Not active · purchase badge";$("activationProgress").style.width=d.badgeActive?"100%":"0%";
+ $("productSalesCount").textContent=d.productSalesCount;$("productCommission").textContent=money(prod);$("referralCommission").textContent=money(ref);$("lifetimeEarned").textContent=money(total);
+ $("breakReferral").textContent=money(ref);$("breakProduct").textContent=money(prod);$("referralBar").style.width=(total?ref/total*100:0)+"%";$("productBar").style.width=(total?prod/total*100:0)+"%";
+ $("referralLink").textContent="https://makethub.com/register?ref="+encodeURIComponent(d.agentCode);
+}
+function renderActivities(){
+ const filter=$("activityFilter").value,rows=DEMO_AGENT_DATA.activities.filter(x=>filter==="all"||x.type===filter),body=$("activityBody");body.innerHTML="";
+ if(!rows.length){body.innerHTML='<tr><td colspan="6" class="empty">No activity found for this filter.</td></tr>';return}
+ rows.forEach(x=>{const tr=document.createElement("tr");const statusColor=x.status==="Paid"?"positive":x.status==="Pending"?"style='color:#b7791f;font-weight:800'":"style='color:#5269a5;font-weight:800'";tr.innerHTML=`<td>${fmtDate(parseDate(x.date))}</td><td>${x.activity}</td><td>${x.level}</td><td class="muted">${x.reference}</td><td class="positive">${money(x.amount)}</td><td><span ${statusColor}>${x.status}</span></td>`;body.append(tr)});
+}
+$("activityFilter").addEventListener("change",renderActivities);
+$("exportBtn").addEventListener("click",()=>{
+ const rows=[["Period","Start date","End date","Total earnings (KES)"],...chartData().map(x=>[x.full,dateKey(x.start),dateKey(x.end),x.amount])];
+ const csv=rows.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(",")).join("\r\n"),blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`makethub-agent-earnings-${state.mode}-${state.year}.csv`;a.click();URL.revokeObjectURL(url);
+});
+/* DEMO badge button: deliberately does not charge money or activate a real badge. */
+$("badgeAction").addEventListener("click",()=>toast("Connect this button to your secure KES 200 badge payment flow."));
+function init(){
+ initDemoDaily();initYears();state.weekStart=startWeek(new Date());state.month=new Date().getMonth();initPeriod();renderAgentData();renderActivities();resize();update();
+}
+window.addEventListener("resize",resize);init();
+/* PRODUCTION INTEGRATION NOTES:
+   1) Authenticate the agent in PHP; never trust an agent_id sent by the browser.
+   2) Query that agent's commission ledger grouped by DATE(earned_at) and return
+      daily totals as JSON. Replace initDemoDaily() with the fetched daily totals.
+   3) Populate DEMO_AGENT_DATA from PHP: badge status, 3-level referral counts,
+      lifetime totals, product-sale count and paginated commission transactions.
+   4) Calculate commissions server-side in a database transaction only after a
+      valid KES 200 badge payment is confirmed. Do not credit on registration alone.
+   5) Product commission rates were not supplied; read your configured rate/rules
+      from the database rather than hard-coding a percentage in this UI.
+   Suggested daily JSON shape: {"2026-11-01":160,"2026-11-02":220}
+*/
+</script>
+</body>
+</html>

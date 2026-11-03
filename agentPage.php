@@ -24,7 +24,7 @@ if (!isset($_SESSION['created'])) {
 $allowedRole = 'sales_agent';
 
 $roleStmt = $conn->prepare(
-  "SELECT account_type, is_verified, status, subscription_expires_at 
+  "SELECT account_type, is_verified, subscription_status, subscription_expires_at 
    FROM users 
    WHERE user_id = ? 
    LIMIT 1"
@@ -1717,6 +1717,7 @@ function getStatusIcon($status) {
 
         </p>
       </div>
+      <script src="assets/js/tab-system.js" type="text/javascript" defer></script>
       <div class="tabs-container" id="toggleAgentTab">
         <div class="tabs">
           <button class="tab-btn" data-tab="dashboard">Sales&nbsp;Board</button>
@@ -1791,7 +1792,7 @@ function getStatusIcon($status) {
 
             </div>
             <div class="dashboard">
-              <?php if ($status === 'active' <!---&& !$isExpired && $isVerified): ?>
+              <?php if ($status === 'active' && !$isExpired && $isVerified): ?>
 
               <!-- TOP CARDS -->
               <div class="grid"> 
