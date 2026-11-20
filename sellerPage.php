@@ -996,7 +996,9 @@ if (
                 price,
                 subtotal,
                 order_status,
-                payment_status
+                payment_status,
+                shipped_at,
+                delivered_at
             )
             VALUES
             (
@@ -1007,7 +1009,9 @@ if (
                 ?,
                 ?,
                 'delivered',
-                'paid'
+                'paid',
+                NOW(),
+                NOW()
             )
         ");
 
@@ -5835,18 +5839,22 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
     <div class="payOverlay" onclick="togglePaymentOption()" id="payOverlay"></div>
 
     <form class="paymentContainer" action="" id="paymentContainer">
+
+        <!-- AUTOMATIC PAYMENT -->
         <div class="autoPyDiv">
-            
 
             <div class="hetch1">
                 <h1>Choose&nbsp;Account</h1>
                 <span>You can set your default account in settings</span>
-              </div>
+            </div>
 
-            <p class="successPrompt">Prompt sent for amount : KES 495. Please check your phone for STK Menu...</p>
-            <label class="radio-container">
+            <p class="successPrompt" id="stkSuccessPrompt"></p>
+
+            <!-- REGISTERED MPESA NUMBER -->
+            <label class="radio-container mpesa">
 
                 <div class="rightDiv">
+
                     <img
                         src="Images/M-PESA_LOGO-01.svg.png"
                         alt="Mpesa Logo"
@@ -5856,28 +5864,67 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
                     <p>
                         MPESA
                         <br>
-                        <span>Use your registered M-Pesa number</span>
+                        <span id="registeredMpesaNumber">
+                            Loading registered number...
+                        </span>
                     </p>
+
                 </div>
 
                 <input
                     type="radio"
                     name="payment"
                     value="mpesa"
+                    checked
                 >
 
                 <span class="checkmark"></span>
 
             </label>
 
+            <!-- ALTERNATIVE PHONE NUMBER -->
+            <div class="inp-box send-number-box">
+
+                <span>Other payment number</span>
+
+                <div class="send-number-row">
+
+                    <input
+                        type="tel"
+                        id="alternativeMpesaNumber"
+                        name="mpesa_phone"
+                        placeholder="Enter number here"
+                        autocomplete="tel"
+                        inputmode="tel"
+                    >
+
+                </div>
+
+            </div>
+
+            <!-- SHARED CONTINUE BUTTON -->
             <button id="btrPayBtn" type="submit">
                 Continue
             </button>
-            
 
             <div class="or-divider">or</div>
-            <button id="antrNoTxt"><i class="fa-regular fa-pen-to-square"></i>Pay with another number</button>
-            <button class="mnulPay-btn">Manual Payment</button>
+
+            <!-- SWITCH PHONE NUMBER -->
+            <button
+                id="antrNoTxt"
+                type="button"
+            >
+                <i class="fa-solid fa-mobile-screen-button"></i>
+                Pay with another number
+            </button>
+
+            <!-- MANUAL PAYMENT -->
+            <button
+                class="mnulPay-btn"
+                type="button"
+            >
+                Manual Payment
+            </button>
 
             <a
                 href="#"
@@ -5886,62 +5933,123 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
             >
                 Cancel&nbsp;payment
             </a>
+
         </div>
+
+        <!-- MANUAL PAYMENT -->
         <div class="mnulPyDiv">
 
-            <!-- Till Details -->
+            <!-- TILL DETAILS -->
             <section class="till-section">
-                <p class="till-label">M-PESA Buy Goods Till Number</p>
 
-                <div class="till-number" id="tillNumber">1774156</div>
+                <p class="till-label">
+                    M-PESA Buy Goods Till Number
+                </p>
+
+                <div class="till-number" id="tillNumber">
+                    1774156
+                </div>
 
                 <p class="business-name">
                     <i class="fa-solid fa-store"></i>
                     MAKETHUB TALES
                 </p>
 
-                <div class="copy-button" id="copyTillButton" type="button">
+                <div
+                    class="copy-button"
+                    id="copyTillButton"
+                    role="button"
+                    tabindex="0"
+                >
                     <i class="fa-regular fa-copy"></i>
                     <span>Copy Till Number</span>
                 </div>
+
             </section>
 
-            <!-- Payment Instructions -->
+            <!-- PAYMENT INSTRUCTIONS -->
             <section class="instructions">
+
                 <h2>Manual Payment</h2>
+
                 <p class="instructions-subtitle">
                     Follow the steps on your phone.
                 </p>
 
                 <ol class="instruction-list">
-                    <p>1. Go to the <strong>M-PESA</strong> menu on your phone.</p>
-                    <p>2. Select <strong>Lipa na M-PESA</strong>.</p>
-                    <p>3. Choose <strong>Buy Goods and Services</strong>.</p>
-                    <p>4. Enter the Till Number <strong>1774156</strong>.</p>
-                    <p>5. Enter the amount to pay <strong>KSh 1,000.00</strong>.</p>
-                    <p>6. Enter your M-PESA PIN and confirm payment to <strong>MAKETHUB TALES</strong>.</p>
 
+                    <p>1. Go to the <strong>M-PESA</strong> menu on your phone.</p>
+
+                    <p>2. Select <strong>Lipa na M-PESA</strong>.</p>
+
+                    <p>3. Choose <strong>Buy Goods and Services</strong>.</p>
+
+                    <p>
+                        4. Enter the Till Number
+                        <strong>1774156</strong>.
+                    </p>
+
+                    <p>
+                        5. Enter the amount to pay
+                        <strong id="manualAmount">Loading amount...</strong>.
+                    </p>
+
+                    <p>
+                        6. Enter your M-PESA PIN and confirm payment to
+                        <strong>MAKETHUB TALES</strong>.
+                    </p>
 
                 </ol>
-            </section>
-            
-            <div class="inp-box">
-                <label>Transaction code</label>
-                <input type="text" name="name" placeholder="Enter code here" required>
-            </div>
-            <div class="respnZ">
-                <span class="respnZ-span">I have paid 🎉</span>
 
-                <div onclick="toggleOrderMarket()">
+            </section>
+
+            <!-- TRANSACTION CODE -->
+            <div class="inp-box send-code-box">
+
+                <span>Transaction code</span>
+
+                <div class="send-code-row">
+
+                    <input
+                        type="text"
+                        id="manualTransactionCode"
+                        placeholder="Enter M-Pesa transaction code"
+                        maxlength="20"
+                        autocomplete="off"
+                    >
+
+                    <button
+                        type="button"
+                        id="trCSndBtn"
+                        title="Send transaction code"
+                    >
+                        <i class="fa-solid fa-share"></i>
+                        Send
+                    </button>
+
+                </div>
+
+            </div>
+
+            <!-- MANUAL PAYMENT ACTIONS -->
+
+            <div class="respnZ">
+                <span class="respnZ-span" id="manualPaidBtn">I have paid 🎉</span>
+
+                <div id="manualGoBack" onclick="toggleOrderMarket()">
                     <i class="fa-solid fa-circle-arrow-left" data-tab="products"></i> <span>Go&nbsp;Back</span>
                 </div>
             </div>
 
-            <!-- Footer -->
+            <!-- FOOTER -->
             <div class="payment-footer">
+
                 <i class="fa-solid fa-shield-halved"></i>
+
                 Please verify all payment details before sending money.
+
             </div>
+
         </div>
 
     </form>

@@ -1,3 +1,14 @@
+I WANT TO SOLVE THE FOLLOWING;
+1. I want to select sellers phone from database and display it in '<span>Use your registered M-Pesa number</span>' instead of the text.
+2. When I click pay with another number the radio container.mpesa should dissapear and the 'send-number-box' should appear for the user to enter the number; The 'Continue' button should be used for all the two submissions here; The 'Pay with another number' button content should change starting with the Icon change to; '<i class="fa-solid fa-house-flood-water-circle-arrow-right"></i>' and the text change to 'Use your registered number' and the id change to 'antrOwnNoTxt' and the change should be intantly visible in the browser. The process should be vice versa back and forth.
+3. After a successfull submission and the prompt is send, the success prompt text should be displayed with the required accurate ammount; <p class="successPrompt">Prompt sent for amount : KES 495. Please check your phone for STK Menu...</p>
+4. When I click the manual payment; the autoPyDiv should disappear and the mnulPyDiv to appear and the instructions should contain the accurate amount; clicking 'Go back' should reverse the process.
+5. On the mnulPyDiv after the user has followed the manual payment instructions and successfully paid, the should click the I have paid button and enter in transaction code and send it to this whatsapp number; 0773029440.
+
+HERE IS THE recharge php (In the first attachment above in this chat);
+
+<i class="fa-solid fa-house-flood-water-circle-arrow-right"></i>
+
 This gives every current seller one 28-day battery cycle before you activate Daraja payments.
 
 
@@ -15,6 +26,8 @@ SET
     subscription_expires_at = DATE_SUB(NOW(), INTERVAL 1 DAY),
     subscription_status = 'expired'
 WHERE account_type = 'seller';
+
+UPDATE users SET subscription_expires_at = DATE_SUB(NOW(), INTERVAL 1 DAY), subscription_status = 'expired' WHERE username = 'testershop';
 
 ALTER TABLE users
 ADD COLUMN timezone VARCHAR(64)
@@ -58,7 +71,6 @@ error_reporting(E_ALL);
 
 // Show MySQLi errors clearly
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-
 
 <?php
 // TEMPORARY: show errors while debugging
@@ -114,7 +126,6 @@ if ($conn->connect_error) {
   AddHandler application/x-httpd-ea-php83 .php .php8 .phtml
 </IfModule>
 # php -- END cPanel-generated handler, do not edit
-
 
 1. Customers can buy products and services from their local markets.
   LANDING PAGE

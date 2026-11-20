@@ -279,212 +279,164 @@ if (
     exit;
 }
 
+// Preserve the registered M-Pesa number
+$registeredPhone = $phone;
+/*
+|--------------------------------------------------------------------------
+| PREVIOUS SUBSCRIPTION PERIOD
+|--------------------------------------------------------------------------
+*/
+
+$periodStart =
+    $seller['subscription_started_at'] ?? null;
+
+
+$periodEnd =
+    $seller['subscription_expires_at'] ?? null;
+
 
 /*
 |--------------------------------------------------------------------------
-| CALCULATE RECHARGE AMOUNT
+| VALIDATE SUBSCRIPTION DATES
+|--------------------------------------------------------------------------
+*/
+
+if (
+    empty($periodStart) ||
+    empty($periodEnd)
+) {
+
+    echo json_encode([
+        'success' => false,
+        'message' => 'Your previous subscription period could not be determined.'
+    ]);
+
+    exit;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| CALCULATE SALES
 |--------------------------------------------------------------------------
 |
-| FIRST RECHARGE
-| KES 200
-|
-| SUBSEQUENT RECHARGES
-| 0.5% of previous 28-day sales
-|
-| MINIMUM
-| KES 200
-|
-| MAXIMUM
-| KES 999
+| Only paid and delivered seller sales
+| within the previous subscription period
+| are included.
 |
 */
 
-$periodCount =
-    (int) (
-        $seller['economic_period_count'] ?? 0
+$salesStmt = $conn->prepare("
+    SELECT
+        COALESCE(
+            SUM(oi.subtotal),
+            0
+        ) AS total_sales
+
+    FROM order_items oi
+
+    WHERE oi.seller_id = ?
+
+        AND oi.payment_status = 'paid'
+
+        AND oi.order_status = 'delivered'
+
+        AND oi.delivered_at >= ?
+
+        AND oi.delivered_at < ?
+");
+
+
+if (!$salesStmt) {
+
+    echo json_encode([
+        'success' => false,
+        'message' => 'Unable to calculate your previous sales.'
+    ]);
+
+    exit;
+}
+
+
+$salesStmt->bind_param(
+    "iss",
+    $user_id,
+    $periodStart,
+    $periodEnd
+);
+
+$salesStmt->execute();
+
+
+$salesResult =
+    $salesStmt
+    ->get_result()
+    ->fetch_assoc();
+
+
+$salesStmt->close();
+
+
+/*
+|--------------------------------------------------------------------------
+| TOTAL SALES
+|--------------------------------------------------------------------------
+*/
+
+$totalSales = (float) (
+        $salesResult['total_sales'] ?? 0
     );
 
 
 /*
 |--------------------------------------------------------------------------
-| FIRST RECHARGE
+| 0.5% RECHARGE
 |--------------------------------------------------------------------------
 */
 
-if ($periodCount <= 0) {
+$rechargeAmount =
+    $totalSales * 0.005;
+
+
+/*
+|--------------------------------------------------------------------------
+| MINIMUM KES 200
+|--------------------------------------------------------------------------
+*/
+
+if (
+    $rechargeAmount < 200
+) {
 
     $rechargeAmount = 200;
-
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| SUBSEQUENT RECHARGES
+| MAXIMUM KES 999
 |--------------------------------------------------------------------------
 */
 
-else {
+if (
+    $rechargeAmount > 999
+) {
 
-    /*
-    |--------------------------------------------------------------------------
-    | PREVIOUS SUBSCRIPTION PERIOD
-    |--------------------------------------------------------------------------
-    */
-
-    $periodStart =
-        $seller['subscription_started_at'] ?? null;
-
-
-    $periodEnd =
-        $seller['subscription_expires_at'] ?? null;
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | VALIDATE SUBSCRIPTION DATES
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-        empty($periodStart) ||
-        empty($periodEnd)
-    ) {
-
-        echo json_encode([
-            'success' => false,
-            'message' => 'Your previous subscription period could not be determined.'
-        ]);
-
-        exit;
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | CALCULATE SALES
-    |--------------------------------------------------------------------------
-    |
-    | Only paid and delivered seller sales
-    | within the previous subscription period
-    | are included.
-    |
-    */
-
-    $salesStmt = $conn->prepare("
-        SELECT
-            COALESCE(
-                SUM(oi.subtotal),
-                0
-            ) AS total_sales
-
-        FROM order_items oi
-
-        WHERE oi.seller_id = ?
-
-          AND oi.payment_status = 'paid'
-
-          AND oi.order_status = 'delivered'
-
-          AND oi.delivered_at >= ?
-
-          AND oi.delivered_at < ?
-    ");
-
-
-    if (!$salesStmt) {
-
-        echo json_encode([
-            'success' => false,
-            'message' => 'Unable to calculate your previous sales.'
-        ]);
-
-        exit;
-    }
-
-
-    $salesStmt->bind_param(
-        "iss",
-        $user_id,
-        $periodStart,
-        $periodEnd
-    );
-
-
-    $salesStmt->execute();
-
-
-    $salesResult =
-        $salesStmt
-        ->get_result()
-        ->fetch_assoc();
-
-
-    $salesStmt->close();
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | TOTAL SALES
-    |--------------------------------------------------------------------------
-    */
-
-    $totalSales =
-        (float) (
-            $salesResult['total_sales'] ?? 0
-        );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | 0.5% RECHARGE
-    |--------------------------------------------------------------------------
-    */
-
-    $rechargeAmount =
-        $totalSales * 0.005;
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | MINIMUM KES 200
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-        $rechargeAmount < 200
-    ) {
-
-        $rechargeAmount = 200;
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | MAXIMUM KES 999
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-        $rechargeAmount > 999
-    ) {
-
-        $rechargeAmount = 999;
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | ROUND
-    |--------------------------------------------------------------------------
-    */
-
-    $rechargeAmount =
-        round(
-            $rechargeAmount,
-            2
-        );
+    $rechargeAmount = 999;
 }
+
+
+/*
+|--------------------------------------------------------------------------
+| ROUND
+|--------------------------------------------------------------------------
+*/
+
+$rechargeAmount =
+    round(
+        $rechargeAmount,
+        2
+    );
 
 
 /*
@@ -501,6 +453,100 @@ $mpesaAmount =
         $rechargeAmount
     );
 
+
+/*
+|--------------------------------------------------------------------------
+| PAYMENT DETAILS / PHONE SELECTION
+|--------------------------------------------------------------------------
+*/
+
+// Format registered phone for display
+$displayPhone = '0' . substr($registeredPhone, 3);
+
+// Get the requested action
+$action = $_POST['action'] ?? '';
+
+/*
+|--------------------------------------------------------------------------
+| RETURN PAYMENT DETAILS
+|--------------------------------------------------------------------------
+| This request must NOT send an STK prompt.
+*/
+
+if ($action === 'details') {
+
+    echo json_encode([
+        'success' => true,
+        'phone' => $displayPhone,
+        'amount' => $mpesaAmount
+    ]);
+
+    exit;
+}
+
+/*
+|--------------------------------------------------------------------------
+| VALIDATE PAYMENT ACTION
+|--------------------------------------------------------------------------
+*/
+
+if ($action !== 'stk') {
+
+    echo json_encode([
+        'success' => false,
+        'message' => 'Invalid payment request.'
+    ]);
+
+    exit;
+}
+
+/*
+|--------------------------------------------------------------------------
+| SELECT PHONE NUMBER FOR STK
+|--------------------------------------------------------------------------
+*/
+
+// Use the registered number unless another number was supplied.
+$submittedPhone = trim($_POST['phone'] ?? '');
+
+if ($submittedPhone !== '') {
+
+    // Remove spaces and separators
+    $submittedPhone = preg_replace(
+        '/[\s\-()]+/',
+        '',
+        $submittedPhone
+    );
+
+    // Remove leading +
+    if (strpos($submittedPhone, '+') === 0) {
+        $submittedPhone = substr($submittedPhone, 1);
+    }
+
+    // Convert 07XXXXXXXX to 2547XXXXXXXX
+    if (strpos($submittedPhone, '0') === 0) {
+        $submittedPhone = '254' . substr($submittedPhone, 1);
+    }
+
+    // Validate Kenyan M-Pesa number
+    if (!preg_match('/^2547\d{8}$/', $submittedPhone)) {
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Please enter a valid Kenyan M-Pesa number.'
+        ]);
+
+        exit;
+    }
+
+    // Use alternative number
+    $phone = $submittedPhone;
+
+} else {
+
+    // Use registered number
+    $phone = $registeredPhone;
+}
 
 /*
 |--------------------------------------------------------------------------
@@ -1047,7 +1093,6 @@ if (
             NOW()
         )
     ");
-    Then:
 
     $currency =
         'KES';
@@ -1105,7 +1150,7 @@ if (
     */
 
     $transactionStmt->bind_param(
-        "siiiiisdssss",
+        "ssiiisdsssss",
         $sourceType,
         $sourceId,
         $adminWalletId,

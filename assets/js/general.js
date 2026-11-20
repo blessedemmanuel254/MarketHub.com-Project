@@ -21,167 +21,518 @@ function togglePaymentOption() {
 }
 
 /* =========================================================
-  MPESA BATTERY RECHARGE
+   MAKETHUB MPESA BATTERY RECHARGE
 ========================================================= */
 
 document.addEventListener("DOMContentLoaded", function () {
 
-  const paymentForm =
-      document.getElementById("paymentContainer");
+    const paymentForm = document.getElementById("paymentContainer");
 
-  if (!paymentForm) return;
+    if (!paymentForm) return;
 
+    /* =====================================================
+       ELEMENTS
+    ===================================================== */
 
-  paymentForm.addEventListener("submit", function (e) {
+    const autoPyDiv = paymentForm.querySelector(".autoPyDiv");
 
-      e.preventDefault();
+    const mnulPyDiv = paymentForm.querySelector(".mnulPyDiv");
 
+    const mpesaContainer = paymentForm.querySelector(".radio-container.mpesa");
 
-      /* ---------------------------------------------
-          CHECK PAYMENT METHOD
-      --------------------------------------------- */
+    const sendNumberBox = paymentForm.querySelector(".send-number-box");
 
-      const selectedPayment =
-          document.querySelector('input[name="payment"]:checked');
+    const alternativePhone = document.getElementById("alternativeMpesaNumber");
 
-      if (!selectedPayment) {
+    const registeredPhone = document.getElementById("registeredMpesaNumber");
 
-          alert("Please select MPESA to continue.");
+    const continueButton = document.getElementById("btrPayBtn");
 
-          return;
-      }
+    const switchNumberButton = document.getElementById("antrNoTxt");
 
+    const manualButton = paymentForm.querySelector(".mnulPay-btn");
 
-      /* ---------------------------------------------
-          ONLY MPESA IS CURRENTLY SUPPORTED
-      --------------------------------------------- */
+    const successPrompt = document.getElementById("stkSuccessPrompt");
 
-      if (selectedPayment.value !== "mpesa") {
+    const manualAmount = document.getElementById("manualAmount");
 
-          alert("This payment method is not currently available!");
+    const transactionCode = document.getElementById("manualTransactionCode");
 
-          return;
-      }
+    const sendCodeButton = document.getElementById("trCSndBtn");
 
+    const manualPaidButton = document.getElementById("manualPaidBtn");
 
-      /* ---------------------------------------------
-          DISABLE BUTTON WHILE PROCESSING
-      --------------------------------------------- */
+    const goBackButton = document.getElementById("manualGoBack");
 
-      const button =
-          paymentForm.querySelector("button[type='submit']");
+    const copyTillButton = document.getElementById("copyTillButton");
 
-      const originalText =
-          button ? button.textContent : "Continue";
+    /* =====================================================
+       PAYMENT STATE
+    ===================================================== */
 
-      if (button) {
-          button.disabled = true;
-          button.textContent = "Processing...";
-      }
+    let usingAlternativeNumber = false;
 
+    let rechargeAmount = 0;
 
-      /* ---------------------------------------------
-          SEND REQUEST TO PHP
-      --------------------------------------------- */
+    let registeredNumberLoaded = false;
 
-      fetch("rechargeBattery.php", {
+    /* =====================================================
+       LOAD REGISTERED PHONE AND ACCURATE AMOUNT
+    ===================================================== */
 
-          method: "POST",
+    function loadPaymentDetails() {
 
-          headers: {
-              "Content-Type": "application/x-www-form-urlencoded"
-          },
+        const body = new URLSearchParams();
 
-          body: "payment=mpesa"
+        body.append("action", "details");
 
-      })
+        fetch("rechargeBattery.php", {
 
-      .then(async response => {
+            method: "POST",
 
-          const rawText = await response.text();
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
 
-          console.log("PHP HTTP STATUS:", response.status);
-          console.log("PHP RAW RESPONSE:", rawText);
+            body: body.toString()
 
-          if (!response.ok) {
+        })
 
-              throw new Error(
-                  "PHP returned HTTP " +
-                  response.status +
-                  ": " +
-                  rawText
-              );
-          }
+        .then(response => response.json())
 
-          try {
+        .then(data => {
 
-              return JSON.parse(rawText);
+            if (!data.success) {
 
-          } catch (jsonError) {
+                registeredPhone.textContent =
+                    data.message || "Unable to load registered number.";
 
-              console.error(
-                  "JSON PARSE ERROR:",
-                  jsonError
-              );
+                manualAmount.textContent = "Unavailable";
 
-              throw new Error(
-                  "PHP did not return valid JSON. Raw response: " +
-                  rawText
-              );
-          }
+                return;
+            }
 
-      })
+            // Display registered phone
+            registeredPhone.textContent = data.phone;
 
-      .then(data => {
+            registeredNumberLoaded = true;
 
-          console.log("PHP JSON DATA:", data);
+            // Store accurate server-calculated amount
+            rechargeAmount = Number(data.amount);
 
-          if (data.success) {
+            // Display amount in manual payment instructions
+            manualAmount.textContent =
+                "KES " + rechargeAmount.toLocaleString("en-KE", {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2
+                });
 
-              alert(
-                  data.message +
-                  "\n\nAmount: KES " +
-                  data.amount
-              );
+        })
 
-              togglePaymentOption();
+        .catch(error => {
 
-          } else {
+            console.error("Payment details error:", error);
 
-              alert(
-                  data.message ||
-                  "Unable to initiate M-Pesa payment."
-              );
-          }
+            registeredPhone.textContent = "Unable to load number.";
 
-      })
+            manualAmount.textContent = "Unable to load amount.";
 
-      .catch(error => {
+        });
 
-          console.error(
-              "Recharge payment error:",
-              error
-          );
+    }
 
-          alert(
-              "Recharge request failed.\n\n" +
-              error.message
-          );
+    loadPaymentDetails();
 
-      })
+    /* =====================================================
+       SWITCH BETWEEN REGISTERED AND ALTERNATIVE NUMBER
+    ===================================================== */
 
-      .finally(() => {
+    function togglePhoneSelection() {
 
-          if (button) {
+        usingAlternativeNumber = !usingAlternativeNumber;
 
-              button.disabled = false;
-              button.textContent = originalText;
+        successPrompt.style.display = "none";
 
-          }
+        if (usingAlternativeNumber) {
 
-      });
+            // Hide registered number selection
+            mpesaContainer.style.display = "none";
 
-  });
+            // Show alternative phone input
+            sendNumberBox.style.display = "flex";
+
+            alternativePhone.required = true;
+
+            alternativePhone.focus();
+
+            // Change button ID
+            switchNumberButton.id = "antrOwnNoTxt";
+
+            // Change icon and text immediately
+            switchNumberButton.innerHTML = `
+                <i class="fa-solid fa-house-flood-water-circle-arrow-right"></i>
+                Use your registered number
+            `;
+
+        } else {
+
+            // Restore registered number selection
+            mpesaContainer.style.display = "flex";
+
+            // Hide alternative phone input
+            sendNumberBox.style.display = "none";
+
+            alternativePhone.required = false;
+
+            alternativePhone.value = "";
+
+            // Restore original button ID
+            switchNumberButton.id = "antrNoTxt";
+
+            // Restore original icon and text
+            switchNumberButton.innerHTML = `
+                <i class="fa-solid fa-mobile-screen-button"></i>
+                Pay with another number
+            `;
+
+        }
+
+    }
+
+    switchNumberButton.addEventListener("click", togglePhoneSelection);
+
+    /* =====================================================
+       SWITCH BETWEEN AUTOMATIC AND MANUAL PAYMENT
+    ===================================================== */
+    function showManualPayment() {
+
+        autoPyDiv.style.display = "none";
+
+        mnulPyDiv.style.display = "flex";
+
+        successPrompt.style.display = "none";
+
+        // Reset manual confirmation controls
+        const codeBox = paymentForm.querySelector(".send-code-box");
+
+        codeBox.style.display = "none";
+
+        manualPaidButton.disabled = false;
+
+        manualPaidButton.textContent = "I have paid 🎉";
+
+        loadPaymentDetails();
+    }
+
+    function showAutomaticPayment() {
+
+        mnulPyDiv.style.display = "none";
+
+        autoPyDiv.style.display = "flex";
+
+        // Restore default registered-number selection
+        if (usingAlternativeNumber) {
+
+            togglePhoneSelection();
+
+        }
+
+    }
+
+    manualButton.addEventListener("click", showManualPayment);
+
+    goBackButton.addEventListener("click", showAutomaticPayment);
+
+    /* =====================================================
+       CONTINUE - AUTOMATIC MPESA PAYMENT
+    ===================================================== */
+
+    paymentForm.addEventListener("submit", function (e) {
+
+        e.preventDefault();
+
+        const selectedPayment =
+            paymentForm.querySelector('input[name="payment"]:checked');
+
+        if (!selectedPayment) {
+
+            alert("Please select MPESA to continue.");
+
+            return;
+        }
+
+        if (selectedPayment.value !== "mpesa") {
+
+            alert("This payment method is not currently available.");
+
+            return;
+        }
+
+        if (!registeredNumberLoaded && !usingAlternativeNumber) {
+
+            alert("Unable to load your registered M-Pesa number. Please try again.");
+
+            return;
+        }
+
+        let selectedPhone = "";
+
+        if (usingAlternativeNumber) {
+
+            selectedPhone = alternativePhone.value.trim();
+
+            if (!selectedPhone) {
+
+                alert("Please enter the alternative M-Pesa number.");
+
+                alternativePhone.focus();
+
+                return;
+            }
+
+        }
+
+        /* ---------------------------------------------
+           DISABLE CONTINUE BUTTON
+        --------------------------------------------- */
+
+        continueButton.disabled = true;
+
+        continueButton.textContent = "Processing...";
+
+        successPrompt.style.display = "none";
+
+        /* ---------------------------------------------
+           SEND REQUEST TO PHP
+        --------------------------------------------- */
+
+        const body = new URLSearchParams();
+
+        body.append("action", "stk");
+
+        body.append("payment", "mpesa");
+
+        if (usingAlternativeNumber) {
+
+            body.append("phone", selectedPhone);
+
+        }
+
+        fetch("rechargeBattery.php", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+
+            body: body.toString()
+
+        })
+
+        .then(async response => {
+
+            const rawText = await response.text();
+
+            console.log("PHP RESPONSE:", rawText);
+
+            if (!response.ok) {
+
+                throw new Error("Server error: " + response.status);
+
+            }
+
+            try {
+
+                return JSON.parse(rawText);
+
+            } catch (error) {
+
+                throw new Error("Invalid PHP JSON response.");
+
+            }
+
+        })
+
+        .then(data => {
+
+            if (data.success) {
+
+                // Use the amount returned by PHP
+                const amount = Number(data.amount);
+
+                // Display exact success prompt
+                successPrompt.textContent =
+                    `Prompt sent for amount : KES ${amount.toLocaleString("en-KE", {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 2
+                    })}. Please check your phone for STK Menu...`;
+
+                successPrompt.style.display = "block";
+
+                // Refresh accurate manual payment amount
+                rechargeAmount = amount;
+
+                manualAmount.textContent =
+                    "KES " + amount.toLocaleString("en-KE");
+
+            } else {
+
+                alert(
+                    data.message || "Unable to initiate M-Pesa payment."
+                );
+
+            }
+
+        })
+
+        .catch(error => {
+
+            console.error("Recharge error:", error);
+
+            alert(
+                "Recharge request failed.\n\n" + error.message
+            );
+
+        })
+
+        .finally(() => {
+
+            continueButton.disabled = false;
+
+            continueButton.textContent = "Continue";
+
+        });
+
+    });
+
+    /* =====================================================
+       COPY TILL NUMBER
+    ===================================================== */
+
+    function copyTill() {
+
+        const tillNumber =
+            document.getElementById("tillNumber").textContent.trim();
+
+        navigator.clipboard.writeText(tillNumber)
+
+        .then(() => {
+
+            const original = copyTillButton.innerHTML;
+
+            copyTillButton.innerHTML = `
+                <i class="fa-solid fa-check"></i>
+                <span>Copied Successfully</span>
+            `;
+
+            setTimeout(() => {
+
+                copyTillButton.innerHTML = original;
+
+            }, 1800);
+
+        })
+
+        .catch(error => {
+
+            console.error("Copy error:", error);
+
+            alert("Unable to copy till number.");
+
+        });
+
+    }
+
+    copyTillButton.addEventListener("click", copyTill);
+
+    copyTillButton.addEventListener("keydown", function(e) {
+
+        if (e.key === "Enter" || e.key === " ") {
+
+            e.preventDefault();
+
+            copyTill();
+
+        }
+
+    });
+
+    /* =====================================================
+       I HAVE PAID - ENTER TRANSACTION CODE
+    ===================================================== */
+
+    manualPaidButton.addEventListener("click", function () {
+
+        const codeBox =
+            paymentForm.querySelector(".send-code-box");
+
+        codeBox.style.display = "flex";
+
+        transactionCode.focus();
+
+        manualPaidButton.textContent = "Enter transaction code";
+
+        manualPaidButton.disabled = true;
+
+    });
+
+    /* =====================================================
+       SEND TRANSACTION CODE TO MAKETHUB WHATSAPP
+    ===================================================== */
+
+    sendCodeButton.addEventListener("click", function () {
+
+        const code = transactionCode.value.trim();
+
+        if (!code) {
+
+            alert("Please enter your M-Pesa transaction code.");
+
+            transactionCode.focus();
+
+            return;
+        }
+
+        if (!/^[A-Za-z0-9]{8,20}$/.test(code)) {
+
+            alert("Please enter a valid M-Pesa transaction code.");
+
+            transactionCode.focus();
+
+            return;
+        }
+
+        if (!rechargeAmount) {
+
+            alert("Unable to verify the recharge amount. Please try again.");
+
+            return;
+        }
+
+        const formattedAmount =
+            rechargeAmount.toLocaleString("en-KE", {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            });
+
+        const message =
+            `Hello Makethub Support,\n\n` +
+            `I have completed my manual battery recharge payment.\n\n` +
+            `Transaction Code: ${code}\n` +
+            `Amount: KES ${formattedAmount}\n` +
+            `Payment: M-PESA Buy Goods\n` +
+            `Till Number: 1774156\n\n` +
+            `Kindly verify my payment and activate my seller battery.\n\n` +
+            `Thank you.`;
+
+        const whatsappURL =
+            "https://wa.me/254773029440?text=" +
+            encodeURIComponent(message);
+
+        window.open(whatsappURL, "_blank", "noopener,noreferrer");
+
+    });
 
 });
 
@@ -1010,7 +1361,7 @@ function goBackToSellerPage() {
 
   localStorage.setItem("seller:productsView", "list");
 
-  window.location.href = "/sellerPage";
+  window.location.href = "/sellerpage";
 }
 
 // =====================================================
@@ -1532,7 +1883,7 @@ document.addEventListener("click", function (e) {
 
     if (!confirmAction) return; // ❌ Stop if user cancels
 
-    fetch("/sellerPage", {
+    fetch("/sellerpage", {
         method: "POST",
         headers: {
             "Content-Type": "application/x-www-form-urlencoded"
@@ -2800,7 +3151,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
           /* =============================================
-              SEND TO /sellerPage
+              SEND TO /sellerpage
               ============================================= */
 
           const formData =
@@ -2823,7 +3174,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
           fetch(
-              "/sellerPage",
+              "/sellerpage",
               {
                   method: "POST",
                   body: formData
@@ -3132,7 +3483,7 @@ document.addEventListener(
 
             const response =
                 await fetch(
-                    '/sellerPage',
+                    '/sellerpage',
                     {
                         method: 'POST',
                         body: formData,
