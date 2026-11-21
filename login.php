@@ -35,28 +35,28 @@ if (
   switch ($accountType) {
 
       case 'seller':
-          header("Location: /sellerPage");
+          header("Location: sellerPage.php");
           exit();
 
       case 'buyer':
-          header("Location: /buyerPage");
+          header("Location: buyerPage.php");
           exit();
 
       case 'sales_agent':
-          header("Location: /agentPage");
+          header("Location: agentPage.php");
           exit();
 
       case 'property_owner':
-          header("Location: /propertyOwnerPage");
+          header("Location: propertyOwnerPage.php");
           exit();
 
       case 'administrator':
       case 'admin':
-          header("Location: /adminPage");
+          header("Location: adminPage.php");
           exit();
 
       default:
-          header("Location: /index");
+          header("Location: index.php");
           exit();
   }
 }
@@ -142,28 +142,28 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         switch ($accountType) {
 
             case 'seller':
-                $redirectPage = '/sellerPage';
+                $redirectPage = 'sellerPage.php';
                 break;
 
             case 'buyer':
-                $redirectPage = '/buyerPage';
+                $redirectPage = 'buyerPage.php';
                 break;
 
             case 'administrator':
             case 'admin':
-                $redirectPage = '/adminPage';
+                $redirectPage = 'adminPage.php';
                 break;
 
             case 'sales_agent':
-                $redirectPage = '/agentPage';
+                $redirectPage = 'agentPage.php';
                 break;
 
             case 'property_owner':
-                $redirectPage = '/propertyOwnerPage';
+                $redirectPage = 'propertyOwnerPage.php';
                 break;
 
             default:
-                $redirectPage = '/index';
+                $redirectPage = 'index.php';
                 break;
         }
 
@@ -243,7 +243,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             Makethub is a global marketplace platform that connects buyers, sellers, and property owners.
           </p>
         </section>
-        <form action="/login" method="POST">
+        <form action="login.php" method="POST">
           <h2>Login to Makethub</h2>
           <?php if (!empty($error)): ?>
             <p class="errorMessage">

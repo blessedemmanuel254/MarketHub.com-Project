@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         body.append("action", "details");
 
-        fetch("rechargeBattery.php", {
+        fetch("/rechargeBattery", {
 
             method: "POST",
 
@@ -318,7 +318,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
 
-        fetch("rechargeBattery.php", {
+        fetch("/rechargeBattery", {
 
             method: "POST",
 
@@ -1949,7 +1949,7 @@ function loadLocations(countryId, selectedCounty = null, selectedWard = null) {
   countySelect.innerHTML = '<option value="">Loading...</option>';
   wardSelect.innerHTML = '<option value="">-- Select Ward --</option>';
 
-  fetch("fetch_locations.php", {
+  fetch("/fetch_locations", {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded"

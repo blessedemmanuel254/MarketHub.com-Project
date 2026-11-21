@@ -52,12 +52,12 @@
 
         <div class="header-actions">
             <a href="/login" class="header-action" onclick="showToast('Your account')">
-                <span class="icon">♙</span>
-                Account
+                <i class="fa-solid fa-user-lock"></i>
+                Signup / Login
             </a>
 
             <button class="header-action" onclick="showToast('Your cart')">
-                <span class="icon">🛒</span>
+                <i class="fa-brands fa-opencart"></i>
                 Cart
                 <span class="cart-count" id="cartCount">0</span>
             </button>
@@ -68,16 +68,13 @@
     <!-- MAJOR MARKETPLACE TABS -->
     <div class="main-tabs">
 
-        <button class="main-tab active" data-tab="products">
-            <span class="tab-icon">▣</span> Products
+        <button class="main-tab active" data-tab="products">Products
         </button>
 
-        <button class="main-tab" data-tab="services">
-            <span class="tab-icon">⚙</span> Services
+        <button class="main-tab" data-tab="services">Services
         </button>
 
-        <button class="main-tab" data-tab="realestate">
-            <span class="tab-icon">⌂</span> Real Estate
+        <button class="main-tab" data-tab="realestate">Real Estate
         </button>
 
     </div>
@@ -123,34 +120,6 @@
         <div class="quick-links" id="quickLinks"></div>
     </section>
 
-    <!-- FLASH SALE -->
-    <section class="section" id="flashSection">
-
-        <div class="flash">
-
-            <div class="flash-heading">
-                <h2>⚡ Flash Deals</h2>
-                <span class="flash-badge">LIMITED OFFERS</span>
-
-                <div class="timer">
-                    Ends in
-                    <span id="hours">08</span> :
-                    <span id="minutes">24</span> :
-                    <span id="seconds">45</span>
-                </div>
-            </div>
-
-            <div class="flash-grid" id="flashGrid"></div>
-
-        </div>
-
-    </section>
-
-    <!-- PROMO BANNERS -->
-    <section class="section" id="bannerSection">
-        <div class="banner-grid" id="bannerGrid"></div>
-    </section>
-
     <!-- LISTINGS -->
     <section class="section" id="listingSection">
 
@@ -163,6 +132,11 @@
 
     </section>
 
+    <!-- PROMO BANNERS -->
+    <section class="section" id="bannerSection">
+        <div class="banner-grid" id="bannerGrid"></div>
+    </section>
+
 </main>
 
 <!-- MOBILE BOTTOM NAVIGATION -->
@@ -170,23 +144,23 @@
     <div class="bottom-nav-inner">
 
         <button class="nav-item active" onclick="bottomNav('home',this)">
-            <span class="nav-icon">⌂</span>Home
+            <i class="fa-solid fa-house"></i>Home
         </button>
 
         <button class="nav-item" onclick="bottomNav('categories',this)">
-            <span class="nav-icon">▦</span>Categories
+            <i class="fa-solid fa-list"></i>Categories
         </button>
 
         <button class="nav-item" onclick="bottomNav('messages',this)">
-            <span class="nav-icon">☏</span>Messages
+            <i class="fa-solid fa-comments"></i>Messages
         </button>
 
         <button class="nav-item" onclick="bottomNav('cart',this)">
-            <span class="nav-icon">🛒</span>Cart
+            <i class="fa-brands fa-opencart"></i>Cart
         </button>
 
         <a href="/login" class="nav-item" onclick="bottomNav('account',this)">
-            <span class="nav-icon">♙</span>Account
+            <i class="fa-solid fa-user-lock"></i>Signup / Login
         </a>
 
     </div>
@@ -231,33 +205,6 @@ const marketplace = {
             text: "Discover amazing offers from businesses across Kenya.",
             image: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=1400&q=85"
         },
-
-        flash: [
-            {
-                title: "Wireless Headphones",
-                price: 1299,
-                old: 2500,
-                image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=400&q=80"
-            },
-            {
-                title: "Smart Watch",
-                price: 1899,
-                old: 3500,
-                image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80"
-            },
-            {
-                title: "Sneakers",
-                price: 2499,
-                old: 4000,
-                image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80"
-            },
-            {
-                title: "Backpack",
-                price: 999,
-                old: 1800,
-                image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=400&q=80"
-            }
-        ],
 
         banners: [
             {
@@ -403,33 +350,6 @@ const marketplace = {
             image: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1400&q=85"
         },
 
-        flash: [
-            {
-                title: "Photography",
-                price: 2500,
-                old: 4000,
-                image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=400&q=80"
-            },
-            {
-                title: "Salon Services",
-                price: 800,
-                old: 1200,
-                image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=400&q=80"
-            },
-            {
-                title: "Graphic Design",
-                price: 500,
-                old: 1000,
-                image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=400&q=80"
-            },
-            {
-                title: "Phone Repairs",
-                price: 300,
-                old: 600,
-                image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=400&q=80"
-            }
-        ],
-
         banners: [
             {
                 title: "Hire a Professional",
@@ -545,33 +465,6 @@ const marketplace = {
             image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1400&q=85"
         },
 
-        flash: [
-            {
-                title: "Modern Apartment",
-                price: 25000,
-                old: 30000,
-                image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=400&q=80"
-            },
-            {
-                title: "Furnished Short Stay",
-                price: 3500,
-                old: 5000,
-                image: "https://images.unsplash.com/photo-1613490493576-7tmfmy1b212?auto=format&fit=crop&w=400&q=80"
-            },
-            {
-                title: "Residential Land",
-                price: 850000,
-                old: 1000000,
-                image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=400&q=80"
-            },
-            {
-                title: "Family Home",
-                price: 45000,
-                old: 55000,
-                image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=400&q=80"
-            }
-        ],
-
         banners: [
             {
                 title: "Find Your Dream Home",
@@ -666,7 +559,6 @@ function renderPage() {
     renderCategories();
     renderPromo();
     renderQuickLinks();
-    renderFlash();
     renderBanners();
     renderListings();
 }
@@ -732,26 +624,6 @@ function renderQuickLinks() {
                 <span class="emoji">${item[0]}</span>
                 <span>${item[1]}</span>
             </button>
-        `).join("");
-}
-
-/* =========================================================
-   FLASH DEALS
-========================================================= */
-
-function renderFlash() {
-
-    document.getElementById("flashGrid").innerHTML =
-        data().flash.map(item => `
-            <div class="flash-item">
-                <img src="${item.image}" alt="${item.title}">
-                <div class="flash-price">
-                    KSh ${Number(item.price).toLocaleString()}
-                </div>
-                <div class="flash-old">
-                    KSh ${Number(item.old).toLocaleString()}
-                </div>
-            </div>
         `).join("");
 }
 

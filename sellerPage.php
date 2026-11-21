@@ -6583,8 +6583,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_shipped') {
       <div class="tabs-container" id="toggleMarketTypeTab">
         <div class="tabs">
           <button class="tab-btn" data-tab="dashboard">Dashboard</button>
-          <button class="tab-btn" data-tab="my-sales">My&nbsp;Sales</button>
-          <button class="tab-btn" data-tab="products">Store</button>
+          <button class="tab-btn" data-tab="my-sales">Sales</button>
+          <button class="tab-btn" data-tab="products">My&nbsp;Store</button>
           <!-- <button class="tab-btn" data-tab="funds">Funds</button> -->
         </div>
 

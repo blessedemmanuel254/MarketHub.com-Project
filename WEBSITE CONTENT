@@ -11,7 +11,6 @@ HERE IS THE recharge php (In the first attachment above in this chat);
 
 This gives every current seller one 28-day battery cycle before you activate Daraja payments.
 
-
 UPDATE users
 SET
 subscription_started_at = NOW(),
