@@ -623,6 +623,7 @@ $pendingOrders = count($pendingItems);
         <input type="text" id="manualLocation" placeholder="e.g. Blue gate, near church" style="width:100%; padding:10px;">
         <button onclick="confirmLocation()">Confirm Location</button>
       </div> -->
+      <script src="assets/js/tab-system.js" type="text/javascript" defer></script>
       <div class="tabs-container strongRed" id="toggleMarketTypeTab" data-tab-storage="marketTypeTabs">
         <div class="tabs">
           <button class="tab-btn" data-tab="products">Products</button>

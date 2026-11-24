@@ -79,6 +79,21 @@
 
     </div>
 
+    <div class="search-backdrop" id="searchBackdrop">
+    <div class="search-panel" role="dialog" aria-label="Search suggestions">
+        <div class="search-panel-head"><strong>Explore Makethub</strong><button class="panel-close" id="closeSearchPanel" aria-label="Close">×</button></div>
+        <div class="search-panel-section">
+        <div class="search-panel-title"><span>RECENT SEARCHES</span><button class="clear-history" id="clearHistory">Clear history</button></div>
+        <div class="search-history" id="searchHistory"></div>
+        </div>
+        <div class="search-panel-section">
+        <div class="search-panel-title"><span>POPULAR KEYWORDS</span><span style="font-weight:normal;color:#999">Tap to search</span></div>
+        <div class="keyword-list" id="keywordList"></div>
+        </div>
+        <div class="search-hint">Search products, services, properties and verified shops in one place.</div>
+    </div>
+    </div>
+
 </header>
 
 <!-- CATEGORY BAR -->
@@ -137,6 +152,11 @@
         <div class="banner-grid" id="bannerGrid"></div>
     </section>
 
+    <section class="section shop-section" id="shopsSection">
+        <div class="section-heading"><h2 id="shopsHeading">Featured Shops</h2><button class="see-all" onclick="showAllShops()">See all →</button></div>
+        <div class="shop-grid" id="shopGrid"></div>
+    </section>
+
 </main>
 
 <!-- MOBILE BOTTOM NAVIGATION -->
@@ -165,7 +185,15 @@
 
     </div>
 </nav>
-
+    
+        <footer class="mplc-footer">
+      <p>&copy; 2025/2026, makethub.com, All Rights Reserved.</p><br>
+      <p>
+        <a href="privacy.php">Privacy Policy</a> |
+        <a href="terms.php">Terms & Conditions</a> |
+        <a href="/contact">Contact Us</a>
+      </p>
+    </footer>
   </div>
 
 <div class="toast" id="toast"></div>
@@ -225,9 +253,7 @@ const marketplace = {
                 price: 2499,
                 old: 3999,
                 category: "Electronics",
-                rating: 4.8,
-                reviews: 36,
-                delivery: "Local Dispatch",
+                delivery: "Local",
                 image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80"
             },
             {
@@ -235,9 +261,7 @@ const marketplace = {
                 price: 1499,
                 old: 2500,
                 category: "Fashion",
-                rating: 4.6,
-                reviews: 21,
-                delivery: "Local Dispatch",
+                delivery: "Local",
                 image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=600&q=80"
             },
             {
@@ -245,9 +269,7 @@ const marketplace = {
                 price: 2199,
                 old: 3500,
                 category: "Electronics",
-                rating: 4.7,
-                reviews: 18,
-                delivery: "Local Dispatch",
+                delivery: "Local",
                 image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80"
             },
             {
@@ -255,9 +277,7 @@ const marketplace = {
                 price: 2800,
                 old: 4200,
                 category: "Shoes",
-                rating: 4.5,
-                reviews: 42,
-                delivery: "Local Dispatch",
+                delivery: "Local",
                 image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=600&q=80"
             },
             {
@@ -265,9 +285,7 @@ const marketplace = {
                 price: 1800,
                 old: 2400,
                 category: "Home & Kitchen",
-                rating: 4.6,
-                reviews: 12,
-                delivery: "Local Dispatch",
+                delivery: "Local",
                 image: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=600&q=80"
             },
             {
@@ -275,9 +293,7 @@ const marketplace = {
                 price: 1250,
                 old: 2000,
                 category: "Accessories",
-                rating: 4.4,
-                reviews: 30,
-                delivery: "Local Dispatch",
+                delivery: "Local",
                 image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=600&q=80"
             },
             {
@@ -285,9 +301,7 @@ const marketplace = {
                 price: 999,
                 old: 1500,
                 category: "Beauty",
-                rating: 4.8,
-                reviews: 51,
-                delivery: "Local Dispatch",
+                delivery: "Local",
                 image: "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=600&q=80"
             },
             {
@@ -295,9 +309,7 @@ const marketplace = {
                 price: 1599,
                 old: 2500,
                 category: "Electronics",
-                rating: 4.5,
-                reviews: 24,
-                delivery: "Local Dispatch",
+                delivery: "Local",
                 image: "https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?auto=format&fit=crop&w=600&q=80"
             },
             {
@@ -305,19 +317,15 @@ const marketplace = {
                 price: 1400,
                 old: 2100,
                 category: "Home & Kitchen",
-                rating: 4.3,
-                reviews: 14,
-                delivery: "Local Dispatch",
+                delivery: "Local",
                 image: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=600&q=80"
             },
             {
-                title: "Classic Wrist Watch",
+                title: "3-Tier High Quality Carbon Steel Dish Rack – Durable, Rust-Resistant, Large Capacity Kitchen Organizer With Drain Board – Ideal For Plates, Cups & Utensils – Space-Saving Design",
                 price: 2999,
                 old: 4500,
                 category: "Accessories",
-                rating: 4.7,
-                reviews: 28,
-                delivery: "Local Dispatch",
+                delivery: "Local",
                 image: "https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=600&q=80"
             }
         ]
@@ -368,8 +376,6 @@ const marketplace = {
                 title: "Professional Photography",
                 price: 3500,
                 category: "Photography",
-                rating: 4.9,
-                reviews: 22,
                 description: "Events, portraits and product photography.",
                 image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=600&q=80"
             },
@@ -377,8 +383,6 @@ const marketplace = {
                 title: "Graphic Design Services",
                 price: 500,
                 category: "Design",
-                rating: 4.8,
-                reviews: 45,
                 description: "Posters, branding and social media designs.",
                 image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=600&q=80"
             },
@@ -386,8 +390,6 @@ const marketplace = {
                 title: "Home Cleaning",
                 price: 1500,
                 category: "Cleaning",
-                rating: 4.6,
-                reviews: 17,
                 description: "Professional home and office cleaning.",
                 image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=600&q=80"
             },
@@ -395,8 +397,6 @@ const marketplace = {
                 title: "Salon & Beauty Services",
                 price: 800,
                 category: "Beauty",
-                rating: 4.7,
-                reviews: 33,
                 description: "Beauty, hair styling and grooming.",
                 image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=600&q=80"
             },
@@ -404,8 +404,6 @@ const marketplace = {
                 title: "Computer Repair",
                 price: 1000,
                 category: "Technology",
-                rating: 4.5,
-                reviews: 14,
                 description: "Computer maintenance and troubleshooting.",
                 image: "https://images.unsplash.com/photo-1581092921461-eab62e97a780?auto=format&fit=crop&w=600&q=80"
             },
@@ -413,8 +411,6 @@ const marketplace = {
                 title: "Plumbing Services",
                 price: 1200,
                 category: "Repairs",
-                rating: 4.6,
-                reviews: 19,
                 description: "Installation and plumbing repairs.",
                 image: "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?auto=format&fit=crop&w=600&q=80"
             },
@@ -422,8 +418,6 @@ const marketplace = {
                 title: "Private Tutoring",
                 price: 500,
                 category: "Education",
-                rating: 4.9,
-                reviews: 28,
                 description: "Professional tutoring for students.",
                 image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=600&q=80"
             },
@@ -431,8 +425,6 @@ const marketplace = {
                 title: "Event Decoration",
                 price: 5000,
                 category: "Events",
-                rating: 4.8,
-                reviews: 11,
                 description: "Decor for celebrations and events.",
                 image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=600&q=80"
             }
@@ -540,7 +532,10 @@ let currentCategory = "All";
 let searchQuery = "";
 let cart = 0;
 
+let searchHistory=JSON.parse(localStorage.getItem("makethubSearchHistory")||"[]");
+
 const data = () => marketplace[currentTab];
+const $=id=>document.getElementById(id);
 
 /* =========================================================
    RENDER PAGE
@@ -561,9 +556,11 @@ function renderPage() {
     renderQuickLinks();
     renderBanners();
     renderListings();
+    renderShops();
+    renderSearchPanel();
 }
 
-/* =========================================================
+/* L=========================================================
    CATEGORY NAVIGATION
 ========================================================= */
 
@@ -706,24 +703,11 @@ function renderProducts(items) {
     document.getElementById("listingGrid").innerHTML =
         items.map((item, index) => {
 
-            const discount = item.old
-                ? Math.round((1 - item.price / item.old) * 100)
-                : 0;
-
             return `
                 <div class="product-card">
 
                     <div class="product-image">
                         <img src="${item.image}" alt="${item.title}">
-
-                        ${discount ? `
-                            <span class="discount">
-                                -${discount}%
-                            </span>
-                        ` : ""}
-
-                        <button class="favorite"
-                            onclick="toggleFavorite(this)">♡</button>
                     </div>
 
                     <div class="product-info">
@@ -742,18 +726,9 @@ function renderProducts(items) {
                             ` : ""}
                         </div>
 
-                        <div class="rating">
-                            ★★★★★ <span>(${item.reviews})</span>
-                        </div>
-
                         <div class="delivery">
-                            ✓ ${item.delivery || "Available"}
+                            ${item.delivery || "Available"} . <span>Sokoni ward</span>
                         </div>
-
-                        <button class="add-cart"
-                            onclick="addToCart('${item.title}')">
-                            + Add to Cart
-                        </button>
 
                     </div>
 
@@ -814,9 +789,6 @@ function renderProperties(items) {
                     <span class="property-tag">
                         ${item.category}
                     </span>
-
-                    <button class="favorite"
-                        onclick="toggleFavorite(this)">♡</button>
                 </div>
 
                 <div class="property-info">
@@ -849,6 +821,111 @@ function renderProperties(items) {
         `).join("");
 }
 
+
+/* Shop profile data. Add your actual seller/shop records here. */
+const shops=[
+ {name:"Super Fashions",location:"Sokoni Ward, Kilifi",rating:4.8,reviews:1135,cover:"https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=700&q=80",logo:"https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=150&q=80",keywords:"electronics phones laptops gadgets"},
+ {name:"Kwa Cheif Electronics",location:"Malindi Town, Kilifi",rating:4.8,reviews:1135,cover:"https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=700&q=80",logo:"https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=150&q=80",keywords:"fashion clothing boutique"},
+ {name:"Muthoni Shop",location:"Kilifi North, Kilifi",rating:4.8,reviews:1135,cover:"https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=700&q=80",logo:"https://images.unsplash.com/photo-1490312278390-ab64016e0aa9?auto=format&fit=crop&w=150&q=80",keywords:"crafts gifts handmade decor"},
+ {name:"Opulence Outlet",location:"Pwani University area, Kilifi",rating:4.8,reviews:1135,cover:"https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=700&q=80",logo:"https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=150&q=80",keywords:"beauty groceries lifestyle outlet"},
+ {name:"Coastal Home Store",location:"Kilifi, Kenya",rating:4.7,reviews:284,cover:"https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=700&q=80",logo:"https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?auto=format&fit=crop&w=150&q=80",keywords:"home furniture kitchen decor"},
+ {name:"Urban Steps",location:"Mombasa, Kenya",rating:4.6,reviews:192,cover:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=700&q=80",logo:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=150&q=80",keywords:"shoes sneakers footwear"}
+];
+
+function renderShops() {
+
+    const shopGrid = document.getElementById("shopGrid");
+    const shopsHeading = document.getElementById("shopsHeading");
+
+    if (!shopGrid || !shopsHeading) return;
+
+    const q = searchQuery.toLowerCase().trim();
+
+    const filtered = shops.filter(shop => {
+
+        const haystack = [
+            shop.name,
+            shop.location,
+            shop.keywords
+        ].join(" ").toLowerCase();
+
+        return !q || haystack.includes(q);
+    });
+
+    shopsHeading.textContent = q
+        ? `Shops matching "${searchQuery}"`
+        : "Featured Shops";
+
+    if (!filtered.length) {
+
+        shopGrid.innerHTML = `
+            <div class="shop-empty">
+                <div style="font-size:35px;">🔎</div>
+                <h3>No shops found</h3>
+                <p>Try another shop name or keyword.</p>
+            </div>
+        `;
+
+        return;
+    }
+
+    shopGrid.innerHTML = filtered.map(shop => `
+
+        <article class="shop-card"
+            onclick="openShop('${shop.name.replace(/'/g, "\\'")}')">
+
+            <div class="shop-cover-wrap">
+
+                <img class="shop-cover"
+                    src="${shop.cover}"
+                    alt="${shop.name} cover">
+
+                <img class="shop-logo"
+                    src="${shop.logo}"
+                    alt="${shop.name} logo">
+
+            </div>
+
+            <div class="shop-details">
+
+                <div class="shop-name" title="${shop.name}">
+                    ${shop.name}
+                </div>
+
+                <div class="shop-location">
+                    ${shop.location}
+                </div>
+
+                <div class="shop-folwn">
+                    <span>12</span> following
+                </div>
+
+                <div class="shop-folwrs">
+                    <span>43</span> followers
+                </div>
+
+                <div class="shop-rating">
+                    <span class="shop-stars">★★★★★</span>
+                    <strong>${shop.rating.toFixed(1)}</strong>
+                    <span class="shop-rating-count">
+                        (${Number(shop.reviews).toLocaleString()})
+                    </span>
+                </div>
+
+                <div class="shop-view">
+
+                    View Store →
+
+                </div>
+
+            </div>
+
+        </article>
+
+    `).join("");
+}
+function showAllShops(){searchQuery="";$("searchInput").value="";$("clearSearch").style.display="none";renderShops();$("shopsSection").scrollIntoView({behavior:"smooth"})}
+function openShop(name){showToast(name+" store selected");}
 /* =========================================================
    TAB SWITCHING
 ========================================================= */
@@ -899,39 +976,247 @@ document.getElementById("clearSearch")
         renderListings();
     });
 
+
+
 /* =========================================================
-   CART
+   TAB SWITCHING
 ========================================================= */
 
-function addToCart(name) {
+function setTab(tab, button) {
 
-    cart++;
+    document.querySelectorAll(".main-tab").forEach(t => {
+        t.classList.remove("active");
+    });
 
-    const count = document.getElementById("cartCount");
+    if (button) {
+        button.classList.add("active");
+    }
 
-    count.textContent = cart;
-    count.style.display = "block";
+    currentTab = tab;
+    currentCategory = "All";
+    searchQuery = "";
 
-    showToast(name + " added to cart");
+    $("searchInput").value = "";
+    $("clearSearch").style.display = "none";
+
+    closeSearchPanel();
+    renderPage();
 }
 
+document.querySelectorAll(".main-tab").forEach(button => {
+    button.addEventListener("click", () => {
+        setTab(button.dataset.tab, button);
+    });
+});
+
+
 /* =========================================================
-   FAVORITES
+   SEARCH BACKDROP
 ========================================================= */
 
-function toggleFavorite(button) {
+function openSearchPanel() {
+    $("searchBackdrop").classList.add("show");
+    renderSearchPanel();
+}
 
-    button.classList.toggle("active");
+function closeSearchPanel() {
+    $("searchBackdrop").classList.remove("show");
+}
 
-    button.innerHTML =
-        button.classList.contains("active") ? "♥" : "♡";
+// Open search suggestions when input receives focus
+$("searchInput").addEventListener("focus", openSearchPanel);
 
-    showToast(
-        button.classList.contains("active")
-        ? "Added to favorites"
-        : "Removed from favorites"
+
+/* =========================================================
+   SEARCH FILTERING
+========================================================= */
+
+$("searchInput").addEventListener("input", function () {
+
+    searchQuery = this.value.toLowerCase().trim();
+
+    $("clearSearch").style.display =
+        searchQuery ? "block" : "none";
+
+    // Filter products, services, properties and shops
+    renderListings();
+    renderShops();
+
+    // Update suggestions
+    renderSearchPanel();
+});
+
+
+/* =========================================================
+   CLEAR SEARCH
+========================================================= */
+
+$("clearSearch").addEventListener("click", function () {
+
+    $("searchInput").value = "";
+    searchQuery = "";
+
+    this.style.display = "none";
+
+    renderListings();
+    renderShops();
+
+    $("searchInput").focus();
+});
+
+
+/* =========================================================
+   SEARCH KEYBOARD CONTROLS
+========================================================= */
+
+$("searchInput").addEventListener("keydown", function (e) {
+
+    if (e.key === "Enter") {
+
+        saveSearch(this.value);
+        closeSearchPanel();
+        this.blur();
+
+    }
+
+    if (e.key === "Escape") {
+        closeSearchPanel();
+    }
+
+});
+
+
+/* =========================================================
+   CLOSE SEARCH BACKDROP
+========================================================= */
+
+$("closeSearchPanel").addEventListener("click", closeSearchPanel);
+
+$("searchBackdrop").addEventListener("click", function (e) {
+
+    if (e.target === this) {
+        closeSearchPanel();
+    }
+
+});
+
+
+/* =========================================================
+   SEARCH HISTORY
+========================================================= */
+
+function saveSearch(value) {
+
+    const term = value.trim();
+
+    if (!term) return;
+
+    searchHistory = [
+        term,
+        ...searchHistory.filter(
+            x => x.toLowerCase() !== term.toLowerCase()
+        )
+    ].slice(0, 8);
+
+    localStorage.setItem(
+        "makethubSearchHistory",
+        JSON.stringify(searchHistory)
     );
+
+    renderSearchPanel();
 }
+
+
+function removeHistory(term) {
+
+    searchHistory = searchHistory.filter(x => x !== term);
+
+    localStorage.setItem(
+        "makethubSearchHistory",
+        JSON.stringify(searchHistory)
+    );
+
+    renderSearchPanel();
+}
+
+
+$("clearHistory").addEventListener("click", function () {
+
+    searchHistory = [];
+
+    localStorage.removeItem("makethubSearchHistory");
+
+    renderSearchPanel();
+
+});
+
+
+/* =========================================================
+   SEARCH PANEL CONTENT
+========================================================= */
+
+function renderSearchPanel() {
+
+    $("searchHistory").innerHTML = searchHistory.length
+
+        ? searchHistory.map(term => `
+            <button class="history-chip"
+                onclick="applySearch('${term.replace(/'/g, "\\'")}')">
+
+                ◷ ${term}
+
+                <span class="history-x"
+                    onclick="event.stopPropagation();removeHistory('${term.replace(/'/g, "\\'")}')">
+                    ×
+                </span>
+
+            </button>
+        `).join("")
+
+        : '<span class="search-empty">Your recent searches will appear here.</span>';
+
+
+    const dynamic = [
+        ...data().categories.filter(x => x !== "All"),
+        ...shops.map(s => s.name),
+        ...data().listings.map(x => x.category)
+    ];
+
+    const keywords = [...new Set(dynamic)].filter(Boolean).slice(0, 12);
+
+    $("keywordList").innerHTML = keywords.map(word => `
+        <button class="keyword-chip"
+            onclick="applySearch('${word.replace(/'/g, "\\'")}')">
+            ${word}
+        </button>
+    `).join("");
+
+}
+
+
+/* =========================================================
+   APPLY SEARCH KEYWORD
+========================================================= */
+
+function applySearch(term) {
+
+    $("searchInput").value = term;
+
+    searchQuery = term.toLowerCase().trim();
+
+    $("clearSearch").style.display = "block";
+
+    saveSearch(term);
+
+    renderShops();
+    renderListings();
+
+    closeSearchPanel();
+
+}
+
+function removeHistory(term){searchHistory=searchHistory.filter(x=>x!==term);localStorage.setItem("makethubSearchHistory",JSON.stringify(searchHistory));renderSearchPanel()}
+$("clearHistory").addEventListener("click",()=>{searchHistory=[];localStorage.removeItem("makethubSearchHistory");renderSearchPanel()});
 
 /* =========================================================
    TOAST

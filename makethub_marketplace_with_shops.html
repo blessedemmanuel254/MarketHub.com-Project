@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Makethub | Marketplace</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--green:#088000;--green-dark:#066500;--black:#111;--white:#fff;--gray:#f4f5f5;--text:#222;--muted:#777;--border:#eee;--orange:#ff6a24}
+body{font-family:Arial,Helvetica,sans-serif;background:#f5f6f6;color:var(--text)}
+button,input{font:inherit}button{cursor:pointer;border:0}img{width:100%;display:block;object-fit:cover}
+.container{max-width:1250px;margin:auto}
+.header{background:var(--black);color:#fff;position:sticky;top:0;z-index:100}
+.header-top{padding:15px 18px 10px;display:flex;align-items:center;gap:20px;max-width:1250px;margin:auto}
+.logo{display:flex;align-items:center;gap:7px;min-width:145px;font-weight:900;font-size:25px;letter-spacing:-1px;color:#fff}
+.logo-icon{width:35px;height:35px;background:var(--green);border-radius:9px;display:grid;place-items:center;color:#fff;font-size:23px}
+.logo span{color:#62cf50}
+.search-box{flex:1;position:relative}
+.search-box input{width:100%;height:46px;border-radius:9px;border:0;padding:0 48px 0 45px;background:#fff;font-size:15px;outline:none}
+.search-icon{position:absolute;left:15px;top:12px;font-size:20px;color:#777;pointer-events:none}
+.search-clear{position:absolute;right:15px;top:12px;color:#888;display:none;background:none}
+.header-actions{display:flex;gap:18px;align-items:center}
+.header-action{color:#fff;background:none;font-size:13px;text-align:center;position:relative}
+.header-action .icon{font-size:22px;display:block;margin-bottom:3px}
+.cart-count{position:absolute;top:-4px;right:-9px;background:#e53935;color:#fff;font-size:10px;padding:3px 5px;border-radius:20px;display:none}
+.main-tabs{display:flex;max-width:1250px;margin:auto;padding:0 18px;overflow-x:auto;scrollbar-width:none}
+.main-tabs::-webkit-scrollbar,.categories::-webkit-scrollbar{display:none}
+.main-tab{padding:15px 25px;background:transparent;color:#aaa;font-size:15px;font-weight:bold;white-space:nowrap;border-bottom:3px solid transparent}
+.main-tab.active{color:#fff;border-color:#39b32b}
+.main-tab .tab-icon{margin-right:7px}
+.category-bar{background:#fff;border-bottom:1px solid var(--border)}
+.categories{max-width:1250px;margin:auto;display:flex;align-items:center;gap:8px;padding:12px 18px;overflow-x:auto;scrollbar-width:none}
+.category-chip{padding:9px 16px;background:#f4f4f4;border-radius:25px;white-space:nowrap;color:#555;font-size:13px}
+.category-chip.active{background:var(--green);color:#fff}
+.page{padding:16px}.section{margin-bottom:22px}
+.promo{position:relative;border-radius:14px;overflow:hidden;height:220px;background:#173d21;color:#fff}
+.promo img{height:100%;position:absolute;inset:0}
+.promo:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.83),rgba(0,0,0,.45) 48%,rgba(0,0,0,.05))}
+.promo-content{position:relative;z-index:2;padding:28px;max-width:500px}
+.promo-label{display:inline-block;background:#ff6a24;padding:5px 9px;border-radius:4px;font-size:11px;font-weight:bold;margin-bottom:12px}
+.promo h1{font-size:30px;line-height:1.1;margin-bottom:8px}
+.promo p{color:#eee;font-size:13px;margin-bottom:18px}
+.promo-btn{background:#fff;color:#111;padding:11px 17px;border-radius:6px;font-weight:bold;font-size:13px}
+.promo-dots{position:absolute;bottom:14px;left:28px;z-index:3;display:flex;gap:5px}
+.dot{height:6px;width:6px;background:#aaa;border-radius:50%}.dot.active{background:#fff;width:19px;border-radius:10px}
+.quick-links{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:15px}
+.quick-link{background:#fff;padding:15px 7px;text-align:center;border-radius:10px;color:#333}
+.quick-link .emoji{font-size:27px;margin-bottom:8px;display:block}
+.quick-link span:last-child{font-size:11px;font-weight:bold;line-height:1.3}
+.section-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px}
+.section-heading h2{font-size:19px}
+.see-all{color:var(--green);background:transparent;font-size:13px;font-weight:bold}
+.flash{background:#fff;padding:15px;border-radius:12px}
+.flash-heading{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.flash-heading h2{font-size:18px}.flash-badge{background:#fff0e8;color:#ed5a22;font-size:11px;padding:5px 8px;border-radius:4px;font-weight:bold}
+.timer{margin-left:auto;display:flex;gap:4px;align-items:center;font-size:12px;color:#777}
+.timer span{background:#222;color:#fff;padding:5px;border-radius:4px;font-weight:bold}
+.flash-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.flash-item{text-align:center;min-width:0}.flash-item img{height:115px;object-fit:contain;background:#fafafa;border-radius:7px}
+.flash-price{font-size:14px;color:#e44848;font-weight:bold;margin-top:8px}.flash-old{color:#999;font-size:11px;text-decoration:line-through;margin-top:3px}
+.banner-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.small-banner{border-radius:12px;overflow:hidden;height:145px;position:relative;background:#333;color:#fff}
+.small-banner img{height:100%}.small-banner:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.7),transparent 80%)}
+.small-banner-content{position:absolute;z-index:2;bottom:12px;left:13px}.small-banner h3{font-size:16px;margin-bottom:4px}.small-banner p{font-size:11px}
+.product-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.product-card{background:#fff;border-radius:12px;overflow:hidden;position:relative;transition:.2s}
+.product-card:hover{box-shadow:0 4px 15px rgba(0,0,0,.08)}
+.product-image{position:relative;background:#f8f8f8;height:190px;overflow:hidden}
+.product-image img{height:100%;object-fit:contain;transition:transform .3s}
+.product-card:hover .product-image img{transform:scale(1.04)}
+.discount{position:absolute;left:8px;top:8px;background:#ed4848;color:#fff;font-size:10px;padding:5px 7px;border-radius:4px;font-weight:bold}
+.favorite{position:absolute;right:8px;top:8px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.95);font-size:16px;color:#777}
+.favorite.active{color:#e44848}.product-info{padding:11px}
+.product-title{font-size:13px;line-height:1.4;height:37px;overflow:hidden;margin-bottom:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.product-price{font-size:16px;font-weight:bold;margin-bottom:5px}
+.old-price{color:#999;font-size:11px;text-decoration:line-through;margin-left:5px}
+.rating{color:#f39b16;font-size:11px;margin-bottom:8px}.rating span{color:#999;margin-left:3px}
+.delivery{color:#13864a;font-size:10px;font-weight:bold;margin-bottom:8px}
+.add-cart{width:100%;padding:9px;background:#f0f8ef;border:1px solid #d7ecd3;color:var(--green);border-radius:6px;font-weight:bold;font-size:12px}
+.add-cart:hover{background:var(--green);color:#fff}
+.service-card{background:#fff;padding:13px;border-radius:12px}.service-card img{height:150px;border-radius:8px}
+.service-icon{width:40px;height:40px;border-radius:10px;background:#edf8eb;display:grid;place-items:center;font-size:20px;margin:10px 0}
+.service-card h3{font-size:14px;margin-bottom:5px}.service-card p{color:#777;font-size:12px;line-height:1.5;margin-bottom:8px}
+.service-price{color:var(--green);font-weight:bold;font-size:15px}.service-rating{color:#f39b16;font-size:12px;margin-top:8px}
+.property-card{background:#fff;border-radius:12px;overflow:hidden}.property-image{height:200px;position:relative}.property-image img{height:100%}
+.property-tag{position:absolute;top:10px;left:10px;padding:6px 9px;background:var(--green);color:#fff;border-radius:5px;font-size:11px;font-weight:bold}
+.property-info{padding:12px}.property-info h3{font-size:14px;margin-bottom:7px}
+.location{color:#777;font-size:12px;margin-bottom:9px}.property-price{font-size:17px;font-weight:bold;color:var(--green)}
+.property-features{display:flex;gap:10px;border-top:1px solid #eee;padding-top:10px;margin-top:10px;color:#666;font-size:11px}
+.empty{text-align:center;padding:50px 15px;background:#fff;border-radius:12px;color:#777;grid-column:1/-1}
+.empty div{font-size:35px;margin-bottom:10px}
+
+/* SHOP PROFILE GRID — inspired by the supplied reference */
+.shop-section{background:#fff;border-radius:12px;padding:15px}
+.shop-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}
+.shop-card{min-width:0;cursor:pointer}
+.shop-cover-wrap{height:105px;position:relative;margin-bottom:34px}
+.shop-cover{height:100%;width:100%;object-fit:cover;border-radius:9px}
+.shop-logo{position:absolute;left:50%;bottom:-21px;transform:translateX(-50%);width:45px;height:45px;border:4px solid #fff;border-radius:50%;object-fit:cover;background:#f2f2f2}
+.shop-details{padding:0 2px}
+.shop-verified{font-size:11px;color:#626b70;margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.verified-mark{display:inline-grid;place-items:center;width:14px;height:14px;background:#12b886;color:#fff;border-radius:50%;font-size:10px;font-weight:bold}
+.shop-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px}
+.shop-location{font-size:11px;color:#666;margin-bottom:7px}
+.shop-rating{display:flex;align-items:center;gap:4px;font-size:11px;margin-bottom:9px;white-space:nowrap}
+.shop-stars{color:#f0a000;letter-spacing:-1px;font-size:14px}
+.shop-rating-count{color:#899198}
+.shop-tags{display:flex;flex-wrap:wrap;gap:5px}
+.shop-tag{display:inline-flex;align-items:center;gap:4px;border:1px solid #39b98a;color:#159b70;border-radius:20px;padding:4px 8px;font-size:10px;white-space:nowrap}
+.shop-tag .tag-icon{font-size:10px}
+.shop-card:hover .shop-name{color:var(--green)}
+.shop-empty{grid-column:1/-1;text-align:center;padding:28px 10px;color:#777;font-size:13px}
+
+/* SEARCH SUGGESTION PANEL */
+.search-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.28);z-index:150;display:none}
+.search-backdrop.show{display:block}
+.search-panel{position:absolute;top:75px;left:50%;transform:translateX(-50%);width:min(720px,calc(100% - 28px));background:#fff;border-radius:13px;box-shadow:0 16px 45px rgba(0,0,0,.2);padding:18px;color:#222;z-index:160}
+.search-panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}
+.search-panel-head strong{font-size:14px}.panel-close{background:#f3f4f4;color:#555;width:28px;height:28px;border-radius:50%;font-size:17px}
+.search-panel-section{margin-bottom:17px}
+.search-panel-title{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:bold;color:#555;margin-bottom:10px}
+.clear-history{background:none;color:var(--green);font-size:11px}
+.search-history,.keyword-list{display:flex;flex-wrap:wrap;gap:8px}
+.history-chip,.keyword-chip{display:inline-flex;align-items:center;gap:7px;background:#f5f6f6;color:#555;border-radius:20px;padding:8px 11px;font-size:12px}
+.history-chip{cursor:pointer}.history-chip .history-x{color:#999;font-size:13px;margin-left:2px}
+.keyword-chip{cursor:pointer;background:#f0f8ef;color:#287d27}
+.search-empty{font-size:12px;color:#999;padding:5px 0}
+.search-hint{border-top:1px solid #eee;padding-top:12px;color:#999;font-size:11px}
+.search-result-note{font-size:11px;color:#777;margin-top:5px}
+.bottom-nav{background:#fff;border-top:1px solid #e8e8e8;position:fixed;bottom:0;left:0;right:0;z-index:100;display:none}
+.bottom-nav-inner{max-width:700px;margin:auto;display:flex;justify-content:space-around;padding:8px 0 5px}
+.nav-item{background:transparent;color:#777;font-size:10px;min-width:55px;text-align:center}
+.nav-item .nav-icon{display:block;font-size:22px;margin-bottom:4px}.nav-item.active{color:var(--green);font-weight:bold}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:12px 18px;border-radius:30px;font-size:13px;z-index:200;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+@media(min-width:700px){
+.page{padding:22px}.promo{height:300px}.promo-content{padding:45px}.promo h1{font-size:42px}
+.quick-links{grid-template-columns:repeat(8,1fr)}.quick-link{padding:20px 10px}.quick-link .emoji{font-size:30px}.quick-link span:last-child{font-size:12px}
+.product-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}.product-image{height:230px}
+.flash-item img{height:170px}.small-banner{height:210px}.service-card img{height:200px}.property-image{height:230px}
+.shop-cover-wrap{height:125px}.shop-grid{gap:20px}.bottom-nav{display:none!important}.page{padding-bottom:30px}
+}
+@media(min-width:1050px){.product-grid{grid-template-columns:repeat(5,minmax(0,1fr))}.main-tabs{padding-left:0}.categories{padding-left:0}}
+@media(max-width:699px){
+.header-top{padding:12px;gap:10px}.logo{min-width:auto;font-size:21px}.logo-icon{width:31px;height:31px}
+.header-actions{display:none}.main-tabs{padding:0 10px}.main-tab{flex:1;padding:14px 9px;font-size:13px;text-align:center}
+.categories{padding:10px 12px}.page{padding:12px;padding-bottom:85px}.promo{height:185px}.promo-content{padding:23px 18px}.promo h1{font-size:25px}.promo p{font-size:12px}
+.quick-links{gap:7px}.quick-link{padding:12px 5px}.quick-link .emoji{font-size:22px}.quick-link span:last-child{font-size:10px}
+.flash{padding:12px}.flash-item img{height:85px}.flash-price{font-size:12px}.small-banner{height:120px}.small-banner h3{font-size:13px}
+.product-image{height:165px}.bottom-nav{display:block}.shop-section{padding:12px}.shop-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 12px}
+.shop-cover-wrap{height:100px}.shop-name{font-size:12px}.shop-tags{gap:4px}.shop-tag{font-size:9px;padding:4px 6px}
+.search-panel{top:66px;padding:15px}.search-panel-head strong{font-size:13px}
+}
+@media(max-width:380px){.logo{font-size:18px}.logo-icon{width:28px;height:28px}.search-box input{height:40px;font-size:12px}.main-tab{font-size:12px;padding:13px 6px}.product-image{height:145px}.product-price{font-size:14px}.shop-cover-wrap{height:88px}}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-top">
+    <div class="logo"><div class="logo-icon">M</div>Make<span>thub</span></div>
+    <div class="search-box">
+      <span class="search-icon">⌕</span>
+      <input id="searchInput" type="search" autocomplete="off" placeholder="Search products, shops, brands...">
+      <button class="search-clear" id="clearSearch" aria-label="Clear search">✕</button>
+    </div>
+    <div class="header-actions">
+      <button class="header-action" onclick="showToast('Your account')"><span class="icon">♙</span>Account</button>
+      <button class="header-action" onclick="showToast('Your cart')"><span class="icon">🛒</span>Cart<span class="cart-count" id="cartCount">0</span></button>
+    </div>
+  </div>
+  <div class="main-tabs">
+    <button class="main-tab active" data-tab="products"><span class="tab-icon">▣</span> Products</button>
+    <button class="main-tab" data-tab="services"><span class="tab-icon">⚙</span> Services</button>
+    <button class="main-tab" data-tab="realestate"><span class="tab-icon">⌂</span> Real Estate</button>
+  </div>
+</header>
+
+<div class="search-backdrop" id="searchBackdrop">
+  <div class="search-panel" role="dialog" aria-label="Search suggestions">
+    <div class="search-panel-head"><strong>Explore Makethub</strong><button class="panel-close" id="closeSearchPanel" aria-label="Close">×</button></div>
+    <div class="search-panel-section">
+      <div class="search-panel-title"><span>RECENT SEARCHES</span><button class="clear-history" id="clearHistory">Clear history</button></div>
+      <div class="search-history" id="searchHistory"></div>
+    </div>
+    <div class="search-panel-section">
+      <div class="search-panel-title"><span>POPULAR KEYWORDS</span><span style="font-weight:normal;color:#999">Tap to search</span></div>
+      <div class="keyword-list" id="keywordList"></div>
+    </div>
+    <div class="search-hint">Search products, services, properties and verified shops in one place.</div>
+  </div>
+</div>
+
+<div class="category-bar"><div class="categories" id="categories"></div></div>
+<main class="container page">
+  <section class="section"><div class="promo" id="promo">
+    <img id="promoImage" src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=1400&q=85" alt="Marketplace promotion">
+    <div class="promo-content"><span class="promo-label" id="promoLabel">MAKETHUB DEALS</span><h1 id="promoTitle">Everything you need.<br>All in one place.</h1><p id="promoText">Discover great deals from businesses around you.</p><button class="promo-btn" onclick="scrollToListings()">Explore Now →</button></div>
+    <div class="promo-dots"><div class="dot active"></div><div class="dot"></div><div class="dot"></div></div>
+  </div></section>
+
+  <section class="section"><div class="quick-links" id="quickLinks"></div></section>
+
+  <section class="section shop-section" id="shopsSection">
+    <div class="section-heading"><h2 id="shopsHeading">Featured Shops</h2><button class="see-all" onclick="showAllShops()">See all →</button></div>
+    <div class="shop-grid" id="shopGrid"></div>
+  </section>
+
+  <section class="section" id="flashSection"><div class="flash">
+    <div class="flash-heading"><h2>⚡ Flash Deals</h2><span class="flash-badge">LIMITED OFFERS</span><div class="timer">Ends in <span id="hours">08</span> : <span id="minutes">24</span> : <span id="seconds">45</span></div></div>
+    <div class="flash-grid" id="flashGrid"></div>
+  </div></section>
+  <section class="section" id="bannerSection"><div class="banner-grid" id="bannerGrid"></div></section>
+  <section class="section" id="listingSection">
+    <div class="section-heading"><h2 id="listingTitle">Discover Products</h2><button class="see-all" onclick="resetCategory()">See all →</button></div>
+    <div class="product-grid" id="listingGrid"></div>
+  </section>
+</main>
+
+<nav class="bottom-nav"><div class="bottom-nav-inner">
+  <button class="nav-item active" onclick="bottomNav('home',this)"><span class="nav-icon">⌂</span>Home</button>
+  <button class="nav-item" onclick="bottomNav('categories',this)"><span class="nav-icon">▦</span>Categories</button>
+  <button class="nav-item" onclick="bottomNav('messages',this)"><span class="nav-icon">☏</span>Messages</button>
+  <button class="nav-item" onclick="bottomNav('cart',this)"><span class="nav-icon">🛒</span>Cart</button>
+  <button class="nav-item" onclick="bottomNav('account',this)"><span class="nav-icon">♙</span>Account</button>
+</div></nav>
+<div class="toast" id="toast"></div>
+
+<script>
+/* SAMPLE MARKETPLACE DATA — replace these arrays with your PHP/database data later. */
+const marketplace = {
+ products:{
+  title:"Discover Products",searchPlaceholder:"Search products, shops, brands...",
+  categories:["All","Electronics","Phones","Fashion","Home & Kitchen","Beauty","Shoes","Furniture","Groceries","Accessories"],
+  quickLinks:[["📱","Phones"],["👗","Fashion"],["🏠","Home"],["🎧","Electronics"],["👟","Shoes"]],
+  promo:{label:"MEGA SAVINGS",title:"Shop smarter.<br>Save more.",text:"Discover amazing offers from businesses across Kenya.",image:"https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=1400&q=85"},
+  flash:[
+   {title:"Wireless Headphones",price:1299,old:2500,image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=400&q=80"},
+   {title:"Smart Watch",price:1899,old:3500,image:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80"},
+   {title:"Sneakers",price:2499,old:4000,image:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80"},
+   {title:"Backpack",price:999,old:1800,image:"https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=400&q=80"}],
+  banners:[
+   {title:"Fashion Finds",text:"Fresh styles. Great prices.",image:"https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=800&q=80"},
+   {title:"Upgrade Your Home",text:"Beautiful essentials for every home.",image:"https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=800&q=80"}],
+  listings:[
+   {title:"Premium Wireless Bluetooth Headphones",price:2499,old:3999,category:"Electronics",rating:4.8,reviews:36,delivery:"Local Dispatch",image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80"},
+   {title:"Modern Women's Handbag",price:1499,old:2500,category:"Fashion",rating:4.6,reviews:21,delivery:"Local Dispatch",image:"https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=600&q=80"},
+   {title:"Smart Watch Series",price:2199,old:3500,category:"Electronics",rating:4.7,reviews:18,delivery:"Local Dispatch",image:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80"},
+   {title:"Casual Men's Sneakers",price:2800,old:4200,category:"Shoes",rating:4.5,reviews:42,delivery:"Local Dispatch",image:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=600&q=80"},
+   {title:"Elegant Home Decor",price:1800,old:2400,category:"Home & Kitchen",rating:4.6,reviews:12,delivery:"Local Dispatch",image:"https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=600&q=80"},
+   {title:"Travel Backpack",price:1250,old:2000,category:"Accessories",rating:4.4,reviews:30,delivery:"Local Dispatch",image:"https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=600&q=80"},
+   {title:"Skincare Essentials",price:999,old:1500,category:"Beauty",rating:4.8,reviews:51,delivery:"Local Dispatch",image:"https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=600&q=80"},
+   {title:"Wireless Earbuds",price:1599,old:2500,category:"Electronics",rating:4.5,reviews:24,delivery:"Local Dispatch",image:"https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?auto=format&fit=crop&w=600&q=80"}]
+ },
+ services:{
+  title:"Discover Services",searchPlaceholder:"Find professionals, services...",
+  categories:["All","Beauty","Repairs","Cleaning","Photography","Design","Education","Transport","Events","Technology"],
+  quickLinks:[["💇","Beauty"],["🔧","Repairs"],["📸","Photography"],["🧹","Cleaning"],["💻","Technology"]],
+  promo:{label:"FIND THE RIGHT PROFESSIONAL",title:"Services made<br>simple.",text:"Connect with skilled professionals near you.",image:"https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1400&q=85"},
+  flash:[
+   {title:"Photography",price:2500,old:4000,image:"https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=400&q=80"},
+   {title:"Salon Services",price:800,old:1200,image:"https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=400&q=80"},
+   {title:"Graphic Design",price:500,old:1000,image:"https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=400&q=80"},
+   {title:"Phone Repairs",price:300,old:600,image:"https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=400&q=80"}],
+  banners:[
+   {title:"Hire a Professional",text:"Reliable services near you.",image:"https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=800&q=80"},
+   {title:"Grow Your Business",text:"Showcase your skills on Makethub.",image:"https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=800&q=80"}],
+  listings:[
+   {title:"Professional Photography",price:3500,category:"Photography",rating:4.9,reviews:22,description:"Events, portraits and product photography.",image:"https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=600&q=80"},
+   {title:"Graphic Design Services",price:500,category:"Design",rating:4.8,reviews:45,description:"Posters, branding and social media designs.",image:"https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=600&q=80"},
+   {title:"Home Cleaning",price:1500,category:"Cleaning",rating:4.6,reviews:17,description:"Professional home and office cleaning.",image:"https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=600&q=80"},
+   {title:"Salon & Beauty Services",price:800,category:"Beauty",rating:4.7,reviews:33,description:"Beauty, hair styling and grooming.",image:"https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=600&q=80"},
+   {title:"Computer Repair",price:1000,category:"Technology",rating:4.5,reviews:14,description:"Computer maintenance and troubleshooting.",image:"https://images.unsplash.com/photo-1581092921461-eab62e97a780?auto=format&fit=crop&w=600&q=80"}]
+ },
+ realestate:{
+  title:"Discover Properties",searchPlaceholder:"Search houses, land, apartments...",
+  categories:["All","Rentals","Houses","Apartments","Land","Commercial","Bedsitters","Short Stay"],
+  quickLinks:[["🏠","Houses"],["🏢","Apartments"],["🌍","Land"],["🔑","Rentals"],["🏬","Commercial"]],
+  promo:{label:"FIND YOUR PLACE",title:"Your next home<br>starts here.",text:"Explore property listings from across Kenya.",image:"https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1400&q=85"},
+  flash:[
+   {title:"Modern Apartment",price:25000,old:30000,image:"https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=400&q=80"},
+   {title:"Furnished Short Stay",price:3500,old:5000,image:"https://images.unsplash.com/photo-1613490493576-7tmfmy1b212?auto=format&fit=crop&w=400&q=80"},
+   {title:"Residential Land",price:850000,old:1000000,image:"https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=400&q=80"},
+   {title:"Family Home",price:45000,old:55000,image:"https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=400&q=80"}],
+  banners:[
+   {title:"Find Your Dream Home",text:"Explore properties for sale.",image:"https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80"},
+   {title:"Property for Rent",text:"Discover available spaces.",image:"https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=800&q=80"}],
+  listings:[
+   {title:"Modern 2 Bedroom Apartment",price:35000,category:"Apartments",location:"Kilifi",features:"2 Bedrooms · 2 Baths · Parking",image:"https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=600&q=80"},
+   {title:"Beautiful Family Home",price:65000,category:"Houses",location:"Mombasa",features:"3 Bedrooms · 2 Baths · Garden",image:"https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=600&q=80"},
+   {title:"Prime Residential Plot",price:1200000,category:"Land",location:"Kilifi County",features:"50 × 100 · Ready Title · Road Access",image:"https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=600&q=80"},
+   {title:"Furnished Airbnb Apartment",price:4500,category:"Short Stay",location:"Nyali, Mombasa",features:"1 Bedroom · WiFi · Pool",image:"https://images.unsplash.com/photo-1613490493576-7tmfmy1b212?auto=format&fit=crop&w=600&q=80"}]
+ }
+};
+
+/* Shop profile data. Add your actual seller/shop records here. */
+const shops=[
+ {name:"Tech Haven Electronics",location:"New York, NY",rating:4.8,reviews:1135,cover:"https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=700&q=80",logo:"https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=150&q=80",tags:["Best Seller","Daily Deals"],verified:true,keywords:"electronics phones laptops gadgets"},
+ {name:"Harmony Haven",location:"New York, NY",rating:4.8,reviews:1135,cover:"https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=700&q=80",logo:"https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=150&q=80",tags:["Best Seller","Daily Deals"],verified:true,keywords:"fashion clothing boutique"},
+ {name:"Crafted Treasures",location:"New York, NY",rating:4.8,reviews:1135,cover:"https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=700&q=80",logo:"https://images.unsplash.com/photo-1490312278390-ab64016e0aa9?auto=format&fit=crop&w=150&q=80",tags:["Best Seller","Daily Deals"],verified:true,keywords:"crafts gifts handmade decor"},
+ {name:"Opulence Outlet",location:"New York, NY",rating:4.8,reviews:1135,cover:"https://images.unsplash.com/photo-1604719312566-8912e9c8a213?auto=format&fit=crop&w=700&q=80",logo:"https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=150&q=80",tags:["Best Seller","Daily Deals"],verified:true,keywords:"beauty groceries lifestyle outlet"},
+ {name:"Coastal Home Store",location:"Kilifi, Kenya",rating:4.7,reviews:284,cover:"https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=700&q=80",logo:"https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?auto=format&fit=crop&w=150&q=80",tags:["Top Rated","Local Shop"],verified:true,keywords:"home furniture kitchen decor"},
+ {name:"Urban Steps",location:"Mombasa, Kenya",rating:4.6,reviews:192,cover:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=700&q=80",logo:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=150&q=80",tags:["Popular","Daily Deals"],verified:true,keywords:"shoes sneakers footwear"}
+];
+
+let currentTab="products",currentCategory="All",searchQuery="",cart=0;
+const data=()=>marketplace[currentTab];
+const $=id=>document.getElementById(id);
+const money=value=>"KSh "+Number(value).toLocaleString();
+let searchHistory=JSON.parse(localStorage.getItem("makethubSearchHistory")||"[]");
+
+function renderPage(){
+ const current=data();
+ $("searchInput").placeholder=current.searchPlaceholder;
+ $("listingTitle").textContent=current.title;
+ renderCategories();renderPromo();renderQuickLinks();renderFlash();renderBanners();renderShops();renderListings();renderSearchPanel();
+}
+function renderCategories(){
+ $("categories").innerHTML=data().categories.map(category=>`<button class="category-chip ${currentCategory===category?"active":""}" onclick="selectCategory('${category}')">${category}</button>`).join("");
+}
+function selectCategory(category){currentCategory=category;renderCategories();renderListings()}
+function resetCategory(){currentCategory="All";renderCategories();renderListings()}
+function renderPromo(){const p=data().promo;$("promoLabel").textContent=p.label;$("promoTitle").innerHTML=p.title;$("promoText").textContent=p.text;$("promoImage").src=p.image}
+function renderQuickLinks(){$("quickLinks").innerHTML=data().quickLinks.map(item=>`<button class="quick-link" onclick="selectCategory('${item[1]}')"><span class="emoji">${item[0]}</span><span>${item[1]}</span></button>`).join("")}
+function renderFlash(){$("flashGrid").innerHTML=data().flash.map(item=>`<div class="flash-item"><img src="${item.image}" alt="${item.title}"><div class="flash-price">${money(item.price)}</div><div class="flash-old">${money(item.old)}</div></div>`).join("")}
+function renderBanners(){$("bannerGrid").innerHTML=data().banners.map(b=>`<div class="small-banner"><img src="${b.image}" alt="${b.title}"><div class="small-banner-content"><h3>${b.title}</h3><p>${b.text}</p></div></div>`).join("")}
+ccc
+
+function renderListings(){
+ const filtered=data().listings.filter(item=>{
+  const categoryMatch=currentCategory==="All"||item.category===currentCategory||item.title.toLowerCase().includes(currentCategory.toLowerCase());
+  const searchable=[item.title,item.category,item.location||"",item.description||""].join(" ").toLowerCase();
+  return categoryMatch&&(!searchQuery||searchable.includes(searchQuery));
+ });
+ if(!filtered.length){$("listingGrid").innerHTML='<div class="empty"><div>🔎</div><h3>No listings found</h3><p>Try another search or category.</p></div>';return}
+ if(currentTab==="products")renderProducts(filtered);
+ if(currentTab==="services")renderServices(filtered);
+ if(currentTab==="realestate")renderProperties(filtered);
+}
+function renderProducts(items){
+ $("listingGrid").innerHTML=items.map(item=>{
+  const discount=item.old?Math.round((1-item.price/item.old)*100):0;
+  return `<div class="product-card"><div class="product-image"><img src="${item.image}" alt="${item.title}">${discount?`<span class="discount">-${discount}%</span>`:""}<button class="favorite" onclick="toggleFavorite(this)">♡</button></div><div class="product-info"><div class="product-title">${item.title}</div><div class="product-price">${money(item.price)} ${item.old?`<span class="old-price">${money(item.old)}</span>`:""}</div><div class="rating">★★★★★ <span>(${item.reviews||0})</span></div><div class="delivery">✓ ${item.delivery||"Available"}</div><button class="add-cart" onclick="addToCart('${item.title.replace(/'/g,"\\'")}')">+ Add to Cart</button></div></div>`;
+ }).join("");
+}
+function renderServices(items){
+ $("listingGrid").innerHTML=items.map(item=>`<div class="service-card"><img src="${item.image}" alt="${item.title}"><div class="service-icon">🛠️</div><h3>${item.title}</h3><p>${item.description||"Professional service available for booking."}</p><div class="service-price">From ${money(item.price)}</div><div class="service-rating">★★★★★ (${item.reviews||0})</div><button class="add-cart" style="margin-top:12px" onclick="showToast('Service selected: ${item.title.replace(/'/g,"\\'")}')">View Service</button></div>`).join("");
+}
+function renderProperties(items){
+ $("listingGrid").innerHTML=items.map(item=>`<div class="property-card"><div class="property-image"><img src="${item.image}" alt="${item.title}"><span class="property-tag">${item.category}</span><button class="favorite" onclick="toggleFavorite(this)">♡</button></div><div class="property-info"><h3>${item.title}</h3><div class="location">📍 ${item.location||""}</div><div class="property-price">${money(item.price)} ${item.category==="Short Stay"?"/ night":item.category==="Land"?"":"/ month"}</div><div class="property-features">${item.features||""}</div><button class="add-cart" style="margin-top:12px" onclick="showToast('Property selected')">View Property</button></div></div>`).join("");
+}
+function setTab(tab,button){
+ document.querySelectorAll(".main-tab").forEach(t=>t.classList.remove("active"));button.classList.add("active");
+ currentTab=tab;currentCategory="All";searchQuery="";$("searchInput").value="";$("clearSearch").style.display="none";renderPage();
+}
+document.querySelectorAll(".main-tab").forEach(button=>button.addEventListener("click",()=>setTab(button.dataset.tab,button)));
+
+function openSearchPanel(){ $("searchBackdrop").classList.add("show");renderSearchPanel(); }
+function closeSearchPanel(){ $("searchBackdrop").classList.remove("show"); }
+$("searchInput").addEventListener("focus",openSearchPanel);
+$("searchInput").addEventListener("input",function(){
+ searchQuery=this.value.toLowerCase().trim();
+ $("clearSearch").style.display=this.value?"block":"none";
+ renderShops();renderListings();renderSearchPanel();
+});
+$("searchInput").addEventListener("keydown",e=>{if(e.key==="Enter"){saveSearch($("searchInput").value);closeSearchPanel();$("searchInput").blur()}if(e.key==="Escape")closeSearchPanel()});
+$("clearSearch").addEventListener("click",()=>{$("searchInput").value="";searchQuery="";$("clearSearch").style.display="none";renderShops();renderListings();$("searchInput").focus()});
+$("closeSearchPanel").addEventListener("click",closeSearchPanel);
+$("searchBackdrop").addEventListener("click",e=>{if(e.target===$("searchBackdrop"))closeSearchPanel()});
+function saveSearch(value){
+ const term=value.trim();if(!term)return;
+ searchHistory=[term,...searchHistory.filter(x=>x.toLowerCase()!==term.toLowerCase())].slice(0,8);
+ localStorage.setItem("makethubSearchHistory",JSON.stringify(searchHistory));renderSearchPanel();
+}
+function renderSearchPanel(){
+ $("searchHistory").innerHTML=searchHistory.length?searchHistory.map(term=>`<button class="history-chip" onclick="applySearch('${term.replace(/'/g,"\\'")}')">◷ ${term}<span class="history-x" onclick="event.stopPropagation();removeHistory('${term.replace(/'/g,"\\'")}')">×</span></button>`).join(""):'<span class="search-empty">Your recent searches will appear here.</span>';
+ const dynamic=[...data().categories.filter(x=>x!=="All"),...shops.map(s=>s.name),...data().listings.map(x=>x.category)];
+ const keywords=[...new Set(dynamic)].filter(Boolean).slice(0,12);
+ $("keywordList").innerHTML=keywords.map(word=>`<button class="keyword-chip" onclick="applySearch('${word.replace(/'/g,"\\'")}')">${word}</button>`).join("");
+}
+function applySearch(term){$("searchInput").value=term;searchQuery=term.toLowerCase().trim();$("clearSearch").style.display="block";saveSearch(term);renderShops();renderListings();closeSearchPanel()}
+function removeHistory(term){searchHistory=searchHistory.filter(x=>x!==term);localStorage.setItem("makethubSearchHistory",JSON.stringify(searchHistory));renderSearchPanel()}
+$("clearHistory").addEventListener("click",()=>{searchHistory=[];localStorage.removeItem("makethubSearchHistory");renderSearchPanel()});
+
+function addToCart(name){cart++;$("cartCount").textContent=cart;$("cartCount").style.display="block";showToast(name+" added to cart")}
+function toggleFavorite(button){button.classList.toggle("active");button.innerHTML=button.classList.contains("active")?"♥":"♡";showToast(button.classList.contains("active")?"Added to favorites":"Removed from favorites")}
+let toastTimeout;
+function showToast(message){const toast=$("toast");toast.textContent=message;toast.classList.add("show");clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>toast.classList.remove("show"),2200)}
+function bottomNav(name,button){
+ document.querySelectorAll(".nav-item").forEach(item=>item.classList.remove("active"));button.classList.add("active");
+ if(name==="home")window.scrollTo({top:0,behavior:"smooth"});
+ if(name==="categories")document.querySelector(".category-bar").scrollIntoView({behavior:"smooth"});
+ if(name==="cart")showToast("Cart: "+cart+" items");
+ if(name==="messages")showToast("Messages");if(name==="account")showToast("Account");
+}
+function scrollToListings(){$("listingSection").scrollIntoView({behavior:"smooth"})}
+let countdown=8*3600+24*60+45;
+function updateCountdown(){if(countdown<=0)countdown=8*3600;const h=Math.floor(countdown/3600),m=Math.floor((countdown%3600)/60),s=countdown%60;$("hours").textContent=String(h).padStart(2,"0");$("minutes").textContent=String(m).padStart(2,"0");$("seconds").textContent=String(s).padStart(2,"0");countdown--}
+setInterval(updateCountdown,1000);
+renderPage();updateCountdown();
+</script>
+</body>
+</html>
